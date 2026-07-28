@@ -4,14 +4,5 @@ dist/
 .wrangler/
 *.tsbuildinfo
 
-# --- Python (stdio v0，保存於 tag python-stdio-v0.1，移植期暫留作 parity 對照) ---
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-*.egg-info/
-build/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+# --- macOS ---
 .DS_Store

@@ -1,6 +1,7 @@
 /**
  * core.test.ts — 次 seam：純轉換函式單元測試。
- * 這是 Python 版 tests/test_offline.py 那 29 個 case 的落點：證交所資料怪癖。
+ * 這是 Python 版離線測試那 29 個 case 的落點：證交所資料怪癖。
+ * （Python 版已移除，保存於 tag python-stdio-v0.1）
  * 不碰網路、不碰 Worker runtime。
  */
 import { describe, expect, it } from "vitest";
@@ -17,7 +18,7 @@ import {
   type Row,
 } from "../src/core";
 
-// --- 迷你目錄 fixture（對應 test_offline.py 的 FAKE_SWAGGER） ---
+// --- 迷你目錄 fixture（對應 Python 版的 FAKE_SWAGGER） ---
 const CATALOG: Catalog = {
   "exchangeReport/STOCK_DAY_ALL": {
     id: "exchangeReport/STOCK_DAY_ALL",
