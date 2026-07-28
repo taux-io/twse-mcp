@@ -16,6 +16,7 @@ import {
   buildEtfSnapshot,
   describeDataset,
   getDataset,
+  resolveDataset,
   searchDatasets,
   type Catalog,
   type Row,
@@ -78,12 +79,10 @@ export function createServer() {
       },
     },
     async ({ dataset_id, code, match, fields, limit, offset }) => {
-      const dsId = dataset_id.replace(/^\//, "");
-      const ds = catalog[dsId];
-      if (!ds) {
-        return json({ error: `找不到 ${dsId}，請先用 twse_search_datasets 查詢` });
-      }
-      const rows = await fetchDataset(dsId);
+      const resolved = resolveDataset(catalog, dataset_id);
+      if ("error" in resolved) return json(resolved);
+      const { ds } = resolved;
+      const rows = await fetchDataset(ds.id);
       return json(getDataset(ds, rows, { code, match, fields, limit, offset }));
     },
   );

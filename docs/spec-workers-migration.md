@@ -64,8 +64,9 @@
 - 原 Python 的 `Semaphore(2)` 併發禮貌，在 stateless 下由「邊緣快取讓來源命中稀少」取代其目的。
 
 **範圍切割**
-- v1 出貨 **4 個 OpenAPI 工具**；`etf_snapshot` 的 `include_realtime` 預設 **false**。
-- `twse_realtime_quote`（及 `etf_snapshot` 的即時段）**延後**為風險閘控的快速跟進項——因為它打的是不同、較脆的 host（`mis.twse.com.tw`），且可能封 Cloudflare 出口 IP。上線首日單獨探測其可行性；通則補上，不通亦不阻擋 v1。
+- v1 出貨 **4 個 OpenAPI 工具**。
+- **`etf_snapshot` 的即時報價段：程式已接好，靠 `include_realtime` 預設 `false` 收斂。** 它打的是較脆的 host（`mis.twse.com.tw`，可能封 Cloudflare 出口 IP），但失敗會**安全降級成 `realtime: null`**、不影響其餘欄位；想用的人自行帶 `include_realtime=true`。（原本列為延後，實作後確認可安全降級，故收進 v1。）
+- **獨立的 `twse_realtime_quote` 工具**仍**延後**、不在 v1 註冊——那是把即時報價當一等公民的介面，等上線首日從 Cloudflare 邊緣實測 `mis` egress 通了再開。
 
 **Repo 策略**
 - **同 repo，TS 取代 Python**。取代前先 `git tag python-stdio-v0.1` 保存現況。移植期暫留 Python 版當 parity 對照組，收尾 commit 移除。
@@ -88,7 +89,7 @@
 ## Out of Scope
 
 - **Rust 實作、Docker（含 dev container）** — 本次完全不做。
-- **`twse_realtime_quote` 及 `etf_snapshot` 即時報價段** — 延後為風險閘控的快速跟進，非 v1。
+- **獨立的 `twse_realtime_quote` 工具** — 延後、不在 v1 註冊，待從 Cloudflare 邊緣實測 `mis` egress 通了再開。（注意：`etf_snapshot` 的即時段已接好、由 `include_realtime` 預設 `false` 收斂並可安全降級，**不**屬 out of scope。）
 - **Workers KV、Durable Objects、stateful session** — v1 不引入。
 - **認證/授權、速率限制、濫用防護** — v1 公開，日後再加。
 - **上櫃/櫃買中心資料、基金淨值/實際基金規模** — 證交所 OpenAPI 不提供，維持「市值粗估 + 但書」現狀。

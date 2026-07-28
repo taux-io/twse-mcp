@@ -108,11 +108,24 @@ export function searchDatasets(
   return { total_matched: out.length, results: out.slice(0, limit) };
 }
 
+/**
+ * dataset id 可能帶開頭斜線：正規化後查目錄。找不到回統一的 error 物件。
+ * 目錄查找與「找不到」訊息只此一處，避免 core 與 server 兩邊各寫一份而悄悄分歧。
+ */
+export function resolveDataset(
+  catalog: Catalog,
+  datasetId: string,
+): { ds: Dataset } | { error: string } {
+  const id = datasetId.replace(/^\//, "");
+  const ds = catalog[id];
+  if (!ds) return { error: `找不到 ${id}，請先用 twse_search_datasets 查詢` };
+  return { ds };
+}
+
 /** 描述單一資料集的欄位定義。找不到回 error 物件。 */
 export function describeDataset(catalog: Catalog, datasetId: string): Dataset | { error: string } {
-  const ds = catalog[datasetId.replace(/^\//, "")];
-  if (!ds) return { error: `找不到 ${datasetId}，請先用 twse_search_datasets 查詢` };
-  return ds;
+  const r = resolveDataset(catalog, datasetId);
+  return "error" in r ? r : r.ds;
 }
 
 export interface GetDatasetOpts {
@@ -172,7 +185,7 @@ export function getDataset(
     rows_matched: matched,
     returned: page.length,
     offset,
-    note: "資料為前一交易日；盤中即時報價請用 twse_realtime_quote",
+    note: "資料為前一交易日（非盤中即時報價）",
     data: page,
   };
 }

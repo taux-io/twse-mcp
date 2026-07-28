@@ -11,6 +11,7 @@ import {
   firstRow,
   getDataset,
   num,
+  resolveDataset,
   searchDatasets,
   type Catalog,
   type Row,
@@ -97,6 +98,22 @@ describe("searchDatasets", () => {
     const r = searchDatasets(CATALOG, { limit: 1 });
     expect(r.results).toHaveLength(1);
     expect(r.total_matched).toBe(3);
+  });
+});
+
+describe("resolveDataset — 目錄查找/錯誤只此一處", () => {
+  it("命中回 { ds }", () => {
+    const r = resolveDataset(CATALOG, "ETFReport/ETFRank");
+    expect(r).toHaveProperty("ds");
+    expect((r as { ds: { id: string } }).ds.id).toBe("ETFReport/ETFRank");
+  });
+  it("開頭斜線正規化後仍命中", () => {
+    expect(resolveDataset(CATALOG, "/ETFReport/ETFRank")).toHaveProperty("ds");
+  });
+  it("找不到回 { error }，訊息用正規化後的 id", () => {
+    const r = resolveDataset(CATALOG, "/no/such") as { error: string };
+    expect(r.error).toContain("no/such");
+    expect(r.error).not.toContain("/no/such");
   });
 });
 
