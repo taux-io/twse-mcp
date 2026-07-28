@@ -75,13 +75,18 @@ async function callTool(name: string, args: Record<string, unknown>) {
 }
 
 describe("MCP handler seam", () => {
-  it("tools/list 只暴露 4 個 OpenAPI 工具（v1 不含 realtime_quote）", async () => {
+  it("tools/list 暴露 5 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
-      ["etf_snapshot", "twse_describe_dataset", "twse_get_dataset", "twse_search_datasets"].sort(),
+      [
+        "etf_snapshot",
+        "twse_describe_dataset",
+        "twse_get_dataset",
+        "twse_realtime_quote",
+        "twse_search_datasets",
+      ].sort(),
     );
-    expect(names).not.toContain("twse_realtime_quote");
   });
 
   it("twse_search_datasets：ETF 別名命中真實目錄裡的基金表", async () => {
@@ -130,5 +135,15 @@ describe("MCP handler seam", () => {
     const out = await callTool("etf_snapshot", { code: "0056", include_realtime: true });
     expect(Array.isArray(out.realtime)).toBe(true);
     expect(out.realtime[0].last).toBe("38.45");
+  });
+
+  it("twse_realtime_quote：回映射後的報價，且 market 帶進出站請求", async () => {
+    const out = await callTool("twse_realtime_quote", { codes: ["0056"], market: "tse" });
+    expect(out.count).toBe(1);
+    expect(out.quotes[0]).toMatchObject({ code: "0056", last: "38.45", time: "13:30:00" });
+    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
+      .map((c) => String(c[0]))
+      .find((u) => u.includes("getStockInfo"));
+    expect(calledUrl).toContain("tse_0056.tw");
   });
 });

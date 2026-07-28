@@ -142,6 +142,23 @@ export function createServer() {
     },
   );
 
+  server.registerTool(
+    "twse_realtime_quote",
+    {
+      description:
+        "取得盤中即時報價（約 5 秒更新一次）。OpenAPI 只有前一交易日資料，" +
+        '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
+      inputSchema: {
+        codes: z.array(z.string()).describe('代號清單，例如 ["0050", "0056", "2330"]。'),
+        market: z.enum(["tse", "otc"]).default("tse").describe('"tse"（上市）或 "otc"（上櫃）。'),
+      },
+    },
+    async ({ codes, market }) => {
+      const quotes = await fetchQuotes(codes, market);
+      return json({ count: quotes.length, quotes });
+    },
+  );
+
   return server;
 }
 

@@ -226,6 +226,22 @@ describe("buildEtfSnapshot — 三表合併", () => {
     expect(r.is_etf).toBe(false);
     expect(r.caveats.some((c: string) => c.includes("不是 ETF"))).toBe(true);
   });
+  it("真實 ETF 類型字串（指數股票型，不含字面 ETF）-> is_etf true 且無誤導 caveat", () => {
+    // 這是 0056 在證交所的實際 基金類型，離線 fixture 之前測不到
+    const real: Row[] = [
+      { 基金代號: "0056", 基金簡稱: "元大高股息", 基金類型: "國內成分證券指數股票型基金" },
+    ];
+    const r = buildEtfSnapshot("0056", { funds: real, days: [], ranks: [], includeRealtime: false }) as any;
+    expect(r.is_etf).toBe(true);
+    expect(r.caveats.some((c: string) => c.includes("不是 ETF"))).toBe(false);
+  });
+  it("國外成分/期貨型等其他 ETF 種類也認得（都帶「指數股票型」）", () => {
+    for (const t of ["國外成分證券指數股票型基金", "指數股票型期貨信託基金"]) {
+      const funds2: Row[] = [{ 基金代號: "00X", 基金簡稱: "x", 基金類型: t }];
+      const r = buildEtfSnapshot("00X", { funds: funds2, days: [], ranks: [], includeRealtime: false }) as any;
+      expect(r.is_etf, t).toBe(true);
+    }
+  });
   it("來源抓取失敗 -> caveat 標記", () => {
     const r = buildEtfSnapshot("0056", {
       funds,

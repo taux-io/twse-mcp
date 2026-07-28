@@ -237,7 +237,11 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     );
   }
 
-  const isEtf = !!(f && String(f["基金類型"] ?? "").toUpperCase().includes("ETF"));
+  // 證交所對 ETF 的「基金類型」實際寫法是「…指數股票型基金」，字面不含 "ETF"
+  // （例如 0056 是「國內成分證券指數股票型基金」）。所以認「指數股票型」這個真實
+  // 標記，"ETF" 字樣只是保險。含國外成分、期貨型、槓桿反向 ETF 也都帶「指數股票型」。
+  const fundType = f ? String(f["基金類型"] ?? "") : "";
+  const isEtf = !!(f && (fundType.includes("指數股票型") || fundType.toUpperCase().includes("ETF")));
   if (f && !isEtf) {
     caveats.push(`${code} 的基金類型是「${f["基金類型"]}」，不是 ETF`);
   }

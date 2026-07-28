@@ -39,7 +39,7 @@ Claude Desktop 則在 `claude_desktop_config.json` 加：
 | `twse_describe_dataset` | 看某資料集的完整欄位定義 |
 | `twse_get_dataset` | 取資料，支援 code／match 過濾、欄位投影、分頁 |
 | `etf_snapshot` | **單一 ETF 完整概況**：基本資料＋當日價量＋定期定額熱度，一次回傳 |
-| `twse_realtime_quote` | 盤中即時報價 — **v1 尚未開放**，見「即時報價」一節 |
+| `twse_realtime_quote` | 盤中即時報價（`mis.twse.com.tw`，約 5 秒更新；`market` tse／otc） |
 
 一般探索用三段式：`search` 找 dataset_id → `describe` 確認欄位 → `get` 帶條件取值。
 已知是 ETF 就直接 `etf_snapshot("0056")`。
@@ -66,11 +66,14 @@ Claude Desktop 則在 `claude_desktop_config.json` 加：
 `STOCK_DAY_ALL`、小型 ETF 不在定期定額排行榜、代號其實不是 ETF。
 `include_realtime`（預設 `false`）可附上盤中報價 —— 見下節。
 
-## 即時報價（v1 尚未開放）
+## 即時報價
 
 `twse_realtime_quote` 與 `etf_snapshot` 的即時段打的是 `mis.twse.com.tw`（基本市況報導站），
-和 OpenAPI 不同 host、較脆，**可能封 Cloudflare 的出口 IP**。因此 v1 先不開放，
-`include_realtime` 預設 `false`。開放前的驗證步驟見「開發」一節的「即時報價探測」。
+和 OpenAPI 不同 host、約 5 秒更新。這條路曾因「可能封 Cloudflare 出口 IP」在早期延後，
+**部署後從真實邊緣實測已確認可通**（見「開發」一節的「即時報價探測」），故已全面開放。
+
+`etf_snapshot` 的 `include_realtime` 仍預設 `false`（多一次外呼），需要當下價格時帶 `true`；
+出站若失敗會安全降級成 `realtime: null`，不影響其餘欄位。
 
 ## 開發
 
@@ -132,7 +135,7 @@ npm run deploy        # wrangler deploy
 
 ## 已知限制
 
-- OpenAPI 只有前一交易日到前一個月的資料；盤中即時報價待 realtime 工具開放。
+- OpenAPI 只有前一交易日到前一個月的資料；盤中即時報價走 `twse_realtime_quote`。
 - `mis.twse.com.tw` 是網頁背後的 API，沒有服務條款保證、會擋高頻請求，且可能封雲端出口 IP。
 - 上櫃資料要另接櫃買中心 TPEx OpenAPI，欄位命名跟證交所不一致，要另寫一組 parser。
 - ETF 淨值與成分股（PCF）不在證交所 OpenAPI 裡，得逐家投信爬。
