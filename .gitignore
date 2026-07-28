@@ -1,9 +1,15 @@
+# --- Node / Cloudflare Workers (TS) ---
+node_modules/
+dist/
+.wrangler/
+*.tsbuildinfo
+
+# --- Python (stdio v0，保存於 tag python-stdio-v0.1，移植期暫留作 parity 對照) ---
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 *.egg-info/
-dist/
 build/
 .pytest_cache/
 .ruff_cache/

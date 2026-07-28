@@ -8,14 +8,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: ${{ matrix.python-version }}
-      - run: pip install -e .
-      # 測試完全離線（fixture 取代網路層），CI 不需要連證交所
-      - run: python tests/test_offline.py
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # 測試完全離線（stub 掉出站 fetch），CI 不需要連證交所
+      - run: npm test
+      # 型別/設定檢查：確認 Worker 能 bundle，壞掉的部署設定在合併前就擋下
+      - run: npm run dry-run
