@@ -41,11 +41,20 @@ https://twse-mcp.taux.io/mcp
 就可以開始問了。
 
 > 小提醒：加自訂連接器需要 Claude **Pro / Max** 方案（免費方案可加 1 個）。
->
-> 如果你是用 **Claude Code**（終端機），一行就好：
-> ```
-> claude mcp add 台股 --transport http https://twse-mcp.taux.io/mcp
-> ```
+
+**給用終端機工具的人**（一般人跳過即可）——伺服器名稱可自訂，這裡用 `twse`：
+
+Claude Code：
+
+```
+claude mcp add twse --transport http https://twse-mcp.taux.io/mcp
+```
+
+Codex（OpenAI）：
+
+```
+codex mcp add twse --url https://twse-mcp.taux.io/mcp
+```
 
 ---
 
