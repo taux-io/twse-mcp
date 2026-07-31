@@ -17,11 +17,13 @@ import {
   type Catalog,
   type Row,
 } from "../src/core";
+import { datasetUrl } from "../src/twse";
 
 // --- 迷你目錄 fixture（對應 Python 版的 FAKE_SWAGGER） ---
 const CATALOG: Catalog = {
   "exchangeReport/STOCK_DAY_ALL": {
     id: "exchangeReport/STOCK_DAY_ALL",
+    source: "twse",
     summary: "上市個股日成交資訊",
     description: "上市個股日成交資訊",
     tags: ["證券交易"],
@@ -29,6 +31,7 @@ const CATALOG: Catalog = {
   },
   "opendata/t187ap47_L": {
     id: "opendata/t187ap47_L",
+    source: "twse",
     summary: "基金基本資料彙總表",
     description: "基金基本資料彙總表",
     tags: ["其他"],
@@ -36,10 +39,19 @@ const CATALOG: Catalog = {
   },
   "ETFReport/ETFRank": {
     id: "ETFReport/ETFRank",
+    source: "twse",
     summary: "定期定額交易戶數統計排行月報表",
     description: "",
     tags: ["券商資料"],
     fields: { ETFsSecurityCode: "ETF代號", ETFsName: "ETF名稱" },
+  },
+  "tpex/tpex_mainboard_quotes": {
+    id: "tpex/tpex_mainboard_quotes",
+    source: "tpex",
+    summary: "上櫃股票收盤行情",
+    description: "",
+    tags: ["上櫃"],
+    fields: { SecuritiesCompanyCode: "股票代號", CompanyName: "公司名稱", Close: "收盤" },
   },
 };
 
@@ -63,6 +75,10 @@ describe("detectCodeField — 跨表不一致代號欄位偵測", () => {
   it("Code", () => expect(detectCodeField({ Code: "0050", Name: "x" })).toBe("Code"));
   it("基金代號", () => expect(detectCodeField({ 基金代號: "0050" })).toBe("基金代號"));
   it("ETFsSecurityCode", () => expect(detectCodeField({ ETFsSecurityCode: "0056" })).toBe("ETFsSecurityCode"));
+  it("SecuritiesCompanyCode（櫃買中心）", () =>
+    expect(detectCodeField({ SecuritiesCompanyCode: "00679B", CompanyName: "x" })).toBe(
+      "SecuritiesCompanyCode",
+    ));
   it("無可辨識欄位 -> null", () => expect(detectCodeField({ Foo: "bar" })).toBeNull());
   it("依 CODE_FIELDS 順序，Code 優先於 基金代號", () =>
     expect(detectCodeField({ 基金代號: "a", Code: "b" })).toBe("Code"));
@@ -91,14 +107,36 @@ describe("searchDatasets", () => {
     const r = searchDatasets(CATALOG, { tag: "券商資料" });
     expect(r.results.map((x) => x.dataset_id)).toEqual(["ETFReport/ETFRank"]);
   });
-  it("空查詢列出全部", () => {
+  it("別名：上櫃 命中櫃買中心的收盤行情", () => {
+    const r = searchDatasets(CATALOG, { query: "上櫃" });
+    expect(r.results.map((x) => x.dataset_id)).toContain("tpex/tpex_mainboard_quotes");
+  });
+  it("空查詢列出全部（含兩家交易所）", () => {
     const r = searchDatasets(CATALOG, {});
-    expect(r.total_matched).toBe(3);
+    expect(r.total_matched).toBe(Object.keys(CATALOG).length);
   });
   it("limit 生效但 total_matched 是全量", () => {
     const r = searchDatasets(CATALOG, { limit: 1 });
     expect(r.results).toHaveLength(1);
-    expect(r.total_matched).toBe(3);
+    expect(r.total_matched).toBe(Object.keys(CATALOG).length);
+  });
+});
+
+describe("datasetUrl — 依來源路由到正確的交易所", () => {
+  it("twse 直接接在證交所 base 後面", () => {
+    expect(datasetUrl("exchangeReport/STOCK_DAY_ALL", "twse")).toBe(
+      "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",
+    );
+  });
+  it("tpex 打櫃買中心，且前綴要被剝掉", () => {
+    expect(datasetUrl("tpex/tpex_mainboard_quotes", "tpex")).toBe(
+      "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes",
+    );
+  });
+  it("tpex id 若沒帶前綴也能正確組出", () => {
+    expect(datasetUrl("tpex_mainboard_quotes", "tpex")).toBe(
+      "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes",
+    );
   });
 });
 
@@ -243,6 +281,48 @@ describe("buildEtfSnapshot — 三表合併", () => {
       expect(r.is_etf, t).toBe(true);
     }
   });
+  it("上市查無 -> 退到上櫃收盤行情，listing 標「上櫃」", () => {
+    const otcDays: Row[] = [
+      {
+        SecuritiesCompanyCode: "00679B",
+        CompanyName: "元大美債20年",
+        Date: "1150731",
+        Close: "26.68",
+        Change: "+0.17",
+        Open: "26.57",
+        High: "26.69",
+        Low: "26.56",
+        TradingShares: "15501000",
+        TransactionAmount: "412954940",
+        TransactionNumber: "1427",
+      },
+    ];
+    const r = buildEtfSnapshot("00679B", {
+      funds,
+      days,
+      ranks,
+      otcDays,
+      includeRealtime: false,
+    }) as any;
+    expect(r.listing).toBe("上櫃");
+    expect(r.name).toBe("元大美債20年");
+    expect(r.quote.收盤).toBe(26.68);
+    expect(r.quote.漲跌).toBe(0.17); // "+0.17" 前面的正號要吃掉
+    expect(r.quote["漲跌幅%"]).toBeCloseTo(0.64, 2); // 0.17 / 26.51
+    expect(r.quote.成交股數).toBe(15501000);
+    // 上櫃標的不該再出現「不在上市或上櫃」那句
+    expect(r.caveats.some((c: string) => c.includes("不在上市或上櫃"))).toBe(false);
+  });
+  it("上市命中時 listing 標「上市」，不去碰上櫃資料", () => {
+    const r = buildEtfSnapshot("0056", { funds, days, ranks, otcDays: [], includeRealtime: false }) as any;
+    expect(r.listing).toBe("上市");
+  });
+  it("兩邊都查無 -> listing null + caveat", () => {
+    const r = buildEtfSnapshot("9999", { funds, days, ranks, otcDays: [], includeRealtime: false }) as any;
+    expect(r.listing).toBeNull();
+    expect(r.caveats.some((c: string) => c.includes("不在上市或上櫃"))).toBe(true);
+  });
+
   it("來源抓取失敗 -> caveat 標記", () => {
     const r = buildEtfSnapshot("0056", {
       funds,
