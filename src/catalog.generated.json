@@ -1,6 +1,7 @@
 {
  "opendata/t187ap46_L_21": {
   "id": "opendata/t187ap46_L_21",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-職業安全衛生",
   "description": "上市公司企業ESG資訊揭露彙總資料-職業安全衛生(臺灣證券交易所)",
   "tags": [
@@ -20,6 +21,7 @@
  },
  "opendata/t187ap45_L": {
   "id": "opendata/t187ap45_L",
+  "source": "twse",
   "summary": "上市公司股利分派情形",
   "description": "上市公司股利分派情形",
   "tags": [
@@ -54,6 +56,7 @@
  },
  "opendata/t187ap46_L_20": {
   "id": "opendata/t187ap46_L_20",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟",
   "description": "上市公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -69,6 +72,7 @@
  },
  "opendata/t187ap46_L_19": {
   "id": "opendata/t187ap46_L_19",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-風險管理政策",
   "description": "上市公司企業ESG資訊揭露彙總資料-風險管理政策，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -85,6 +89,7 @@
  },
  "opendata/t187ap46_L_18": {
   "id": "opendata/t187ap46_L_18",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-持股及控制力",
   "description": "上市公司企業ESG資訊揭露彙總資料-持股及控制力，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -100,6 +105,7 @@
  },
  "opendata/t187ap46_L_17": {
   "id": "opendata/t187ap46_L_17",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-普惠金融",
   "description": "上市公司企業ESG資訊揭露彙總資料-普惠金融，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -117,6 +123,7 @@
  },
  "opendata/t187ap46_L_16": {
   "id": "opendata/t187ap46_L_16",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-資訊安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-資訊安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -134,6 +141,7 @@
  },
  "opendata/t187ap46_L_15": {
   "id": "opendata/t187ap46_L_15",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-社區關係",
   "description": "上市公司企業ESG資訊揭露彙總資料-社區關係，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -149,6 +157,7 @@
  },
  "opendata/t187ap46_L_14": {
   "id": "opendata/t187ap46_L_14",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-產品品質與安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-產品品質與安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -166,6 +175,7 @@
  },
  "opendata/t187ap46_L_13": {
   "id": "opendata/t187ap46_L_13",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-供應鏈管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-供應鏈管理，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -183,6 +193,7 @@
  },
  "opendata/t187ap46_L_12": {
   "id": "opendata/t187ap46_L_12",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-食品安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-食品安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -204,6 +215,7 @@
  },
  "opendata/t187ap46_L_11": {
   "id": "opendata/t187ap46_L_11",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-產品生命週期",
   "description": "上市公司企業ESG資訊揭露彙總資料-產品生命週期，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -220,6 +232,7 @@
  },
  "opendata/t187ap46_L_10": {
   "id": "opendata/t187ap46_L_10",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-燃料管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-燃料管理，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -238,6 +251,7 @@
  },
  "opendata/t187ap46_L_9": {
   "id": "opendata/t187ap46_L_9",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-功能性委員會",
   "description": "上市公司企業ESG資訊揭露彙總資料-功能性委員會",
   "tags": [
@@ -257,6 +271,7 @@
  },
  "opendata/t187ap46_L_8": {
   "id": "opendata/t187ap46_L_8",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
   "tags": [
@@ -278,6 +293,7 @@
  },
  "opendata/t187ap47_L": {
   "id": "opendata/t187ap47_L",
+  "source": "twse",
   "summary": "基金基本資料彙總表",
   "description": "基金基本資料彙總表",
   "tags": [
@@ -317,6 +333,7 @@
  },
  "opendata/t187ap05_P": {
   "id": "opendata/t187ap05_P",
+  "source": "twse",
   "summary": "公開發行公司每月營業收入彙總表",
   "description": "公開發行公司每月營業收入彙總表",
   "tags": [
@@ -341,6 +358,7 @@
  },
  "opendata/t187ap46_L_7": {
   "id": "opendata/t187ap46_L_7",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-投資人溝通",
   "description": "上市公司企業ESG資訊揭露彙總資料-投資人溝通",
   "tags": [
@@ -356,6 +374,7 @@
  },
  "opendata/t187ap46_L_6": {
   "id": "opendata/t187ap46_L_6",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-董事會",
   "description": "上市公司企業ESG資訊揭露彙總資料-董事會",
   "tags": [
@@ -376,6 +395,7 @@
  },
  "opendata/t187ap46_L_5": {
   "id": "opendata/t187ap46_L_5",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-人力發展",
   "description": "上市公司企業ESG資訊揭露彙總資料-人力發展",
   "tags": [
@@ -400,6 +420,7 @@
  },
  "opendata/t187ap46_L_4": {
   "id": "opendata/t187ap46_L_4",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-廢棄物管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-廢棄物管理",
   "tags": [
@@ -423,6 +444,7 @@
  },
  "opendata/t187ap46_L_3": {
   "id": "opendata/t187ap46_L_3",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-水資源管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-水資源管理",
   "tags": [
@@ -442,6 +464,7 @@
  },
  "opendata/t187ap46_L_2": {
   "id": "opendata/t187ap46_L_2",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-能源管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-能源管理",
   "tags": [
@@ -459,6 +482,7 @@
  },
  "opendata/t187ap46_L_1": {
   "id": "opendata/t187ap46_L_1",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-溫室氣體排放",
   "description": "上市公司企業ESG資訊揭露彙總資料-溫室氣體排放",
   "tags": [
@@ -483,6 +507,7 @@
  },
  "ETFReport/ETFRank": {
   "id": "ETFReport/ETFRank",
+  "source": "twse",
   "summary": "定期定額交易戶數統計排行月報表",
   "description": "定期定額交易戶數統計排行月報表",
   "tags": [
@@ -500,6 +525,7 @@
  },
  "brokerService/secRegData": {
   "id": "brokerService/secRegData",
+  "source": "twse",
   "summary": "開辦定期定額業務證券商名單",
   "description": "開辦定期定額業務證券商名單",
   "tags": [
@@ -514,6 +540,7 @@
  },
  "opendata/t187ap07_X_ci": {
   "id": "opendata/t187ap07_X_ci",
+  "source": "twse",
   "summary": "公發公司資產負債表-一般業",
   "description": "公發公司資產負債表-一般業",
   "tags": [
@@ -550,6 +577,7 @@
  },
  "opendata/t187ap07_X_mim": {
   "id": "opendata/t187ap07_X_mim",
+  "source": "twse",
   "summary": "公發公司資產負債表-異業",
   "description": "公發公司資產負債表-異業",
   "tags": [
@@ -585,6 +613,7 @@
  },
  "opendata/t187ap06_X_basi": {
   "id": "opendata/t187ap06_X_basi",
+  "source": "twse",
   "summary": "公發公司綜合損益表-金融業",
   "description": "公發公司綜合損益表-金融業",
   "tags": [
@@ -620,6 +649,7 @@
  },
  "opendata/t187ap06_X_bd": {
   "id": "opendata/t187ap06_X_bd",
+  "source": "twse",
   "summary": "公發公司綜合損益表-證券期貨業",
   "description": "公發公司綜合損益表-證券期貨業",
   "tags": [
@@ -655,6 +685,7 @@
  },
  "opendata/t187ap06_X_ci": {
   "id": "opendata/t187ap06_X_ci",
+  "source": "twse",
   "summary": "公發公司綜合損益表-一般業",
   "description": "公發公司綜合損益表-一般業",
   "tags": [
@@ -698,6 +729,7 @@
  },
  "opendata/t187ap06_X_fh": {
   "id": "opendata/t187ap06_X_fh",
+  "source": "twse",
   "summary": "公發公司綜合損益表-金控業",
   "description": "公發公司綜合損益表-金控業",
   "tags": [
@@ -733,6 +765,7 @@
  },
  "opendata/t187ap06_X_ins": {
   "id": "opendata/t187ap06_X_ins",
+  "source": "twse",
   "summary": "公發公司綜合損益表-保險業",
   "description": "公發公司綜合損益表-保險業",
   "tags": [
@@ -769,6 +802,7 @@
  },
  "opendata/t187ap06_X_mim": {
   "id": "opendata/t187ap06_X_mim",
+  "source": "twse",
   "summary": "公發公司綜合損益表-異業",
   "description": "公發公司綜合損益表-異業",
   "tags": [
@@ -800,6 +834,7 @@
  },
  "news/eventList": {
   "id": "news/eventList",
+  "source": "twse",
   "summary": "證交所活動訊息",
   "description": "證交所活動訊息",
   "tags": [
@@ -813,6 +848,7 @@
  },
  "company/applylistingForeign": {
   "id": "company/applylistingForeign",
+  "source": "twse",
   "summary": "外國公司向證交所申請第一上市之公司",
   "description": "外國公司向證交所申請第一上市之公司",
   "tags": [
@@ -836,6 +872,7 @@
  },
  "company/newlisting": {
   "id": "company/newlisting",
+  "source": "twse",
   "summary": "最近上市公司",
   "description": "最近上市公司",
   "tags": [
@@ -859,6 +896,7 @@
  },
  "company/suspendListingCsvAndHtml": {
   "id": "company/suspendListingCsvAndHtml",
+  "source": "twse",
   "summary": "終止上市公司",
   "description": "終止上市公司",
   "tags": [
@@ -872,6 +910,7 @@
  },
  "brokerService/brokerList": {
   "id": "brokerService/brokerList",
+  "source": "twse",
   "summary": "證券商總公司基本資料",
   "description": "證券商總公司基本資料",
   "tags": [
@@ -887,6 +926,7 @@
  },
  "news/newsList": {
   "id": "news/newsList",
+  "source": "twse",
   "summary": "證交所新聞",
   "description": "證交所新聞",
   "tags": [
@@ -900,6 +940,7 @@
  },
  "exchangeReport/BWIBBU_ALL": {
   "id": "exchangeReport/BWIBBU_ALL",
+  "source": "twse",
   "summary": "上市個股日本益比、殖利率及股價淨值比（依代碼查詢）",
   "description": "上市個股日本益比、殖利率及股價淨值比（依代碼查詢）",
   "tags": [
@@ -916,6 +957,7 @@
  },
  "exchangeReport/STOCK_DAY_AVG_ALL": {
   "id": "exchangeReport/STOCK_DAY_AVG_ALL",
+  "source": "twse",
   "summary": "上市個股日收盤價及月平均價",
   "description": "上市個股日收盤價及月平均價",
   "tags": [
@@ -931,6 +973,7 @@
  },
  "exchangeReport/STOCK_DAY_ALL": {
   "id": "exchangeReport/STOCK_DAY_ALL",
+  "source": "twse",
   "summary": "上市個股日成交資訊",
   "description": "上市個股日成交資訊",
   "tags": [
@@ -952,6 +995,7 @@
  },
  "exchangeReport/FMSRFK_ALL": {
   "id": "exchangeReport/FMSRFK_ALL",
+  "source": "twse",
   "summary": "上市個股月成交資訊",
   "description": "上市個股月成交資訊",
   "tags": [
@@ -972,6 +1016,7 @@
  },
  "exchangeReport/FMNPTK_ALL": {
   "id": "exchangeReport/FMNPTK_ALL",
+  "source": "twse",
   "summary": "上市個股年成交資訊",
   "description": "上市個股年成交資訊",
   "tags": [
@@ -993,6 +1038,7 @@
  },
  "exchangeReport/MI_INDEX": {
   "id": "exchangeReport/MI_INDEX",
+  "source": "twse",
   "summary": "每日收盤行情-大盤統計資訊",
   "description": "每日收盤行情-大盤統計資訊",
   "tags": [
@@ -1010,6 +1056,7 @@
  },
  "company/applylistingLocal": {
   "id": "company/applylistingLocal",
+  "source": "twse",
   "summary": "申請上市之本國公司",
   "description": "申請上市之本國公司",
   "tags": [
@@ -1033,6 +1080,7 @@
  },
  "fund/MI_QFIIS_cat": {
   "id": "fund/MI_QFIIS_cat",
+  "source": "twse",
   "summary": "集中市場外資及陸資投資類股持股比率表",
   "description": "集中市場外資及陸資投資類股持股比率表",
   "tags": [
@@ -1048,6 +1096,7 @@
  },
  "fund/MI_QFIIS_sort_20": {
   "id": "fund/MI_QFIIS_sort_20",
+  "source": "twse",
   "summary": "集中市場外資及陸資持股前 20 名彙總表",
   "description": "集中市場外資及陸資持股前 20 名彙總表",
   "tags": [
@@ -1067,6 +1116,7 @@
  },
  "exchangeReport/BFI61U": {
   "id": "exchangeReport/BFI61U",
+  "source": "twse",
   "summary": "中央登錄公債補息資料表",
   "description": "中央登錄公債補息資料表",
   "tags": [
@@ -1083,6 +1133,7 @@
  },
  "exchangeReport/TWT88U": {
   "id": "exchangeReport/TWT88U",
+  "source": "twse",
   "summary": "上市個股首五日無漲跌幅",
   "description": "上市個股首五日無漲跌幅",
   "tags": [
@@ -1105,6 +1156,7 @@
  },
  "Announcement/BFZFZU_T": {
   "id": "Announcement/BFZFZU_T",
+  "source": "twse",
   "summary": "投資理財節目異常推介個股",
   "description": "投資理財節目異常推介個股",
   "tags": [
@@ -1119,6 +1171,7 @@
  },
  "exchangeReport/TWTB4U": {
   "id": "exchangeReport/TWTB4U",
+  "source": "twse",
   "summary": "上市股票每日當日沖銷交易標的及統計",
   "description": "上市股票每日當日沖銷交易標的及統計",
   "tags": [
@@ -1133,6 +1186,7 @@
  },
  "exchangeReport/TWTBAU1": {
   "id": "exchangeReport/TWTBAU1",
+  "source": "twse",
   "summary": "集中市場暫停先賣後買當日沖銷交易標的預告表",
   "description": "集中市場暫停先賣後買當日沖銷交易標的預告表",
   "tags": [
@@ -1148,6 +1202,7 @@
  },
  "exchangeReport/TWTBAU2": {
   "id": "exchangeReport/TWTBAU2",
+  "source": "twse",
   "summary": "集中市場暫停先賣後買當日沖銷交易歷史查詢",
   "description": "集中市場暫停先賣後買當日沖銷交易歷史查詢",
   "tags": [
@@ -1163,6 +1218,7 @@
  },
  "exchangeReport/MI_INDEX4": {
   "id": "exchangeReport/MI_INDEX4",
+  "source": "twse",
   "summary": "每日上市上櫃跨市場成交資訊",
   "description": "每日上市上櫃跨市場成交資訊",
   "tags": [
@@ -1177,6 +1233,7 @@
  },
  "indicesReport/FRMSA": {
   "id": "indicesReport/FRMSA",
+  "source": "twse",
   "summary": "寶島股價指數歷史資料",
   "description": "寶島股價指數歷史資料",
   "tags": [
@@ -1190,6 +1247,7 @@
  },
  "indicesReport/TAI50I": {
   "id": "indicesReport/TAI50I",
+  "source": "twse",
   "summary": "臺灣 50 指數歷史資料",
   "description": "臺灣 50 指數歷史資料",
   "tags": [
@@ -1203,6 +1261,7 @@
  },
  "exchangeReport/MI_5MINS": {
   "id": "exchangeReport/MI_5MINS",
+  "source": "twse",
   "summary": "每 5 秒委託成交統計",
   "description": "每 5 秒委託成交統計",
   "tags": [
@@ -1221,6 +1280,7 @@
  },
  "exchangeReport/FMTQIK": {
   "id": "exchangeReport/FMTQIK",
+  "source": "twse",
   "summary": "集中市場每日市場成交資訊",
   "description": "集中市場每日市場成交資訊",
   "tags": [
@@ -1237,6 +1297,7 @@
  },
  "exchangeReport/MI_INDEX20": {
   "id": "exchangeReport/MI_INDEX20",
+  "source": "twse",
   "summary": "集中市場每日成交量前二十名證券",
   "description": "集中市場每日成交量前二十名證券",
   "tags": [
@@ -1261,6 +1322,7 @@
  },
  "exchangeReport/TWT53U": {
   "id": "exchangeReport/TWT53U",
+  "source": "twse",
   "summary": "集中市場零股交易行情單",
   "description": "集中市場零股交易行情單",
   "tags": [
@@ -1281,6 +1343,7 @@
  },
  "exchangeReport/TWTAWU": {
   "id": "exchangeReport/TWTAWU",
+  "source": "twse",
   "summary": "集中市場暫停交易證券",
   "description": "集中市場暫停交易證券",
   "tags": [
@@ -1298,6 +1361,7 @@
  },
  "exchangeReport/BFT41U": {
   "id": "exchangeReport/BFT41U",
+  "source": "twse",
   "summary": "集中市場盤後定價交易",
   "description": "集中市場盤後定價交易",
   "tags": [
@@ -1316,6 +1380,7 @@
  },
  "exchangeReport/BFI84U": {
   "id": "exchangeReport/BFI84U",
+  "source": "twse",
   "summary": "集中市場停資停券預告表",
   "description": "集中市場停資停券預告表",
   "tags": [
@@ -1331,6 +1396,7 @@
  },
  "exchangeReport/MI_MARGN": {
   "id": "exchangeReport/MI_MARGN",
+  "source": "twse",
   "summary": "集中市場融資融券餘額",
   "description": "集中市場融資融券餘額",
   "tags": [
@@ -1357,6 +1423,7 @@
  },
  "indicesReport/MI_5MINS_HIST": {
   "id": "indicesReport/MI_5MINS_HIST",
+  "source": "twse",
   "summary": "發行量加權股價指數歷史資料",
   "description": "發行量加權股價指數歷史資料",
   "tags": [
@@ -1372,6 +1439,7 @@
  },
  "block/BFIAUU_d": {
   "id": "block/BFIAUU_d",
+  "source": "twse",
   "summary": "集中市場鉅額交易日成交量值統計",
   "description": "集中市場鉅額交易日成交量值統計",
   "tags": [
@@ -1388,6 +1456,7 @@
  },
  "block/BFIAUU_m": {
   "id": "block/BFIAUU_m",
+  "source": "twse",
   "summary": "集中市場鉅額交易月成交量值統計",
   "description": "集中市場鉅額交易月成交量值統計",
   "tags": [
@@ -1403,6 +1472,7 @@
  },
  "block/BFIAUU_y": {
   "id": "block/BFIAUU_y",
+  "source": "twse",
   "summary": "集中市場鉅額交易年成交量值統計",
   "description": "集中市場鉅額交易年成交量值統計",
   "tags": [
@@ -1417,6 +1487,7 @@
  },
  "exchangeReport/STOCK_FIRST": {
   "id": "exchangeReport/STOCK_FIRST",
+  "source": "twse",
   "summary": "每日第一上市外國股票成交量值",
   "description": "每日第一上市外國股票成交量值",
   "tags": [
@@ -1443,6 +1514,7 @@
  },
  "exchangeReport/TWT85U": {
   "id": "exchangeReport/TWT85U",
+  "source": "twse",
   "summary": "集中市場證券變更交易",
   "description": "集中市場證券變更交易",
   "tags": [
@@ -1456,6 +1528,7 @@
  },
  "holidaySchedule/holidaySchedule": {
   "id": "holidaySchedule/holidaySchedule",
+  "source": "twse",
   "summary": "有價證券集中交易市場開（休）市日期",
   "description": "有價證券集中交易市場開（休）市日期",
   "tags": [
@@ -1470,6 +1543,7 @@
  },
  "exchangeReport/BWIBBU_d": {
   "id": "exchangeReport/BWIBBU_d",
+  "source": "twse",
   "summary": "上市個股日本益比、殖利率及股價淨值比（依日期查詢）",
   "description": "上市個股日本益比、殖利率及股價淨值比（依日期查詢）",
   "tags": [
@@ -1489,6 +1563,7 @@
  },
  "indicesReport/MFI94U": {
   "id": "indicesReport/MFI94U",
+  "source": "twse",
   "summary": "發行量加權股價報酬指數",
   "description": "發行量加權股價報酬指數",
   "tags": [
@@ -1501,6 +1576,7 @@
  },
  "SBL/TWT96U": {
   "id": "SBL/TWT96U",
+  "source": "twse",
   "summary": "上市上櫃股票當日可借券賣出股數",
   "description": "上市上櫃股票當日可借券賣出股數",
   "tags": [
@@ -1515,6 +1591,7 @@
  },
  "exchangeReport/TWT84U": {
   "id": "exchangeReport/TWT84U",
+  "source": "twse",
   "summary": "上市個股股價升降幅度",
   "description": "上市個股股價升降幅度",
   "tags": [
@@ -1536,6 +1613,7 @@
  },
  "opendata/twtazu_od": {
   "id": "opendata/twtazu_od",
+  "source": "twse",
   "summary": "集中市場漲跌證券數統計表",
   "description": "集中市場漲跌證券數統計表",
   "tags": [
@@ -1555,6 +1633,7 @@
  },
  "opendata/t187ap04_L": {
   "id": "opendata/t187ap04_L",
+  "source": "twse",
   "summary": "上市公司每日重大訊息",
   "description": "上市公司每日重大訊息",
   "tags": [
@@ -1574,6 +1653,7 @@
  },
  "opendata/t187ap03_L": {
   "id": "opendata/t187ap03_L",
+  "source": "twse",
   "summary": "上市公司基本資料",
   "description": "上市公司基本資料",
   "tags": [
@@ -1617,6 +1697,7 @@
  },
  "opendata/t187ap05_L": {
   "id": "opendata/t187ap05_L",
+  "source": "twse",
   "summary": "上市公司每月營業收入彙總表",
   "description": "上市公司每月營業收入彙總表",
   "tags": [
@@ -1641,6 +1722,7 @@
  },
  "opendata/t187ap01": {
   "id": "opendata/t187ap01",
+  "source": "twse",
   "summary": "券商業務別人員數",
   "description": "券商業務別人員數",
   "tags": [
@@ -1681,6 +1763,7 @@
  },
  "opendata/t187ap02_L": {
   "id": "opendata/t187ap02_L",
+  "source": "twse",
   "summary": "上市公司持股逾 10% 大股東名單",
   "description": "上市公司持股逾 10% 大股東名單",
   "tags": [
@@ -1695,6 +1778,7 @@
  },
  "opendata/t187ap14_L": {
   "id": "opendata/t187ap14_L",
+  "source": "twse",
   "summary": "上市公司各產業EPS統計資訊",
   "description": "上市公司各產業EPS統計資訊",
   "tags": [
@@ -1717,6 +1801,7 @@
  },
  "opendata/t187ap15_L": {
   "id": "opendata/t187ap15_L",
+  "source": "twse",
   "summary": "上市公司截至各季綜合損益財測達成情形(簡式)",
   "description": "上市公司截至各季綜合損益財測達成情形(簡式)",
   "tags": [
@@ -1736,6 +1821,7 @@
  },
  "opendata/t187ap16_L": {
   "id": "opendata/t187ap16_L",
+  "source": "twse",
   "summary": "上市公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
   "description": "上市公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
   "tags": [
@@ -1757,6 +1843,7 @@
  },
  "opendata/t187ap17_L": {
   "id": "opendata/t187ap17_L",
+  "source": "twse",
   "summary": "上市公司營益分析查詢彙總表(全體公司彙總報表)",
   "description": "上市公司營益分析查詢彙總表(全體公司彙總報表)",
   "tags": [
@@ -1777,6 +1864,7 @@
  },
  "opendata/t187ap20": {
   "id": "opendata/t187ap20",
+  "source": "twse",
   "summary": "各券商每月月計表",
   "description": "各券商每月月計表",
   "tags": [
@@ -1795,6 +1883,7 @@
  },
  "opendata/t187ap21": {
   "id": "opendata/t187ap21",
+  "source": "twse",
   "summary": "各券商收支概況表資料",
   "description": "各券商收支概況表資料",
   "tags": [
@@ -1812,6 +1901,7 @@
  },
  "opendata/t187ap18": {
   "id": "opendata/t187ap18",
+  "source": "twse",
   "summary": "證券商基本資料",
   "description": "證券商基本資料",
   "tags": [
@@ -1890,6 +1980,7 @@
  },
  "opendata/t187ap19": {
   "id": "opendata/t187ap19",
+  "source": "twse",
   "summary": "電子式交易統計資訊",
   "description": "電子式交易統計資訊",
   "tags": [
@@ -1920,6 +2011,7 @@
  },
  "opendata/t187ap08_L": {
   "id": "opendata/t187ap08_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人持股不足法定成數彙總表",
   "description": "上市公司董事、監察人持股不足法定成數彙總表",
   "tags": [
@@ -1945,6 +2037,7 @@
  },
  "opendata/t187ap11_L": {
   "id": "opendata/t187ap11_L",
+  "source": "twse",
   "summary": "上市公司董監事持股餘額明細資料",
   "description": "上市公司董監事持股餘額明細資料",
   "tags": [
@@ -1968,6 +2061,7 @@
  },
  "opendata/t187ap12_L": {
   "id": "opendata/t187ap12_L",
+  "source": "twse",
   "summary": "上市公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
   "description": "上市公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
   "tags": [
@@ -1994,6 +2088,7 @@
  },
  "opendata/t187ap13_L": {
   "id": "opendata/t187ap13_L",
+  "source": "twse",
   "summary": "上市公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
   "description": "上市公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
   "tags": [
@@ -2016,6 +2111,7 @@
  },
  "opendata/t187ap22_L": {
   "id": "opendata/t187ap22_L",
+  "source": "twse",
   "summary": "上市公司金管會證券期貨局裁罰案件專區",
   "description": "上市公司金管會證券期貨局裁罰案件專區",
   "tags": [
@@ -2033,6 +2129,7 @@
  },
  "opendata/t187ap30_L": {
   "id": "opendata/t187ap30_L",
+  "source": "twse",
   "summary": "上市公司獨立董監事兼任情形彙總表",
   "description": "上市公司獨立董監事兼任情形彙總表",
   "tags": [
@@ -2055,6 +2152,7 @@
  },
  "opendata/t187ap29_A_L": {
   "id": "opendata/t187ap29_A_L",
+  "source": "twse",
   "summary": "上市公司董事酬金相關資訊 ",
   "description": "上市公司董事酬金相關資訊 ",
   "tags": [
@@ -2085,6 +2183,7 @@
  },
  "opendata/t187ap29_B_L": {
   "id": "opendata/t187ap29_B_L",
+  "source": "twse",
   "summary": "上市公司監察人酬金相關資訊 ",
   "description": "上市公司監察人酬金相關資訊 ",
   "tags": [
@@ -2110,6 +2209,7 @@
  },
  "opendata/t187ap29_C_L": {
   "id": "opendata/t187ap29_C_L",
+  "source": "twse",
   "summary": "上市公司合併報表董事酬金相關資訊 ",
   "description": "上市公司合併報表董事酬金相關資訊 ",
   "tags": [
@@ -2140,6 +2240,7 @@
  },
  "opendata/t187ap29_D_L": {
   "id": "opendata/t187ap29_D_L",
+  "source": "twse",
   "summary": "上市公司合併報表監察人酬金相關資訊 ",
   "description": "上市公司合併報表監察人酬金相關資訊 ",
   "tags": [
@@ -2165,6 +2266,7 @@
  },
  "opendata/t187ap23_L": {
   "id": "opendata/t187ap23_L",
+  "source": "twse",
   "summary": "上市公司違反資訊申報、重大訊息及說明記者會規定專區",
   "description": "上市公司違反資訊申報、重大訊息及說明記者會規定專區",
   "tags": [
@@ -2183,6 +2285,7 @@
  },
  "opendata/t187ap31_L": {
   "id": "opendata/t187ap31_L",
+  "source": "twse",
   "summary": "上市公司財務報告經監察人承認情形",
   "description": "上市公司財務報告經監察人承認情形",
   "tags": [
@@ -2199,6 +2302,7 @@
  },
  "opendata/t187ap36_L": {
   "id": "opendata/t187ap36_L",
+  "source": "twse",
   "summary": "上市認購(售)權證年度發行量概況統計表",
   "description": "上市認購(售)權證年度發行量概況統計表",
   "tags": [
@@ -2217,6 +2321,7 @@
  },
  "opendata/t187ap03_P": {
   "id": "opendata/t187ap03_P",
+  "source": "twse",
   "summary": "公開發行公司基本資料",
   "description": "公開發行公司基本資料",
   "tags": [
@@ -2260,6 +2365,7 @@
  },
  "opendata/t187ap43_L": {
   "id": "opendata/t187ap43_L",
+  "source": "twse",
   "summary": "上市認購(售)權證交易人數檔",
   "description": "上市認購(售)權證交易人數檔",
   "tags": [
@@ -2273,6 +2379,7 @@
  },
  "opendata/t187ap42_L": {
   "id": "opendata/t187ap42_L",
+  "source": "twse",
   "summary": "上市認購(售)權證每日成交資料檔",
   "description": "上市認購(售)權證每日成交資料檔",
   "tags": [
@@ -2289,6 +2396,7 @@
  },
  "announcement/punish": {
   "id": "announcement/punish",
+  "source": "twse",
   "summary": "集中市場公布處置股票",
   "description": "集中市場公布處置股票",
   "tags": [
@@ -2309,6 +2417,7 @@
  },
  "opendata/t187ap10_L": {
   "id": "opendata/t187ap10_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
   "description": "上市公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
   "tags": [
@@ -2331,6 +2440,7 @@
  },
  "opendata/t187ap38_L": {
   "id": "opendata/t187ap38_L",
+  "source": "twse",
   "summary": "上市公司股東會公告-召集股東常(臨時)會公告資料彙總表(95年度起適用)",
   "description": "上市公司股東會公告-召集股東常(臨時)會公告資料彙總表(95年度起適用)",
   "tags": [
@@ -2361,6 +2471,7 @@
  },
  "opendata/t187ap24_L": {
   "id": "opendata/t187ap24_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動公司",
   "tags": [
@@ -2376,6 +2487,7 @@
  },
  "opendata/t187ap37_L": {
   "id": "opendata/t187ap37_L",
+  "source": "twse",
   "summary": "上市權證基本資料彙總表",
   "description": "上市權證基本資料彙總表",
   "tags": [
@@ -2406,6 +2518,7 @@
  },
  "opendata/t187ap26_L": {
   "id": "opendata/t187ap26_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
   "tags": [
@@ -2420,6 +2533,7 @@
  },
  "opendata/t187ap41_L": {
   "id": "opendata/t187ap41_L",
+  "source": "twse",
   "summary": "上市公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
   "description": "上市公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
   "tags": [
@@ -2442,6 +2556,7 @@
  },
  "announcement/notetrans": {
   "id": "announcement/notetrans",
+  "source": "twse",
   "summary": "集中市場公布注意累計次數異常資訊",
   "description": "集中市場公布注意累計次數異常資訊",
   "tags": [
@@ -2455,6 +2570,7 @@
  },
  "announcement/notice": {
   "id": "announcement/notice",
+  "source": "twse",
   "summary": "集中市場當日公布注意股票",
   "description": "集中市場當日公布注意股票",
   "tags": [
@@ -2473,6 +2589,7 @@
  },
  "opendata/t187ap25_L": {
   "id": "opendata/t187ap25_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
   "tags": [
@@ -2490,6 +2607,7 @@
  },
  "opendata/t187ap27_L": {
   "id": "opendata/t187ap27_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
   "tags": [
@@ -2504,6 +2622,7 @@
  },
  "opendata/t187ap32_L": {
   "id": "opendata/t187ap32_L",
+  "source": "twse",
   "summary": "上市公司公司治理之相關規程規則",
   "description": "上市公司公司治理之相關規程規則",
   "tags": [
@@ -2518,6 +2637,7 @@
  },
  "opendata/t187ap33_L": {
   "id": "opendata/t187ap33_L",
+  "source": "twse",
   "summary": "上市公司董事長是否兼任總經理",
   "description": "上市公司董事長是否兼任總經理",
   "tags": [
@@ -2534,6 +2654,7 @@
  },
  "opendata/t187ap09_L": {
   "id": "opendata/t187ap09_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
   "description": "上市公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
   "tags": [
@@ -2547,6 +2668,7 @@
  },
  "opendata/OpenData_BRK01": {
   "id": "opendata/OpenData_BRK01",
+  "source": "twse",
   "summary": "證券商營業員男女人數統計資料",
   "description": "證券商營業員男女人數統計資料",
   "tags": [
@@ -2562,6 +2684,7 @@
  },
  "opendata/OpenData_BRK02": {
   "id": "opendata/OpenData_BRK02",
+  "source": "twse",
   "summary": "證券商分公司基本資料",
   "description": "證券商分公司基本資料",
   "tags": [
@@ -2578,6 +2701,7 @@
  },
  "opendata/t187ap34_L": {
   "id": "opendata/t187ap34_L",
+  "source": "twse",
   "summary": "上市公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
   "description": "上市公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
   "tags": [
@@ -2601,6 +2725,7 @@
  },
  "opendata/t187ap35_L": {
   "id": "opendata/t187ap35_L",
+  "source": "twse",
   "summary": "上市公司股東行使提案權情形彙總表",
   "description": "上市公司股東行使提案權情形彙總表",
   "tags": [
@@ -2618,6 +2743,7 @@
  },
  "exchangeReport/TWT48U_ALL": {
   "id": "exchangeReport/TWT48U_ALL",
+  "source": "twse",
   "summary": "上市股票除權除息預告表",
   "description": "上市股票除權除息預告表",
   "tags": [
@@ -2640,6 +2766,7 @@
  },
  "opendata/t187ap06_L_bd": {
   "id": "opendata/t187ap06_L_bd",
+  "source": "twse",
   "summary": "上市公司綜合損益表(證券期貨業)",
   "description": "上市公司綜合損益表(證券期貨業)",
   "tags": [
@@ -2675,6 +2802,7 @@
  },
  "opendata/t187ap06_L_ci": {
   "id": "opendata/t187ap06_L_ci",
+  "source": "twse",
   "summary": "上市公司綜合損益表(一般業)",
   "description": "上市公司綜合損益表(一般業)",
   "tags": [
@@ -2718,6 +2846,7 @@
  },
  "opendata/t187ap06_L_fh": {
   "id": "opendata/t187ap06_L_fh",
+  "source": "twse",
   "summary": "上市公司綜合損益表(金控業)",
   "description": "上市公司綜合損益表(金控業)",
   "tags": [
@@ -2753,6 +2882,7 @@
  },
  "opendata/t187ap06_L_ins": {
   "id": "opendata/t187ap06_L_ins",
+  "source": "twse",
   "summary": "上市公司綜合損益表(保險業)",
   "description": "上市公司綜合損益表(保險業)",
   "tags": [
@@ -2789,6 +2919,7 @@
  },
  "opendata/t187ap06_L_mim": {
   "id": "opendata/t187ap06_L_mim",
+  "source": "twse",
   "summary": "上市公司綜合損益表(異業)",
   "description": "上市公司綜合損益表(異業)",
   "tags": [
@@ -2820,6 +2951,7 @@
  },
  "opendata/t187ap07_L_bd": {
   "id": "opendata/t187ap07_L_bd",
+  "source": "twse",
   "summary": "上市公司資產負債表(證券期貨業)",
   "description": "上市公司資產負債表(證券期貨業)",
   "tags": [
@@ -2856,6 +2988,7 @@
  },
  "opendata/t187ap07_L_ci": {
   "id": "opendata/t187ap07_L_ci",
+  "source": "twse",
   "summary": "上市公司資產負債表(一般業)",
   "description": "上市公司資產負債表(一般業)",
   "tags": [
@@ -2892,6 +3025,7 @@
  },
  "opendata/t187ap07_L_fh": {
   "id": "opendata/t187ap07_L_fh",
+  "source": "twse",
   "summary": "上市公司資產負債表(金控業)",
   "description": "上市公司資產負債表(金控業)",
   "tags": [
@@ -2962,6 +3096,7 @@
  },
  "opendata/t187ap07_L_ins": {
   "id": "opendata/t187ap07_L_ins",
+  "source": "twse",
   "summary": "上市公司資產負債表(保險業)",
   "description": "上市公司資產負債表(保險業)",
   "tags": [
@@ -3025,6 +3160,7 @@
  },
  "opendata/t187ap07_L_mim": {
   "id": "opendata/t187ap07_L_mim",
+  "source": "twse",
   "summary": "上市公司資產負債表(異業)",
   "description": "上市公司資產負債表(異業)",
   "tags": [
@@ -3060,6 +3196,7 @@
  },
  "opendata/t187ap07_X_basi": {
   "id": "opendata/t187ap07_X_basi",
+  "source": "twse",
   "summary": "公發公司資產負債表-金融業",
   "description": "公發公司資產負債表-金融業",
   "tags": [
@@ -3130,6 +3267,7 @@
  },
  "opendata/t187ap07_X_bd": {
   "id": "opendata/t187ap07_X_bd",
+  "source": "twse",
   "summary": "公發公司資產負債表-證券期貨業",
   "description": "公發公司資產負債表-證券期貨業",
   "tags": [
@@ -3166,6 +3304,7 @@
  },
  "opendata/t187ap07_X_fh": {
   "id": "opendata/t187ap07_X_fh",
+  "source": "twse",
   "summary": "公發公司資產負債表-金控業",
   "description": "公發公司資產負債表-金控業",
   "tags": [
@@ -3236,6 +3375,7 @@
  },
  "opendata/t187ap07_X_ins": {
   "id": "opendata/t187ap07_X_ins",
+  "source": "twse",
   "summary": "公發公司資產負債表-保險業",
   "description": "公發公司資產負債表-保險業",
   "tags": [
@@ -3299,6 +3439,7 @@
  },
  "opendata/t187ap11_P": {
   "id": "opendata/t187ap11_P",
+  "source": "twse",
   "summary": "公發公司董監事持股餘額明細",
   "description": "公發公司董監事持股餘額明細",
   "tags": [
@@ -3322,6 +3463,7 @@
  },
  "opendata/t187ap06_L_basi": {
   "id": "opendata/t187ap06_L_basi",
+  "source": "twse",
   "summary": "上市公司綜合損益表(金融業)",
   "description": "上市公司綜合損益表(金融業)",
   "tags": [
@@ -3357,6 +3499,7 @@
  },
  "opendata/t187ap07_L_basi": {
   "id": "opendata/t187ap07_L_basi",
+  "source": "twse",
   "summary": "上市公司資產負債表(金融業)",
   "description": "上市公司資產負債表(金融業)",
   "tags": [
@@ -3423,6 +3566,5735 @@
    "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
    "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
    "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/tpex_mainborad_highlight": {
+  "id": "tpex/tpex_mainborad_highlight",
+  "source": "tpex",
+  "summary": "上櫃股票市場現況",
+  "description": "上櫃股票市場現況",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "ListedCompanyNumbers": "上櫃家數",
+   "AuthorizedCapital": "總資本額",
+   "MarketCapitalization": "總市值",
+   "DailyTradingValue": "本日總成交值",
+   "DailyTradingVolume": "本日總成交股數",
+   "CloseIndex": "收市指數",
+   "IndexChange": "指數漲跌",
+   "PriceRiseCompanyNumbers": "上漲家數",
+   "LimitUpCompanyNumbers": "漲停家數",
+   "PriceDeclineCompanyNumbers": "下跌家數",
+   "LimitDownCompanyNumbers": "跌停家數",
+   "PriceFlatCompanyNumbers": "平盤家數",
+   "UnmatchedCompanyNumbersSuspensionStocksIncluded": "未成交含暫停交易家數"
+  }
+ },
+ "tpex/tpex_securities": {
+  "id": "tpex/tpex_securities",
+  "source": "tpex",
+  "summary": "上櫃股票現股當沖交易標的資訊",
+  "description": "上櫃股票現股當沖交易標的資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "證券代號": "證券代號",
+   "證券名稱": "證券名稱",
+   "暫停現股賣出後現款買進當沖註記": "暫停現股賣出後現款買進當沖註記"
+  }
+ },
+ "tpex/tpex_spendi_today": {
+  "id": "tpex/tpex_spendi_today",
+  "source": "tpex",
+  "summary": "上櫃當日公布暫停/恢復交易股票",
+  "description": "上櫃當日公布暫停/恢復交易股票",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "暫停交易": "暫停交易",
+   "恢復交易": "恢復交易"
+  }
+ },
+ "tpex/tpex_spendi_history": {
+  "id": "tpex/tpex_spendi_history",
+  "source": "tpex",
+  "summary": "上櫃歷史公布暫停/恢復交易股票",
+  "description": "上櫃歷史公布暫停/恢復交易股票",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Serial": "編號",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "DateOfSuspendedTrading": "暫停交易日期",
+   "TimeOfSuspendedTrading": "暫停交易時間",
+   "DateOfResumedTrading": "恢復交易日期",
+   "TimeOfResumedTrading": "恢復交易時間"
+  }
+ },
+ "tpex/tpex_mainboard_daily_close_quotes": {
+  "id": "tpex/tpex_mainboard_daily_close_quotes",
+  "source": "tpex",
+  "summary": "上櫃股票行情",
+  "description": "上櫃股票行情",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Close": "收盤",
+   "Change": "漲跌",
+   "Open": "開盤",
+   "High": "最高",
+   "Low": "最低",
+   "Average": "均價",
+   "TradingShares": "成交股數",
+   "TransactionAmount": "成交金額",
+   "TransactionNumber": "成交筆數",
+   "LatestBidPrice": "最後買價",
+   "LatesAskPrice": "最後賣價",
+   "Capitals": "發行股數",
+   "NextReferencePrice": "次日參考價",
+   "NextLimitUp": "次日漲停價",
+   "NextLimitDown": "次日跌停價"
+  }
+ },
+ "tpex/tpex_mainboard_quotes": {
+  "id": "tpex/tpex_mainboard_quotes",
+  "source": "tpex",
+  "summary": "上櫃股票收盤行情",
+  "description": "上櫃股票收盤行情",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Close": "收盤",
+   "Change": "漲跌",
+   "Open": "開盤",
+   "High": "最高",
+   "Low": "最低",
+   "TradingShares": "成交股數",
+   "TransactionAmount": "成交金額",
+   "TransactionNumber": "成交筆數",
+   "LatestBidPrice": "最後買價",
+   "LatesAskPrice": "最後賣價",
+   "Capitals": "發行股數",
+   "NextLimitUp": "次日漲停價",
+   "NextLimitDown": "次日跌停價"
+  }
+ },
+ "tpex/tpex_mainboard_peratio_analysis": {
+  "id": "tpex/tpex_mainboard_peratio_analysis",
+  "source": "tpex",
+  "summary": "上櫃股票個股本益比、殖利率、股價淨值比",
+  "description": "上櫃股票個股本益比、殖利率、股價淨值比",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "名稱",
+   "PriceEarningRatio": "本益比",
+   "DividendPerShare": "每股股利",
+   "YieldRatio": "殖利率",
+   "PriceBookRatio": "股價淨值比"
+  }
+ },
+ "tpex/tpex_mainboard_margin_balance": {
+  "id": "tpex/tpex_mainboard_margin_balance",
+  "source": "tpex",
+  "summary": "上櫃股票融資融券餘額",
+  "description": "上櫃股票融資融券餘額",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "MarginPurchaseBalancePreviousDay": "前資餘額",
+   "MarginPurchase": "資買",
+   "MarginSales": "資賣",
+   "CashRedemption": "現償",
+   "MarginPurchaseBalance": "資餘額",
+   "MarginPurchaseBalanceBelongSecuritiesFinanceEnterprise": "資屬證金",
+   "MarginPurchaseUtilizationRate": "資使用率",
+   "MarginPurchaseQuota": "資限額",
+   "ShortSaleBalancePreviousDay": "前券餘額",
+   "ShortSale": "券賣",
+   "ShortConvering": "券買",
+   "StockRedemption": "券償",
+   "ShortSaleBalance": "券餘額",
+   "ShortSaleBalanceBelongSecuritiesFinanceEnterprise": "券屬證金",
+   "ShortSaleUtilizationRate": "券使用率",
+   "ShortSaleQuota": "券限額",
+   "Offsetting": "資券相抵",
+   "Note": "備註"
+  }
+ },
+ "tpex/tpex_index": {
+  "id": "tpex/tpex_index",
+  "source": "tpex",
+  "summary": "櫃買指數歷史資料",
+  "description": "櫃買指數歷史資料",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Open": "開市",
+   "High": "最高",
+   "Low": "最低",
+   "Close": "收市",
+   "Change": "漲跌"
+  }
+ },
+ "tpex/tpex50_index": {
+  "id": "tpex/tpex50_index",
+  "source": "tpex",
+  "summary": "富櫃50指數歷史收盤指數",
+  "description": "富櫃50指數歷史收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TPEx50Index": "櫃買富櫃五十指數",
+   "TPEx50TotalReturnIndex": "櫃買富櫃五十報酬指數"
+  }
+ },
+ "tpex/tpex_intraday_trading_statistics": {
+  "id": "tpex/tpex_intraday_trading_statistics",
+  "source": "tpex",
+  "summary": "上櫃股票現股當沖交易統計資訊",
+  "description": "上櫃股票現股當沖交易統計資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "DayTradingVolume": "當日沖銷交易總成交股數",
+   "DayTradingVolumeOfTheMarket": "當日沖銷交易總成交股數占市場比重",
+   "DayTradingValueOfBuys": "當日沖銷交易總買進成交金額",
+   "DayTradingValueOfBuyOfTheMarket": "當日沖銷交易總買進成交金額占市場比重",
+   "DayTradingValueOfSells": "當日沖銷交易總賣出成交金額",
+   "DayTradingValueOfSellsOfTheMarket": "當日沖銷交易總賣出成交金額占市場比重"
+  }
+ },
+ "tpex/tpex_active_broker_volume": {
+  "id": "tpex/tpex_active_broker_volume",
+  "source": "tpex",
+  "summary": "上櫃股票熱門股證券商進出排行",
+  "description": "上櫃股票熱門股證券商進出排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "StockRanking": "股票排行",
+   "SecuritiesCompanyCodeAndCompanyName": "股票名稱及代號",
+   "SecuritiesFirmsRanking": "證商排行",
+   "SecuritiesFirmsCode": "證商名稱",
+   "TotalPurchaseShares": "總買量",
+   "TotalSellShares": "總賣量"
+  }
+ },
+ "tpex/tpex_margin_sbl": {
+  "id": "tpex/tpex_margin_sbl",
+  "source": "tpex",
+  "summary": "上櫃股票融券借券賣出餘額",
+  "description": "上櫃股票融券借券賣出餘額",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "SaleBalancePreviousDay": "融券前日餘額",
+   "SaleSell": "融券賣出",
+   "SaleBuy": "融券買進",
+   "SaleSpotSecurities": "融券現券",
+   "SaleBalanceOfTheMarketDay": "融券當日餘額",
+   "SaleAvailableVolumes": "融券限額",
+   "SecuritiesBorrowingBalancePreviousDay": "借券賣出前日餘額",
+   "SecuritiesBorrowingSale": "借券賣出當日賣出",
+   "SecuritiesBorrowingReturn": "借券賣出當日還券",
+   "SecuritiesBorrowingAdjustment": "借券賣出當日調整數額",
+   "SecuritiesBorrowingBalanceOfTheMarketDay": "借券賣出當日餘額",
+   "AvailableVolumesForSBLShortSale": "次一營業日可借券賣出限額",
+   "Note": "備註"
+  }
+ },
+ "tpex/tpex_exright_daily": {
+  "id": "tpex/tpex_exright_daily",
+  "source": "tpex",
+  "summary": "上櫃股票除權除息計算結果表",
+  "description": "上櫃股票除權除息計算結果表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "除權息日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "ClosePriceBeforeExRightsDiviend": "除權息前收盤價",
+   "ExRightsDiviendQuote": "除權息參考價",
+   "StockDividend": "權值",
+   "CashDividend": "息值",
+   "StockDividendPlusCashDividend": "權值加息值",
+   "ExRightsDiviend": "權或息",
+   "LimitUp": "漲停價",
+   "LimitDown": "跌停價",
+   "OpeningReferencePrice": "開始交易基準價",
+   "DividendDeductedQuote": "減除股利參考價",
+   "CashDivdend": "現金股利",
+   "StockDivdendThousandShares": "每仟股無償配股",
+   "CashCapitalIncreaseShares": "現金增資股數",
+   "SubscriptionPricePerShare": "現金增資認購價",
+   "AllocatedForPublicUnderwriting": "公開承銷股數",
+   "SubscribedByEmployees": "員工認購股數",
+   "SubscribedByExistingShareholders": "原股東認購股數",
+   "SubscribedProRataThousandShares": "按持股比例仟股認購"
+  }
+ },
+ "tpex/tpex_exright_prepost": {
+  "id": "tpex/tpex_exright_prepost",
+  "source": "tpex",
+  "summary": "上櫃股票除權除息預告表",
+  "description": "上櫃股票除權除息預告表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "ExRrightsExDividendDate": "除權息日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "名稱",
+   "ExRrightsExDividend": "除權息",
+   "StockDividendRatio": "無償配股率",
+   "SubscriptionRatioToNewSharesIssued": "現金增資配股率",
+   "SubscriptionPricePerShare": "現金增資認購價",
+   "CashDividend": "現金股利",
+   "AllocatedForPublicUnderwriting": "公開承銷股數",
+   "SubscribedByEmployees": "員工認購股數",
+   "SubscribedByExistingShareholders": "原股東認購股數",
+   "SubscribedProRataInThousandShares": "按持股比例仟股認購"
+  }
+ },
+ "tpex/tpex_cmode": {
+  "id": "tpex/tpex_cmode",
+  "source": "tpex",
+  "summary": "上櫃股票變更交易、分盤交易、管理股票與停止交易資訊",
+  "description": "上櫃股票變更交易、分盤交易、管理股票與停止交易資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "AlteredTrading": "變更交易",
+   "PeriodicTrading": "分盤交易",
+   "ManagedStock": "管理股票",
+   "MatchingFrequency": "分盤或管理股票撮合循環時間",
+   "SuspensionOfTrading": "停止交易",
+   " FinancialAnnouncements": "財務重點專區"
+  }
+ },
+ "tpex/tpex_odd_stock": {
+  "id": "tpex/tpex_odd_stock",
+  "source": "tpex",
+  "summary": "上櫃股票零股交易資訊",
+  "description": "上櫃股票零股交易資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "TradeVolume": "成交股數",
+   "NumberOfTransactions": "成交筆數",
+   "TradeAmount": "成交金額",
+   "Price": "成交價格",
+   "LastBestBidPrice": "未成交買價",
+   "LastBestBidVolume": "未成交買量",
+   "LastBestAskPrice": "未成交賣價",
+   "LastBestAskVolume": "未成交賣量"
+  }
+ },
+ "tpex/tpex_off_market": {
+  "id": "tpex/tpex_off_market",
+  "source": "tpex",
+  "summary": "上櫃股票盤後定價行情",
+  "description": "上櫃股票盤後定價行情",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "BidTransactions": "委買筆數",
+   "BidVolume": "委買張數",
+   "OfferTransactions": "委賣筆數",
+   "AskVolume": "委賣張數",
+   "Close": "成交價",
+   "Transactions": "成交筆數",
+   "TradeVolume": "成交張數",
+   "TradeAmount": "成交金額",
+   "BidVolumeUnexecute": "委買未成交張數",
+   "OfferVolumeUnexecute": "委賣未成交張數"
+  }
+ },
+ "tpex/tpex_esb_applicant_companies": {
+  "id": "tpex/tpex_esb_applicant_companies",
+  "source": "tpex",
+  "summary": "申請上櫃公司",
+  "description": "申請上櫃公司",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "申請日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "Chairman": "董事長",
+   "CapitalWhileApplying": "申請時股本",
+   "TPExListingScreeningCommitteeDate": "上櫃審議委員會審議日期",
+   "TPExSanctionedDate": "櫃買董事會通過上櫃日期",
+   "TPExApprovedTradingDate": "櫃買同意上櫃契約日期或證期局核准上櫃契約日期",
+   "ListingDate": "股票上櫃買賣日期",
+   "LeadUnderwriter": "主辦承銷商",
+   "OfferingPrice": "承銷價",
+   "Note": "備註"
+  }
+ },
+ "tpex/tpex_trading_warning_information": {
+  "id": "tpex/tpex_trading_warning_information",
+  "source": "tpex",
+  "summary": "上櫃公布注意股票資訊",
+  "description": "上櫃公布注意股票資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "公告日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "TradingInformation": "注意交易資訊",
+   "ClosePrice": "收盤價",
+   "PriceEarningRatio": "本益比"
+  }
+ },
+ "tpex/tpex_disposal_information": {
+  "id": "tpex/tpex_disposal_information",
+  "source": "tpex",
+  "summary": "上櫃處置有價證券資訊",
+  "description": "上櫃處置有價證券資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "公布日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "DispositionPeriod": "處置起訖時間",
+   "DispositionReasons": "處置原因",
+   "DisposalCondition": "處置內容"
+  }
+ },
+ "tpex/tpex_trading_warning_note": {
+  "id": "tpex/tpex_trading_warning_note",
+  "source": "tpex",
+  "summary": "上櫃公布注意累計次數異常資訊",
+  "description": "上櫃公布注意累計次數異常資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "AccumulationSituation": "近期達本公司「公布注意交易資訊」標準之情形"
+  }
+ },
+ "tpex/tpex_margin_trading_term": {
+  "id": "tpex/tpex_margin_trading_term",
+  "source": "tpex",
+  "summary": "上櫃融資融券暫停融券賣出預告表",
+  "description": "上櫃融資融券暫停融券賣出預告表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "ShortSaleSuspensionStartDate": "停券起日(最後回補日)",
+   "ShortSaleSuspensionEndDate": "停券迄日",
+   "Reason": "原因"
+  }
+ },
+ "tpex/tpex_margin_trading_adjust": {
+  "id": "tpex/tpex_margin_trading_adjust",
+  "source": "tpex",
+  "summary": "上櫃融資融券調整成數",
+  "description": "上櫃融資融券調整成數",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "ReductionDate": "降成日",
+   "TradeResumptionDate": "恢復日",
+   "ReasonExcessiveStockPriceVolatilityFiveConsecutiveDays": "原因股價波動過度劇烈連續五日",
+   "ReasonExcessiveStockPriceVolatilitySixDaysOutOfTen": "原因股價波動過度劇烈十日內有六日",
+   "ReasonAbnormalTradeVolumeConsecutiveDays": "原因成交量過度異常連續五日",
+   "ReasonAbnormalTradeVolumeSixDaysOutOfTen": "原因成交量過度異常十日內有六日",
+   "ReasonShareholdingOverconcentration": "原因股權過度集中",
+   "ReasonSecondDispositionByMarketSurveillanceDepartment": "原因監視第二次處置",
+   "ReasonUponResolutionByTheSurveillanceOperationsOversightCommittee": "原因監視業務督導會報決議"
+  }
+ },
+ "tpex/tpex_margin_trading_lend": {
+  "id": "tpex/tpex_margin_trading_lend",
+  "source": "tpex",
+  "summary": "上櫃融資融券標借",
+  "description": "上櫃融資融券標借",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "DateOfTheCompetitiveDids": "標借日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "SecuritiesFinanceEnterprise": "證金公司",
+   "TheVolumeOfTheCompetitiveDids": "標借張數",
+   "TheHighestAcceptableRate": "最高標借單價",
+   "TheVolumeOfTheWinningBids": "得標張數",
+   "LendingRates": "標定單價",
+   "Shortfall": "不足張數"
+  }
+ },
+ "tpex/tpex_margin_trading_marginspot": {
+  "id": "tpex/tpex_margin_trading_marginspot",
+  "source": "tpex",
+  "summary": "上櫃信用交易餘額概況表",
+  "description": "上櫃信用交易餘額概況表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Month": "資料月份",
+   "Ranking": "排名",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "MonthlyAverageMarginPurchaseBalance": "月均融資餘額",
+   "MarketShare": "市場佔有率",
+   "MonthlyAverageShortSaleBalance": "月均融券餘額",
+   "MonthlyAverageMarginTradingBalance": "月均融資融券餘額"
+  }
+ },
+ "tpex/tpex_margin_trading_margin_mark": {
+  "id": "tpex/tpex_margin_trading_margin_mark",
+  "source": "tpex",
+  "summary": "上櫃平盤下得融(借)券賣出之證券名單",
+  "description": "上櫃平盤下得融(借)券賣出之證券名單",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   "BannedFromMarginShortSelling": "暫停融券賣出",
+   "BannedFromSBLShortSelling": "暫停借券賣出",
+   "SubjectToUptickRule": "前一交易日收盤價跌停本日禁止平盤下融借券賣出"
+  }
+ },
+ "tpex/tpex_margin_trading_margin_used": {
+  "id": "tpex/tpex_margin_trading_margin_used",
+  "source": "tpex",
+  "summary": "上櫃融資融券使用率報表",
+  "description": "上櫃融資融券使用率報表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "UsageRatio": "使用率"
+  }
+ },
+ "tpex/tpex_margin_trading_short_sell": {
+  "id": "tpex/tpex_margin_trading_short_sell",
+  "source": "tpex",
+  "summary": "上櫃融資融券增減排行表",
+  "description": "上櫃融資融券增減排行表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "PreviousBalance": "前日餘額",
+   "CurrentBalance": "本日餘額",
+   "Used": "使用張數"
+  }
+ },
+ "tpex/tpex_3insti_qfii": {
+  "id": "tpex/tpex_3insti_qfii",
+  "source": "tpex",
+  "summary": "上櫃僑外資及陸資持股比例排行表",
+  "description": "上櫃僑外資及陸資持股比例排行表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "NumberOfSharesIssued": "發行股數",
+   "AvailableSharesForOC/FIToInvest": "僑外資及陸資尚可投資股數",
+   "CurrentlySharesOC/FIHeld": "僑外資及陸資持有股數",
+   "PercentageOfAvailableInvestmentForOC/FI": "僑外資及陸資尚可投資比率",
+   "PercentageOfSharesOC/FMIHeld": "僑外資及陸資持股比率",
+   "UpperLimitOfRegulatedInvestment": "法令投資上限比率",
+   "Note": "備註"
+  }
+ },
+ "tpex/tpex_3insti_qfii_industry": {
+  "id": "tpex/tpex_3insti_qfii_industry",
+  "source": "tpex",
+  "summary": "上櫃各類股僑外資及陸資持股比例表",
+  "description": "上櫃各類股僑外資及陸資持股比例表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Industry": "類股",
+   "NumberOfCompanies": "家數",
+   "NumberOfSharesIssued": "總發行股數",
+   "CurrentlySharesOC/FIHeld": "僑外資及陸資持有總股數",
+   "PercentageOfSharesOC/FMIHeld": "僑外資及陸資持股比率"
+  }
+ },
+ "tpex/tpex_3insti_daily_trading": {
+  "id": "tpex/tpex_3insti_daily_trading",
+  "source": "tpex",
+  "summary": "上櫃股票三大法人買賣明細資訊",
+  "description": "上櫃股票三大法人買賣明細資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Buy": "外資及陸資不含外資自營商買進股數",
+   " Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Sell": "外資及陸資不含外資自營商賣出股數",
+   "Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Difference": "外資及陸資不含外資自營商買賣超股數",
+   "Foreign Dealers-Total Buy": "外資自營商買進股數",
+   "Foreign Dealers-TotalSell": "外資自營商賣出股數",
+   "ForeignDealers-Difference": "外資自營商買賣超股數",
+   "ForeignInvestorsIncludeMainlandAreaInvestors-TotalBuy": "外資及陸資買進股數",
+   "ForeignInvestorsIncludeMainlandAreaInvestors-TotalSell": "外資及陸資賣出股數",
+   "ForeignInvestorsInclude MainlandAreaInvestors-Difference": "外資及陸資買賣超股數",
+   "SecuritiesInvestmentTrustCompanies-TotalBuy": "投信買進股數",
+   "SecuritiesInvestmentTrustCompanies-TotalSell": "投信賣出股數",
+   "SecuritiesInvestmentTrustCompanies-Difference": "投信買賣超股數",
+   "Dealers-TotalBuy": "自營商買進股數",
+   "Dealers-TotalSell": "自營商賣出股數",
+   "Dealers-Difference": "自營商買賣超股數",
+   "Dealers -TotalSell": "自營商避險賣出股數",
+   "TotalDifference": "三大法人買賣超股數合計"
+  }
+ },
+ "tpex/tpex_3insti_dealer_trading": {
+  "id": "tpex/tpex_3insti_dealer_trading",
+  "source": "tpex",
+  "summary": "上櫃股票自營商買賣超彙總表",
+  "description": "上櫃股票自營商買賣超彙總表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Buy": "避險買進金額",
+   "Sell": "避險賣出金額",
+   "NetBuySell": "避險買賣超",
+   "NetBuy": "買賣超"
+  }
+ },
+ "tpex/tpex_ceil_non_trading": {
+  "id": "tpex/tpex_ceil_non_trading",
+  "source": "tpex",
+  "summary": "上櫃漲跌停未成交資訊",
+  "description": "上櫃漲跌停未成交資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "名稱",
+   "ClosingPrice": "收盤價",
+   "Change": "漲跌",
+   "Tot.Trans.Vol.": "總成交張數",
+   "Trans.Vol.AtUp-limitPr.": "漲跌停成交張數",
+   "OrderVol.AtUp-limitPr.": "漲跌停委託張數",
+   "Difference": "漲跌停未成交張數"
+  }
+ },
+ "tpex/tpex_daily_trading_index": {
+  "id": "tpex/tpex_daily_trading_index",
+  "source": "tpex",
+  "summary": "上櫃日成交量值指數",
+  "description": "上櫃日成交量值指數",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "交易日期",
+   "TradeVolume": "成交股數",
+   "TradeAmount": "成交金額",
+   "NumberOfTransactions": "筆數",
+   "TPExIndex": "櫃買指數",
+   "Change": "漲跌"
+  }
+ },
+ "tpex/tpex_short_sell": {
+  "id": "tpex/tpex_short_sell",
+  "source": "tpex",
+  "summary": "上櫃當日融券賣出與借券賣出成交量值",
+  "description": "上櫃當日融券賣出與借券賣出成交量值",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "ShortSaleVolume": "融券賣出成交張數",
+   "ShortSaleAmount": "融券賣出成交金額",
+   "SBLVolume": "借券賣出成交張數",
+   "SBLAmount": "借券賣出成交金額"
+  }
+ },
+ "tpex/tpex_daily_broker1": {
+  "id": "tpex/tpex_daily_broker1",
+  "source": "tpex",
+  "summary": "上櫃各券商當日營業金額統計表",
+  "description": "上櫃各券商當日營業金額統計表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Ranking": "排名",
+   "PreviousDayRanking": "前日排名",
+   "Code": "券商",
+   "Name": "名稱",
+   "TradingAmount": "成交金額",
+   "DayClosingRatio": "日成交比率",
+   "CurrentMonthRanking": "本月排名",
+   "CurrentMonthCumulativeAmount": "本月累計金額",
+   "CurrentMonthClosingRatio": "本月成交比率"
+  }
+ },
+ "tpex/tpex_active_dollar_volume": {
+  "id": "tpex/tpex_active_dollar_volume",
+  "source": "tpex",
+  "summary": "上櫃盤中個股成交金額排行",
+  "description": "上櫃盤中個股成交金額排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "NumberOfThousandSharesTraded": "成交仟股數",
+   "TradeAmount": "成交值"
+  }
+ },
+ "tpex/tpex_active_advanced": {
+  "id": "tpex/tpex_active_advanced",
+  "source": "tpex",
+  "summary": "上櫃盤中個股漲幅排行",
+  "description": "上櫃盤中個股漲幅排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "ClosingPrice": "收盤價",
+   "Up": "上漲金額",
+   "UpRatio": "漲幅百分比"
+  }
+ },
+ "tpex/tpex_active_declined": {
+  "id": "tpex/tpex_active_declined",
+  "source": "tpex",
+  "summary": "上櫃盤中個股跌幅排行",
+  "description": "上櫃盤中個股跌幅排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代碼",
+   "CompanyName": "名稱",
+   "ClosingPrice": "收盤價",
+   "Down": "下跌金額",
+   "DownRatio": "跌幅百分比"
+  }
+ },
+ "tpex/tpex_intraday_fee": {
+  "id": "tpex/tpex_intraday_fee",
+  "source": "tpex",
+  "summary": "上櫃應付現股當日沖銷券差借券費率",
+  "description": "上櫃應付現股當日沖銷券差借券費率",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "券差日期",
+   "SecuritiesCompanyCode": "證券代號",
+   "CompanyName": "證券名稱",
+   " LendingVolume": "借券股數",
+   "LendingFee": "借券費率"
+  }
+ },
+ "tpex/tpex_intraday_trading_pre": {
+  "id": "tpex/tpex_intraday_trading_pre",
+  "source": "tpex",
+  "summary": "上櫃暫停先賣後買當日沖銷交易標的預告表",
+  "description": "上櫃暫停先賣後買當日沖銷交易標的預告表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "FirstDayToSuspendSellThenBuy": "停止先賣後買開始日",
+   "DayOfReinstatingSellThenBuy": "恢復先賣後買日",
+   "Reason": "原因"
+  }
+ },
+ "tpex/tpex_intraday_trading_his": {
+  "id": "tpex/tpex_intraday_trading_his",
+  "source": "tpex",
+  "summary": "上櫃暫停先賣後買當日沖銷交易歷史查詢",
+  "description": "上櫃暫停先賣後買當日沖銷交易歷史查詢",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "FirstDayToSuspendSellThenBuy": "停止先賣後買開始日",
+   "LastDayToSuspendSellThenBuy": "停止先賣後買結束日",
+   "Reason": "原因"
+  }
+ },
+ "tpex/tpex_daily_market_value": {
+  "id": "tpex/tpex_daily_market_value",
+  "source": "tpex",
+  "summary": "上櫃歷史個股市值排行",
+  "description": "上櫃歷史個股市值排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "Capitals": "發行股數",
+   "ClosePrice": "收盤價",
+   "MarketValue": "市值"
+  }
+ },
+ "tpex/tpex_daily_turnover": {
+  "id": "tpex/tpex_daily_turnover",
+  "source": "tpex",
+  "summary": "上櫃歷史個股週轉率排行",
+  "description": "上櫃歷史個股週轉率排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "TradingShares": "總成交股數",
+   "Capitalization": "發行股數",
+   "TurnoverRatio": "週轉率"
+  }
+ },
+ "tpex/tpex_trading_volumes_avg": {
+  "id": "tpex/tpex_trading_volumes_avg",
+  "source": "tpex",
+  "summary": "上櫃歷史個股日均量排行",
+  "description": "上櫃歷史個股日均量排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "AverageDailyTradingVolume": "日均張數"
+  }
+ },
+ "tpex/tpex_trading_amount_avg": {
+  "id": "tpex/tpex_trading_amount_avg",
+  "source": "tpex",
+  "summary": "上櫃歷史個股日均值排行",
+  "description": "上櫃歷史個股日均值排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "StockCode": "股票代號",
+   "StockName": "股票名稱",
+   "AverageDailyTradingAmount": "日均值"
+  }
+ },
+ "tpex/tpex_trading_volume_ratio": {
+  "id": "tpex/tpex_trading_volume_ratio",
+  "source": "tpex",
+  "summary": "上櫃歷史類股成交價量比重",
+  "description": "上櫃歷史類股成交價量比重",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Sector": "類股名稱",
+   "TradeAmount": "成交金額",
+   "TradeWeight": "成交比重",
+   " NumberOfSharesTraded": "成交股數"
+  }
+ },
+ "tpex/tpex_pe_ratio_top10": {
+  "id": "tpex/tpex_pe_ratio_top10",
+  "source": "tpex",
+  "summary": "上櫃歷史個股本益比排行",
+  "description": "上櫃歷史個股本益比排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "ClosePrice": "收盤價",
+   "EarningsPerShare": "每股盈餘",
+   "P/ERatio": "本益比"
+  }
+ },
+ "tpex/tpex_daily_qutoes_block": {
+  "id": "tpex/tpex_daily_qutoes_block",
+  "source": "tpex",
+  "summary": "上櫃鉅額交易日成交資訊",
+  "description": "上櫃鉅額交易日成交資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TransactionType": "交易型態",
+   "SettlementPeriod": "交割期別",
+   "Code": "代號",
+   "Name": "名稱",
+   "TradePrice": "成交價格",
+   "NumberOfSharesTraded": "成交股數",
+   "TradeValue": "成交值",
+   "TradingTime": "成交時間"
+  }
+ },
+ "tpex/tpex_daily_trading_block": {
+  "id": "tpex/tpex_daily_trading_block",
+  "source": "tpex",
+  "summary": "上櫃個股單一證券鉅額交易日成交資訊",
+  "description": "上櫃個股單一證券鉅額交易日成交資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "TradingDate": "成交日期",
+   "Name": "名稱",
+   "NumberOfSharesTraded": "成交股數",
+   "TradingValue": "成交金額",
+   "HighestPrice": "最高價",
+   "LowestPrice": "最低價",
+   "WeightedAveragePrice": "加權平均價",
+   "NumberOfTransactions": "成交筆數",
+   "TransactionType": "交易型態",
+   "SettlementPeriod": "交割期別"
+  }
+ },
+ "tpex/tpex_daily_trading_summary_odd": {
+  "id": "tpex/tpex_daily_trading_summary_odd",
+  "source": "tpex",
+  "summary": "上櫃鉅額交易日成交量值統計",
+  "description": "上櫃鉅額交易日成交量值統計",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "TradingDate": "成交日期",
+   "Type": "類別",
+   "NumberOfTransactions": "成交筆數",
+   "NumberOfSharesTraded": "成交股數",
+   "MarketShare": "成交股數占全市場比重",
+   "TradeValue": "成交金額",
+   "Market Share": "成交金額占全市場比重"
+  }
+ },
+ "tpex/tpex_monthly_trading_summary_block": {
+  "id": "tpex/tpex_monthly_trading_summary_block",
+  "source": "tpex",
+  "summary": "上櫃鉅額交易月成交量值統計",
+  "description": "上櫃鉅額交易月成交量值統計",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Month": "成交月份",
+   "Type": "類別",
+   "NumberOfTransactions": "成交筆數",
+   "NumberOfSharesTraded": "成交股數",
+   "MarketShare": "成交金額占全市場比重",
+   "TradeValue": "成交金額"
+  }
+ },
+ "tpex/tpex_yearly_trading_summary_block": {
+  "id": "tpex/tpex_yearly_trading_summary_block",
+  "source": "tpex",
+  "summary": "上櫃鉅額交易年成交量值統計",
+  "description": "上櫃鉅額交易年成交量值統計",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Year": "成交年度",
+   "Type": "類別",
+   "NumberOfTransactions": "成交筆數",
+   "NumberOfSharesTraded": "成交股數",
+   "MarketShare": "成交金額占全市場比重",
+   "TradeValue": "成交金額"
+  }
+ },
+ "tpex/tpex_volume_rank": {
+  "id": "tpex/tpex_volume_rank",
+  "source": "tpex",
+  "summary": "上櫃歷史個股成交量排行",
+  "description": "上櫃歷史個股成交量排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "TradingVolume": "成交張數"
+  }
+ },
+ "tpex/tpex_amount_rank": {
+  "id": "tpex/tpex_amount_rank",
+  "source": "tpex",
+  "summary": "上櫃歷史個股成交值排行",
+  "description": "上櫃歷史個股成交值排行",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "TradingAmount": "成交值"
+  }
+ },
+ "tpex/tpex_prvol": {
+  "id": "tpex/tpex_prvol",
+  "source": "tpex",
+  "summary": "上櫃股票等價系統成交分價表",
+  "description": "上櫃股票等價系統成交分價表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyNam": "名稱",
+   "TradingPrice": "成交價",
+   "PriceNote": "價格註記",
+   "NumberOfSharesTraded": "成交張數"
+  }
+ },
+ "tpex/tpex_3insti_summary": {
+  "id": "tpex/tpex_3insti_summary",
+  "source": "tpex",
+  "summary": "上櫃股票三大法人買賣金額彙總表",
+  "description": "上櫃股票三大法人買賣金額彙總表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Investor": "單位名稱",
+   "PurchaseAmount": "買進金額",
+   "SaleAmount": "賣出金額",
+   "Net": "買賣超"
+  }
+ },
+ "tpex/tpex_3insti_trading": {
+  "id": "tpex/tpex_3insti_trading",
+  "source": "tpex",
+  "summary": "上櫃股票投信買賣超彙總表",
+  "description": "上櫃股票投信買賣超彙總表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Buy": "買進",
+   "Sell": "賣出",
+   "NetBuy": "買賣超"
+  }
+ },
+ "tpex/tpex_daily_trade_block_day": {
+  "id": "tpex/tpex_daily_trade_block_day",
+  "source": "tpex",
+  "summary": "鉅額交易歷史成交資訊",
+  "description": "鉅額交易歷史成交資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "TradingDate": "成交日期",
+   "Name": "名稱",
+   "NumberOfSharesTraded": "成交股數",
+   "TradingValue": "成交金額",
+   "HighestPrice": "最高價",
+   "LowestPrice": "最低價",
+   "WeightedAveragePrice": "加權平均價",
+   "NumberOfTransactions": "成交筆數",
+   "TransactionType": "交易型態",
+   "SettlementPeriod": "交割期別"
+  }
+ },
+ "tpex/tpex_delayed_stock_open": {
+  "id": "tpex/tpex_delayed_stock_open",
+  "source": "tpex",
+  "summary": "上櫃每日暫緩開盤股票",
+  "description": "上櫃每日暫緩開盤股票",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "交易日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpex_delayed_stock_close": {
+  "id": "tpex/tpex_delayed_stock_close",
+  "source": "tpex",
+  "summary": "上櫃每日暫緩收盤股票",
+  "description": "上櫃每日暫緩收盤股票",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "交易日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpex_ipo_no_limit": {
+  "id": "tpex/tpex_ipo_no_limit",
+  "source": "tpex",
+  "summary": "上櫃首五日無漲跌幅資訊",
+  "description": "上櫃首五日無漲跌幅資訊",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "StartDateForStabilizationOperation": "穩定操作起始日",
+   "EndDateForStabilizationOperation": "穩定操作截止日",
+   "UnderwritingPrice": "承銷價格",
+   "OverAllotmentShares": "過額配售數量",
+   "TransactionType": "專戶種類",
+   "Underwriter": "承銷商名稱",
+   "TradingType": "買賣別",
+   "TradingPrice": "成交價格",
+   "TradingVolume": "成交數量",
+   "CurrentDayCumulativeTradingVolume": "當日累計成交數量"
+  }
+ },
+ "tpex/tpex_esb_eps_rank": {
+  "id": "tpex/tpex_esb_eps_rank",
+  "source": "tpex",
+  "summary": "本國興櫃公司EPS排名",
+  "description": "本國興櫃公司EPS排名",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排名",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "EPS": "EPS"
+  }
+ },
+ "tpex/tpex_esb_capitals_rank": {
+  "id": "tpex/tpex_esb_capitals_rank",
+  "source": "tpex",
+  "summary": "興櫃公司資本額排名",
+  "description": "興櫃公司資本額排名",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排名",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "Capital": "資本額百萬元"
+  }
+ },
+ "tpex/tpex200_change": {
+  "id": "tpex/tpex200_change",
+  "source": "tpex",
+  "summary": "櫃買「富櫃200指數」當日收盤指數",
+  "description": "櫃買「富櫃200指數」當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "指數": "指數",
+   "收盤指數": "收盤指數",
+   "漲跌": "漲跌",
+   "漲跌點數": "漲跌點數",
+   "漲跌百分比": "漲跌百分比"
+  }
+ },
+ "tpex/tpcgi_constituents": {
+  "id": "tpex/tpcgi_constituents",
+  "source": "tpex",
+  "summary": "上櫃公司治理指數當日成分股資訊",
+  "description": "上櫃公司治理指數當日成分股資訊",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpcgi_reward_index": {
+  "id": "tpex/tpcgi_reward_index",
+  "source": "tpex",
+  "summary": "上櫃公司治理指數歷史收盤指數",
+  "description": "上櫃公司治理指數歷史收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TPExCorporateGovernanceIndex": "櫃買公司治理指數",
+   "TPExCorporateGovernanceReturnIndex": "櫃買公司治理報酬指數"
+  }
+ },
+ "tpex/tpcgi_change": {
+  "id": "tpex/tpcgi_change",
+  "source": "tpex",
+  "summary": "上櫃公司治理指數當日收盤指數",
+  "description": "上櫃公司治理指數當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Name": "指數",
+   "Index": "收盤指數",
+   "Change": "漲跌百分比"
+  }
+ },
+ "tpex/tpex_index_consti": {
+  "id": "tpex/tpex_index_consti",
+  "source": "tpex",
+  "summary": "櫃買指數成分股",
+  "description": "櫃買指數成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "Capitals": "發行仟股數",
+   "ClosePrice": "收市價",
+   "SecuritiesIndustryCode": "產業類別"
+  }
+ },
+ "tpex/tpex_reward_index": {
+  "id": "tpex/tpex_reward_index",
+  "source": "tpex",
+  "summary": "櫃買指數與報酬指數之收市指數",
+  "description": "櫃買指數與報酬指數之收市指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TPExIndex": "櫃買指數",
+   "TPExTotalReturnIndex": "櫃買報酬指數"
+  }
+ },
+ "tpex/tpex50_constituents": {
+  "id": "tpex/tpex50_constituents",
+  "source": "tpex",
+  "summary": "櫃買「富櫃50指數」當日成分股",
+  "description": "櫃買「富櫃50指數」當日成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpex50_change": {
+  "id": "tpex/tpex50_change",
+  "source": "tpex",
+  "summary": "櫃買「富櫃50指數」當日收盤指數",
+  "description": "櫃買「富櫃50指數」當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Name": "指數",
+   "Index": "收盤指數",
+   "Change": "漲跌百分比"
+  }
+ },
+ "tpex/tphd_constituents": {
+  "id": "tpex/tphd_constituents",
+  "source": "tpex",
+  "summary": "櫃買「高殖利率指數」當日成分股",
+  "description": "櫃買「高殖利率指數」當日成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tphd_change": {
+  "id": "tpex/tphd_change",
+  "source": "tpex",
+  "summary": "櫃買「高殖利率指數」當日收盤指數",
+  "description": "櫃買「高殖利率指數」當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Name": "指數",
+   "Index": "收盤指數",
+   "Change": "漲跌百分比"
+  }
+ },
+ "tpex/tpci_constituents": {
+  "id": "tpex/tpci_constituents",
+  "source": "tpex",
+  "summary": "櫃買「薪酬指數」當日成分股",
+  "description": "櫃買「薪酬指數」當日成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpci_change": {
+  "id": "tpex/tpci_change",
+  "source": "tpex",
+  "summary": "櫃買「薪酬指數」當日收盤指數",
+  "description": "櫃買「薪酬指數」當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Name": "指數",
+   "Index": "收盤指數",
+   "Change": "漲跌百分比"
+  }
+ },
+ "tpex/tpci_reward_index": {
+  "id": "tpex/tpci_reward_index",
+  "source": "tpex",
+  "summary": "櫃買「薪酬指數」歷史收盤指數",
+  "description": "櫃買「薪酬指數」歷史收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "GTSMCompensationIndex": "櫃買薪酬指數",
+   "GTSMCompensationTotalReturnIndex": "櫃買薪酬報酬指數"
+  }
+ },
+ "tpex/tpex_emp88_constituents": {
+  "id": "tpex/tpex_emp88_constituents",
+  "source": "tpex",
+  "summary": "櫃買「勞工就業88指數」當日成分股",
+  "description": "櫃買「勞工就業88指數」當日成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱"
+  }
+ },
+ "tpex/tpex_emp88_change": {
+  "id": "tpex/tpex_emp88_change",
+  "source": "tpex",
+  "summary": "櫃買「勞工就業88指數」當日收盤指數",
+  "description": "櫃買「勞工就業88指數」當日收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Name": "指數",
+   "Index": "收盤指數",
+   "Change": "漲跌百分比"
+  }
+ },
+ "tpex/tpex_emp88_reward_index": {
+  "id": "tpex/tpex_emp88_reward_index",
+  "source": "tpex",
+  "summary": "櫃買「勞工就業88指數」歷史收盤指數",
+  "description": "櫃買「勞工就業88指數」歷史收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "GretaiLaborEmployment88Index": "櫃買勞工就業88指數",
+   "GretaiLaborEmployment88TotalReturnIndex": "櫃買勞工就業88報酬指數"
+  }
+ },
+ "tpex/tpex_dpsp_monthly_CBmcs007": {
+  "id": "tpex/tpex_dpsp_monthly_CBmcs007",
+  "source": "tpex",
+  "summary": "可轉債資產交換ASO及ASW銀行承作餘額",
+  "description": "可轉債資產交換ASO及ASW銀行承作餘額",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "FinancialInstitutionsCode": "代號",
+   "FinancialInstitutionsName": "名稱",
+   "ASWFixedIncomeOutstanding": "ASW固定收益端",
+   "ASOOptionOutstanding": "ASO選擇權端",
+   "TotalOutstanding": "合計"
+  }
+ },
+ "tpex/tpex_international_bond_quotes": {
+  "id": "tpex/tpex_international_bond_quotes",
+  "source": "tpex",
+  "summary": "國際債券當日盤中報價行情表(含寶島債)",
+  "description": "國際債券當日盤中報價行情表(含寶島債)",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Time": "資料時間",
+   "BondCode": "債券代號",
+   "BondName": "債券簡稱",
+   "BidYieldPrice": "買進殖利率百元價",
+   "AskYieldPrice": "賣出殖利率百元價"
+  }
+ },
+ "tpex/tpex_international_bond_trade": {
+  "id": "tpex/tpex_international_bond_trade",
+  "source": "tpex",
+  "summary": "國際債券當日盤中成交行情表(含寶島債)",
+  "description": "國際債券當日盤中成交行情表(含寶島債)",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Time": "資料時間",
+   "BondCode": "債券代號",
+   "BondName": "債券簡稱",
+   "LastField": "最近殖利率",
+   "Change": "變動",
+   "Highest": "最高殖利率",
+   "Lowest": "最低殖利率",
+   "Volume": "累計成交萬元",
+   "LastClose": "前日收盤"
+  }
+ },
+ "tpex/tpex_international_bond_issue_investor": {
+  "id": "tpex/tpex_international_bond_issue_investor",
+  "source": "tpex",
+  "summary": "國際債券(一般投資人)",
+  "description": "國際債券(一般投資人)",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "BondCode": "債券代號",
+   "ShortName": "債券簡稱",
+   "Issuer": "發行人",
+   "IssuingDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "Tenor": "年期",
+   "CurrencyDenomination": "計價幣別",
+   "AmountOfIssuance": "發行總額",
+   "Coupon": "票面利率",
+   "IRR": "隱含利率",
+   "EarlyRedemption": "提前贖回權",
+   "NonCallPeriodYearxCallFrequencyYear": "贖回型態",
+   "SecuritiesUnderwriterOrFinancialConsultingCompany": "承銷商或財務顧問",
+   "LiquidityProvider": "流動量提供者",
+   "ISIN": "國際編碼",
+   "BondDatabase": "發行資料"
+  }
+ },
+ "tpex/tpex_international_bond_issue_org": {
+  "id": "tpex/tpex_international_bond_issue_org",
+  "source": "tpex",
+  "summary": "國際債券(僅售予專業投資人者)",
+  "description": "國際債券(僅售予專業投資人者)",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "BondCode": "債券代號",
+   "ShortName": "債券簡稱",
+   "Issuer": "發行人",
+   "IssuingDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "Tenor": "年期",
+   "CurrencyDenomination": "計價幣別",
+   "AmountOfIssuance": "發行總額",
+   "Coupon": "票面利率",
+   "IRR": "隱含利率",
+   "EarlyRedemption": "提前贖回權",
+   "NonCallPeriodYearxCallFrequencyYear": "贖回型態",
+   "SecuritiesUnderwriterOrFinancialConsultingCompany": "承銷商或財務顧問",
+   "LiquidityProvider": "流動量提供者",
+   "ISIN": "國際編碼",
+   "BondDatabase": "發行資料"
+  }
+ },
+ "tpex/t187ap46_O_21": {
+  "id": "tpex/t187ap46_O_21",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-職業安全衛生",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-職業安全衛生",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "職業災害人數及比率-人數": "職業災害人數及比率-人數",
+   "職業災害人數及比率-比率": "職業災害人數及比率-比率",
+   "火災件數(件)": "火災件數(件)",
+   "火災死傷人數(人)": "火災死傷人數(人)",
+   "火災死傷人數占員工總人數比率": "火災死傷人數占員工總人數比率"
+  }
+ },
+ "tpex/t187ap46_O_9": {
+  "id": "tpex/t187ap46_O_9",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-功能性委員會",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-功能性委員會",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "薪酬委員會席次(席)": "薪酬委員會席次(席)",
+   "薪酬委員會獨立董事席次(席)": "薪酬委員會獨立董事席次(席)",
+   "薪酬委員會出席率": "薪酬委員會出席率",
+   "審計委員會席次(席)": "審計委員會席次(席)",
+   "審計委員會出席率": "審計委員會出席率"
+  }
+ },
+ "tpex/t187ap46_O_8": {
+  "id": "tpex/t187ap46_O_8",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "董事會與管理階層對於氣候相關風險與機會之監督及治理": "董事會與管理階層對於氣候相關風險與機會之監督及治理",
+   "辨識之氣候風險與機會如何影響企業之業務、策略及財務 (短期、中期、長期)": "辨識之氣候風險與機會如何影響企業之業務、策略及財務 (短期、中期、長期)",
+   "極端氣候事件及轉型行動對財務之影響": "極端氣候事件及轉型行動對財務之影響",
+   "氣候風險之辨識、評估及管理流程如何整合於整體風險管理制度": "氣候風險之辨識、評估及管理流程如何整合於整體風險管理制度",
+   "若使用情境分析評估面對氣候變遷風險之韌性，應說明所使用之情境、參數、假設、分析因子及主要財務影響": "若使用情境分析評估面對氣候變遷風險之韌性，應說明所使用之情境、參數、假設、分析因子及主要財務影響",
+   "若有因應管理氣候相關風險之轉型計畫，說明該計畫內容，及用於辨識及管理實體風險及轉型風險之指標與目標": "若有因應管理氣候相關風險之轉型計畫，說明該計畫內容，及用於辨識及管理實體風險及轉型風險之指標與目標",
+   "使用內部碳定價作為規劃工具，應說明價格制定基礎": "使用內部碳定價作為規劃工具，應說明價格制定基礎",
+   "若有設定氣候相關目標，應說明所涵蓋之活動、溫室氣體排放範疇、規劃期程，每年達成進度等資訊；若使用碳抵換或再生能源憑證(RECs)以達成相關目標，應說明所抵換之減碳額度來源及數量或再生能源憑證(RECs)數量": "若有設定氣候相關目標，應說明所涵蓋之活動、溫室氣體排放範疇、規劃期程，每年達成進度等資訊；若使用碳抵換或再生能源憑證(RECs)以達成相關目標，應說明所抵換之減碳額度來源及數量或再生能源憑證(RECs)數量"
+  }
+ },
+ "tpex/tpex_esb_disposal_information": {
+  "id": "tpex/tpex_esb_disposal_information",
+  "source": "tpex",
+  "summary": "興櫃處置有價證券資訊",
+  "description": "興櫃處置有價證券資訊",
+  "tags": [
+   "興櫃"
+  ],
+  "fields": {
+   "公布日期": "公布日期",
+   "證券代號": "證券代號",
+   "證券名稱": "證券名稱",
+   "處置起訖時間": "處置起訖時間",
+   "處置原因": "處置原因",
+   "處置內容": "處置內容"
+  }
+ },
+ "tpex/tpex_esb_warning_information": {
+  "id": "tpex/tpex_esb_warning_information",
+  "source": "tpex",
+  "summary": "興櫃公布注意有價證券資訊",
+  "description": "興櫃公布注意有價證券資訊",
+  "tags": [
+   "興櫃"
+  ],
+  "fields": {
+   "公告日期": "公告日期",
+   "證券代號": "證券代號",
+   "證券名稱": "證券名稱",
+   "注意交易資訊": "注意交易資訊",
+   "收盤價": "收盤價"
+  }
+ },
+ "tpex/tpex_esb_recommended_dealer": {
+  "id": "tpex/tpex_esb_recommended_dealer",
+  "source": "tpex",
+  "summary": "興櫃推薦證券商與推薦之股票",
+  "description": "興櫃推薦證券商與推薦之股票",
+  "tags": [
+   "興櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "股票名稱",
+   "RecommendationNumber": "推薦序號",
+   "DealerCode": "券商代號",
+   "DealerName": "券商名稱",
+   "RecommendedDealersForAssistance": "主辦券商",
+   "AddDate": "加入日期",
+   "Contact": "連絡人",
+   "Telephone": "電話",
+   "Fax": "傳真",
+   "Address": "地址"
+  }
+ },
+ "tpex/tpex_warrant_gold": {
+  "id": "tpex/tpex_warrant_gold",
+  "source": "tpex",
+  "summary": "黃金現貨權證發行基本資料",
+  "description": "黃金現貨權證發行基本資料",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "ListedDate": "上櫃日期",
+   "ExpiryDate": "到期日",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "Type": "種類",
+   "American/European": "美式或歐式",
+   "CapPrice/Index": "上限價格或指數",
+   "FloorPrice/Index": "下限價格或指數",
+   "Reset": "重設型",
+   "LatestExercisePrice": "最新履約價",
+   "LatestExerciseRatio": "最新行使比例",
+   "InitialIssuance": "初次發行單位數量",
+   "Accum.Accum.Issuance": "累計增額發行單位數量",
+   "Accum.CanceledWarrant": "累計註銷權證數量"
+  }
+ },
+ "tpex/tpex_warrant_gold_quts": {
+  "id": "tpex/tpex_warrant_gold_quts",
+  "source": "tpex",
+  "summary": "黃金現貨權證收盤行情",
+  "description": "黃金現貨權證收盤行情",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_daily_quts": {
+  "id": "tpex/tpex_warrant_daily_quts",
+  "source": "tpex",
+  "summary": "上櫃權證收盤行情日報表",
+  "description": "上櫃權證收盤行情日報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_monthly_quts": {
+  "id": "tpex/tpex_warrant_monthly_quts",
+  "source": "tpex",
+  "summary": "上櫃權證收盤行情月報表",
+  "description": "上櫃權證收盤行情月報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_issue": {
+  "id": "tpex/tpex_warrant_issue",
+  "source": "tpex",
+  "summary": "上櫃權證發行基本資料",
+  "description": "上櫃權證發行基本資料",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "ListedDate": "上櫃日期",
+   "ExpiryDate": "到期日",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "Type": "種類",
+   "American/European": "美式或歐式",
+   "CapPrice/Index": "上限價格或指數",
+   "FloorPrice/Index": "下限價格或指數",
+   "Reset": "重設型",
+   "LatestExercisePrice": "最新履約價",
+   "Latest ExerciseRatio": "最新行使比例",
+   "InitialIssuance": "初次發行單位數量仟單位",
+   "Accum.Accum.Issuance": "累計增額發行單位數量仟單位",
+   "Accum.CanceledWarrant": "累計註銷權證數量仟單位"
+  }
+ },
+ "tpex/tpex_warrant_wcb_daily_quts": {
+  "id": "tpex/tpex_warrant_wcb_daily_quts",
+  "source": "tpex",
+  "summary": "上櫃牛熊證收盤行情(不含展延型牛熊證)日報表",
+  "description": "上櫃牛熊證收盤行情(不含展延型牛熊證)日報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_wcb_monthly_quts": {
+  "id": "tpex/tpex_warrant_wcb_monthly_quts",
+  "source": "tpex",
+  "summary": "上櫃牛熊證收盤行情(不含展延型牛熊證)月報表",
+  "description": "上櫃牛熊證收盤行情(不含展延型牛熊證)月報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_wcb_issue": {
+  "id": "tpex/tpex_warrant_wcb_issue",
+  "source": "tpex",
+  "summary": "上櫃牛熊證發行基本資料(不含展延型牛熊證)",
+  "description": "上櫃牛熊證發行基本資料(不含展延型牛熊證)",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "ListedDate": "上櫃日期",
+   "ExpiryDate": "到期日",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "Type": "種類",
+   "American/European": "美式或歐式",
+   "CapPrice/Index": "上限價格或指數",
+   "FloorPrice/Index": "下限價格或指數",
+   "Reset": "重設型",
+   "LatestExercisePrice": "最新履約價",
+   "Latest ExerciseRatio": "最新行使比例",
+   "InitialIssuance": "初次發行單位數量仟單位",
+   "Accum.Accum.Issuance": "累計增額發行單位數量仟單位",
+   "Accum.CanceledWarrant": "累計註銷權證數量仟單位"
+  }
+ },
+ "tpex/tpex_warrant_wxy_daily_quts": {
+  "id": "tpex/tpex_warrant_wxy_daily_quts",
+  "source": "tpex",
+  "summary": "上櫃展延型牛熊證收盤行情日報表",
+  "description": "上櫃展延型牛熊證收盤行情日報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_wxy_monthly_quts": {
+  "id": "tpex/tpex_warrant_wxy_monthly_quts",
+  "source": "tpex",
+  "summary": "上櫃展延型牛熊證收盤行情月報表",
+  "description": "上櫃展延型牛熊證收盤行情月報表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol.": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_wxy_issue": {
+  "id": "tpex/tpex_warrant_wxy_issue",
+  "source": "tpex",
+  "summary": "上櫃展延型牛熊證發行基本資料",
+  "description": "上櫃展延型牛熊證發行基本資料",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "ListedDate": "上櫃日期",
+   "ExpiryDate": "到期日",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "Type": "種類",
+   "American/European": "美式或歐式",
+   "CapPrice/Index": "上限價格或指數",
+   "FloorPrice/Index": "下限價格或指數",
+   "Reset": "重設型",
+   "LatestExercisePrice": "最新履約價",
+   "Latest ExerciseRatio": "最新行使比例",
+   "InitialIssuance": "初次發行單位數量仟單位",
+   "Accum.Accum.Issuance": "累計增額發行單位數量仟單位",
+   "Accum.CanceledWarrant": "累計註銷權證數量仟單位"
+  }
+ },
+ "tpex/tpex_warrant_quts": {
+  "id": "tpex/tpex_warrant_quts",
+  "source": "tpex",
+  "summary": "單筆權證成交資料",
+  "description": "單筆權證成交資料",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Code": "代號",
+   "Name": "名稱",
+   "Open": "開市價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "收市價",
+   "Change": "漲跌",
+   "TradeVol. ": "成交量",
+   "No.OfTransactions": "筆數",
+   "TradeValue": "成交金額",
+   "UnderlyingStockCode": "標的代號",
+   "UnderlyingStock": "證券",
+   "UnderlyingStockClosePrice": "標的或指數收盤",
+   "UnderlyingStock PriceChange": "標的或指數漲跌"
+  }
+ },
+ "tpex/tpex_warrant_statistics": {
+  "id": "tpex/tpex_warrant_statistics",
+  "source": "tpex",
+  "summary": "每日權證交易人數(上櫃)",
+  "description": "每日權證交易人數(上櫃)",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Category": "統計類別",
+   "Statistics": "統計數據"
+  }
+ },
+ "tpex/tpex_warrant": {
+  "id": "tpex/tpex_warrant",
+  "source": "tpex",
+  "summary": "上櫃股票權證資訊",
+  "description": "上櫃股票權證資訊",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Item": "項次",
+   "Code": "權證代號",
+   "Name": "權證名稱",
+   "UnderlyingCode": "權證標的",
+   "Call /Put": "認購售",
+   "ExerciseStyle": "美式歐式",
+   "WithCeiling-floorStyleOrNot": "上下限型",
+   "WithResetStyleOrNot": "重設型",
+   "CallableBullOrBearStyle": "牛熊證",
+   "LatestStrikePrice": "最新履約價",
+   "LatestExercise Ratio": "最新行使比例",
+   "OriginalIssuedUnits": "初次發行單位數量",
+   "AccumulatedFollow-OnIssuedUnits": "累計增額發行單位數量",
+   "AccumulatedCancellationUnits": "累計註銷權證數量",
+   "ExpirationDate": "到期日"
+  }
+ },
+ "tpex/tpex_warrant_suspend_today": {
+  "id": "tpex/tpex_warrant_suspend_today",
+  "source": "tpex",
+  "summary": "上櫃權證當日暫停/恢復交易資訊",
+  "description": "上櫃權證當日暫停/恢復交易資訊",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "WarrantCode": "權證代號",
+   "WarrantName": "權證名稱",
+   "SecuritiesCompanyCode": "標的證券代號",
+   "CompanyName": "標的證券名稱",
+   "SuspendedTime": "暫停交易",
+   "ResumedTime": "恢復交易"
+  }
+ },
+ "tpex/tpex_warrant_suspend_history": {
+  "id": "tpex/tpex_warrant_suspend_history",
+  "source": "tpex",
+  "summary": "上櫃權證歷史暫停/恢復交易資訊",
+  "description": "上櫃權證歷史暫停/恢復交易資訊",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Year": "資料年份",
+   "No.": "序號",
+   "Date": "交易日期",
+   "WarrantCode": "權證代號",
+   "WarrantName": "權證名稱",
+   "StockCode": "標的證券代號",
+   "StockName": "標的證券名稱",
+   "SuspendedTime": "暫停交易時間",
+   "ResumedTime": "恢復交易時間"
+  }
+ },
+ "tpex/tpex_opfund_latest": {
+  "id": "tpex/tpex_opfund_latest",
+  "source": "tpex",
+  "summary": "開放式基金當日行情表",
+  "description": "開放式基金當日行情表",
+  "tags": [
+   "開放式基金"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Time": "資料時間",
+   "SecurityCode": "受益憑證代號",
+   "ListedOpenEndedFund": "基金簡稱",
+   "PreNAV": "前日淨值",
+   "EstimatedNAV": "當日預估淨值",
+   "Pre Avg.": "前日均價",
+   "B.Price": "報買價",
+   "B.Qty.": "報買量",
+   "S.Price": "報賣價",
+   "S.Qty.": "報賣量",
+   "Highest": "日最高",
+   "Lowest": "日最低",
+   "Avg.": "日均價",
+   "LatestPrice": "成交",
+   "Type": "投資人成交買賣別",
+   "Volume": "成交量"
+  }
+ },
+ "tpex/tpex_opfund_recommended_dealer": {
+  "id": "tpex/tpex_opfund_recommended_dealer",
+  "source": "tpex",
+  "summary": "開放式基金受益憑證造市商與造市之基金",
+  "description": "開放式基金受益憑證造市商與造市之基金",
+  "tags": [
+   "開放式基金"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecurityCode": "受益憑證代號",
+   "SecurityName": "基金簡稱",
+   "No.": "推薦序號",
+   "MarketMakerCode": "造市商代號",
+   "MarketMakerName": "造市商名稱",
+   "AddDate": "加入日期",
+   "Contact": "連絡人",
+   "Telephone": "電話",
+   "Address": "地址"
+  }
+ },
+ "tpex/tpex_opfund_market_highlight": {
+  "id": "tpex/tpex_opfund_market_highlight",
+  "source": "tpex",
+  "summary": "開放式基金市場現況",
+  "description": "開放式基金市場現況",
+  "tags": [
+   "開放式基金"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "NumberOfFunds": "登錄基金檔數",
+   "TotalTradingAmount": "本日總成交值",
+   "TotalTradingVolume": "本日總成交量受益權單位數",
+   "TotalNumberOfTransactions": "本日總成交筆數",
+   "NumberOfMarketMakers": "造市商總家數",
+   "TotalNumberOfPositionsRecommended": "造市部位總數",
+   "AverageNumberOfFundsPerMarketMaker": "平均每家造市商造市之基金檔數",
+   "AverageNumberOfMarketMakersPerFund": "平均每檔基金之造市商家數",
+   "NumberOfIncrease": "上漲檔數",
+   "NumberOfDecrease": "下跌檔數",
+   "NumberOfUnchanged": "持平檔數",
+   "NumberOfIncompleteIincludingSuspended": "未成交含暫停交易檔數"
+  }
+ },
+ "tpex/tpex_gold_market_highlight": {
+  "id": "tpex/tpex_gold_market_highlight",
+  "source": "tpex",
+  "summary": "黃金現貨市場現況",
+  "description": "黃金現貨市場現況",
+  "tags": [
+   "黃金現貨"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "NumberOfRegisteredGold": "登錄檔數",
+   "TotalTradingAmount": "本日總成交值",
+   "TotalTradingVolume": "本日總成交量",
+   "TotalNumberOfTransactions": "本日總成交筆數",
+   "NumberOfMarketMakers": "造市商總家數",
+   "AverageNumberOfMarketMakersPerGold": "平均每檔黃金之造市商家數",
+   "NumberOfIncrease": "上漲檔數",
+   "NumberOfDecrease": "下跌檔數",
+   "NumberOfUnchanged": "持平檔數",
+   "NumberOfIncompleteIincludingSuspended": "未成交含暫停交易檔數"
+  }
+ },
+ "tpex/tpex_gold_recommended_dealer": {
+  "id": "tpex/tpex_gold_recommended_dealer",
+  "source": "tpex",
+  "summary": "造市商與造市之黃金現貨",
+  "description": "造市商與造市之黃金現貨",
+  "tags": [
+   "黃金現貨"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "GoldCode": "黃金現貨代號",
+   "GoldName": "黃金現貨簡稱",
+   "No.": "推薦序號",
+   "MarketMakerCode": "造市商代號",
+   "MarketMakerName": "造市商名稱",
+   "AddDate": "加入日期",
+   "Contact": "連絡人",
+   "Telephone": "電話",
+   "Fax": "傳真",
+   "Address": "地址"
+  }
+ },
+ "tpex/tpex_gold_latest": {
+  "id": "tpex/tpex_gold_latest",
+  "source": "tpex",
+  "summary": "黃金現貨當日行情表",
+  "description": "黃金現貨當日行情表",
+  "tags": [
+   "黃金現貨"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Time": "資料時間",
+   "GoldCode": "黃金現貨代號",
+   "GoldShortName": "黃金現貨簡稱",
+   "QuotedBuyingPrePrice": "買進報價前日價格",
+   "QuotedBuyingB.Price": "買進報價價格",
+   "QuotedBuyingB.Qty.": "買進報價數量",
+   "QuotedBuyingChange": "買進報價漲跌幅",
+   "QuotedSellingPrePrice": "賣出報價前日價格",
+   "QuotedSellingS.Price": "賣出報價價格",
+   "QuotedSellingS.Qty.": "賣出報價數量",
+   "QuotedSellingChange": "賣出報價漲跌幅",
+   "TradingPreAvg.": "投資人成交前日均價",
+   "TradingHighest": "投資人成交當日最高",
+   "TradingLowest": "投資人成交當日最低",
+   "TradingAvg.": "投資人成交當日均價",
+   "TradingLatestTradingInfo.Type": "投資人最近一筆成交買賣別",
+   "TradingLatestTradingInfo.LatestPrice": "投資人最近一筆成交價",
+   "TradingLatestTradingInfo.Volume": "投資人最近一筆成交量",
+   "TradingVolume": "投資人成交量",
+   "TradingTransaction": "投資人成交筆數"
+  }
+ },
+ "tpex/tpex_gisa_highlight": {
+  "id": "tpex/tpex_gisa_highlight",
+  "source": "tpex",
+  "summary": "創櫃板公司市場現況",
+  "description": "創櫃板公司市場現況",
+  "tags": [
+   "創櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "CumulativeNumberOfCompaniesApplyingForGISARegistration": "申請公司",
+   "AmountOfCapitalRaisedThroughTheGISACapitalRaisingPlatform": "透過創櫃板籌資系統籌資金額",
+   "NumberOfCompaniesInIntegrativeCounseling": "受輔導公司（不包含已登錄創櫃板公司）",
+   "NumberOfGISACompanies": "創櫃板公司"
+  }
+ },
+ "tpex/tpex_gisa_company": {
+  "id": "tpex/tpex_gisa_company",
+  "source": "tpex",
+  "summary": "創櫃板公司資訊",
+  "description": "創櫃板公司資訊",
+  "tags": [
+   "創櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司簡稱",
+   "Industry": "產業類別"
+  }
+ },
+ "tpex/tpex_gisa_financing_before": {
+  "id": "tpex/tpex_gisa_financing_before",
+  "source": "tpex",
+  "summary": "於登錄創櫃板前辦理籌資資訊",
+  "description": "於登錄創櫃板前辦理籌資資訊",
+  "tags": [
+   "創櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "現金增資期別": "現金增資期別",
+   "發行新股種類": "發行新股種類",
+   "籌資資金用途": "籌資資金用途",
+   "每股面額": "每股面額",
+   "每股發行價格": "每股發行價格",
+   "於創櫃板籌資金額": "於創櫃板籌資金額",
+   "於創櫃板辦理籌資股數": "於創櫃板辦理籌資股數",
+   "於創櫃板投資人已認購股數": "於創櫃板投資人已認購股數",
+   "認購率": "認購率",
+   "僅限天使投資人認購": "僅限天使投資人認購",
+   "決定認購人名單方式": "決定認購人名單方式",
+   "認購期間": "認購期間",
+   "繳款期間": "繳款期間",
+   "籌資計畫": "籌資計畫",
+   "產業類別": "產業類別",
+   "推薦或出具創新創意意見書單位": "推薦或出具創新創意意見書單位",
+   "籌資辦理進度": "籌資辦理進度",
+   "備註": "備註"
+  }
+ },
+ "tpex/t187ap46_O_20": {
+  "id": "tpex/t187ap46_O_20",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟 ",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟 ",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "因與反競爭行為條例相關的法律訴訟而造成的金錢損失總額(仟元)": "因與反競爭行為條例相關的法律訴訟而造成的金錢損失總額(仟元)"
+  }
+ },
+ "tpex/t187ap46_O_19": {
+  "id": "tpex/t187ap46_O_19",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-風險管理政策 ",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-風險管理政策 ",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "重大事件之風險管理政策": "重大事件之風險管理政策",
+   "與使用關鍵材料相關的風險管理之描述": "與使用關鍵材料相關的風險管理之描述"
+  }
+ },
+ "tpex/t187ap46_O_15": {
+  "id": "tpex/t187ap46_O_15",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-社區關係 ",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-社區關係 ",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "在人口密集地區的煉油廠數量(座)": "在人口密集地區的煉油廠數量(座)"
+  }
+ },
+ "tpex/t187ap46_O_13": {
+  "id": "tpex/t187ap46_O_13",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-供應鏈管理 ",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-供應鏈管理 ",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "採購符合國際認可之產品責任標準者占整體採購之百分比，並依標準區分": "採購符合國際認可之產品責任標準者占整體採購之百分比，並依標準區分",
+   "對供應商進行稽核之家數(家)": "對供應商進行稽核之家數(家)",
+   "對供應商進行稽核之百分比": "對供應商進行稽核之百分比"
+  }
+ },
+ "tpex/t187ap46_O_12": {
+  "id": "tpex/t187ap46_O_12",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-食品安全",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-食品安全",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "為改善食品衛生、安全與品質，而針對其從業人員、作業場所、設施衛生管理及其品保制度等方面進行之評估與改進及所影響之百分比": "為改善食品衛生、安全與品質，而針對其從業人員、作業場所、設施衛生管理及其品保制度等方面進行之評估與改進及所影響之百分比",
+   "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之事件類別與次數": "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之事件類別與次數",
+   "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之產品下架次數(次)": "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之產品下架次數(次)",
+   "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之下架產品總重量(公噸_t)": "違反有關產品與服務之健康與安全法規及未遵循產品與服務之資訊與標示法規之下架產品總重量(公噸_t)",
+   "經獨立第三方驗證符合國際認證之食品安全管理系統標準之廠房所生產產品之百分比": "經獨立第三方驗證符合國際認證之食品安全管理系統標準之廠房所生產產品之百分比",
+   "依法規要求或自願進行產品追溯與追蹤管理之相關產品占所有產品之百分比": "依法規要求或自願進行產品追溯與追蹤管理之相關產品占所有產品之百分比",
+   "依法規要求或自願設置食品安全實驗室之相關支出(仟元)": "依法規要求或自願設置食品安全實驗室之相關支出(仟元)",
+   "依法規要求或自願設置食品安全實驗室之相關支出占營業收入淨額之百分比": "依法規要求或自願設置食品安全實驗室之相關支出占營業收入淨額之百分比"
+  }
+ },
+ "tpex/t187ap46_O_14": {
+  "id": "tpex/t187ap46_O_14",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-產品品質與安全",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-產品品質與安全",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "售出產品重量(公噸_t)": "售出產品重量(公噸_t)",
+   "生產設施場所數量(座)": "生產設施場所數量(座)",
+   "依產品類別之產品產量": "依產品類別之產品產量"
+  }
+ },
+ "tpex/tpex200_constituents": {
+  "id": "tpex/tpex200_constituents",
+  "source": "tpex",
+  "summary": "櫃買「富櫃200指數」當日成分股",
+  "description": "櫃買「富櫃200指數」當日成分股",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "股票代號": "股票代號",
+   "股票名稱": "股票名稱"
+  }
+ },
+ "tpex/t187ap41_O": {
+  "id": "tpex/t187ap41_O",
+  "source": "tpex",
+  "summary": "上櫃公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
+  "description": "上櫃公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "公司地址": "公司地址",
+   "股東常(臨時)會": "股東常(臨時)會",
+   "開會日期": "開會日期",
+   "開會地點": "開會地點",
+   "是否改選董監": "是否改選董監",
+   "聯絡電話": "聯絡電話",
+   "股務單位": "股務單位",
+   "股務單位電話": "股務單位電話",
+   "是否採電子投票": "是否採電子投票"
+  }
+ },
+ "tpex/t187ap05_R": {
+  "id": "tpex/t187ap05_R",
+  "source": "tpex",
+  "summary": "興櫃公司每月營業收入彙總表",
+  "description": "興櫃公司每月營業收入彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "資料年月": "資料年月",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "產業別": "產業別",
+   "營業收入-當月營收": "營業收入-當月營收",
+   "營業收入-上月營收": "營業收入-上月營收",
+   "營業收入-去年當月營收": "營業收入-去年當月營收",
+   "營業收入-上月比較增減(%)": "營業收入-上月比較增減(%)",
+   "營業收入-去年同月增減(%)": "營業收入-去年同月增減(%)",
+   "累計營業收入-當月累計營收": "累計營業收入-當月累計營收",
+   "累計營業收入-去年累計營收": "累計營業收入-去年累計營收",
+   "累計營業收入-前期比較增減(%)": "累計營業收入-前期比較增減(%)",
+   "備註": "備註"
+  }
+ },
+ "tpex/t187ap46_O_4": {
+  "id": "tpex/t187ap46_O_4",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-廢棄物管理",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-廢棄物管理",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "有害廢棄物量-數據(公噸)": "有害廢棄物量-數據(公噸)",
+   "有害廢棄物量-資料範圍": "有害廢棄物量-資料範圍",
+   "非有害廢棄物量-數據(公噸)": "非有害廢棄物量-數據(公噸)",
+   "非有害廢棄物量-資料範圍": "非有害廢棄物量-資料範圍",
+   "總重量(有害+非有害)-數據(公噸)": "總重量(有害+非有害)-數據(公噸)",
+   "總重量(有害+非有害)-資料範圍": "總重量(有害+非有害)-資料範圍",
+   "廢棄物密集度-密集度(公噸/單位)": "廢棄物密集度-密集度(公噸/單位)",
+   "廢棄物密集度-單位": "廢棄物密集度-單位",
+   "取得驗證": "取得驗證"
+  }
+ },
+ "tpex/t187ap46_O_2": {
+  "id": "tpex/t187ap46_O_2",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-能源管理",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-能源管理",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "使用率(再生能源/總能源)": "使用率(再生能源/總能源)",
+   "資料範圍": "資料範圍",
+   "取得驗證": "取得驗證"
+  }
+ },
+ "tpex/t187ap46_O_7": {
+  "id": "tpex/t187ap46_O_7",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-投資人溝通",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-投資人溝通",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "公司年度召開法說會次數(次)": "公司年度召開法說會次數(次)"
+  }
+ },
+ "tpex/t187ap46_O_1": {
+  "id": "tpex/t187ap46_O_1",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-溫室氣體排放",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-溫室氣體排放",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "範疇一排放量(噸CO2e)": "範疇一排放量(噸CO2e)",
+   "範疇一資料邊界": "範疇一資料邊界",
+   "範疇一取得驗證": "範疇一取得驗證",
+   "範疇二排放量(噸CO2e)": "範疇二排放量(噸CO2e)",
+   "範疇二資料邊界": "範疇二資料邊界",
+   "範疇二取得驗證": "範疇二取得驗證",
+   "範疇三排放量(噸CO2e)": "範疇三排放量(噸CO2e)",
+   "範疇三資料邊界": "範疇三資料邊界",
+   "範疇三取得驗證": "範疇三取得驗證",
+   "溫室氣體排放密集度(公噸CO₂e/百萬元營業額)": "溫室氣體排放密集度(公噸CO₂e/百萬元營業額)"
+  }
+ },
+ "tpex/t187ap46_O_6": {
+  "id": "tpex/t187ap46_O_6",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-董事會",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-董事會",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "董事席次(含獨立董事)(席)": "董事席次(含獨立董事)(席)",
+   "獨立董事席次(席)": "獨立董事席次(席)",
+   "女性董事席次及比率-席": "女性董事席次及比率-席",
+   "女性董事席次及比率-比率": "女性董事席次及比率-比率",
+   "董事出席董事會出席率": "董事出席董事會出席率",
+   "董監事進修時數符合進修要點比率": "董監事進修時數符合進修要點比率"
+  }
+ },
+ "tpex/t187ap46_O_5": {
+  "id": "tpex/t187ap46_O_5",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-人力發展",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-人力發展",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "員工福利平均數(仟元/人)": "員工福利平均數(仟元/人)",
+   "員工薪資平均數(仟元/人)": "員工薪資平均數(仟元/人)",
+   "非擔任主管職務之全時員工薪資平均數(仟元/人)": "非擔任主管職務之全時員工薪資平均數(仟元/人)",
+   "非擔任主管職務之全時員工薪資平均數變動百分比": "非擔任主管職務之全時員工薪資平均數變動百分比",
+   "非擔任主管之全時員工薪資中位數(仟元/人)": "非擔任主管之全時員工薪資中位數(仟元/人)",
+   "非擔任主管職務之全時員工薪資中位數變動百分比": "非擔任主管職務之全時員工薪資中位數變動百分比",
+   "管理職女性主管佔比": "管理職女性主管佔比",
+   "新進員工年齡分布": "新進員工年齡分布",
+   "離職員工年齡分布": "離職員工年齡分布",
+   "高齡員工晉用政策及培訓計畫": "高齡員工晉用政策及培訓計畫"
+  }
+ },
+ "tpex/t187ap46_O_3": {
+  "id": "tpex/t187ap46_O_3",
+  "source": "tpex",
+  "summary": "上櫃公司企業ESG資訊揭露彙總資料-水資源管理",
+  "description": "上櫃公司企業ESG資訊揭露彙總資料-水資源管理",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "報告年度": "報告年度",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "用水量(公噸)": "用水量(公噸)",
+   "資料範圍": "資料範圍",
+   "用水密集度-密集度(公噸/單位)": "用水密集度-密集度(公噸/單位)",
+   "用水密集度-單位": "用水密集度-單位",
+   "取得驗證": "取得驗證"
+  }
+ },
+ "tpex/mopsfin_t187ap05_OA": {
+  "id": "tpex/mopsfin_t187ap05_OA",
+  "source": "tpex",
+  "summary": "二十九大類股營收變化統計表",
+  "description": "二十九大類股營收變化統計表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "資料年月": "資料年月",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "產業別": "產業別",
+   "營業收入-當月營收": "營業收入-當月營收",
+   "營業收入-上月營收": "營業收入-上月營收",
+   "營業收入-去年當月營收": "營業收入-去年當月營收",
+   "營業收入-上月比較增減(%)": "營業收入-上月比較增減(%)",
+   "營業收入-去年同月增減(%)": "營業收入-去年同月增減(%)",
+   "累計營業收入-當月累計營收": "累計營業收入-當月累計營收",
+   "累計營業收入-去年累計營收": "累計營業收入-去年累計營收",
+   "累計營業收入-前期比較增減(%)": "累計營業收入-前期比較增減(%)",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap05_OB": {
+  "id": "tpex/mopsfin_t187ap05_OB",
+  "source": "tpex",
+  "summary": "發行公司營收創新高一覽表(上櫃)",
+  "description": "發行公司營收創新高一覽表(上櫃)",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "資料年月": "資料年月",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "產業別": "產業別",
+   "營業收入-當月營收": "營業收入-當月營收",
+   "營業收入-上月營收": "營業收入-上月營收",
+   "營業收入-去年當月營收": "營業收入-去年當月營收",
+   "營業收入-上月比較增減(%)": "營業收入-上月比較增減(%)",
+   "營業收入-去年同月增減(%)": "營業收入-去年同月增減(%)",
+   "累計營業收入-當月累計營收": "累計營業收入-當月累計營收",
+   "累計營業收入-去年累計營收": "累計營業收入-去年累計營收",
+   "累計營業收入-前期比較增減(%)": "累計營業收入-前期比較增減(%)",
+   "備註": "備註"
+  }
+ },
+ "tpex/BDdos216UTF": {
+  "id": "tpex/BDdos216UTF",
+  "source": "tpex",
+  "summary": "美元固定利率不可贖回國際債券理論價格",
+  "description": "美元固定利率不可贖回國際債券理論價格",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "債券代碼": "債券代碼",
+   "債券簡稱": "債券簡稱",
+   "發行人": "發行人",
+   "發行日": "發行日",
+   "到期日": "到期日",
+   "信用評等": "信用評等",
+   "利率": "利率",
+   "理論價格含息": "理論價格含息",
+   "應計利息": "應計利息",
+   "除息價格": "除息價格"
+  }
+ },
+ "tpex/BDdos215UTF": {
+  "id": "tpex/BDdos215UTF",
+  "source": "tpex",
+  "summary": "美元附息固定利率可贖回國際債券理論價格",
+  "description": "美元附息固定利率可贖回國際債券理論價格",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "債券代碼": "債券代碼",
+   "債券簡稱": "債券簡稱",
+   "發行人": "發行人",
+   "發行日": "發行日",
+   "到期日": "到期日",
+   "信用評等": "信用評等",
+   "利率": "利率",
+   "贖回期間結構": "贖回期間結構",
+   "公平價格含隱含息": "公平價格含隱含息",
+   "隱含應計利息": "隱含應計利息",
+   "扣除隱含息價格": "扣除隱含息價格"
+  }
+ },
+ "tpex/BDdos209UTF": {
+  "id": "tpex/BDdos209UTF",
+  "source": "tpex",
+  "summary": "美元零息可贖回國際債券理論價格",
+  "description": "美元零息可贖回國際債券理論價格",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "資料日期": "資料日期",
+   "債券代碼": "債券代碼",
+   "債券簡稱": "債券簡稱",
+   "發行人": "發行人",
+   "發行日": "發行日",
+   "到期日": "到期日",
+   "信用評等": "信用評等",
+   "隱含利率%": "隱含利率%",
+   "贖回期間結構": "贖回期間結構",
+   "理論價格": "理論價格",
+   "隱含應計利息": "隱含應計利息",
+   "扣除隱含息價格": "扣除隱含息價格"
+  }
+ },
+ "tpex/tpex_gisa_financing_history": {
+  "id": "tpex/tpex_gisa_financing_history",
+  "source": "tpex",
+  "summary": "創櫃板公司透過籌資系統辦理籌資資訊",
+  "description": "創櫃板公司透過籌資系統辦理籌資資訊",
+  "tags": [
+   "創櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "現金增資期別": "現金增資期別",
+   "發行新股種類": "發行新股種類",
+   "籌資資金用途": "籌資資金用途",
+   "每股發行價格": "每股發行價格",
+   "於創櫃板辦理籌資股數": "於創櫃板辦理籌資股數",
+   "於創櫃板籌資金額": "於創櫃板籌資金額",
+   "於創櫃板投資人已認購股數": "於創櫃板投資人已認購股數",
+   "認購率": "認購率",
+   "僅限天使投資人認購": "僅限天使投資人認購",
+   "決定認購人名單方式": "決定認購人名單方式",
+   "認購期間": "認購期間",
+   "繳款期間": "繳款期間",
+   "籌資計畫": "籌資計畫",
+   "產業類別": "產業類別",
+   "推薦或出具創新創意意見書單位": "推薦或出具創新創意意見書單位",
+   "籌資辦理進度": "籌資辦理進度",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap35_O": {
+  "id": "tpex/mopsfin_t187ap35_O",
+  "source": "tpex",
+  "summary": "上櫃公司股東行使提案權情形彙總表",
+  "description": "上櫃公司股東行使提案權情形彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "召開股東會日期": "召開股東會日期",
+   "股東依公司法第172條之1行使提案權-提案受理期間": "股東依公司法第172條之1行使提案權-提案受理期間",
+   "提案受理處所": "提案受理處所",
+   "股東提案內容": "股東提案內容"
+  }
+ },
+ "tpex/mopsfin_t187ap37_O": {
+  "id": "tpex/mopsfin_t187ap37_O",
+  "source": "tpex",
+  "summary": "上櫃權證基本資料彙總表",
+  "description": "上櫃權證基本資料彙總表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "權證代號": "權證代號",
+   "權證簡稱": "權證簡稱",
+   "權證類型": "權證類型",
+   "類別": "類別",
+   "流動量提供者報價方式": "流動量提供者報價方式",
+   "履約開始日": "履約開始日",
+   "最後交易日": "最後交易日",
+   "履約截止日": "履約截止日",
+   "發行單位數量(仟單位)": "發行單位數量(仟單位)",
+   "結算方式(詳附註編號說明)": "結算方式(詳附註編號說明)",
+   "標的證券/指數": "標的證券/指數",
+   "最新標的履約配發數量(每仟單位權證)": "最新標的履約配發數量(每仟單位權證)",
+   "原始履約價格(元)/履約指數": "原始履約價格(元)/履約指數",
+   "原始上限價格(元)/上限指數": "原始上限價格(元)/上限指數",
+   "原始下限價格(元)/下限指數": "原始下限價格(元)/下限指數",
+   "最新履約價格(元)/履約指數": "最新履約價格(元)/履約指數",
+   "最新上限價格(元)/上限指數": "最新上限價格(元)/上限指數",
+   "最新下限價格(元)/下限指數": "最新下限價格(元)/下限指數",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap42_O": {
+  "id": "tpex/mopsfin_t187ap42_O",
+  "source": "tpex",
+  "summary": "上櫃認購(售)權證每日成交資料檔",
+  "description": "上櫃認購(售)權證每日成交資料檔",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "交易日期": "交易日期",
+   "權證代號": "權證代號",
+   "權證名稱": "權證名稱",
+   "成交金額": "成交金額",
+   "成交數量": "成交數量"
+  }
+ },
+ "tpex/mopsfin_t187ap32_O": {
+  "id": "tpex/mopsfin_t187ap32_O",
+  "source": "tpex",
+  "summary": "上櫃公司公司治理之相關規程規則",
+  "description": "上櫃公司公司治理之相關規程規則",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "公司治理之相關規程規則": "公司治理之相關規程規則"
+  }
+ },
+ "tpex/mopsfin_t187ap34_O": {
+  "id": "tpex/mopsfin_t187ap34_O",
+  "source": "tpex",
+  "summary": "上櫃公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
+  "description": "上櫃公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "股東常(臨時)會日期-常或臨時": "股東常(臨時)會日期-常或臨時",
+   "股東常(臨時)會日期-日期": "股東常(臨時)會日期-日期",
+   "是否選任董監事": "是否選任董監事",
+   "董監事選任方式": "董監事選任方式",
+   "是否採候選人提名制選任董監事": "是否採候選人提名制選任董監事",
+   "採候選人提名制選任董監事相關公告-提名受理期間": "採候選人提名制選任董監事相關公告-提名受理期間",
+   "採候選人提名制選任董監事相關公告-提名受理處所": "採候選人提名制選任董監事相關公告-提名受理處所",
+   "候選人類別": "候選人類別",
+   "候選人姓名": "候選人姓名",
+   "是否當選": "是否當選"
+  }
+ },
+ "tpex/mopsfin_t187ap33_O": {
+  "id": "tpex/mopsfin_t187ap33_O",
+  "source": "tpex",
+  "summary": "上櫃公司董事長是否兼任總經理",
+  "description": "上櫃公司董事長是否兼任總經理",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "Chairman": "董事長",
+   "GeneralManager": "總經理",
+   "董事長是否兼任總經理": "董事長是否兼任總經理"
+  }
+ },
+ "tpex/mopsfin_t187ap31_O": {
+  "id": "tpex/mopsfin_t187ap31_O",
+  "source": "tpex",
+  "summary": "上櫃公司財務報告經監察人承認情形",
+  "description": "上櫃公司財務報告經監察人承認情形",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "是否設置審計委員會": "是否設置審計委員會",
+   "出具本次財務報告審查報告書之監察人姓名": "出具本次財務報告審查報告書之監察人姓名",
+   "監察人實際在任席次": "監察人實際在任席次"
+  }
+ },
+ "tpex/mopsfin_t187ap09_O": {
+  "id": "tpex/mopsfin_t187ap09_O",
+  "source": "tpex",
+  "summary": "上櫃公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
+  "description": "上櫃公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Percent": "百分比",
+   "CompanyName": "公司名稱"
+  }
+ },
+ "tpex/mopsfin_t187ap10_O": {
+  "id": "tpex/mopsfin_t187ap10_O",
+  "source": "tpex",
+  "summary": "上櫃公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
+  "description": "上櫃公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "連續不足達3個月": "連續不足達3個月",
+   "107/10-12連續不足達4個月": "107/10-12連續不足達4個月",
+   "107/09-12連續不足達5個月": "107/09-12連續不足達5個月",
+   "107/08-12連續不足達6個月": "107/08-12連續不足達6個月",
+   "107/07-12連續不足達7個月": "107/07-12連續不足達7個月",
+   "107/06-12連續不足達8個月": "107/06-12連續不足達8個月",
+   "107/05-12連續不足達9個月": "107/05-12連續不足達9個月",
+   "107/04-12連續不足達10個月": "107/04-12連續不足達10個月",
+   "107/03-12連續不足達11個月": "107/03-12連續不足達11個月",
+   "107/02-12連續不足達12個月": "107/02-12連續不足達12個月",
+   "107/01-12連續不足逾1年以上": "107/01-12連續不足逾1年以上"
+  }
+ },
+ "tpex/mopsfin_t187ap24_O": {
+  "id": "tpex/mopsfin_t187ap24_O",
+  "source": "tpex",
+  "summary": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動公司",
+  "description": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動公司",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "經營權異動日期": "經營權異動日期",
+   "經營權異動說明": "經營權異動說明"
+  }
+ },
+ "tpex/mopsfin_t187ap25_O": {
+  "id": "tpex/mopsfin_t187ap25_O",
+  "source": "tpex",
+  "summary": "上櫃公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
+  "description": "上櫃公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "序號": "序號",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業範圍重大變更說明": "營業範圍重大變更說明"
+  }
+ },
+ "tpex/tpex_gisa_financing_in_process": {
+  "id": "tpex/tpex_gisa_financing_in_process",
+  "source": "tpex",
+  "summary": "創櫃板辦理中籌資資訊",
+  "description": "創櫃板辦理中籌資資訊",
+  "tags": [
+   "創櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "現金增資期別": "現金增資期別",
+   "發行新股種類": "發行新股種類",
+   "籌資資金用途": "籌資資金用途",
+   "現增總股數": "現增總股數",
+   "每股面額": "每股面額",
+   "每股發行價格": "每股發行價格",
+   "籌資金額": "籌資金額",
+   "於創櫃板辦理籌資股數": "於創櫃板辦理籌資股數",
+   "已認購股數": "已認購股數",
+   "認購率": "認購率",
+   "僅限天使投資人認購": "僅限天使投資人認購",
+   "決定認購人名單方式": "決定認購人名單方式",
+   "認購期間": "認購期間",
+   "繳款期間": "繳款期間",
+   "委託代收價款行庫": "委託代收價款行庫",
+   "股務代理機構": "股務代理機構",
+   "是否印製實體股票": "是否印製實體股票",
+   "籌資計畫": "籌資計畫",
+   "點選認購申請": "點選認購申請",
+   "產業類別": "產業類別",
+   "推薦或出具創新創意意見書單位": "推薦或出具創新創意意見書單位",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap03_O": {
+  "id": "tpex/mopsfin_t187ap03_O",
+  "source": "tpex",
+  "summary": "上櫃股票基本資料",
+  "description": "上櫃股票基本資料",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "CompanyAbbreviation": "公司簡稱",
+   "Registration": "外國企業註冊地國",
+   "SecuritiesIndustryCode": "產業別",
+   "Address": "英文通訊地址",
+   "UnifiedBusinessNo.": "營利事業統一編號",
+   "Chairman": "董事長",
+   "GeneralManager": "總經理",
+   "Spokesman": "發言人",
+   "TitleOfSpokesman": "發言人職稱",
+   "DeputySpokesperson": "代理發言人",
+   "Telephone": "總機電話",
+   "DateOfIncorporation": "成立日期",
+   "DateOfListing": "上市日期",
+   "ParValueOfCommonStock": "普通股每股面額",
+   "Paidin.Capital.NTDollars": "實收資本額",
+   "PrivateStock.shares": "私募股數",
+   "PreferredStock.shares": "特別股",
+   "PreparationOfFinancialReportType": "編制財務報表類型",
+   "StockTransferAgent": "股票過戶機構",
+   "StockTransferAgentTelephone": "過戶電話",
+   "StockTransferAgentAddress": "過戶地址",
+   "AccountingFirm": "簽證會計師事務所",
+   "CPA.CharteredPublicAccountant.First": "簽證會計師1",
+   "CPA.CharteredPublicAccountant.Second": "簽證會計師2",
+   "Symbol": "英文簡稱",
+   "Fax": "傳真機號碼",
+   "EmailAddress": "電子郵件信箱",
+   "WebAddress": "網址",
+   "IssueShares": "已發行普通股數或TDR原股發行股數"
+  }
+ },
+ "tpex/tpex_3insti_qfii_trading": {
+  "id": "tpex/tpex_3insti_qfii_trading",
+  "source": "tpex",
+  "summary": "上櫃股票外資及陸資買賣超彙總表",
+  "description": "上櫃股票外資及陸資買賣超彙總表",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Rank": "排行",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   " ForeignInvestorsIncludeMainlandAreaInvestors-TotalBuy": "外資及陸資合計買進",
+   " ForeignInvestorsIncludeMainlandAreaInvestors-Total Sell": "外資及陸資不含自營商賣出",
+   " ForeignInvestorsInclude MainlandAreaInvestors-Difference": "外資及陸資不含自營商買賣超仟股",
+   " ForeignDealers-TotalBuy": "外資自營商買進",
+   " ForeignDealers-TotalSell": "外資自營商賣出",
+   " ForeignDealers-Difference": "外資自營商買賣超",
+   "ForeignInvestorsIncludeMainlandAreaInvestors-TotalSell": "外資及陸資合計賣出",
+   " ForeignInvestorsIncludeMainlandAreaInvestors-Difference": "外資及陸資合計買賣超"
+  }
+ },
+ "tpex/tpex_esb_latest_statistics": {
+  "id": "tpex/tpex_esb_latest_statistics",
+  "source": "tpex",
+  "summary": "興櫃股票當日行情表",
+  "description": "興櫃股票當日行情表",
+  "tags": [
+   "興櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Time": "資料時間",
+   "SecuritiesCompanyCode": "代號",
+   "CompanyName": "名稱",
+   "PreviousAveragePrice": "前日均價",
+   "BuyingPrice": "報買價",
+   "BuyingQuantity": "報買量",
+   "SellingPrice": "報賣價",
+   "SellingQuantity": "報賣量",
+   "Highest": "日最高",
+   "Lowest": "日最低",
+   "Average": "日均價",
+   "LatestPrice": "成交",
+   "Buy/Sell": "投資人成交買賣別",
+   "SuspendTime": "暫停交易開始時間",
+   "TransactionVolume": "成交量",
+   "ApplyingDate": "進度日期",
+   "ApplyingStatus": "上市櫃進度"
+  }
+ },
+ "tpex/mopsfin_t187ap36_O": {
+  "id": "tpex/mopsfin_t187ap36_O",
+  "source": "tpex",
+  "summary": "上櫃認購(售)權證年度發行量概況統計表",
+  "description": "上櫃認購(售)權證年度發行量概況統計表",
+  "tags": [
+   "權證"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "發行人代號": "發行人代號",
+   "發行人名稱": "發行人名稱",
+   "權證代號": "權證代號",
+   "名稱": "名稱",
+   "標的代號": "標的代號",
+   "標的名稱": "標的名稱",
+   "申請發行日期": "申請發行日期"
+  }
+ },
+ "tpex/mopsfin_t187ap03_R": {
+  "id": "tpex/mopsfin_t187ap03_R",
+  "source": "tpex",
+  "summary": "興櫃公司基本資料",
+  "description": "興櫃公司基本資料",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "CompanyAbbreviation": "公司簡稱",
+   "Registration": "外國企業註冊地國",
+   "SecuritiesIndustryCode": "產業別",
+   "Address": "英文通訊地址",
+   "UnifiedBusinessNo.": "營利事業統一編號",
+   "Chairman": "董事長",
+   "GeneralManager": "總經理",
+   "Spokesman": "發言人",
+   "TitleOfSpokesman": "發言人職稱",
+   "DeputySpokesperson": "代理發言人",
+   "Telephone": "總機電話",
+   "DateOfIncorporation": "成立日期",
+   "DateOfListing": "上市日期",
+   "ParValueOfCommonStock": "普通股每股面額",
+   "Paidin.Capital.NTDollars": "實收資本額",
+   "PrivateStock.shares": "私募股數",
+   "PreferredStock.shares": "特別股",
+   "PreparationOfFinancialReportType": "編制財務報表類型",
+   "StockTransferAgent": "股票過戶機構",
+   "StockTransferAgentTelephone": "過戶電話",
+   "StockTransferAgentAddress": "過戶地址",
+   "AccountingFirm": "簽證會計師事務所",
+   "CPA.CharteredPublicAccountant.First": "簽證會計師1",
+   "CPA.CharteredPublicAccountant.Second": "簽證會計師2",
+   "Symbol": "英文簡稱",
+   "Fax": "傳真機號碼",
+   "EmailAddress": "電子郵件信箱",
+   "WebAddress": "網址",
+   "IssueShares": "已發行普通股數或TDR原股發行股數"
+  }
+ },
+ "tpex/mopsfin_t187ap04_O": {
+  "id": "tpex/mopsfin_t187ap04_O",
+  "source": "tpex",
+  "summary": "上櫃公司每日重大訊息",
+  "description": "上櫃公司每日重大訊息",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "發言日期": "發言日期",
+   "發言時間": "發言時間",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "主旨": "主旨",
+   "符合條款": "符合條款",
+   "事實發生日": "事實發生日",
+   "說明": "說明"
+  }
+ },
+ "tpex/mopsfin_t187ap01": {
+  "id": "tpex/mopsfin_t187ap01",
+  "source": "tpex",
+  "summary": "券商業務別人員數",
+  "description": "券商業務別人員數",
+  "tags": [
+   "券商資料"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "職位": "職位",
+   "受託買賣": "受託買賣",
+   "受託買賣（衍生性商品銷售）": "受託買賣（衍生性商品銷售）",
+   "內部稽核": "內部稽核",
+   "融資融券": "融資融券",
+   "證券借貸": "證券借貸",
+   "自行買賣": "自行買賣",
+   "其他人員": "其他人員",
+   "結算交割": "結算交割",
+   "股務人員": "股務人員",
+   "承銷人員": "承銷人員",
+   "法令遵循": "法令遵循",
+   "風險管理-模型管理": "風險管理-模型管理",
+   "驗證人員-模型管理": "驗證人員-模型管理",
+   "內部稽核-模型管理": "內部稽核-模型管理",
+   "共同行銷": "共同行銷",
+   "合作推廣": "合作推廣",
+   "開戶": "開戶",
+   "徵信": "徵信",
+   "營業櫃檯輸單": "營業櫃檯輸單",
+   "主辦會計": "主辦會計",
+   "財富管理": "財富管理",
+   "風險管理-其他": "風險管理-其他",
+   "公司治理人員": "公司治理人員",
+   "受託管理私募股權基金人員": "受託管理私募股權基金人員",
+   "基金買賣及互易": "基金買賣及互易",
+   "數位服務（數位體驗專區）": "數位服務（數位體驗專區）",
+   "數位服務（客戶服務中心）": "數位服務（客戶服務中心）",
+   "合計": "合計"
+  }
+ },
+ "tpex/mopsfin_t187ap02_O": {
+  "id": "tpex/mopsfin_t187ap02_O",
+  "source": "tpex",
+  "summary": "上櫃公司持股逾 10% 大股東名單",
+  "description": "上櫃公司持股逾 10% 大股東名單",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "大股東名稱": "大股東名稱"
+  }
+ },
+ "tpex/mopsfin_t187ap26_O": {
+  "id": "tpex/mopsfin_t187ap26_O",
+  "source": "tpex",
+  "summary": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
+  "description": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "停止買賣開始日": "停止買賣開始日"
+  }
+ },
+ "tpex/mopsfin_t187ap27_O": {
+  "id": "tpex/mopsfin_t187ap27_O",
+  "source": "tpex",
+  "summary": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
+  "description": "上櫃公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "變更交易開始日": "變更交易開始日"
+  }
+ },
+ "tpex/mopsfin_t187ap05_O": {
+  "id": "tpex/mopsfin_t187ap05_O",
+  "source": "tpex",
+  "summary": "上櫃公司每月營業收入彙總表",
+  "description": "上櫃公司每月營業收入彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "資料年月": "資料年月",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "產業別": "產業別",
+   "營業收入-當月營收": "營業收入-當月營收",
+   "營業收入-上月營收": "營業收入-上月營收",
+   "營業收入-去年當月營收": "營業收入-去年當月營收",
+   "營業收入-上月比較增減(%)": "營業收入-上月比較增減(%)",
+   "營業收入-去年同月增減(%)": "營業收入-去年同月增減(%)",
+   "累計營業收入-當月累計營收": "累計營業收入-當月累計營收",
+   "累計營業收入-去年累計營收": "累計營業收入-去年累計營收",
+   "累計營業收入-前期比較增減(%)": "累計營業收入-前期比較增減(%)",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap39_O": {
+  "id": "tpex/mopsfin_t187ap39_O",
+  "source": "tpex",
+  "summary": "上櫃股利分派情形-董事會通過",
+  "description": "上櫃股利分派情形-董事會通過",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "股利年度": "股利年度",
+   "期別": "期別",
+   "董事會決議通過股利分派日": "董事會決議通過股利分派日",
+   "股東會日期配盈餘/待彌補虧損(元)": "股東會日期配盈餘/待彌補虧損(元)",
+   "期初未分配盈餘/待彌補虧損(元)": "期初未分配盈餘/待彌補虧損(元)",
+   "本期淨利(淨損)(元)": "本期淨利(淨損)(元)",
+   "可分配盈餘(元)": "可分配盈餘(元)",
+   "分配後期末未分配盈餘(元)": "分配後期末未分配盈餘(元)",
+   "股東配發內容-盈餘分配之現金股利(元/股)": "股東配發內容-盈餘分配之現金股利(元/股)",
+   "股東配發內容-法定盈餘公積、資本公積發放之現金(元/股)": "股東配發內容-法定盈餘公積、資本公積發放之現金(元/股)",
+   "股東配發內容-股東配發之現金(股利)總金額(元)": "股東配發內容-股東配發之現金(股利)總金額(元)",
+   "股東配發內容-盈餘轉增資配股(元/股)": "股東配發內容-盈餘轉增資配股(元/股)",
+   "股東配發內容-法定盈餘公積、資本公積轉增資配股(元/股)": "股東配發內容-法定盈餘公積、資本公積轉增資配股(元/股)",
+   "股東配發內容-股東配股總股數(股)": "股東配發內容-股東配股總股數(股)",
+   "董監酬勞(元)": "董監酬勞(元)",
+   "員工紅利-現金紅利金額(元)H": "員工紅利-現金紅利金額(元)H",
+   "員工紅利-股票紅利金額(元)I": "員工紅利-股票紅利金額(元)I",
+   "有無全數分派員工股票紅利而股東未配發股票股利之情事": "有無全數分派員工股票紅利而股東未配發股票股利之情事",
+   "摘錄公司章程-股利分派部分": "摘錄公司章程-股利分派部分",
+   "備註": "備註",
+   "普通股每股面額": "普通股每股面額"
+  }
+ },
+ "tpex/bond_cb_daily": {
+  "id": "tpex/bond_cb_daily",
+  "source": "tpex",
+  "summary": "轉(交)換公司債買賣斷券商買賣日報表",
+  "description": "轉(交)換公司債買賣斷券商買賣日報表",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "日期",
+   "FinancialInstitutionsCode": "證商代號",
+   "FinancialInstitutionsName": "名稱",
+   "ParValueOfPurchase": "買進面額",
+   "AmountOfPurchase": "買進金額",
+   "ParValueOfSell": "賣出面額",
+   "AmountOfSell": "賣出金額"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_basi": {
+  "id": "tpex/mopsfin_t187ap07_O_basi",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(金融業)",
+  "description": "上櫃公司資產負債表(金融業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "現金及約當現金": "現金及約當現金",
+   "存放央行及拆借銀行同業": "存放央行及拆借銀行同業",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之債務工具投資": "按攤銷後成本衡量之債務工具投資",
+   "避險之衍生金融資產淨額": "避險之衍生金融資產淨額",
+   "附賣回票券及債券投資淨額": "附賣回票券及債券投資淨額",
+   "應收款項－淨額": "應收款項－淨額",
+   "當期所得稅資產": "當期所得稅資產",
+   "待出售資產－淨額": "待出售資產－淨額",
+   "待分配予業主之資產－淨額": "待分配予業主之資產－淨額",
+   "貼現及放款－淨額": "貼現及放款－淨額",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "受限制資產－淨額": "受限制資產－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "保險合約資產": "保險合約資產",
+   "再保險合約資產": "再保險合約資產",
+   "不動產及設備－淨額": "不動產及設備－淨額",
+   "使用權資產－淨額": "使用權資產－淨額",
+   "投資性不動產投資－淨額": "投資性不動產投資－淨額",
+   "無形資產－淨額": "無形資產－淨額",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產－淨額": "其他資產－淨額",
+   "資產總額": "資產總額",
+   "央行及銀行同業存款": "央行及銀行同業存款",
+   "央行及同業融資": "央行及同業融資",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債－淨額": "避險之衍生金融負債－淨額",
+   "附買回票券及債券負債": "附買回票券及債券負債",
+   "應付款項": "應付款項",
+   "當期所得稅負債": "當期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "存款及匯款": "存款及匯款",
+   "應付金融債券": "應付金融債券",
+   "應付公司債": "應付公司債",
+   "特別股負債": "特別股負債",
+   "其他金融負債": "其他金融負債",
+   "負債準備": "負債準備",
+   "保險合約負債": "保險合約負債",
+   "再保險合約負債": "再保險合約負債",
+   "租賃負債": "租賃負債",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總額": "負債總額",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_bd": {
+  "id": "tpex/mopsfin_t187ap07_O_bd",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(證券期貨業)",
+  "description": "上櫃公司資產負債表(證券期貨業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益－具證券性質之虛擬通貨": "權益－具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘（或累積虧損）": "保留盈餘（或累積虧損）",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主權益合計": "歸屬於母公司業主權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司持有之母公司庫藏股股數（單位：股）": "母公司暨子公司持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_ci": {
+  "id": "tpex/mopsfin_t187ap07_O_ci",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(一般業)",
+  "description": "上櫃公司資產負債表(一般業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_fh": {
+  "id": "tpex/mopsfin_t187ap07_O_fh",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(金控業)",
+  "description": "上櫃公司資產負債表(金控業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "Season": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "現金及約當現金": "現金及約當現金",
+   "存放央行及拆借金融同業": "存放央行及拆借金融同業",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之債務工具投資": "按攤銷後成本衡量之債務工具投資",
+   "避險之衍生金融資產": "避險之衍生金融資產",
+   "附賣回票券及債券投資": "附賣回票券及債券投資",
+   "應收款項－淨額": "應收款項－淨額",
+   "當期所得稅資產": "當期所得稅資產",
+   "待出售資產－淨額": "待出售資產－淨額",
+   " ": " ",
+   "貼現及放款－淨額": "貼現及放款－淨額",
+   "保險合約資產及再保險合約資產－淨額": "保險合約資產及再保險合約資產－淨額",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "受限制資產－淨額": "受限制資產－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "投資性不動產－淨額": "投資性不動產－淨額",
+   "不動產及設備－淨額": "不動產及設備－淨額",
+   "使用權資產－淨額": "使用權資產－淨額",
+   "無形資產－淨額": "無形資產－淨額",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產－淨額": "其他資產－淨額",
+   "資產總額": "資產總額",
+   "央行及金融同業存款": "央行及金融同業存款",
+   "央行及同業融資": "央行及同業融資",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債": "避險之衍生金融負債",
+   "附買回票券及債券負債": "附買回票券及債券負債",
+   "應付商業本票－淨額": "應付商業本票－淨額",
+   "應付款項": "應付款項",
+   "當期所得稅負債": "當期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "存款及匯款": "存款及匯款",
+   "應付債券": "應付債券",
+   "其他借款": "其他借款",
+   "特別股負債": "特別股負債",
+   "負債準備": "負債準備",
+   "其他金融負債": "其他金融負債",
+   "保險合約負債及再保險合約負債": "保險合約負債及再保險合約負債",
+   "租賃負債": "租賃負債",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總額": "負債總額",
+   "股本": "股本",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "歸屬於母公司業主之權益": "歸屬於母公司業主之權益",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_ins": {
+  "id": "tpex/mopsfin_t187ap07_O_ins",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(保險業)",
+  "description": "上櫃公司資產負債表(保險業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   " ": " ",
+   "現金及約當現金": "現金及約當現金",
+   "應收款項": "應收款項",
+   "本期所得稅資產": "本期所得稅資產",
+   "待出售資產": "待出售資產",
+   "待分配予業主之資產（或處分群組）": "待分配予業主之資產（或處分群組）",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之金融資產": "按攤銷後成本衡量之金融資產",
+   "避險之金融資產": "避險之金融資產",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "投資性不動產": "投資性不動產",
+   "放款": "放款",
+   "保險合約資產": "保險合約資產",
+   "再保險合約資產": "再保險合約資產",
+   "不動產及設備": "不動產及設備",
+   "使用權資產": "使用權資產",
+   "無形資產": "無形資產",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產": "其他資產",
+   "分離帳戶保險商品資產": "分離帳戶保險商品資產",
+   "資產總計": "資產總計",
+   "短期債務": "短期債務",
+   "應付款項": "應付款項",
+   "本期所得稅負債": "本期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債": "避險之衍生金融負債",
+   "應付債券": "應付債券",
+   "特別股負債": "特別股負債",
+   "其他金融負債": "其他金融負債",
+   "租賃負債": "租賃負債",
+   "負債準備": "負債準備",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_O_mim": {
+  "id": "tpex/mopsfin_t187ap07_O_mim",
+  "source": "tpex",
+  "summary": "上櫃公司資產負債表(異業)",
+  "description": "上櫃公司資產負債表(異業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益－具證券性質之虛擬通貨": "權益－具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_basi": {
+  "id": "tpex/mopsfin_t187ap06_O_basi",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(金融業)",
+  "description": "上櫃公司綜合損益表(金融業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "Season": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨損益": "利息以外淨損益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期稅後淨利（淨損）": "繼續營業單位本期稅後淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "其他綜合損益（稅後）": "其他綜合損益（稅後）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額（稅後）": "本期綜合損益總額（稅後）",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（損）歸屬於共同控制下前手權益": "淨利（損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_bd": {
+  "id": "tpex/mopsfin_t187ap06_O_bd",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(證券期貨業)",
+  "description": "上櫃公司綜合損益表(證券期貨業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "CompanyName": "公司名稱",
+   "收益": "收益",
+   "支出及費用": "支出及費用",
+   "營業利益": "營業利益",
+   "營業外損益": "營業外損益",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_ci": {
+  "id": "tpex/mopsfin_t187ap06_O_ci",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(一般業)",
+  "description": "上櫃公司綜合損益表(一般業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "Season": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "原始認列生物資產及農產品之利益（損失）": "原始認列生物資產及農產品之利益（損失）",
+   "生物資產當期公允價值減出售成本之變動利益（損失）": "生物資產當期公允價值減出售成本之變動利益（損失）",
+   "營業毛利（毛損）": "營業毛利（毛損）",
+   "未實現銷貨（損）益": "未實現銷貨（損）益",
+   "已實現銷貨（損）益": "已實現銷貨（損）益",
+   "營業毛利（毛損）淨額": "營業毛利（毛損）淨額",
+   "營業費用": "營業費用",
+   "其他收益及費損淨額": "其他收益及費損淨額",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（淨額）": "其他綜合損益（淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_fh": {
+  "id": "tpex/mopsfin_t187ap06_O_fh",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(金控業)",
+  "description": "上櫃公司綜合損益表(金控業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨收益": "利息以外淨收益",
+   "淨收益": "淨收益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "保險其他營業成本": "保險其他營業成本",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前損益": "繼續營業單位稅前損益",
+   "所得稅（費用）利益": "所得稅（費用）利益",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_ins": {
+  "id": "tpex/mopsfin_t187ap06_O_ins",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(保險業)",
+  "description": "上櫃公司綜合損益表(保險業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "Season": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "營業費用": "營業費用",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "繼續營業單位稅前純益（純損）": "繼續營業單位稅前純益（純損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期純益（純損）": "繼續營業單位本期純益（純損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（稅後淨額）": "其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_mim": {
+  "id": "tpex/mopsfin_t187ap06_O_mim",
+  "source": "tpex",
+  "summary": "上櫃公司綜合損益表(異業)",
+  "description": "上櫃公司綜合損益表(異業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "Season": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "收入": "收入",
+   "支出": "支出",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益": "其他綜合損益",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_basiA": {
+  "id": "tpex/mopsfin_t187ap06_O_basiA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊(金融業)",
+  "description": "上櫃公司財報資訊(金融業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨損益": "利息以外淨損益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期稅後淨利（淨損）": "繼續營業單位本期稅後淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "其他綜合損益（稅後）": "其他綜合損益（稅後）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額（稅後）": "本期綜合損益總額（稅後）",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（損）歸屬於共同控制下前手權益": "淨利（損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_bdA": {
+  "id": "tpex/mopsfin_t187ap06_O_bdA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊(證券期貨業)",
+  "description": "上櫃公司財報資訊(證券期貨業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "收益": "收益",
+   "支出及費用": "支出及費用",
+   "營業利益": "營業利益",
+   "營業外損益": "營業外損益",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_ciA": {
+  "id": "tpex/mopsfin_t187ap06_O_ciA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊( 一般業)",
+  "description": "上櫃公司財報資訊( 一般業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "原始認列生物資產及農產品之利益（損失）": "原始認列生物資產及農產品之利益（損失）",
+   "生物資產當期公允價值減出售成本之變動利益（損失）": "生物資產當期公允價值減出售成本之變動利益（損失）",
+   "營業毛利（毛損）": "營業毛利（毛損）",
+   "未實現銷貨（損）益": "未實現銷貨（損）益",
+   "已實現銷貨（損）益": "已實現銷貨（損）益",
+   "營業毛利（毛損）淨額": "營業毛利（毛損）淨額",
+   "營業費用": "營業費用",
+   "其他收益及費損淨額": "其他收益及費損淨額",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（淨額）": "其他綜合損益（淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_fhA": {
+  "id": "tpex/mopsfin_t187ap06_O_fhA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊(金控業)",
+  "description": "上櫃公司財報資訊(金控業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨收益": "利息以外淨收益",
+   "淨收益": "淨收益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "保險其他營業成本": "保險其他營業成本",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前損益": "繼續營業單位稅前損益",
+   "所得稅（費用）利益": "所得稅（費用）利益",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_insA": {
+  "id": "tpex/mopsfin_t187ap06_O_insA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊(保險業)",
+  "description": "上櫃公司財報資訊(保險業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "營業費用": "營業費用",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "繼續營業單位稅前純益（純損）": "繼續營業單位稅前純益（純損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期純益（純損）": "繼續營業單位本期純益（純損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（稅後淨額）": "其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_O_mimA": {
+  "id": "tpex/mopsfin_t187ap06_O_mimA",
+  "source": "tpex",
+  "summary": "上櫃公司財報資訊(異業)",
+  "description": "上櫃公司財報資訊(異業)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "收入": "收入",
+   "支出": "支出",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益": "其他綜合損益",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_bd": {
+  "id": "tpex/mopsfin_t187ap07_U_bd",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-證券期貨業",
+  "description": "興櫃公司資產負債表-證券期貨業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益－具證券性質之虛擬通貨": "權益－具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘（或累積虧損）": "保留盈餘（或累積虧損）",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主權益合計": "歸屬於母公司業主權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司持有之母公司庫藏股股數（單位：股）": "母公司暨子公司持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_ci": {
+  "id": "tpex/mopsfin_t187ap07_U_ci",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-一般業",
+  "description": "興櫃公司資產負債表-一般業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_fh": {
+  "id": "tpex/mopsfin_t187ap07_U_fh",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-金控業",
+  "description": "興櫃公司資產負債表-金控業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "現金及約當現金": "現金及約當現金",
+   "存放央行及拆借金融同業": "存放央行及拆借金融同業",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之債務工具投資": "按攤銷後成本衡量之債務工具投資",
+   "避險之衍生金融資產": "避險之衍生金融資產",
+   "附賣回票券及債券投資": "附賣回票券及債券投資",
+   "應收款項－淨額": "應收款項－淨額",
+   "當期所得稅資產": "當期所得稅資產",
+   "待出售資產－淨額": "待出售資產－淨額",
+   " ": " ",
+   "貼現及放款－淨額": "貼現及放款－淨額",
+   "保險合約資產及再保險合約資產－淨額": "保險合約資產及再保險合約資產－淨額",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "受限制資產－淨額": "受限制資產－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "投資性不動產－淨額": "投資性不動產－淨額",
+   "不動產及設備－淨額": "不動產及設備－淨額",
+   "使用權資產－淨額": "使用權資產－淨額",
+   "無形資產－淨額": "無形資產－淨額",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產－淨額": "其他資產－淨額",
+   "資產總額": "資產總額",
+   "央行及金融同業存款": "央行及金融同業存款",
+   "央行及同業融資": "央行及同業融資",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債": "避險之衍生金融負債",
+   "附買回票券及債券負債": "附買回票券及債券負債",
+   "應付商業本票－淨額": "應付商業本票－淨額",
+   "應付款項": "應付款項",
+   "當期所得稅負債": "當期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "存款及匯款": "存款及匯款",
+   "應付債券": "應付債券",
+   "其他借款": "其他借款",
+   "特別股負債": "特別股負債",
+   "負債準備": "負債準備",
+   "其他金融負債": "其他金融負債",
+   "保險合約負債及再保險合約負債": "保險合約負債及再保險合約負債",
+   "租賃負債": "租賃負債",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總額": "負債總額",
+   "股本": "股本",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "歸屬於母公司業主之權益": "歸屬於母公司業主之權益",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_ins": {
+  "id": "tpex/mopsfin_t187ap07_U_ins",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-保險業",
+  "description": "興櫃公司資產負債表-保險業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   " ": " ",
+   "現金及約當現金": "現金及約當現金",
+   "應收款項": "應收款項",
+   "本期所得稅資產": "本期所得稅資產",
+   "待出售資產": "待出售資產",
+   "待分配予業主之資產（或處分群組）": "待分配予業主之資產（或處分群組）",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之金融資產": "按攤銷後成本衡量之金融資產",
+   "避險之金融資產": "避險之金融資產",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "投資性不動產": "投資性不動產",
+   "放款": "放款",
+   "保險合約資產": "保險合約資產",
+   "再保險合約資產": "再保險合約資產",
+   "不動產及設備": "不動產及設備",
+   "使用權資產": "使用權資產",
+   "無形資產": "無形資產",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產": "其他資產",
+   "分離帳戶保險商品資產": "分離帳戶保險商品資產",
+   "資產總計": "資產總計",
+   "短期債務": "短期債務",
+   "應付款項": "應付款項",
+   "本期所得稅負債": "本期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債": "避險之衍生金融負債",
+   "應付債券": "應付債券",
+   "特別股負債": "特別股負債",
+   "其他金融負債": "其他金融負債",
+   "負債準備": "負債準備",
+   "租賃負債": "租賃負債",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "非控制權益": "非控制權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "權益總計": "權益總計",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_mim": {
+  "id": "tpex/mopsfin_t187ap07_U_mim",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-異業",
+  "description": "興櫃公司資產負債表-異業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "流動資產": "流動資產",
+   "非流動資產": "非流動資產",
+   "資產總計": "資產總計",
+   "流動負債": "流動負債",
+   "非流動負債": "非流動負債",
+   "負債總計": "負債總計",
+   "股本": "股本",
+   "權益－具證券性質之虛擬通貨": "權益－具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_basi": {
+  "id": "tpex/mopsfin_t187ap06_U_basi",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-金融業",
+  "description": "興櫃公司綜合損益表-金融業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨損益": "利息以外淨損益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期稅後淨利（淨損）": "繼續營業單位本期稅後淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "其他綜合損益（稅後）": "其他綜合損益（稅後）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額（稅後）": "本期綜合損益總額（稅後）",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（損）歸屬於共同控制下前手權益": "淨利（損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_bd": {
+  "id": "tpex/mopsfin_t187ap06_U_bd",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-證券期貨業",
+  "description": "興櫃公司綜合損益表-證券期貨業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "收益": "收益",
+   "支出及費用": "支出及費用",
+   "營業利益": "營業利益",
+   "營業外損益": "營業外損益",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（損）歸屬於母公司業主": "淨利（損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（損）歸屬於非控制權益": "淨利（損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_ci": {
+  "id": "tpex/mopsfin_t187ap06_U_ci",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-一般業",
+  "description": "興櫃公司綜合損益表-一般業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "原始認列生物資產及農產品之利益（損失）": "原始認列生物資產及農產品之利益（損失）",
+   "生物資產當期公允價值減出售成本之變動利益（損失）": "生物資產當期公允價值減出售成本之變動利益（損失）",
+   "營業毛利（毛損）": "營業毛利（毛損）",
+   "未實現銷貨（損）益": "未實現銷貨（損）益",
+   "已實現銷貨（損）益": "已實現銷貨（損）益",
+   "營業毛利（毛損）淨額": "營業毛利（毛損）淨額",
+   "營業費用": "營業費用",
+   "其他收益及費損淨額": "其他收益及費損淨額",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "稅前淨利（淨損）": "稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（淨額）": "其他綜合損益（淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_fh": {
+  "id": "tpex/mopsfin_t187ap06_U_fh",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-金控業",
+  "description": "興櫃公司綜合損益表-金控業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "利息淨收益": "利息淨收益",
+   "利息以外淨收益": "利息以外淨收益",
+   "淨收益": "淨收益",
+   "呆帳費用、承諾及保證責任準備提存": "呆帳費用、承諾及保證責任準備提存",
+   "保險其他營業成本": "保險其他營業成本",
+   "營業費用": "營業費用",
+   "繼續營業單位稅前損益": "繼續營業單位稅前損益",
+   "所得稅（費用）利益": "所得稅（費用）利益",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期稅後淨利（淨損）": "本期稅後淨利（淨損）",
+   "本期其他綜合損益（稅後淨額）": "本期其他綜合損益（稅後淨額）",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_ins": {
+  "id": "tpex/mopsfin_t187ap06_U_ins",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-保險業",
+  "description": "興櫃公司綜合損益表-保險業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業收入": "營業收入",
+   "營業成本": "營業成本",
+   "營業費用": "營業費用",
+   "營業利益（損失）": "營業利益（損失）",
+   "營業外收入及支出": "營業外收入及支出",
+   "繼續營業單位稅前純益（純損）": "繼續營業單位稅前純益（純損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期純益（純損）": "繼續營業單位本期純益（純損）",
+   "停業單位損益": "停業單位損益",
+   "合併前非屬共同控制股權損益": "合併前非屬共同控制股權損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益（稅後淨額）": "其他綜合損益（稅後淨額）",
+   "合併前非屬共同控制股權綜合損益淨額": "合併前非屬共同控制股權綜合損益淨額",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap06_U_mim": {
+  "id": "tpex/mopsfin_t187ap06_U_mim",
+  "source": "tpex",
+  "summary": "興櫃公司綜合損益表-異業",
+  "description": "興櫃公司綜合損益表-異業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "收入": "收入",
+   "支出": "支出",
+   "繼續營業單位稅前淨利（淨損）": "繼續營業單位稅前淨利（淨損）",
+   "所得稅費用（利益）": "所得稅費用（利益）",
+   "繼續營業單位本期淨利（淨損）": "繼續營業單位本期淨利（淨損）",
+   "停業單位損益": "停業單位損益",
+   "本期淨利（淨損）": "本期淨利（淨損）",
+   "其他綜合損益": "其他綜合損益",
+   "本期綜合損益總額": "本期綜合損益總額",
+   "淨利（淨損）歸屬於母公司業主": "淨利（淨損）歸屬於母公司業主",
+   "淨利（淨損）歸屬於共同控制下前手權益": "淨利（淨損）歸屬於共同控制下前手權益",
+   "淨利（淨損）歸屬於非控制權益": "淨利（淨損）歸屬於非控制權益",
+   "綜合損益總額歸屬於母公司業主": "綜合損益總額歸屬於母公司業主",
+   "綜合損益總額歸屬於共同控制下前手權益": "綜合損益總額歸屬於共同控制下前手權益",
+   "綜合損益總額歸屬於非控制權益": "綜合損益總額歸屬於非控制權益",
+   "基本每股盈餘（元）": "基本每股盈餘（元）"
+  }
+ },
+ "tpex/mopsfin_t187ap07_U_basi": {
+  "id": "tpex/mopsfin_t187ap07_U_basi",
+  "source": "tpex",
+  "summary": "興櫃公司資產負債表-金融業",
+  "description": "興櫃公司資產負債表-金融業",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "年度": "年度",
+   "季別": "季別",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "現金及約當現金": "現金及約當現金",
+   "存放央行及拆借銀行同業": "存放央行及拆借銀行同業",
+   "透過損益按公允價值衡量之金融資產": "透過損益按公允價值衡量之金融資產",
+   "透過其他綜合損益按公允價值衡量之金融資產": "透過其他綜合損益按公允價值衡量之金融資產",
+   "按攤銷後成本衡量之債務工具投資": "按攤銷後成本衡量之債務工具投資",
+   "避險之衍生金融資產淨額": "避險之衍生金融資產淨額",
+   "附賣回票券及債券投資淨額": "附賣回票券及債券投資淨額",
+   "應收款項－淨額": "應收款項－淨額",
+   "當期所得稅資產": "當期所得稅資產",
+   "待出售資產－淨額": "待出售資產－淨額",
+   "待分配予業主之資產－淨額": "待分配予業主之資產－淨額",
+   "貼現及放款－淨額": "貼現及放款－淨額",
+   "採用權益法之投資－淨額": "採用權益法之投資－淨額",
+   "受限制資產－淨額": "受限制資產－淨額",
+   "其他金融資產－淨額": "其他金融資產－淨額",
+   "保險合約資產": "保險合約資產",
+   "再保險合約資產": "再保險合約資產",
+   "不動產及設備－淨額": "不動產及設備－淨額",
+   "使用權資產－淨額": "使用權資產－淨額",
+   "投資性不動產投資－淨額": "投資性不動產投資－淨額",
+   "無形資產－淨額": "無形資產－淨額",
+   "遞延所得稅資產": "遞延所得稅資產",
+   "其他資產－淨額": "其他資產－淨額",
+   "資產總額": "資產總額",
+   "央行及銀行同業存款": "央行及銀行同業存款",
+   "央行及同業融資": "央行及同業融資",
+   "透過損益按公允價值衡量之金融負債": "透過損益按公允價值衡量之金融負債",
+   "避險之衍生金融負債－淨額": "避險之衍生金融負債－淨額",
+   "附買回票券及債券負債": "附買回票券及債券負債",
+   "應付款項": "應付款項",
+   "當期所得稅負債": "當期所得稅負債",
+   "與待出售資產直接相關之負債": "與待出售資產直接相關之負債",
+   "存款及匯款": "存款及匯款",
+   "應付金融債券": "應付金融債券",
+   "應付公司債": "應付公司債",
+   "特別股負債": "特別股負債",
+   "其他金融負債": "其他金融負債",
+   "負債準備": "負債準備",
+   "保險合約負債": "保險合約負債",
+   "再保險合約負債": "再保險合約負債",
+   "租賃負債": "租賃負債",
+   "遞延所得稅負債": "遞延所得稅負債",
+   "其他負債": "其他負債",
+   "負債總額": "負債總額",
+   "股本": "股本",
+   "權益─具證券性質之虛擬通貨": "權益─具證券性質之虛擬通貨",
+   "資本公積": "資本公積",
+   "保留盈餘": "保留盈餘",
+   "其他權益": "其他權益",
+   "庫藏股票": "庫藏股票",
+   "歸屬於母公司業主之權益合計": "歸屬於母公司業主之權益合計",
+   "共同控制下前手權益": "共同控制下前手權益",
+   "合併前非屬共同控制股權": "合併前非屬共同控制股權",
+   "非控制權益": "非控制權益",
+   "權益總額": "權益總額",
+   "待註銷股本股數（單位：股）": "待註銷股本股數（單位：股）",
+   "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
+   "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
+   "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "tpex/mopsfin_t187ap11_R": {
+  "id": "tpex/mopsfin_t187ap11_R",
+  "source": "tpex",
+  "summary": "興櫃公司董監事持股餘額明細資料",
+  "description": "興櫃公司董監事持股餘額明細資料",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "資料年月": "資料年月",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "職稱": "職稱",
+   "姓名": "姓名",
+   "選任時持股": "選任時持股",
+   "目前持股": "目前持股",
+   "設質股數": "設質股數",
+   "設質股數佔持股比例": "設質股數佔持股比例",
+   "內部人關係人目前持股合計": "內部人關係人目前持股合計",
+   "內部人關係人設質股數": "內部人關係人設質股數",
+   "內部人關係人設質比例": "內部人關係人設質比例"
+  }
+ },
+ "tpex/mopsfin_t187ap14_O": {
+  "id": "tpex/mopsfin_t187ap14_O",
+  "source": "tpex",
+  "summary": "上櫃公司各產業EPS統計資訊",
+  "description": "上櫃公司各產業EPS統計資訊",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "產業別": "產業別",
+   "基本每股盈餘": "基本每股盈餘(元)",
+   "普通股每股面額": "普通股每股面額",
+   "營業收入": "營業收入",
+   "營業利益": "營業利益",
+   "營業外收入及支出": "營業外收入及支出",
+   "稅後淨利": "稅後淨利"
+  }
+ },
+ "tpex/mopsfin_t187ap15_O": {
+  "id": "tpex/mopsfin_t187ap15_O",
+  "source": "tpex",
+  "summary": "上櫃公司截至各季綜合損益財測達成情形(簡式)",
+  "description": "上櫃公司截至各季綜合損益財測達成情形(簡式)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "財測序號": "財測序號",
+   "涵蓋期間": "涵蓋期間",
+   "截至第1季經會計師查核或核閱數": "截至第1季經會計師查核或核閱數",
+   "截至第1季稅前損益預測數": "截至第1季稅前損益預測數"
+  }
+ },
+ "tpex/mopsfin_t187ap16_O": {
+  "id": "tpex/mopsfin_t187ap16_O",
+  "source": "tpex",
+  "summary": "上櫃公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
+  "description": "上櫃公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "財測序號": "財測序號",
+   "涵蓋期間": "涵蓋期間",
+   "經會計師查核或核閱數第4季": "經會計師查核或核閱數第4季",
+   "經會計師查核或核閱數截至第4季": "經會計師查核或核閱數截至第4季",
+   "稅前綜合損益預測數第4季": "稅前(綜合)損益預測數第4季",
+   "稅前綜合損益預測數截至第4季": "稅前(綜合)損益預測數截至第4季"
+  }
+ },
+ "tpex/mopsfin_187ap17_O": {
+  "id": "tpex/mopsfin_187ap17_O",
+  "source": "tpex",
+  "summary": "上櫃公司營益分析查詢彙總表(全體公司彙總報表)",
+  "description": "上櫃公司營益分析查詢彙總表(全體公司彙總報表)",
+  "tags": [
+   "財務報表"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "Year": "年度",
+   "季別": "季別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "營業收入百萬元": "營業收入(百萬元)",
+   "毛利率": "毛利率(%)(營業毛利)/(營業收入)",
+   "營業利益率": "營業利益率(%)(營業利益)/(營業收入)",
+   "稅前純益率": "稅前純益率(%)(稅前純益)/(營業收入)",
+   "稅後純益率": "稅後純益率(%)(稅後純益)/(營業收入)"
+  }
+ },
+ "tpex/mopsfin_t187ap08_O": {
+  "id": "tpex/mopsfin_t187ap08_O",
+  "source": "tpex",
+  "summary": "上櫃公司董事、監察人持股不足法定成數彙總表",
+  "description": "上櫃公司董事、監察人持股不足法定成數彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "已發行股份總額": "已發行股份總額",
+   "全體董事不包含獨立董事應持有股數": "全 體 董 事(不包含獨立董事)-應持有股數",
+   "全體董事不包含獨立董事本人實際持有股數": "全 體 董 事(不包含獨立董事)-本人實際持有股數",
+   "全體董事不包含獨立董事法人代表人分戶集保股數": "全 體 董 事(不包含獨立董事)-法人代表人分戶集保股數",
+   "全體董事不包含獨立董事保留運用決定權信託股數": "全 體 董 事(不包含獨立董事)-保留運用決定權信託股數",
+   "全體董事不包含獨立董事不足股數": "全 體 董 事(不包含獨立董事)-不足股數",
+   "全體監察人應持有股數": "全 體 監 察 人-應持有股數",
+   "全體監察人本人實際持有股數": "全 體 監 察 人-本人實際持有股數",
+   "全體監察人法人代表人分戶集保股數": "全 體 監 察 人-法人代表人分戶集保股數",
+   "全體監察人保留運用決定權信託股數": "全 體 監 察 人-保留運用決定權信託股數",
+   "全體監察人不足股數": "全 體 監 察 人-不足股數",
+   "持股不足已通知其董監": "持股不足已通知其董監"
+  }
+ },
+ "tpex/mopsfin_t187ap11_O": {
+  "id": "tpex/mopsfin_t187ap11_O",
+  "source": "tpex",
+  "summary": "上櫃公司董監事持股餘額明細資料",
+  "description": "上櫃公司董監事持股餘額明細資料",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "資料年月": "資料年月",
+   "公司代號": "公司代號",
+   "公司名稱": "公司名稱",
+   "職稱": "職稱",
+   "姓名": "姓名",
+   "選任時持股": "選任時持股",
+   "目前持股": "目前持股",
+   "設質股數": "設質股數",
+   "設質股數佔持股比例": "設質股數佔持股比例",
+   "內部人關係人目前持股合計": "內部人關係人目前持股合計",
+   "內部人關係人設質股數": "內部人關係人設質股數",
+   "內部人關係人設質比例": "內部人關係人設質比例"
+  }
+ },
+ "tpex/mopsfin_t187ap12_O": {
+  "id": "tpex/mopsfin_t187ap12_O",
+  "source": "tpex",
+  "summary": "上櫃公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
+  "description": "上櫃公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "申請人身分": "申請人身分",
+   "姓名": "姓名",
+   "預定轉讓方式及股數-轉讓方式": "預定轉讓方式及股數-轉讓方式",
+   "預定轉讓方式及股數-轉讓股數": "預定轉讓方式及股數-轉讓股數",
+   "每日於盤中交易最大得轉讓股數": "每日於盤中交易最大得轉讓股數",
+   "受讓人": "受讓人",
+   "目前持有股數-自有持股": "目前持有股數-自有持股",
+   "目前持有股數-保留運用決定權信託股數": "目前持有股數-保留運用決定權信託股數",
+   "預定轉讓總股數-自有持股": "預定轉讓總股數-自有持股",
+   "預定轉讓總股數-保留運用決定權信託股數": "預定轉讓總股數-保留運用決定權信託股數",
+   "預定轉讓後持股-自有持股": "預定轉讓後持股-自有持股",
+   "預定轉讓後持股-保留運用決定權信託股數": "預定轉讓後持股-保留運用決定權信託股數",
+   "有效轉讓期間": "有效轉讓期間"
+  }
+ },
+ "tpex/mopsfin_t187ap13_O": {
+  "id": "tpex/mopsfin_t187ap13_O",
+  "source": "tpex",
+  "summary": "上櫃公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
+  "description": "上櫃公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "申請人身分": "申請人身分",
+   "姓名": "姓名",
+   "未轉讓股數自有持股": "未轉讓股數-自有持股",
+   "未轉讓股數保留運用決定權信託股數": "未轉讓股數-保留運用決定權信託股數",
+   "目前持股自有持股": "目前持股-自有持股",
+   "目前持股保留運用決定權信託股數": "目前持股-保留運用決定權信託股數",
+   "原申報預定轉讓股數自有持股": "原申報預定轉讓股數-自有持股",
+   "原申報預定轉讓股數保留運用決定權信託股數": "原申報預定轉讓股數-保留運用決定權信託股數",
+   "未轉讓理由": "未轉讓理由"
+  }
+ },
+ "tpex/mopsfin_t187ap22_O": {
+  "id": "tpex/mopsfin_t187ap22_O",
+  "source": "tpex",
+  "summary": "上櫃公司金管會證券期貨局裁罰案件專區",
+  "description": "上櫃公司金管會證券期貨局裁罰案件專區",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "發函日期": "發函日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "違規事由": "違規事由",
+   "違反法規": "違反法規",
+   "裁處情形": "裁處情形"
+  }
+ },
+ "tpex/mopsfin_t187ap30_O": {
+  "id": "tpex/mopsfin_t187ap30_O",
+  "source": "tpex",
+  "summary": "上櫃公司獨立董監事兼任情形彙總表",
+  "description": "上櫃公司獨立董監事兼任情形彙總表",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "序號": "序號",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "職稱": "職稱",
+   "Name": "姓名",
+   "就任日期": "就任日期",
+   "主要現職": "主要現職",
+   "主要經歷": "主要經歷",
+   "目前兼任其他公司名稱": "目前兼任其他公司名稱",
+   "其他公司職稱": "其他公司職稱",
+   "備註": "備註"
+  }
+ },
+ "tpex/mopsfin_t187ap29_A_O": {
+  "id": "tpex/mopsfin_t187ap29_A_O",
+  "source": "tpex",
+  "summary": "上櫃公司董事酬金相關資訊",
+  "description": "上櫃公司董事酬金相關資訊",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "產業類別": "產業類別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "董事酬金108年支付": "董事酬金-108年支付",
+   "董事酬金109年支付": "董事酬金-109年支付",
+   "董事酬金合計": "董事酬金-合計",
+   "董事酬金加計兼任員工酬金108年支付": "董事酬金加計兼任員工酬金-108年支付",
+   "董事酬金加計兼任員工酬金109年支付": "董事酬金加計兼任員工酬金-109年支付",
+   "加計兼任員工酬金合計": "加計兼任員工酬金-合計",
+   "酬金總額占稅後損益百分比董事酬金": "酬金總額占稅後損益百分比(%)-董事酬金",
+   "酬金總額占稅後損益百分比加計兼任員工酬金": "酬金總額占稅後損益百分比(%)-加計兼任員工酬金",
+   "平均每位董事酬金董事酬金": "平均每位董事酬金-董事酬金",
+   "平均每位董事酬金加計兼任員工酬金": "平均每位董事酬金-加計兼任員工酬金",
+   "領取來自子公司以外轉投資事業或母公司酬金": "領取來自子公司以外轉投資事業或母公司酬金",
+   "稅後純益": "稅後純益",
+   "每股盈餘": "每股盈餘",
+   "股東權益報酬率": "股東權益報酬率(%)",
+   "實收資本額": "實收資本額(仟元)",
+   "稅後損益與董監酬金變動之關聯性與合理性說明": "稅後損益與董監酬金變動之關聯性與合理性說明"
+  }
+ },
+ "tpex/mopsfin_t187ap29_B_O": {
+  "id": "tpex/mopsfin_t187ap29_B_O",
+  "source": "tpex",
+  "summary": "上櫃公司監察人酬金相關資訊",
+  "description": "上櫃公司監察人酬金相關資訊",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "產業類別": "產業類別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "監察人酬金108年支付": "監察人酬金-108年支付",
+   "監察人酬金109年支付": "監察人酬金-109年支付",
+   "監察人酬金合計": "監察人酬金-合計",
+   "酬金總額占稅後損益百分比": "酬金總額占稅後損益百分比(%)",
+   "平均每位監察人酬金": "平均每位監察人酬金",
+   "領取來自子公司以外轉投資事業或母公司酬金": "領取來自子公司以外轉投資事業或母公司酬金",
+   "稅後純益": "稅後純益",
+   "每股盈餘": "每股盈餘",
+   "股東權益報酬率": "股東權益報酬率(%)",
+   "實收資本額": "實收資本額(仟元)",
+   "稅後損益與董監酬金變動之關聯性與合理性說明": "稅後損益與董監酬金變動之關聯性與合理性說明"
+  }
+ },
+ "tpex/mopsfin_t187ap29_C_O": {
+  "id": "tpex/mopsfin_t187ap29_C_O",
+  "source": "tpex",
+  "summary": "上櫃公司合併報表董事酬金相關資訊",
+  "description": "上櫃公司合併報表董事酬金相關資訊",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "產業類別": "產業類別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "董事酬金108年支付": "董事酬金-108年支付",
+   "董事酬金109年支付": "董事酬金-109年支付",
+   "董事酬金合計": "董事酬金-合計",
+   "董事酬金加計兼任員工酬金108年支付": "董事酬金加計兼任員工酬金-108年支付",
+   "董事酬金加計兼任員工酬金109年支付": "董事酬金加計兼任員工酬金-109年支付",
+   "加計兼任員工酬金合計": "加計兼任員工酬金-合計",
+   "酬金總額占稅後損益百分比董事酬金": "酬金總額占稅後損益百分比(%)-董事酬金",
+   "酬金總額占稅後損益百分比加計兼任員工酬金": "酬金總額占稅後損益百分比(%)-加計兼任員工酬金",
+   "平均每位董事酬金董事酬金": "平均每位董事酬金-董事酬金",
+   "平均每位董事酬金加計兼任員工酬金": "平均每位董事酬金-加計兼任員工酬金",
+   "領取來自子公司以外轉投資事業或母公司酬金": "領取來自子公司以外轉投資事業或母公司酬金",
+   "稅後純益": "稅後純益",
+   "每股盈餘": "每股盈餘",
+   "股東權益報酬率": "股東權益報酬率(%)",
+   "實收資本額": "實收資本額(仟元)",
+   "稅後損益與董監酬金變動之關聯性與合理性說明": "稅後損益與董監酬金變動之關聯性與合理性說明"
+  }
+ },
+ "tpex/mopsfin_t187ap29_D_O": {
+  "id": "tpex/mopsfin_t187ap29_D_O",
+  "source": "tpex",
+  "summary": "上櫃公司合併報表監察人酬金相關資訊",
+  "description": "上櫃公司合併報表監察人酬金相關資訊",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "產業類別": "產業類別",
+   "SecuritiesCompanyCode": "公司代號",
+   "CompanyName": "公司名稱",
+   "監察人酬金108年支付": "監察人酬金-108年支付",
+   "監察人酬金109年支付": "監察人酬金-109年支付",
+   "監察人酬金合計": "監察人酬金-合計",
+   "酬金總額占稅後損益百分比": "酬金總額占稅後損益百分比(%)",
+   "平均每位監察人酬金": "平均每位監察人酬金",
+   "領取來自子公司以外轉投資事業或母公司酬金": "領取來自子公司以外轉投資事業或母公司酬金",
+   "稅後純益": "稅後純益",
+   "每股盈餘": "每股盈餘",
+   "股東權益報酬率": "股東權益報酬率(%)",
+   "實收資本額": "實收資本額(仟元)",
+   "稅後損益與董監酬金變動之關聯性與合理性說明": "稅後損益與董監酬金變動之關聯性與合理性說明"
+  }
+ },
+ "tpex/mopsfin_t187ap23_O": {
+  "id": "tpex/mopsfin_t187ap23_O",
+  "source": "tpex",
+  "summary": "上櫃公司違反資訊申報、重大訊息及說明記者會規定專區",
+  "description": "上櫃公司違反資訊申報、重大訊息及說明記者會規定專區",
+  "tags": [
+   "公司治理"
+  ],
+  "fields": {
+   "Date": "出表日期",
+   "發函日期": "發函日期",
+   "SecuritiesCompanyCode": "股票代號",
+   "CompanyName": "公司名稱",
+   "違規事由": "違規事由",
+   "違反資訊申報作業辦法條款": "違反資訊申報作業辦法條款",
+   "違反重大訊息之查證暨公開處理程序條款": "違反重大訊息之查證暨公開處理程序條款",
+   "裁罰金額": "裁罰金額(萬)"
+  }
+ },
+ "tpex/mopsfin_t187ap19_O": {
+  "id": "tpex/mopsfin_t187ap19_O",
+  "source": "tpex",
+  "summary": "電子式交易統計資訊(上櫃)",
+  "description": "電子式交易統計資訊(上櫃)",
+  "tags": [
+   "上櫃"
+  ],
+  "fields": {
+   "出表日期": "出表日期",
+   "成交月份": "成交月份",
+   "本月新增戶數": "本月新增戶數",
+   "本月註銷戶數": "本月註銷戶數",
+   "累計開戶數": "累計開戶數",
+   "本月交易戶數": "本月交易戶數",
+   "本月交易人數": "本月交易人數",
+   "委託筆數": "委託筆數",
+   "委託金額": "委託金額",
+   "成交筆數": "成交筆數",
+   "成交金額": "成交金額",
+   "平均每筆成交金額": "平均每筆成交金額",
+   "公司總成交筆數": "公司總成交筆數",
+   "公司總成交金額": "公司總成交金額",
+   "占公司成交比率筆數": "占公司成交比率(筆數)",
+   "占公司成交比率金額": "占公司成交比率(金額)",
+   "市場成交總筆數買賣合計": "市場成交總筆數(買賣合計)",
+   "市場成交總金額買賣合計": "市場成交總金額(買賣合計)",
+   "占市場成交比率筆數": "占市場成交比率(筆數)",
+   "占市場成交比率金額": "占市場成交比率(金額)"
+  }
+ },
+ "tpex/tpex_esb_highlight": {
+  "id": "tpex/tpex_esb_highlight",
+  "source": "tpex",
+  "summary": "興櫃股票市場現況",
+  "description": "興櫃股票市場現況",
+  "tags": [
+   "興櫃"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "RegisteredStocksNumber": "登錄興櫃家數",
+   "TotalPaidinCapital": "總資本額",
+   "TotalMarketValue": "總市值",
+   "TransactionAmount": "本日總成交值",
+   "TradingShares": "本日總成交股數",
+   "TransactionNumber": "本日總成交筆數",
+   "RecommendingDealersNumber": "推薦證券商總家數",
+   "RecommendedPositions": "推薦部位總數",
+   "RecommendationsPerRecommendingDealerAverageNumber": "平均每家推薦證券商推薦家數",
+   "RecommendingDealersPerStockAverageNumber": "平均每檔股票之推薦證券商家數",
+   "IncreaseNumber": "上漲家數",
+   "DecreaseNumber": "下跌家數",
+   "UnchangedNumber": "持平家數",
+   "IncompleteNumberIncludingSuspended": "未成交含暫停交易家數"
+  }
+ },
+ "tpex/bond_ISSBD1_data": {
+  "id": "tpex/bond_ISSBD1_data",
+  "source": "tpex",
+  "summary": "公債發行資料下載",
+  "description": "公債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD2_data": {
+  "id": "tpex/bond_ISSBD2_data",
+  "source": "tpex",
+  "summary": "外國金融債發行資料下載",
+  "description": "外國金融債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD3_data": {
+  "id": "tpex/bond_ISSBD3_data",
+  "source": "tpex",
+  "summary": "金融債發行資料下載",
+  "description": "金融債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD4_data": {
+  "id": "tpex/bond_ISSBD4_data",
+  "source": "tpex",
+  "summary": "普通債發行資料下載",
+  "description": "普通債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD5_data": {
+  "id": "tpex/bond_ISSBD5_data",
+  "source": "tpex",
+  "summary": "轉(交)換債發行資料下載",
+  "description": "轉(交)換債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD6_data": {
+  "id": "tpex/bond_ISSBD6_data",
+  "source": "tpex",
+  "summary": "海外轉換債發行資料下載",
+  "description": "海外轉換債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD7_data": {
+  "id": "tpex/bond_ISSBD7_data",
+  "source": "tpex",
+  "summary": "附認股權公司債發行資料下載",
+  "description": "附認股權公司債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD8_data": {
+  "id": "tpex/bond_ISSBD8_data",
+  "source": "tpex",
+  "summary": "海外附認股權公司債發行資料下載",
+  "description": "海外附認股權公司債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD9_data": {
+  "id": "tpex/bond_ISSBD9_data",
+  "source": "tpex",
+  "summary": "海外普通債發行資料下載",
+  "description": "海外普通債發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD10_data": {
+  "id": "tpex/bond_ISSBD10_data",
+  "source": "tpex",
+  "summary": "國際債券(寶島債券)-本國發行人及第一、二上市(櫃)公司之外國發行人發行資料下載",
+  "description": "國際債券(寶島債券)-本國發行人及第一、二上市(櫃)公司之外國發行人發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondType": "債券種類",
+   "SeriesNumber": "債券期",
+   "TrancheNumber": "債券別",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "目前餘額",
+   "CouponRate": "票面利率",
+   "InterestBasis": "計付息方式",
+   "CouponFrequency": "計息次數",
+   "PaidFrequency": "付息次數",
+   "BondRatingAgency": "債券評等機構",
+   "BondRating": "債券評等等級",
+   "IssuerRatingAgency": "發行公司評等機構",
+   "IssuerRating": "發行公司評等等級",
+   "GuarantorRatingAgency": "擔保機構評等機構",
+   "GuarantorRating": "擔保機構評等等級",
+   "ListingCountry": "掛牌地點",
+   "PrincipalRepayment": "還本FLAG",
+   "PrincipalRepaymentDescription": "還本敘述",
+   "ShortName": "債券簡稱",
+   "ListingDate": "掛牌日期",
+   "TenorYear": "發行期限年",
+   "TenorMonth": "發行期限月",
+   "ListingStatus": "上市櫃否",
+   "Guaranteed": "有無擔保",
+   "GuaranteeDescription": "債券擔保情形 ",
+   "PutOptionDate": "賣回權日期",
+   "PutOptionPrice": "賣回權價格",
+   "Underwriter": "承銷機構",
+   "OutstandingChangeDate": "最近餘額變動日",
+   "OutstandingChangeDescription": "最近餘額變動原因",
+   "Currency": "幣別",
+   "OfferingMethod": "募集方式",
+   "Conversion/ExchangePriceAtIssuance": "發行時轉換價格",
+   "Conversion/ExchangePeriodStartDate": "轉換期間起",
+   "Conversion/ExchangePeriodEndDate": "迄",
+   "Trustee": "受託人"
+  }
+ },
+ "tpex/bond_ISSBD11_data": {
+  "id": "tpex/bond_ISSBD11_data",
+  "source": "tpex",
+  "summary": "國際債券(寶島債券)-外國發行人(在我國未公開發行股權商品者)發行資料下載",
+  "description": "國際債券(寶島債券)-外國發行人(在我國未公開發行股權商品者)發行資料下載",
+  "tags": [
+   "債券"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "IssuerCode": "機構代碼",
+   "IssuerName": "機構名稱",
+   "BondCode": "債券代碼",
+   "BondName": "債券名稱",
+   "ShortName": "債券簡稱",
+   "BondType": "債券種類",
+   "IssueDate": "發行日期",
+   "MaturityDate": "到期日期",
+   "ListingDate": "櫃檯買賣日期",
+   "Denomination": "面額",
+   "Volume": "發行張數",
+   "IssueAmount": "發行總額",
+   "OutstandingAmount": "流通餘額",
+   "Coupon": "利率",
+   "Currency": "交易幣別",
+   "CreditRating": "信用評等等級",
+   "BookRuningManager": "債券安排機構",
+   "Note": "備註",
+   "ListedOnTPEx": "債券於櫃買中心掛牌"
+  }
+ },
+ "tpex/tpex_daily_broker2": {
+  "id": "tpex/tpex_daily_broker2",
+  "source": "tpex",
+  "summary": "上櫃股票各券商總公司當日營業金額統計表",
+  "description": "上櫃股票各券商總公司當日營業金額統計表",
+  "tags": [
+   "券商資料"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "Ranking": "排名",
+   "PreviousDayRanking": "前日排名",
+   "FinancialInstitutionsCode": "券商",
+   "FinancialInstitutionsName": "名稱",
+   "NumberOfCompanies": "家數",
+   "TradingAmount": "成交金額",
+   "DayClosingRatio": "日成交比率",
+   "CurrentMonthRanking": "本月排名",
+   "CurrentMonthCumulativeAmount": "本月累計金額",
+   "CurrentMonthClosingRatio": "本月成交比率"
+  }
+ },
+ "tpex/tphd_index": {
+  "id": "tpex/tphd_index",
+  "source": "tpex",
+  "summary": "高殖利率指數歷史收盤指數",
+  "description": "高殖利率指數歷史收盤指數",
+  "tags": [
+   "指數系列"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TPExHighDividendYieldIndex": "櫃買高殖利率指數",
+   "TPExHighDividendYieldTotalReturnIndex": "櫃買高殖利率報酬指數"
   }
  }
 }

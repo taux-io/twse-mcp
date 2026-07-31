@@ -25,6 +25,21 @@ const DAY = [
   { Code: "2330", Name: "台積電", Date: "20260727", ClosingPrice: "1,000", Change: "-5", TradeVolume: "20,000" },
 ];
 const RANKS = [{ ETFsSecurityCode: "0056", No: "2", ETFsNumberofTradingAccounts: "380,000" }];
+const OTC = [
+  {
+    Date: "1150731",
+    SecuritiesCompanyCode: "00679B",
+    CompanyName: "元大美債20年",
+    Close: "26.68",
+    Change: "+0.17",
+    Open: "26.57",
+    High: "26.69",
+    Low: "26.56",
+    TradingShares: "15501000",
+    TransactionAmount: "412954940",
+    TransactionNumber: "1427",
+  },
+];
 
 function jsonResponse(v: unknown) {
   return new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
@@ -35,6 +50,7 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: unknown) => {
       const u = String(url);
+      if (u.includes("tpex_mainboard_quotes")) return jsonResponse(OTC);
       if (u.includes("STOCK_DAY_ALL")) return jsonResponse(DAY);
       if (u.includes("t187ap47_L")) return jsonResponse(FUNDS);
       if (u.includes("ETFRank")) return jsonResponse(RANKS);
@@ -135,6 +151,36 @@ describe("MCP handler seam", () => {
     const out = await callTool("etf_snapshot", { code: "0056", include_realtime: true });
     expect(Array.isArray(out.realtime)).toBe(true);
     expect(out.realtime[0].last).toBe("38.45");
+  });
+
+  it("twse_get_dataset：查上櫃資料集時打的是櫃買中心，不是證交所", async () => {
+    const out = await callTool("twse_get_dataset", {
+      dataset_id: "tpex/tpex_mainboard_quotes",
+      code: "00679B",
+    });
+    expect(out.rows_matched).toBe(1);
+    expect(out.data[0].CompanyName).toBe("元大美債20年");
+    const urls = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.map((c) =>
+      String(c[0]),
+    );
+    expect(urls.some((u) => u === "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes")).toBe(
+      true,
+    );
+    expect(urls.some((u) => u.includes("openapi.twse.com.tw"))).toBe(false);
+  });
+
+  it("twse_search_datasets：搜「上櫃」找得到櫃買中心的資料集（真實目錄）", async () => {
+    const out = await callTool("twse_search_datasets", { query: "上櫃", limit: 50 });
+    expect(out.results.some((r: { dataset_id: string }) => r.dataset_id.startsWith("tpex/"))).toBe(
+      true,
+    );
+  });
+
+  it("etf_snapshot：上櫃 ETF 也查得到，listing 標「上櫃」", async () => {
+    const out = await callTool("etf_snapshot", { code: "00679B" });
+    expect(out.listing).toBe("上櫃");
+    expect(out.name).toBe("元大美債20年");
+    expect(out.quote.收盤).toBe(26.68);
   });
 
   it("twse_realtime_quote：回映射後的報價，且 market 帶進出站請求", async () => {
