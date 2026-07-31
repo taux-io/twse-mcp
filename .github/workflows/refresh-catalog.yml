@@ -1,0 +1,87 @@
+name: refresh catalog
+
+# 證交所偶爾會新增／調整資料集與欄位。catalog 是建置期烘進 bundle 的靜態檔，
+# 不會自己更新，所以每週重抓一次 swagger，有變動就備好分支並開 issue 通知。
+#
+# 注意：本組織政策禁止 GitHub Actions 開 PR，所以這裡改成「推分支 + 開 issue
+# （內含一鍵開 PR 的連結）」。若日後組織開放該權限，可改成直接 gh pr create。
+
+on:
+  schedule:
+    - cron: "17 1 * * 1" # 每週一 01:17 UTC（台北時間 09:17）
+  workflow_dispatch: # 也可手動觸發
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  BRANCH: chore/catalog-refresh
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+
+      - name: 重抓證交所 swagger
+        run: npm run refresh-catalog
+
+      - name: 有變動嗎
+        id: diff
+        run: |
+          if git diff --quiet src/catalog.generated.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "證交所目錄無變動，收工。"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git --no-pager diff --stat src/catalog.generated.json
+          fi
+
+      # 分支不會觸發既有的 tests workflow，所以在這裡就把驗證做完，
+      # 確保通知你的時候，這份新 catalog 是已經確定能build、能過測試的。
+      - name: 驗證新的 catalog
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          npm run typecheck
+          npm test
+          npm run dry-run
+
+      - name: 推上分支
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add src/catalog.generated.json
+          git commit -m "chore: refresh TWSE catalog"
+          git push --force origin "$BRANCH"
+
+      - name: 開 issue 通知（已存在就補一則留言）
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "catalog: 證交所目錄有變動待審"
+        run: |
+          COMPARE="${{ github.server_url }}/${{ github.repository }}/compare/main...${BRANCH}?expand=1"
+          BODY=$(printf '%s\n' \
+            "每週自動刷新發現證交所的 swagger 有變動，已把新的 \`src/catalog.generated.json\` 推到 \`${BRANCH}\`。" \
+            "" \
+            "**已驗證**：typecheck、測試、\`wrangler deploy --dry-run\` 全數通過。" \
+            "" \
+            "[點此開 PR 檢視 diff](${COMPARE})" \
+            "" \
+            "diff 會顯示證交所新增／移除了哪些資料集或欄位——這就是我們把 catalog 簽入版控的用意。" \
+            "" \
+            "_由 \`${GITHUB_WORKFLOW}\` 自動產生（run #${GITHUB_RUN_NUMBER}）_")
+          EXISTING=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
