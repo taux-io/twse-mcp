@@ -65,7 +65,7 @@
 
 **範圍切割**
 - v1 出貨 **4 個 OpenAPI 工具**。
-- **`etf_snapshot` 的即時報價段：程式已接好，靠 `include_realtime` 預設 `false` 收斂。** 它打的是較脆的 host（`mis.twse.com.tw`，可能封 Cloudflare 出口 IP），但失敗會**安全降級成 `realtime: null`**、不影響其餘欄位；想用的人自行帶 `include_realtime=true`。（原本列為延後，實作後確認可安全降級，故收進 v1。）
+- **`etf_snapshot` 的即時報價段：程式已接好，靠 `include_realtime` 預設 `false` 收斂。** 它打的是較脆的 host（`mis.twse.com.tw`；「可能封 Cloudflare 出口 IP」的疑慮**已由上線後的 egress 探測排除**，見 Further Notes），且失敗會**安全降級成 `realtime: null`**、不影響其餘欄位；想用的人自行帶 `include_realtime=true`。（原本列為延後，實作後確認可安全降級，故收進 v1。）
 - **獨立的 `twse_realtime_quote` 工具**：上線首日從 Cloudflare 邊緣實測 `mis` egress **已通過**，故已註冊開放（後續工作見 issue #3）。
 
 **Repo 策略**
@@ -97,7 +97,10 @@
 
 ## Further Notes
 
-- **首日探測**：`wrangler dev` 對 `mis.twse.com.tw/stock/api/getStockInfo.jsp`（帶 `Referer`）打一發，同時驗 `openapi.twse.com.tw` 出站正常。前者是唯一可能逼架構改變（需台灣落地 proxy）的風險點。
+- **`mis` egress 探測：已完成，結果為通過。** 這原本是整份 spec 唯一可能逼架構改變（需台灣落地 proxy）的風險點，現已解除：
+  - **方法修正**：原訂用 `wrangler dev` 探測是**錯的**——它走的是開發者本機 IP，驗不到 Cloudflare 邊緣的出口。實際必須**先部署**，再從線上 Worker 發出請求。
+  - **結果**：部署到 `https://twse-mcp.taux.io/mcp` 後，`etf_snapshot("0056", include_realtime=true)` 與 `twse_realtime_quote(["0050","0056","2330"])` 皆回傳真實報價（例：0056 last 48.19 @ 13:30:00），`wrangler tail` 全程 `Ok`、無任何 fetch 例外。`openapi.twse.com.tw` 出站亦正常。
+  - **結論**：Cloudflare 邊緣未被 `mis.twse.com.tw` 封鎖，獨立的 `twse_realtime_quote` 工具因此解禁並註冊（issue #3）。此結論屬**觀測值而非保證**——對方是非官方網頁介面、無服務條款背書，日後仍可能改變；屆時的降級路徑是 `realtime: null` + caveat，不會使工具整體失效。
 - **成本**：Workers 與 Cache API 免費額度對此用量綽綽有餘，預期 $0。
 - **散佈轉變**：價值主張從「安裝一個本機二進位」變成「指向一個 URL」，README 需據此重寫，並提供 client 端 `claude mcp add --transport http` 範例。
 - **catalog 漂移監控**：因 `catalog.json` 簽入，證交所端資料集增刪/欄位變更會以 git diff 形式浮現，構成被動監控；可選掛每週 Action 自動開 PR。
