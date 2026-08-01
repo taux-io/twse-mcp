@@ -88,7 +88,7 @@ describe("MCP handler seam", () => {
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
       [
-        "etf_snapshot",
+        "twse_etf_snapshot",
         "twse_describe_dataset",
         "twse_get_dataset",
         "twse_realtime_quote",
@@ -126,7 +126,7 @@ describe("MCP handler seam", () => {
   });
 
   it("etf_snapshot：三表合併，realtime 預設不查", async () => {
-    const out = await callTool("etf_snapshot", { code: "0056" });
+    const out = await callTool("twse_etf_snapshot", { code: "0056" });
     expect(out.is_etf).toBe(true);
     expect(out.profile.追蹤指數).toBe("臺灣高股息指數");
     expect(out.quote.收盤).toBe(38.2);
@@ -140,7 +140,7 @@ describe("MCP handler seam", () => {
   });
 
   it("etf_snapshot：include_realtime 時才附上即時報價", async () => {
-    const out = await callTool("etf_snapshot", { code: "0056", include_realtime: true });
+    const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
     expect(Array.isArray(out.realtime)).toBe(true);
     expect(out.realtime[0].last).toBe("38.45");
   });
@@ -180,7 +180,7 @@ describe("MCP handler seam", () => {
   });
 
   it("etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {
-    const out = await callTool("etf_snapshot", { code: "00679B" });
+    const out = await callTool("twse_etf_snapshot", { code: "00679B" });
     const joined = out.caveats.join("\n");
     expect(joined).toContain("twse_realtime_quote");
     expect(joined).toContain('market="otc"');
