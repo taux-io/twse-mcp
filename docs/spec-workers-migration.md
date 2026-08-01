@@ -92,7 +92,8 @@
 - ~~獨立的 `twse_realtime_quote` 工具~~ — 原列延後；上線首日 egress 探測通過後已開放（issue #3），**不再** out of scope。
 - **Workers KV、Durable Objects、stateful session** — v1 不引入。
 - **認證/授權、速率限制、濫用防護** — v1 公開，日後再加。
-- **上櫃/櫃買中心資料、基金淨值/實際基金規模** — 證交所 OpenAPI 不提供，維持「市值粗估 + 但書」現狀。
+- **上櫃/櫃買中心資料** — **已嘗試並回退**，原因不是不想做，而是做不到：櫃買中心會封鎖 Cloudflare 邊緣的出口（詳見 Further Notes 的實測紀錄）。
+- **基金淨值/實際基金規模** — 兩家交易所的 OpenAPI 都不提供，維持「市值粗估 + 但書」現狀。
 - **每週自動刷新 catalog 的 GitHub Action** — 可選增強，非 v1 必需。
 
 ## Further Notes
@@ -101,6 +102,14 @@
   - **方法修正**：原訂用 `wrangler dev` 探測是**錯的**——它走的是開發者本機 IP，驗不到 Cloudflare 邊緣的出口。實際必須**先部署**，再從線上 Worker 發出請求。
   - **結果**：部署到 `https://twse-mcp.taux.io/mcp` 後，`etf_snapshot("0056", include_realtime=true)` 與 `twse_realtime_quote(["0050","0056","2330"])` 皆回傳真實報價（例：0056 last 48.19 @ 13:30:00），`wrangler tail` 全程 `Ok`、無任何 fetch 例外。`openapi.twse.com.tw` 出站亦正常。
   - **結論**：Cloudflare 邊緣未被 `mis.twse.com.tw` 封鎖，獨立的 `twse_realtime_quote` 工具因此解禁並註冊（issue #3）。此結論屬**觀測值而非保證**——對方是非官方網頁介面、無服務條款背書，日後仍可能改變；屆時的降級路徑是 `realtime: null` + caveat，不會使工具整體失效。
+- **TPEx（櫃買中心）egress 探測：已完成，結果為失敗，功能因此回退（PR #13 → 回退）。**
+  - **動機**：櫃買中心也有 swagger（225 個資料集），照理能沿用「catalog 當資料」的架構，不必新增工具就涵蓋上櫃。實作完成、62 項測試通過、且從開發機實測 `00679B`（元大美債20年）可正確解析為「上櫃」。
+  - **失敗**：部署後從 Cloudflare 邊緣呼叫，`www.tpex.org.tw` 把請求整串導向 `/errors`，fetch 拋 `TypeError: Too many redirects`。試過補正常 `User-Agent`（改善為 HTTP 502）、再加 `Referer` 與 `Accept-Language`（退回重導迴圈）——**任何標頭組合都無效，是 IP 層阻擋**。
+  - **對照證據**：同一個 endpoint 從台灣 HiNet 出口（AS3462）回 HTTP 200 正常資料；Cloudflare 邊緣則被擋。結論是**櫃買中心封鎖非台灣／機房 IP**。
+  - **與 `mis` 的對比**：兩者都是「雲端出口能不能取用」的同一類風險。`mis` 過關、TPEx 沒過——所以這個風險**必須逐一實測，不能從任何一次的成功外推**。
+  - **教訓（重蹈覆轍的紀錄）**：合併前只做了開發機驗證，而本 spec 早已寫明開發機驗不到邊緣出口。**任何新增外部資料源，都應在合併前先用 `wrangler dev --remote`（在真實邊緣執行、但不動到正式服務）驗證出站**。
+  - **唯一可行的解法**：架設台灣落地 proxy。Workers 無法指定出口地區，而 proxy 會引入機器與維運成本，與本專案「零維運」的前提相衝，故暫不採用。
+  - **但上櫃不是全滅**：被擋的只有櫃買中心的 OpenAPI（`www.tpex.org.tw`）。`mis.twse.com.tw` 沒被擋，而它支援 `market="otc"`，所以**上櫃標的的盤中即時報價仍可正常取得**——已於線上驗證：`twse_realtime_quote(["00679B","6488"], market="otc")` 正確回傳元大美債20年與環球晶的報價。缺的是上櫃的**歷史／彙總類資料集**，不是上櫃本身。
 - **成本**：Workers 與 Cache API 免費額度對此用量綽綽有餘，預期 $0。
 - **散佈轉變**：價值主張從「安裝一個本機二進位」變成「指向一個 URL」，README 需據此重寫，並提供 client 端 `claude mcp add --transport http` 範例。
 - **catalog 漂移監控**：因 `catalog.json` 簽入，證交所端資料集增刪/欄位變更會以 git diff 形式浮現，構成被動監控；可選掛每週 Action 自動開 PR。

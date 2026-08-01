@@ -114,11 +114,14 @@ export function createServer() {
       );
       const labels = ["基金基本資料", "日成交資訊", "定期定額排行"];
       const errors = settled
-        .map((r, i) =>
-          r.status === "rejected"
-            ? { source: labels[i], error: (r.reason as Error)?.name ?? "Error" }
-            : null,
-        )
+        .map((r, i) => {
+          if (r.status !== "rejected") return null;
+          const e = r.reason as Error | undefined;
+          // 保留 message：只記 name 的話，線上問題會退化成一句沒有資訊的 "TypeError"，
+          // 查不出是逾時、被重導、還是被對方擋掉。
+          const error = [e?.name ?? "Error", e?.message].filter(Boolean).join(": ");
+          return { source: labels[i], error };
+        })
         .filter((x): x is { source: string; error: string } => x !== null);
 
       let realtime: Row[] | null = null;
