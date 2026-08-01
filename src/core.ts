@@ -232,8 +232,10 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     };
   } else {
     caveats.push(
-      `${code} 不在證交所基金基本資料彙總表中 —— 可能不是上市基金、` +
-        "是上櫃 ETF（需查櫃買中心），或代號有誤",
+      `${code} 不在證交所基金基本資料彙總表中 —— 該表只收上市基金。` +
+        "若這是上櫃標的，本服務仍可取得它的盤中即時報價：改用 " +
+        'twse_realtime_quote 並帶 market="otc"（上櫃的歷史與統計報表則無法取得）。' +
+        "也可能單純是代號有誤，或該標的不是基金。",
     );
   }
 
@@ -267,7 +269,10 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     if (close !== null && change !== null) prev = close - change;
     if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
   } else {
-    caveats.push(`${code} 不在上市日成交資訊中（上櫃 ETF 或當日無成交）`);
+    caveats.push(
+      `${code} 不在上市日成交資訊中（可能是上櫃標的，或當日無成交）。` +
+        '上櫃標的請改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價。',
+    );
   }
 
   // --- 3. 定期定額熱度 ---

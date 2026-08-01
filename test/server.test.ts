@@ -38,7 +38,15 @@ beforeEach(() => {
       if (u.includes("STOCK_DAY_ALL")) return jsonResponse(DAY);
       if (u.includes("t187ap47_L")) return jsonResponse(FUNDS);
       if (u.includes("ETFRank")) return jsonResponse(RANKS);
-      if (u.includes("getStockInfo")) return jsonResponse({ msgArray: [{ c: "0056", z: "38.45", t: "13:30:00" }] });
+      if (u.includes("getStockInfo")) {
+        // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
+        const otc = u.includes("otc_");
+        return jsonResponse({
+          msgArray: otc
+            ? [{ c: "00679B", n: "元大美債20年", z: "26.68", t: "13:30:00" }]
+            : [{ c: "0056", z: "38.45", t: "13:30:00" }],
+        });
+      }
       return jsonResponse([]);
     }),
   );
@@ -145,5 +153,38 @@ describe("MCP handler seam", () => {
       .map((c) => String(c[0]))
       .find((u) => u.includes("getStockInfo"));
     expect(calledUrl).toContain("tse_0056.tw");
+  });
+
+  // 上櫃即時報價是已上線、且工具描述明文承諾的能力，必須有測試守住。
+  // （上櫃的 OpenAPI 資料集取不到，但即時報價站沒有封鎖，這條路是通的。）
+  it('twse_realtime_quote：market="otc" 查得到上櫃標的，且出站帶 otc_ 前綴', async () => {
+    const out = await callTool("twse_realtime_quote", { codes: ["00679B"], market: "otc" });
+    expect(out.count).toBe(1);
+    expect(out.quotes[0]).toMatchObject({ code: "00679B", name: "元大美債20年", last: "26.68" });
+    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
+      .map((c) => String(c[0]))
+      .find((u) => u.includes("getStockInfo"));
+    expect(calledUrl).toContain("otc_00679B.tw");
+    expect(calledUrl).not.toContain("tse_");
+  });
+
+  it("twse_realtime_quote：多檔一次查，全部帶進同一個請求", async () => {
+    const out = await callTool("twse_realtime_quote", { codes: ["0050", "0056", "2330"] });
+    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
+      .map((c) => String(c[0]))
+      .find((u) => u.includes("getStockInfo"))!;
+    for (const c of ["tse_0050.tw", "tse_0056.tw", "tse_2330.tw"]) {
+      expect(calledUrl).toContain(c);
+    }
+    expect(out.count).toBeGreaterThan(0);
+  });
+
+  it("etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {
+    const out = await callTool("etf_snapshot", { code: "00679B" });
+    const joined = out.caveats.join("\n");
+    expect(joined).toContain("twse_realtime_quote");
+    expect(joined).toContain('market="otc"');
+    // 不該再叫使用者自己去查櫃買中心——那是本服務取不到、而使用者也不見得能取到的路
+    expect(joined).not.toContain("需查櫃買中心");
   });
 });
