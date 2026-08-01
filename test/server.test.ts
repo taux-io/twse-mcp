@@ -75,6 +75,16 @@ async function rpc(method: string, params: unknown) {
   return JSON.parse(dataLine.slice("data:".length).trim());
 }
 
+/** 出站請求過的所有網址。 */
+function fetchedUrls(): string[] {
+  return (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.map((c) => String(c[0]));
+}
+
+/** 這次打到即時報價站的網址（沒打到就是 undefined）。 */
+function quoteUrl(): string | undefined {
+  return fetchedUrls().find((u) => u.includes("getStockInfo"));
+}
+
 /** 呼叫工具並把 content[0].text（本身是 JSON 字串）解回物件。 */
 async function callTool(name: string, args: Record<string, unknown>) {
   const payload = await rpc("tools/call", { name, arguments: args });
@@ -133,9 +143,7 @@ describe("MCP handler seam", () => {
     expect(out.regular_savings.交易戶數).toBe(380000);
     expect(out.realtime).toBe("未查詢");
     // 未帶 include_realtime 時不應打即時報價站
-    const calledMis = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.some((c) =>
-      String(c[0]).includes("getStockInfo"),
-    );
+    const calledMis = quoteUrl() !== undefined;
     expect(calledMis).toBe(false);
   });
 
@@ -149,9 +157,7 @@ describe("MCP handler seam", () => {
     const out = await callTool("twse_realtime_quote", { codes: ["0056"], market: "tse" });
     expect(out.count).toBe(1);
     expect(out.quotes[0]).toMatchObject({ code: "0056", last: "38.45", time: "13:30:00" });
-    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
-      .map((c) => String(c[0]))
-      .find((u) => u.includes("getStockInfo"));
+    const calledUrl = quoteUrl();
     expect(calledUrl).toContain("tse_0056.tw");
   });
 
@@ -170,18 +176,14 @@ describe("MCP handler seam", () => {
       open: "26.57",
       volume: "15501",
     });
-    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
-      .map((c) => String(c[0]))
-      .find((u) => u.includes("getStockInfo"));
+    const calledUrl = quoteUrl();
     expect(calledUrl).toContain("otc_00679B.tw");
     expect(calledUrl).not.toContain("tse_");
   });
 
   it("twse_realtime_quote：多檔一次查，全部帶進同一個請求", async () => {
     const out = await callTool("twse_realtime_quote", { codes: ["0050", "0056", "2330"] });
-    const calledUrl = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
-      .map((c) => String(c[0]))
-      .find((u) => u.includes("getStockInfo"))!;
+    const calledUrl = quoteUrl();
     for (const c of ["tse_0050.tw", "tse_0056.tw", "tse_2330.tw"]) {
       expect(calledUrl).toContain(c);
     }

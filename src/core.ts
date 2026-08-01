@@ -190,6 +190,12 @@ export function getDataset(
   };
 }
 
+/**
+ * 上櫃標的取不到資料集，但即時報價這條路是通的。兩處 caveat 都要給這個指引，
+ * 而測試會對它的字面文字斷言——只寫一次，改的時候不會有一處漏掉。
+ */
+const OTC_HINT = '改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價';
+
 export interface EtfSnapshotSources {
   funds: Row[];
   days: Row[];
@@ -233,9 +239,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
   } else {
     caveats.push(
       `${code} 不在證交所基金基本資料彙總表中 —— 該表只收上市基金。` +
-        "若這是上櫃標的，本服務仍可取得它的盤中即時報價：改用 " +
-        'twse_realtime_quote 並帶 market="otc"（上櫃的歷史與統計報表則無法取得）。' +
-        "也可能單純是代號有誤，或該標的不是基金。",
+        `若這是上櫃標的，本服務仍可取得它的盤中即時報價：${OTC_HINT}` +
+        "（上櫃的歷史與統計資料則無法取得）。也可能單純是代號有誤，或該標的不是基金。",
     );
   }
 
@@ -270,8 +275,7 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
   } else {
     caveats.push(
-      `${code} 不在上市日成交資訊中（可能是上櫃標的，或當日無成交）。` +
-        '上櫃標的請改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價。',
+      `${code} 不在上市日成交資訊中（可能是上櫃標的，或當日無成交）。上櫃標的請${OTC_HINT}。`,
     );
   }
 

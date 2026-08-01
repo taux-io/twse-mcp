@@ -39,6 +39,8 @@ the AI will look it up.
 Using **Claude** as the example (claude.ai in a browser, or the desktop app —
 both work the same way). **The free plan is enough**: it allows one plug-in, and
 one is all you need.
+(Per [Anthropic's documentation](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp),
+checked August 2026; plan rules may change.)
 
 ### Step 1: Open "Connectors" in settings
 

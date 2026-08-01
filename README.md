@@ -34,6 +34,7 @@
 
 以 **Claude** 為例（網頁版 claude.ai 或桌面版都一樣）。
 **免費方案就可以用**——免費方案能加 1 個外掛，而你正好只需要 1 個。
+（依據 [Anthropic 官方說明](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)，2026 年 8 月查證；方案規則可能變動。）
 
 ### 第 1 步：打開設定裡的「Connectors」
 
