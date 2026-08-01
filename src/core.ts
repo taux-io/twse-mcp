@@ -11,13 +11,8 @@
 
 export type Row = Record<string, unknown>;
 
-/** 資料來源交易所。決定出站要打哪個 base URL。 */
-export type Source = "twse" | "tpex";
-
 export interface Dataset {
   id: string;
-  /** "twse" = 證交所（上市）；"tpex" = 櫃買中心（上櫃）。 */
-  source: Source;
   summary: string;
   description: string;
   tags: string[];
@@ -35,14 +30,7 @@ export const DATA_TTL_SECONDS = 3600;
 export const CODE_FIELDS = [
   "Code", "證券代號", "股票代號", "公司代號", "基金代號",
   "SecurCode", "ETFsSecurityCode", "STOCKsSecurityCode", "債券代號",
-  "SecuritiesCompanyCode", // 櫃買中心（上櫃）用這個
 ] as const;
-
-// etf_snapshot 會用到的固定資料集
-export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表（上市）
-export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
-export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
-export const DS_OTC_DAY = "tpex/tpex_mainboard_quotes"; // 上櫃股票收盤行情（櫃買中心）
 
 /**
  * 證交所命名不直覺，關鍵字對不上表名。例如 ETF 主檔叫「基金基本資料彙總表」，
@@ -54,9 +42,6 @@ export const ALIASES: Record<string, readonly string[]> = {
   "成分股": ["opendata/t187ap47_L"],
   "股價": ["exchangeReport/STOCK_DAY_ALL", "exchangeReport/STOCK_DAY_AVG_ALL"],
   "配息": ["opendata/t187ap45_L"],
-  // 上櫃：櫃買中心的表名多為英文代號，中文關鍵字對不上，補別名
-  "上櫃": [DS_OTC_DAY, "tpex/tpex_mainborad_highlight"],
-  "櫃買": [DS_OTC_DAY, "tpex/tpex_mainborad_highlight"],
 };
 
 /** 證交所的數字都是字串，還可能帶逗號、'--'、空白。轉不出來就回 null。 */
@@ -209,12 +194,10 @@ export interface EtfSnapshotSources {
   funds: Row[];
   days: Row[];
   ranks: Row[];
-  /** 上櫃股票收盤行情（櫃買中心）。上市查無時的退路。 */
-  otcDays?: Row[];
   /** null = 未查詢即時報價；[] = 查了但沒資料。 */
   realtime?: Row[] | null;
   includeRealtime: boolean;
-  /** 哪幾張表抓失敗（來源標籤 -> 錯誤型別名），用來補 caveat。 */
+  /** 三張表哪幾張抓失敗（來源標籤 -> 錯誤型別名），用來補 caveat。 */
   errors?: { source: string; error: string }[];
 }
 
@@ -249,9 +232,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     };
   } else {
     caveats.push(
-      `${code} 不在證交所基金基本資料彙總表中 —— 該表只收上市基金。` +
-        "若下方 listing 顯示「上櫃」，代表這是上櫃標的，櫃買中心不提供對應的基金基本資料，" +
-        "所以 profile 為 null；否則可能不是基金或代號有誤",
+      `${code} 不在證交所基金基本資料彙總表中 —— 可能不是上市基金、` +
+        "是上櫃 ETF（需查櫃買中心），或代號有誤",
     );
   }
 
@@ -284,32 +266,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     let prev: number | null = null;
     if (close !== null && change !== null) prev = close - change;
     if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
-  }
-
-  // 上市查無 -> 退到櫃買中心的上櫃收盤行情。欄位名與證交所完全不同，另外映射。
-  let listing: "上市" | "上櫃" | null = d ? "上市" : null;
-  if (!d) {
-    const o = firstRow(src.otcDays ?? [], "SecuritiesCompanyCode", code);
-    if (o) {
-      listing = "上櫃";
-      const close = num(o["Close"]);
-      const change = num(o["Change"]); // 上櫃是帶正負號的字串，如 "+0.17"
-      quote = {
-        "日期": o["Date"],
-        "開盤": num(o["Open"]),
-        "最高": num(o["High"]),
-        "最低": num(o["Low"]),
-        "收盤": close,
-        "漲跌": change,
-        "成交股數": num(o["TradingShares"]),
-        "成交金額": num(o["TransactionAmount"]),
-        "成交筆數": num(o["TransactionNumber"]),
-      };
-      const prev = close !== null && change !== null ? close - change : null;
-      if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
-    } else {
-      caveats.push(`${code} 不在上市或上櫃的日收盤行情中（可能當日無成交，或代號有誤）`);
-    }
+  } else {
+    caveats.push(`${code} 不在上市日成交資訊中（上櫃 ETF 或當日無成交）`);
   }
 
   // --- 3. 定期定額熱度 ---
@@ -337,13 +295,9 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     );
   }
 
-  const otcRow = listing === "上櫃" ? firstRow(src.otcDays ?? [], "SecuritiesCompanyCode", code) : null;
-
   return {
     code,
-    name: (profile?.["基金簡稱"] ?? d?.["Name"] ?? otcRow?.["CompanyName"]) ?? null,
-    /** "上市"（證交所）／"上櫃"（櫃買中心）／null（兩邊都查無）。 */
-    listing,
+    name: (profile?.["基金簡稱"] ?? d?.["Name"]) ?? null,
     is_etf: isEtf,
     profile,
     quote,
