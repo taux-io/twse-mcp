@@ -81,10 +81,12 @@ that **started before you added it**. Open a new conversation and check under
 "+" that it is on. If it still will not use it, tell it plainly: **"use the
 Taiwan Stocks connector to look up 0056"** — naming it directly usually does it.
 
-**Over-the-counter tickers have no closing price from yesterday**
+**Over-the-counter tickers return less detail**
 That is a limitation, not a fault. OTC tickers (such as 6488 GlobalWafers or
-00679B Yuanta US Treasury 20+ Year) **only return the current live price** — no
-previous close, no history. See "What it can and cannot look up" below.
+00679B Yuanta US Treasury 20+ Year) do give you the **current price, today's
+open/high/low, yesterday's close and volume** — but nothing further back, no
+statistical reports, and no full ETF profile. See "What it can and cannot look
+up" below.
 
 **There is no Connectors option in settings**
 On a **company or team account**, an administrator usually has to add the
@@ -136,12 +138,14 @@ You can ask about several tickers at once, for example: "Give me live prices for
 **everything above works**.
 
 **Over-the-counter** stocks and ETFs (e.g. 6488 GlobalWafers, 00679B Yuanta US
-Treasury 20+ Year) — **live prices only**. No previous close, no history, no
-statistical reports.
+Treasury 20+ Year) — **whatever the live quote carries**: current price, today's
+open/high/low, **yesterday's close**, and volume. Nothing further back, no
+statistical reports, and no full ETF profile (tracked index, fund size and so on).
 
-The reason: the OTC data source blocks connections coming from cloud servers,
-and this service runs on one. Live prices come from a different source that is
-not blocked, so they are unaffected.
+The reason: the source for OTC **reports** blocks connections coming from cloud
+servers, and this service runs on one. Live quotes come from a different source
+that is not blocked, so they are unaffected — and yesterday's close arrives as
+part of that quote.
 (We are looking for help fixing this — see "Help make it better" below.)
 
 ---
