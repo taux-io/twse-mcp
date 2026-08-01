@@ -9,7 +9,7 @@ import { DATA_TTL_SECONDS, type Row } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 
-// etf_snapshot 用到的三張表
+// twse_etf_snapshot 用到的三張表
 export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表

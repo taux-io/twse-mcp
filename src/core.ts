@@ -185,9 +185,23 @@ export function getDataset(
     rows_matched: matched,
     returned: page.length,
     offset,
-    note: "資料為前一交易日（非盤中即時報價）",
+    note: periodNote(ds),
     data: page,
   };
+}
+
+/**
+ * 交易面的資料集才是日頻；「公司治理」與「財務報表」多是年度或季度揭露
+ * （ESG 揭露、股利分派、財報），佔目錄的六成以上。對它們說「資料為前一交易日」
+ * 是錯的，會讓模型把年報數字講成昨天的。依分類給出誠實的期間說明。
+ */
+const DAILY_TAGS = ["證券交易", "指數", "權證"];
+
+export function periodNote(ds: Dataset): string {
+  const daily = ds.tags.some((t) => DAILY_TAGS.includes(t));
+  return daily
+    ? "資料為前一交易日（非盤中即時報價；要當下價格請用 twse_realtime_quote）"
+    : "本資料集非每日更新（多為月、季或年度揭露），實際期間以資料中的日期欄位為準";
 }
 
 /**
@@ -209,7 +223,7 @@ export interface EtfSnapshotSources {
 
 /**
  * 合併三張證交所的表成單一 ETF 概況。任何一段缺就標 null + 記 caveat，不整包失敗。
- * 對應 Python 版 etf_snapshot 的合併邏輯。
+ * 對應 Python 版 etf_snapshot 的合併邏輯（該工具現名 twse_etf_snapshot）。
  */
 export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<string, unknown> {
   code = code.trim();
@@ -238,8 +252,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     };
   } else {
     caveats.push(
-      `${code} 不在證交所基金基本資料彙總表中 —— 該表只收上市基金。` +
-        `若這是上櫃標的，本服務仍可取得它的盤中即時報價：${OTC_HINT}` +
+      `${code} 不在證交所基金基本資料彙總表中 —— 該資料集只收上市基金。` +
+        `若這是上櫃標的，${OTC_HINT}` +
         "（上櫃的歷史與統計資料則無法取得）。也可能單純是代號有誤，或該標的不是基金。",
     );
   }
@@ -289,7 +303,7 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       "說明": "證交所定期定額交易戶數統計排行月報表",
     };
   } else {
-    caveats.push(`${code} 不在定期定額排行榜上（該表只收錄前段班，不代表沒有人定期定額）`);
+    caveats.push(`${code} 不在定期定額排行榜上（該資料集只收錄前段班，不代表沒有人定期定額）`);
   }
 
   // --- 4. 衍生指標 ---

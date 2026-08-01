@@ -52,25 +52,15 @@ jobs:
             git --no-pager diff --stat "$CATALOG"
           fi
 
-      # 分支不會觸發既有的 tests workflow，所以在這裡就把驗證做完，
-      # 確保通知你的時候，這份新 catalog 是已經確定能用的。
+      # 推分支不會觸發既有的 tests workflow，所以在這裡就把驗證做完，
+      # 確保通知維護者時，這份新 catalog 已經確定能用。
       #
-      # 注意 npm test 用的是手寫 fixture，「不會」碰到這個新產生的檔案，
-      # 所以另外針對 catalog 本身做健檢：能解析、規模合理、且 etf_snapshot
-      # 依賴的三個資料集還在。少了這段，證交所把表下架我們也不會知道。
+      # 測試「有」用到真實目錄（server.ts 直接 import 它，改壞會紅），但覆蓋面
+      # 只到少數幾個資料集；check-catalog 補的是整體性檢查——規模、結構、以及
+      # twse_etf_snapshot 依賴的資料集是否還在。
       - name: 健檢新的 catalog
         if: steps.diff.outputs.changed == 'true'
-        run: |
-          node -e '
-            const c = require("./" + process.env.CATALOG);
-            const ids = Object.keys(c);
-            if (ids.length < 100) throw new Error(`資料集只剩 ${ids.length} 個，證交所端可能異常`);
-            const required = ["opendata/t187ap47_L", "exchangeReport/STOCK_DAY_ALL", "ETFReport/ETFRank"];
-            const missing = required.filter((id) => !c[id]);
-            if (missing.length) throw new Error(`etf_snapshot 依賴的資料集消失：${missing.join(", ")}`);
-            const noFields = ids.filter((id) => !Object.keys(c[id].fields ?? {}).length);
-            console.log(`${ids.length} 個資料集，${noFields.length} 個沒有欄位定義`);
-          '
+        run: npm run check-catalog
 
       - name: 驗證程式仍能建置與通過測試
         if: steps.diff.outputs.changed == 'true'
@@ -100,8 +90,8 @@ jobs:
           BODY=$(printf '%s\n' \
             "每週自動刷新發現證交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
             "" \
-            "**已驗證**：catalog 健檢（可解析、規模合理、etf_snapshot 依賴的資料集仍在）、" \
-            "typecheck、測試、\`wrangler deploy --dry-run\` 全數通過。" \
+            "**已驗證**：catalog 健檢（規模、結構、twse_etf_snapshot 依賴的資料集仍在）、" \
+            "typecheck、測試（其中有數項直接對真實目錄斷言）、\`wrangler deploy --dry-run\` 全數通過。" \
             "" \
             "[點此開 PR 檢視 diff](${COMPARE})" \
             "" \
