@@ -4,7 +4,21 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
+  // 與儀表板的實際設定對齊，避免每次部署互相覆蓋。
+  // 只開 logs（`wrangler tail` 除錯靠它）；traces 對這個唯讀 server 用不到，關著省資源。
   "observability": {
-    "enabled": true
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
   }
 }
