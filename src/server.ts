@@ -1,11 +1,11 @@
 /**
  * server.ts — MCP handler 薄殼。
  * ==============================
- * 把 core 的純邏輯 + twse 的出站層接成 4 個 MCP 工具，用 createMcpHandler 以
+ * 把 core 的純邏輯 + twse 的出站層接成 5 個 MCP 工具，用 createMcpHandler 以
  * stateless streamable-http 對外服務（端點 /mcp）。不需 Durable Objects。
  *
- * v1 範圍：4 個 OpenAPI 工具。realtime_quote 為風險閘控項，待確認 Workers 出口
- * 能打到 mis.twse.com.tw 後再開（見 README / spec）。
+ * 工具一律以 `twse_` 為前綴，標示資料來自證交所（即時報價站也是證交所營運，
+ * 且同時涵蓋上市與上櫃）。詞彙定義見 CONTEXT.md。
  */
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
@@ -88,7 +88,7 @@ export function createServer() {
   );
 
   server.registerTool(
-    "etf_snapshot",
+    "twse_etf_snapshot",
     {
       description:
         "一次取得單一上市 ETF 的完整概況：基本資料 + 當日價量 + 定期定額熱度。" +
@@ -98,7 +98,7 @@ export function createServer() {
         include_realtime: z
           .boolean()
           .default(false)
-          .describe("是否附上盤中即時報價。v1 預設 false（realtime 為風險閘控項）。"),
+          .describe("是否附上盤中即時報價。預設 false，需要當下價格時才帶 true（多一次外呼）。"),
       },
     },
     async ({ code, include_realtime }) => {
