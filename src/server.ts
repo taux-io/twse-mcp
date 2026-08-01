@@ -91,8 +91,9 @@ export function createServer() {
     "twse_etf_snapshot",
     {
       description:
-        "一次取得單一上市 ETF 的完整概況：基本資料 + 當日價量 + 定期定額熱度。" +
-        "合併三張證交所的表並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+        "一次取得單一上市 ETF 的完整概況：基本資料 + 前一交易日價量 + 定期定額熱度。" +
+        "價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "合併三個證交所資料集並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       inputSchema: {
         code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
         include_realtime: z
