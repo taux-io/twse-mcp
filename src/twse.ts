@@ -37,7 +37,9 @@ export interface Quote {
 
 /**
  * 盤中即時報價（基本市況報導站，約 5 秒更新）。
- * 注意：這個 host 較脆，且可能封 Cloudflare 出口 IP —— v1 realtime 為風險閘控項。
+ * 這個 host 是證交所營運、同時涵蓋上市與上櫃（market="otc"）。上線後已實測
+ * Cloudflare 邊緣可正常連線（見 spec 的 egress 探測紀錄），但它是非官方網頁介面、
+ * 無服務條款背書，仍可能改變；失敗時上層會降級成 null + caveat。
  */
 export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quote[]> {
   const exCh = codes
