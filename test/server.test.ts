@@ -41,10 +41,15 @@ beforeEach(() => {
       if (u.includes("getStockInfo")) {
         // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
         const otc = u.includes("otc_");
+        if (otc) {
+          return jsonResponse({
+            msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", v: "15501", t: "13:30:00" }],
+          });
+        }
+        // 依 ex_ch 裡實際帶了幾檔就回幾筆，多檔查詢才驗得到東西
+        const codes = [...u.matchAll(/tse_([^.]+)\.tw/g)].map((m) => m[1]);
         return jsonResponse({
-          msgArray: otc
-            ? [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", v: "15501", t: "13:30:00" }]
-            : [{ c: "0056", z: "38.45", t: "13:30:00" }],
+          msgArray: codes.map((c) => ({ c, z: "38.45", t: "13:30:00" })),
         });
       }
       return jsonResponse([]);
@@ -135,7 +140,7 @@ describe("MCP handler seam", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("etf_snapshot：三表合併，realtime 預設不查", async () => {
+  it("twse_etf_snapshot：三表合併，realtime 預設不查", async () => {
     const out = await callTool("twse_etf_snapshot", { code: "0056" });
     expect(out.is_etf).toBe(true);
     expect(out.profile.追蹤指數).toBe("臺灣高股息指數");
@@ -147,7 +152,7 @@ describe("MCP handler seam", () => {
     expect(calledMis).toBe(false);
   });
 
-  it("etf_snapshot：include_realtime 時才附上即時報價", async () => {
+  it("twse_etf_snapshot：include_realtime 時才附上即時報價", async () => {
     const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
     expect(Array.isArray(out.realtime)).toBe(true);
     expect(out.realtime[0].last).toBe("38.45");
@@ -187,10 +192,12 @@ describe("MCP handler seam", () => {
     for (const c of ["tse_0050.tw", "tse_0056.tw", "tse_2330.tw"]) {
       expect(calledUrl).toContain(c);
     }
-    expect(out.count).toBeGreaterThan(0);
+    // 三個代號要真的變成三筆回應，而不是「有回東西就算過」
+    expect(out.count).toBe(3);
+    expect(out.quotes.map((q: { code: string }) => q.code)).toEqual(["0050", "0056", "2330"]);
   });
 
-  it("etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {
+  it("twse_etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {
     const out = await callTool("twse_etf_snapshot", { code: "00679B" });
     const joined = out.caveats.join("\n");
     expect(joined).toContain("twse_realtime_quote");

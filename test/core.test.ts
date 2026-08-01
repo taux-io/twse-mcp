@@ -212,7 +212,7 @@ describe("buildEtfSnapshot — 三表合併", () => {
     // prev = 38.2 - 0.3 = 37.9; pct = 0.3/37.9*100 ≈ 0.79
     expect(r.quote["漲跌幅%"]).toBeCloseTo(0.79, 2);
   });
-  it("市值粗估附上『不是基金規模』但書", () => {
+  it("市值粗估附上『不是基金規模』的 caveat", () => {
     const r = buildEtfSnapshot("0056", { funds, days, ranks, includeRealtime: false }) as any;
     expect(r.caveats.some((c: string) => c.includes("不是基金規模"))).toBe(true);
   });
