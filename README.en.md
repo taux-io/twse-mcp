@@ -2,12 +2,18 @@
 
 # Taiwan Stock Data Helper (TWSE MCP)
 
-Ask your AI about Taiwan stock and ETF public data **in plain language** — live
-prices, yesterday's close and volume, a full profile of an ETF, and what public
-reports the exchange publishes. No coding, no terminal: add one URL to whichever
-AI you already use and start asking.
+**Ask your AI about Taiwan stock data, in plain language.**
 
-This is an open MCP service, and **any AI that supports remote MCP can use it**.
+What's TSMC trading at? Where did 0056 close yesterday? What index does this ETF
+actually track? You used to look these up yourself — now you can just ask.
+
+No coding, nothing to install. **You copy one URL and paste it into your AI's
+settings** — about a minute's work.
+
+> **What is MCP?** Think of it as **a plug-in for your AI**. The AI cannot look
+> up Taiwan stock data on its own; with this plug-in installed, it gains that
+> skill. (MCP is the common standard for such plug-ins — Claude, ChatGPT and
+> others all support it.)
 
 > A personal, free-of-charge side project. All data comes from public sources
 > published by the Taiwan Stock Exchange.
@@ -16,80 +22,74 @@ This is an open MCP service, and **any AI that supports remote MCP can use it**.
 
 ## What it can do for you
 
-Once it is connected, just ask in plain language, for example:
+Once installed, just ask in your own words, for example:
 
-- **What's the price right now?** — Intraday quotes, several tickers at once.
-- **What did it close at yesterday, and on what volume?** — Previous trading day's open, high, low, close and volume.
-- **What exactly is this ETF?** — Tracked index, rough market value, how popular it is for regular savings plans, plus the caveats you should know.
-- **Does the exchange publish data on X?** — Finds the right one among a hundred-plus public reports.
+- **"What's TSMC at right now?"** — Live prices, several tickers at once.
+- **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
+- **"What exactly is the ETF 0056?"** — Which index it tracks, how big it is, how popular it is for regular savings plans, plus which figures you should not take at face value.
+- **"Does the exchange publish data on …?"** — Finds the right one among a hundred-plus public reports.
 
-You do not need to memorise any commands or field names. Ask in your own words
-and the AI will look it up.
-
-### Listed (TWSE) vs. over-the-counter (TPEx)
-
-**Listed** stocks and ETFs (mostly 4-digit tickers such as 2330, 0050) — everything above works.
-
-**Over-the-counter** stocks and ETFs (such as 6488 GlobalWafers, 00679B Yuanta US Treasury 20+ Year) —
-**intraday quotes only**. Yesterday's close, historical prices and statistical
-reports are not available. The reason: the OTC data source blocks connections
-from cloud servers, so this service cannot reach it from the cloud. Intraday
-quotes come from a different source that is not blocked, so they are unaffected.
+You do not need to memorise commands or field names. **Just ask normally** and
+the AI will look it up.
 
 ---
 
-## How to add it to your AI
+## Getting started
 
-Pick whichever way suits you.
+Using **Claude** as the example (claude.ai in a browser, or the desktop app —
+both work the same way). **The free plan is enough**: it allows one plug-in, and
+one is all you need.
 
-### Graphical interface
+### Step 1: Open "Connectors" in settings
 
-Using Claude (web or desktop) as the example:
+Click **your name in the bottom-left corner** → choose **Settings** → find
+**Connectors** in the left-hand menu.
 
-1. Go to **Customize → Connectors**.
-2. Click **"+" → "Add custom connector"**, give it any name you like (for example `Taiwan Stocks`), and paste this URL:
+### Step 2: Paste the URL
 
-   ```
-   https://twse-mcp.taux.io/mcp
-   ```
+Click **"+ Add custom connector"**. A small dialog asks for two things:
 
-   Click **"Add"**. No account, password or OAuth required.
-3. Back in the chat, click **"+" → "Connectors"** at the bottom left, switch the connector on, and start asking.
-
-> Note: custom connectors in Claude require a **Pro / Max** plan (free plans can add one).
-
-Other AIs with a connector settings screen work much the same way: find "add a
-custom connector / MCP server" and paste the URL above.
-
-### Terminal tools
-
-The server name is up to you; `twse` is used here:
-
-Claude Code:
-
-```
-claude mcp add twse --transport http https://twse-mcp.taux.io/mcp
-```
-
-Codex (OpenAI):
-
-```
-codex mcp add twse --url https://twse-mcp.taux.io/mcp
-```
-
-### Other tools
-
-For any other AI or tool that supports remote MCP, fill these connection details
-into its settings:
-
-| Field | Value |
+| Field | What to enter |
 |---|---|
+| Name | Anything you like, e.g. `Taiwan Stocks` |
 | URL | `https://twse-mcp.taux.io/mcp` |
-| Transport | Streamable HTTP (remote MCP) |
-| Authentication | None |
 
-Field names differ between tools — pick the "Streamable HTTP" option, not the
-older SSE one.
+Click **Add** and you are done. **No account, no password, no payment.**
+
+### Step 3: Switch it on in the chat
+
+Go back to the chat, **start a new conversation**, click the **"+"** next to the
+message box → **Connectors**, and switch on the one you just added.
+
+### Check that it worked
+
+Ask it:
+
+> Use the Taiwan Stocks connector — what's 0050 trading at?
+
+If it comes back with **an actual price** (something like "0050 is around
+97.15"), you are set. If it says it cannot find anything, or starts searching
+the web, see the next section.
+
+---
+
+## Something not working?
+
+**The AI says it cannot find the data, or searches the web instead**
+Usually the connector is **not switched on**, or you are still in a conversation
+that **started before you added it**. Open a new conversation and check under
+"+" that it is on. If it still will not use it, tell it plainly: **"use the
+Taiwan Stocks connector to look up 0056"** — naming it directly usually does it.
+
+**Over-the-counter tickers have no closing price from yesterday**
+That is a limitation, not a fault. OTC tickers (such as 6488 GlobalWafers or
+00679B Yuanta US Treasury 20+ Year) **only return the current live price** — no
+previous close, no history. See "What it can and cannot look up" below.
+
+**There is no Connectors option in settings**
+On a **company or team account**, an administrator usually has to add the
+connector before members can switch it on. Personal accounts — including the
+free plan — can add it themselves.
 
 ---
 
@@ -102,7 +102,7 @@ older SSE one.
 >
 > *(Illustrative figures — actual values depend on when you ask.)*
 
-> **You ask:** "What did 0050 close at yesterday, and how much volume?"
+> **You ask:** "Where did 0050 close yesterday, and how much volume?"
 >
 > **The AI will answer something like:** 0050 (Yuanta Taiwan 50) closed at **97.15**
 > on the previous trading day, on roughly **40 million shares**, opening at 98.35,
@@ -125,8 +125,24 @@ older SSE one.
 > ranking of regular savings plan account numbers, and I can look up a specific
 > ticker's rank and account count.
 
-You can ask about several tickers at once, for example: "Give me live quotes for
+You can ask about several tickers at once, for example: "Give me live prices for
 0050, 0056 and TSMC."
+
+---
+
+## What it can and cannot look up
+
+**Listed** stocks and ETFs (mostly 4-digit tickers, e.g. 2330 TSMC, 0050) —
+**everything above works**.
+
+**Over-the-counter** stocks and ETFs (e.g. 6488 GlobalWafers, 00679B Yuanta US
+Treasury 20+ Year) — **live prices only**. No previous close, no history, no
+statistical reports.
+
+The reason: the OTC data source blocks connections coming from cloud servers,
+and this service runs on one. Live prices come from a different source that is
+not blocked, so they are unaffected.
+(We are looking for help fixing this — see "Help make it better" below.)
 
 ---
 
@@ -156,3 +172,33 @@ from the cloud where this service runs, and it is not something a different
 request header can work around. Solving it needs a machine in Taiwan that can
 relay requests reliably over time. If you happen to have that kind of setup, or
 know a better approach, please get in touch.
+
+---
+
+## Appendix: adding it to other tools
+
+*For people comfortable with a terminal or using other AI tools — everyone else
+can skip this.*
+
+**Claude Code**
+
+```
+claude mcp add twse --transport http https://twse-mcp.taux.io/mcp
+```
+
+**Codex (OpenAI)**
+
+```
+codex mcp add twse --url https://twse-mcp.taux.io/mcp
+```
+
+**Any other tool that supports remote MCP** — fill in these connection details:
+
+| Field | Value |
+|---|---|
+| URL | `https://twse-mcp.taux.io/mcp` |
+| Transport | Streamable HTTP (remote MCP) |
+| Authentication | None |
+
+Field names differ between tools — pick the "Streamable HTTP" option, not the
+older SSE one.
