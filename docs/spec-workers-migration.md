@@ -92,8 +92,7 @@
 - ~~獨立的 `twse_realtime_quote` 工具~~ — 原列延後；上線首日 egress 探測通過後已開放（issue #3），**不再** out of scope。
 - **Workers KV、Durable Objects、stateful session** — v1 不引入。
 - **認證/授權、速率限制、濫用防護** — v1 公開，日後再加。
-- ~~上櫃/櫃買中心資料~~ — 原列 out of scope；後續已將櫃買中心 TPEx OpenAPI（225 個資料集）併入目錄，`etf_snapshot` 也支援上櫃退路，**不再** out of scope。
-- **基金淨值/實際基金規模** — 兩家交易所的 OpenAPI 都不提供，維持「市值粗估 + 但書」現狀。
+- **上櫃/櫃買中心資料、基金淨值/實際基金規模** — 證交所 OpenAPI 不提供，維持「市值粗估 + 但書」現狀。
 - **每週自動刷新 catalog 的 GitHub Action** — 可選增強，非 v1 必需。
 
 ## Further Notes

@@ -5,33 +5,21 @@
  * `caches` 是 Worker-only 全域；在 Node/Vitest 下不存在，這裡優雅退化成直接 fetch，
  * 讓 core 以外的東西也能離線測（測試會 mock globalThis.fetch）。
  */
-import { DATA_TTL_SECONDS, type Row, type Source } from "./core";
+import { DATA_TTL_SECONDS, type Row } from "./core";
 
-/** 各交易所的 OpenAPI base。dataset 的 source 決定打哪一個。 */
-export const BASES: Record<Source, string> = {
-  twse: "https://openapi.twse.com.tw/v1",
-  tpex: "https://www.tpex.org.tw/openapi/v1",
-};
+export const BASE = "https://openapi.twse.com.tw/v1";
 
-/** 目錄裡 TPEx 的 id 帶 `tpex/` 前綴（來源一眼可辨），出站前要拿掉。 */
-const PREFIXES: Record<Source, string> = { twse: "", tpex: "tpex/" };
+// etf_snapshot 用到的三張表
+export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
+export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
+export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
-/** 由 dataset id + source 組出實際的 endpoint URL。 */
-export function datasetUrl(datasetId: string, source: Source): string {
-  const prefix = PREFIXES[source];
-  const path = prefix && datasetId.startsWith(prefix) ? datasetId.slice(prefix.length) : datasetId;
-  return `${BASES[source]}/${path}`;
-}
-
-/** 取整份資料集（兩家交易所的 endpoint 都一次回整份）。走邊緣快取。 */
-export async function fetchDataset(datasetId: string, source: Source = "twse"): Promise<Row[]> {
-  const data = await fetchJson(
-    datasetUrl(datasetId, source),
-    { Accept: "application/json" },
-    DATA_TTL_SECONDS,
-  );
+/** 取整份資料集（證交所每個 endpoint 都一次回整份）。走邊緣快取。 */
+export async function fetchDataset(datasetId: string): Promise<Row[]> {
+  const url = `${BASE}/${datasetId}`;
+  const data = await fetchJson(url, { Accept: "application/json" }, DATA_TTL_SECONDS);
   return Array.isArray(data) ? (data as Row[]) : [data as Row];
 }
 

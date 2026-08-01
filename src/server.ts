@@ -1,11 +1,11 @@
 /**
  * server.ts — MCP handler 薄殼。
  * ==============================
- * 把 core 的純邏輯 + 出站層接成 5 個 MCP 工具，用 createMcpHandler 以
+ * 把 core 的純邏輯 + twse 的出站層接成 4 個 MCP 工具，用 createMcpHandler 以
  * stateless streamable-http 對外服務（端點 /mcp）。不需 Durable Objects。
  *
- * 目錄涵蓋兩家交易所：證交所（上市）與櫃買中心（上櫃）。dataset 的 source
- * 決定出站打哪個 base，對使用者是透明的——一樣用 search / describe / get。
+ * v1 範圍：4 個 OpenAPI 工具。realtime_quote 為風險閘控項，待確認 Workers 出口
+ * 能打到 mis.twse.com.tw 後再開（見 README / spec）。
  */
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
@@ -18,14 +18,10 @@ import {
   getDataset,
   resolveDataset,
   searchDatasets,
-  DS_DAY,
-  DS_FUND,
-  DS_OTC_DAY,
-  DS_RANK,
   type Catalog,
   type Row,
 } from "./core";
-import { fetchDataset, fetchQuotes } from "./twse";
+import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -86,7 +82,7 @@ export function createServer() {
       const resolved = resolveDataset(catalog, dataset_id);
       if ("error" in resolved) return json(resolved);
       const { ds } = resolved;
-      const rows = await fetchDataset(ds.id, ds.source);
+      const rows = await fetchDataset(ds.id);
       return json(getDataset(ds, rows, { code, match, fields, limit, offset }));
     },
   );
@@ -95,13 +91,10 @@ export function createServer() {
     "etf_snapshot",
     {
       description:
-        "一次取得單一 ETF 的完整概況：基本資料 + 當日價量 + 定期定額熱度。" +
-        "上市（證交所）與上櫃（櫃買中心）都支援——上市查無會自動退到上櫃，回傳的 listing 欄位會標明是哪一種。" +
-        "並行查詢多張表，任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+        "一次取得單一上市 ETF 的完整概況：基本資料 + 當日價量 + 定期定額熱度。" +
+        "合併三張證交所的表並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       inputSchema: {
-        code: z
-          .string()
-          .describe('ETF 代號，例如 "0056"、"0050"、"00878"；上櫃如 "00679B"。'),
+        code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
         include_realtime: z
           .boolean()
           .default(false)
@@ -113,14 +106,13 @@ export function createServer() {
         fetchDataset(DS_FUND),
         fetchDataset(DS_DAY),
         fetchDataset(DS_RANK),
-        fetchDataset(DS_OTC_DAY, "tpex"),
       ];
       const rtTask = include_realtime ? fetchQuotes([code]) : null;
       const settled = await Promise.allSettled(tasks);
-      const [funds, days, ranks, otcDays] = settled.map((r) =>
+      const [funds, days, ranks] = settled.map((r) =>
         r.status === "fulfilled" ? r.value : [],
       );
-      const labels = ["基金基本資料", "日成交資訊", "定期定額排行", "上櫃收盤行情"];
+      const labels = ["基金基本資料", "日成交資訊", "定期定額排行"];
       const errors = settled
         .map((r, i) =>
           r.status === "rejected"
@@ -142,7 +134,6 @@ export function createServer() {
           funds,
           days,
           ranks,
-          otcDays,
           realtime,
           includeRealtime: include_realtime,
           errors,
