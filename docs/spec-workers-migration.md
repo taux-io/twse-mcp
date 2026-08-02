@@ -1,7 +1,11 @@
 # Spec: twse-mcp 重構為 Cloudflare Workers 遠端 MCP server
 
-> 狀態：ready-for-agent（草案，尚未發為 issue）
+> 狀態：**已實作並上線**。發為 issue #1（已關閉），實作見 PR #2；後續調整見 #3 以降。
 > 由 `/grill-me` + `/to-spec` 綜合對話共識產出。
+>
+> 這份文件是**歷史紀錄**：保留當時的決定、被推翻的假設與實測結果，讓後人看得到
+> 為什麼會走到今天這樣。它**不會**逐字追隨現況——現況看 `README.md` 與程式碼，
+> 詞彙看 `CONTEXT.md`。只有描述「目前對外契約」或「目前範圍」的敘述才會更新。
 
 ## Problem Statement
 
@@ -82,7 +86,8 @@
 - **好測試的定義**：只測外部可觀察行為，不綁實作細節。對這個 server，外部行為＝「給定一個 MCP `tools/call` 請求 + 一組被 stub 的證交所回應 → 得到預期的工具 JSON 回應」，以及純轉換函式「給定髒輸入 → 得到正規化輸出」。
 - **主 seam（最高）：MCP 請求邊界。** 對 Worker 的 `fetch` handler 灌 JSON-RPC `tools/call`，stub 出站 `fetch`（證交所那層），斷言回傳 JSON。內部模組重構不影響此層測試。
 - **次 seam（刻意最小的一條）：純轉換函式單元測試。** 專供證交所資料怪癖：數字帶逗號/`--`/空白的正規化、跨不一致命名的代號欄位偵測、過濾/投影/分頁邊界。這些邊界不經由完整 JSON-RPC 封包，直接對純函式測。
-- **受測模組**：純轉換核心（於次 seam）、MCP handler 對 4 個工具的接線（於主 seam）。
+- **受測模組**：純轉換核心（於次 seam）、MCP handler 對工具的接線（於主 seam）。
+  （v1 為 4 個工具，`twse_realtime_quote` 解禁後為 5 個，皆有涵蓋。）
 - **Prior art**：現行 `tests/test_offline.py` 的 29 項離線 fixture 測試——把網路層換成 fixture、測解析/過濾/分頁。這批 case 直接港到 Vitest（純函式者落次 seam、端到端者落主 seam），並沿用其「CI 完全離線」哲學。
 - **工具**：plain Vitest + mock `fetch`（不需 `workerd` runtime）。`@cloudflare/vitest-pool-workers` 的 workerd 整合測試列為日後選加，非 v1 阻擋項。
 
@@ -94,7 +99,8 @@
 - **認證/授權、速率限制、濫用防護** — v1 公開，日後再加。
 - **上櫃/櫃買中心資料** — **已嘗試並回退**，原因不是不想做，而是做不到：櫃買中心會封鎖 Cloudflare 邊緣的出口（詳見 Further Notes 的實測紀錄）。
 - **基金淨值/實際基金規模** — 兩家交易所的 OpenAPI 都不提供，維持「市值粗估 + caveats」現狀。
-- **每週自動刷新 catalog 的 GitHub Action** — 可選增強，非 v1 必需。
+- ~~每週自動刷新 catalog 的 GitHub Action~~ — 原列為可選增強；**已實作**（PR #11），
+  每週一檢查證交所目錄漂移，有變動就驗證後推分支並開 issue。**不再** out of scope。
 
 ## Further Notes
 
@@ -111,6 +117,9 @@
   - **唯一可行的解法**：架設台灣落地 proxy。Workers 無法指定出口地區，而 proxy 會引入機器與維運成本，與本專案「零維運」的前提相衝，故暫不採用。
   - **但上櫃不是全滅**：被擋的只有櫃買中心的 OpenAPI（`www.tpex.org.tw`）。`mis.twse.com.tw` 沒被擋，而它支援 `market="otc"`，所以**上櫃標的的盤中即時報價仍可正常取得**——已於線上驗證：`twse_realtime_quote(["00679B","6488"], market="otc")` 正確回傳元大美債20年與環球晶的報價。缺的是上櫃的**歷史／彙總類資料集**，不是上櫃本身。
 - **成本**：Workers 與 Cache API 免費額度對此用量綽綽有餘，預期 $0。
-- **散佈轉變**：價值主張從「安裝一個本機二進位」變成「指向一個 URL」，README 需據此重寫，並提供 client 端 `claude mcp add --transport http` 範例。
-- **catalog 漂移監控**：因 `catalog.json` 簽入，證交所端資料集增刪/欄位變更會以 git diff 形式浮現，構成被動監控；可選掛每週 Action 自動開 PR。
-- 對應 triage：日後若發為 issue，貼 `ready-for-agent` 標籤（該 label 目前不存在，需先建立）。
+- **散佈轉變：已完成**。價值主張從「安裝一個本機二進位」變成「指向一個 URL」。README 已據此重寫（PR #4、#19），
+  並提供 GUI 連接器步驟與 `claude mcp add --transport http` 等範例；另有英文版 `README.en.md`（PR #15）。
+- **catalog 漂移監控：已實作**。因 `catalog.json` 簽入，證交所端資料集增刪／欄位變更會以 git diff 形式浮現。
+  每週一自動檢查（PR #11）：有變動就先跑健檢與測試，通過才推分支並開 issue 通知。
+  原構想是「自動開 PR」，但組織政策禁止 GitHub Actions 建立 PR，故改為 issue + 一鍵開 PR 連結。
+- 對應 triage：`ready-for-agent` 等五個標籤**已在 repo 建立**，設定見 `docs/agents/`（PR #23）。
