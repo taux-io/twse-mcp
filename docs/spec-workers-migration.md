@@ -122,4 +122,4 @@
 - **catalog 漂移監控：已實作**。因 `catalog.json` 簽入，證交所端資料集增刪／欄位變更會以 git diff 形式浮現。
   每週一自動檢查（PR #11）：有變動就先跑健檢與測試，通過才推分支並開 issue 通知。
   原構想是「自動開 PR」，但組織政策禁止 GitHub Actions 建立 PR，故改為 issue + 一鍵開 PR 連結。
-- 對應 triage：`ready-for-agent` 等五個標籤**已在 repo 建立**，設定見 `docs/agents/`（PR #23）。
+- 對應 triage：五個標準標籤現已全數可用——`wontfix` 是 GitHub 預設本就存在，其餘四個於 PR #23 建立。設定見 `docs/agents/`。

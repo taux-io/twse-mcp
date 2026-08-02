@@ -2,9 +2,9 @@
  * core.ts — 純資料轉換，與網路/runtime 無關。
  * =================================================
  * 這裡是證交所開放資料所有「髒資料」怪癖的處理中心，也是測試主要打的地方：
- *   - 欄位命名跨表不一致（Code / 基金代號 / ETFsSecurityCode ...）
+ *   - 欄位命名跨資料集不一致（Code / 基金代號 / ETFsSecurityCode ...）
  *   - 數字都是字串，還帶逗號、'--'、空白
- *   - 每個 endpoint 一次回整份資料，過濾/投影/分頁一定要在這端做完
+ *   - 每個資料集一次回整份資料，過濾/投影/分頁一定要在這端做完
  *
  * 函式全部是純函式：吃「已經抓好的 rows」，不碰 fetch、不碰 caches。
  */
@@ -26,7 +26,7 @@ export const MAX_ROWS = 200;
 /** 資料一天才更新一次，快取一小時很夠。 */
 export const DATA_TTL_SECONDS = 3600;
 
-/** 證交所各表的「代號」欄位名稱不統一，依序嘗試。 */
+/** 證交所各資料集的「代號」欄位名稱不統一，依序嘗試。 */
 export const CODE_FIELDS = [
   "Code", "證券代號", "股票代號", "公司代號", "基金代號",
   "SecurCode", "ETFsSecurityCode", "STOCKsSecurityCode", "債券代號",
@@ -37,6 +37,7 @@ export const CODE_FIELDS = [
  * 搜 "ETF" 是搜不到的。補一層別名。
  */
 export const ALIASES: Record<string, readonly string[]> = {
+  // 這三個與 twse.ts 的 DS_FUND/DS_DAY/DS_RANK 是同一組；test/catalog.test.ts 會斷言一致。
   etf: ["opendata/t187ap47_L", "ETFReport/ETFRank", "exchangeReport/STOCK_DAY_ALL"],
   "淨值": ["opendata/t187ap47_L"],
   "成分股": ["opendata/t187ap47_L"],
@@ -53,7 +54,7 @@ export function num(v: unknown): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
-/** 依 CODE_FIELDS 順序偵測這張表用哪個欄位當代號。 */
+/** 依 CODE_FIELDS 順序偵測這個資料集用哪個欄位當代號。 */
 export function detectCodeField(row: Row): string | null {
   for (const f of CODE_FIELDS) {
     if (f in row) return f;
@@ -193,12 +194,23 @@ export function getDataset(
 /**
  * 交易面的資料集才是日頻；「公司治理」與「財務報表」多是年度或季度揭露
  * （ESG 揭露、股利分派、財報），佔目錄的六成以上。對它們說「資料為前一交易日」
- * 是錯的，會讓模型把年報數字講成昨天的。依分類給出誠實的期間說明。
+ * 是錯的，會讓模型把年報數字講成昨天的。
+ *
+ * 但光看分類不夠：證交所把月報（上市個股月成交資訊、鉅額交易月成交量值統計）
+ * 與靜態彙總表也歸在「證券交易」底下。所以先看表名——表名說「日」就是日頻
+ * （「日收盤價及月平均價」同時有日與月，日優先），否則帶月／季／年／彙總／排行
+ * 就當非日頻，都沒有才退回分類判斷。
  */
 const DAILY_TAGS = ["證券交易", "指數", "權證"];
+const DAILY_MARK = /日/;
+const PERIODIC_MARK = /月|季|年|彙總|排行/;
 
 export function periodNote(ds: Dataset): string {
-  const daily = ds.tags.some((t) => DAILY_TAGS.includes(t));
+  const daily = DAILY_MARK.test(ds.summary)
+    ? true
+    : PERIODIC_MARK.test(ds.summary)
+      ? false
+      : ds.tags.some((t) => DAILY_TAGS.includes(t));
   return daily
     ? "資料為前一交易日（非盤中即時報價；要當下價格請用 twse_realtime_quote）"
     : "本資料集非每日更新（多為月、季或年度揭露），實際期間以資料中的日期欄位為準";
@@ -217,12 +229,12 @@ export interface EtfSnapshotSources {
   /** null = 未查詢即時報價；[] = 查了但沒資料。 */
   realtime?: Row[] | null;
   includeRealtime: boolean;
-  /** 三張表哪幾張抓失敗（來源標籤 -> 錯誤型別名），用來補 caveat。 */
+  /** 哪幾個資料集抓失敗（來源標籤 -> 錯誤型別名），用來補 caveat。 */
   errors?: { source: string; error: string }[];
 }
 
 /**
- * 合併三張證交所的表成單一 ETF 概況。任何一段缺就標 null + 記 caveat，不整包失敗。
+ * 合併三個證交所資料集成單一 ETF 概況。任何一段缺就標 null + 記 caveat，不整包失敗。
  * 對應 Python 版 etf_snapshot 的合併邏輯（該工具現名 twse_etf_snapshot）。
  */
 export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<string, unknown> {
