@@ -6,3 +6,6 @@ dist/
 
 # --- macOS ---
 .DS_Store
+
+# --- 本機工具設定（因人而異，不進版控）---
+.claude/settings.local.json
