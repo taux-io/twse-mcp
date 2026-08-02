@@ -9,14 +9,14 @@ import { DATA_TTL_SECONDS, type Row } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 
-// twse_etf_snapshot 用到的三張表
+// twse_etf_snapshot 用到的三個資料集
 export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
-/** 取整份資料集（證交所每個 endpoint 都一次回整份）。走邊緣快取。 */
+/** 取整份資料集（證交所每個資料集都是一次回整份）。走邊緣快取。 */
 export async function fetchDataset(datasetId: string): Promise<Row[]> {
   const url = `${BASE}/${datasetId}`;
   const data = await fetchJson(url, { Accept: "application/json" }, DATA_TTL_SECONDS);

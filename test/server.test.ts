@@ -43,7 +43,7 @@ beforeEach(() => {
         const otc = u.includes("otc_");
         if (otc) {
           return jsonResponse({
-            msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", v: "15501", t: "13:30:00" }],
+            msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", h: "26.69", l: "26.56", v: "15501", t: "13:30:00" }],
           });
         }
         // 依 ex_ch 裡實際帶了幾檔就回幾筆，多檔查詢才驗得到東西
@@ -171,14 +171,17 @@ describe("MCP handler seam", () => {
   it('twse_realtime_quote：market="otc" 查得到上櫃標的，且出站帶 otc_ 前綴', async () => {
     const out = await callTool("twse_realtime_quote", { codes: ["00679B"], market: "otc" });
     expect(out.count).toBe(1);
-    // README 明說上櫃「查得到昨天的收盤、今天的開盤、成交量」——這些欄位跟著即時報價一起來，
-    // 不是走取不到的上櫃資料集。文件既然這樣承諾，就要有測試守著。
+    // README 承諾上櫃「查得到現在的價格、今天的開高低、昨天的收盤、成交量」。
+    // 這些欄位跟著即時報價一起來，不是走取不到的上櫃資料集。
+    // 逐項斷言，包含 high/low——先前漏掉它們，等於文件承諾了卻沒人守。
     expect(out.quotes[0]).toMatchObject({
       code: "00679B",
       name: "元大美債20年",
       last: "26.68",
-      prev_close: "26.51",
       open: "26.57",
+      high: "26.69",
+      low: "26.56",
+      prev_close: "26.51",
       volume: "15501",
     });
     const calledUrl = quoteUrl();

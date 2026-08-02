@@ -10,13 +10,13 @@
  * 要在通知維護者之前就擋下來。
  */
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 const CATALOG = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.generated.json");
 
 /**
- * etf_snapshot 直接依賴這三個資料集，少一個該工具就殘廢。
+ * twse_etf_snapshot 直接依賴這三個資料集，少一個該工具就殘廢。
  * 這份清單必須與 src/twse.ts 的 DS_FUND/DS_DAY/DS_RANK 一致——
  * test/catalog.test.ts 會斷言兩邊相同，改了一邊沒改另一邊 CI 就會紅。
  */
@@ -39,7 +39,7 @@ export function checkCatalog(catalog) {
 
   const missing = REQUIRED.filter((id) => !catalog[id]);
   if (missing.length) {
-    problems.push(`etf_snapshot 依賴的資料集消失：${missing.join(", ")}`);
+    problems.push(`twse_etf_snapshot 依賴的資料集消失：${missing.join(", ")}`);
   }
 
   const malformed = ids.filter((id) => {
@@ -50,7 +50,11 @@ export function checkCatalog(catalog) {
     problems.push(`${malformed.length} 個資料集結構不對，例如：${malformed.slice(0, 3).join(", ")}`);
   }
 
-  const noFields = ids.filter((id) => !Object.keys(catalog[id].fields ?? {}).length);
+  // 只數「結構正常但沒有欄位」的；畸形的已經報過，再讀它的 .fields 會直接爆掉——
+  // 一個負責偵測畸形目錄的函式，不該遇到畸形目錄就自己拋例外。
+  const noFields = ids.filter(
+    (id) => !malformed.includes(id) && !Object.keys(catalog[id].fields).length,
+  );
   return { total: ids.length, noFields: noFields.length, problems };
 }
 
@@ -66,7 +70,7 @@ async function main() {
 }
 
 // 只有被直接執行時才跑；被 import（測試）時不執行。
-if (process.argv[1] && process.argv[1].endsWith("check-catalog.mjs")) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     process.stderr.write(String(err?.stack ?? err) + "\n");
     process.exit(1);

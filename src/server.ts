@@ -54,7 +54,7 @@ export function createServer() {
       inputSchema: {
         dataset_id: z
           .string()
-          .describe('來自 twse_search_datasets 的代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
+          .describe('來自 twse_search_datasets 的資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
       },
     },
     async ({ dataset_id }) => json(describeDataset(catalog, dataset_id)),
@@ -65,7 +65,7 @@ export function createServer() {
     {
       description:
         "取得證交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
-        "證交所每個 endpoint 都一次回整份資料（可能上千筆），務必用 code/match/fields 縮小範圍。",
+        "證交所每個資料集都是一次回整份（可能上千筆），務必用 code/match/fields 縮小範圍。",
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
         code: z.string().default("").describe('證券／基金代號，例如 "0050"。會自動偵測代號欄位。'),
