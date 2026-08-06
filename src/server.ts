@@ -69,11 +69,20 @@ export function createServer() {
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
         code: z.string().default("").describe('證券／基金代號，例如 "0050"。會自動偵測代號欄位。'),
+        // match/fields 的每個元素都會在整份資料集上再跑一輪 filter/map，
+        // 元素數乘上筆數就是這支工具的最壞情況 CPU。不是攻擊面（見稽核報告對
+        // denial-of-wallet 的否決），但上限是免費的，讓最壞情況可預期。
+        // 目錄裡最寬的資料集有 68 個欄位，所以 fields 給 100 —— 要投影全部欄位
+        // 永遠不會被擋；沒有人會同時對 20 個欄位下子字串過濾。
         match: z
           .record(z.string(), z.string())
+          .refine((m) => Object.keys(m).length <= 20, "match 最多 20 個欄位")
           .optional()
-          .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。'),
-        fields: z.array(z.string()).optional().describe("只回傳這些欄位。"),
+          // refine 在 JSON Schema 裡表達不出來（沒有 maxProperties），tools/list
+          // 不會帶上這個上限，所以寫進 description，免得又是一個「說了卻沒守」
+          // 或「守了卻沒說」的落差。fields 的 .max() 則會轉成 maxItems。
+          .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。最多 20 個欄位。'),
+        fields: z.array(z.string()).max(100).optional().describe("只回傳這些欄位。"),
         limit: z.number().int().min(0).default(30).describe("回傳筆數上限（硬上限 200）。"),
         offset: z.number().int().min(0).default(0).describe("分頁位移。"),
       },

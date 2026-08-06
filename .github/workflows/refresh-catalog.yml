@@ -36,7 +36,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - run: npm ci
+      # --ignore-scripts：與 test.yml 同理，本專案不需要相依套件的安裝腳本。
+      # 這個 job 拿的是 contents/issues write token，能少跑一段別人的程式就少跑。
+      - run: npm ci --ignore-scripts
 
       - name: 重抓證交所 swagger
         run: npm run refresh-catalog
