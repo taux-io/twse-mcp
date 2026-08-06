@@ -57,20 +57,16 @@ async function fetchSpec() {
       const res = await fetch(SWAGGER_URL, { headers: { Accept: "application/json" } });
       const ctype = res.headers.get("content-type") ?? "(none)";
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}, content-type: ${ctype}`);
-      // res.ok 擋不住「2xx + HTML」。先讀成文字，格式不對時才有 body 可以印。
+      // res.ok 擋不住「2xx + HTML」。先讀成文字，parse 不過時才有 body 可以印。
+      // 判準是「parse 得過嗎」而不是 content-type——證交所另一個端點（MIS 即時
+      // 報價站）就是回 text/html 卻給合法 JSON，拿 content-type 當閘門會誤殺。
       const body = await res.text();
-      if (!ctype.includes("json")) {
-        throw new Error(
-          `expected JSON, got content-type: ${ctype} (HTTP ${res.status}). ` +
-            `body starts with: ${JSON.stringify(body.slice(0, 200))}`,
-        );
-      }
       try {
         return JSON.parse(body);
       } catch (e) {
         throw new Error(
-          `content-type said ${ctype} but body is not valid JSON: ${e.message}. ` +
-            `body starts with: ${JSON.stringify(body.slice(0, 200))}`,
+          `body is not valid JSON (${e.message}). content-type: ${ctype}, HTTP ${res.status}. ` +
+            `body starts with: ${JSON.stringify(body.trim().slice(0, 200))}`,
         );
       }
     } catch (err) {

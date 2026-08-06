@@ -31,6 +31,19 @@ function jsonResponse(v: unknown) {
   return new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
 }
 
+/**
+ * MIS 即時報價站的真實回應形狀：content-type 是 `text/html`，body 卻是前面墊了
+ * 一堆換行的合法 JSON。先前這裡也用 jsonResponse()，於是 fetchJson 一度改成拿
+ * content-type 當閘門時，測試全綠、線上卻整支工具壞掉。mock 要貼著上游，
+ * 不是貼著我們希望上游長的樣子。
+ */
+function misResponse(v: unknown) {
+  return new Response("\n".repeat(20) + JSON.stringify(v), {
+    status: 200,
+    headers: { "content-type": "text/html;charset=UTF-8" },
+  });
+}
+
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
@@ -43,13 +56,13 @@ beforeEach(() => {
         // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
         const otc = u.includes("otc_");
         if (otc) {
-          return jsonResponse({
+          return misResponse({
             msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", h: "26.69", l: "26.56", v: "15501", t: "13:30:00" }],
           });
         }
         // 依 ex_ch 裡實際帶了幾檔就回幾筆，多檔查詢才驗得到東西
         const codes = [...u.matchAll(/tse_([^.]+)\.tw/g)].map((m) => m[1]);
-        return jsonResponse({
+        return misResponse({
           msgArray: codes.map((c) => ({ c, z: "38.45", t: "13:30:00" })),
         });
       }
@@ -262,6 +275,14 @@ describe("MCP handler seam", () => {
     expect(calledUrl).not.toContain("#");
     expect(calledUrl).toContain("%23");
     expect(calledUrl).toContain("json=1&delay=0");
+  });
+
+  // content-type 不是判準：這個回應宣稱 text/html，body 卻是合法 JSON，必須照收。
+  // 曾經拿 content-type 當閘門，結果線上整支 twse_realtime_quote 壞掉。
+  it("上游宣稱 text/html 但 body 是合法 JSON 時，照樣正常解析", async () => {
+    const out = await callTool("twse_realtime_quote", { codes: ["0050"] });
+    expect(out.count).toBe(1);
+    expect(out.quotes[0].last).toBe("38.45");
   });
 
   // 2026-08-03 的 refresh-catalog 排程就是死在這個情境：證交所前面那層 nginx
