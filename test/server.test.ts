@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpHandler } from "agents/mcp/server";
 import { createServer } from "../src/server";
+import { fetchQuotes } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
 
@@ -198,6 +199,25 @@ describe("MCP handler seam", () => {
     // 三個代號要真的變成三筆回應，而不是「有回東西就算過」
     expect(out.count).toBe(3);
     expect(out.quotes.map((q: { code: string }) => q.code)).toEqual(["0050", "0056", "2330"]);
+  });
+
+  // 出站網址是用字串拼的，代號帶 # 會把後面釘死的 json=1&delay=0 整段吃掉。
+  // 兩道防線：schema 先擋掉這種代號，fetchQuotes 再 encodeURIComponent。
+  it("twse_realtime_quote：非英數代號被擋下，不會發出出站請求", async () => {
+    const payload = await rpc("tools/call", {
+      name: "twse_realtime_quote",
+      arguments: { codes: ["0050#foo"] },
+    });
+    expect(payload.result.isError).toBe(true);
+    expect(quoteUrl()).toBeUndefined();
+  });
+
+  it("fetchQuotes 對代號做 URL encode，pinned 參數不會被吃掉", async () => {
+    await fetchQuotes(["0050#foo"]);
+    const calledUrl = quoteUrl()!;
+    expect(calledUrl).not.toContain("#");
+    expect(calledUrl).toContain("%23");
+    expect(calledUrl).toContain("json=1&delay=0");
   });
 
   it("twse_etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {

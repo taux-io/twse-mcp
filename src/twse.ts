@@ -1,9 +1,10 @@
 /**
  * twse.ts — 對證交所的出站層（薄殼）。
  * ====================================
- * v1 快取策略：靠 Cloudflare Cache API 快取「出站請求」，不自己管 KV。
- * `caches` 是 Worker-only 全域；在 Node/Vitest 下不存在，這裡優雅退化成直接 fetch，
- * 讓 core 以外的東西也能離線測（測試會 mock globalThis.fetch）。
+ * v1 快取策略：把 cacheTtl / cacheEverything 掛在 fetch 的 `cf` 上（見 fetchJson），
+ * 由邊緣快取出站請求，不自己管 KV，也沒有用到 `caches` 全域。
+ * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
+ * （測試 mock globalThis.fetch）。
  */
 import { DATA_TTL_SECONDS, type Row } from "./core";
 
@@ -42,10 +43,13 @@ export interface Quote {
  * 無服務條款背書，仍可能改變；失敗時上層會降級成 null + caveat。
  */
 export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quote[]> {
+  // 一定要 encode：`|` 是分隔語法所以留著不編碼，但代號本身若帶 `#`，
+  // 整個 fragment 之後的東西會被丟掉——連同後面釘死的 json=1&delay=0，
+  // 上游會回一份格式完全不同的東西。`&`、`?`、空白同理。
   const exCh = codes
     .map((c) => c.trim())
     .filter(Boolean)
-    .map((c) => `${market}_${c}.tw`)
+    .map((c) => `${market}_${encodeURIComponent(c)}.tw`)
     .join("|");
   const url = `${MIS_BASE}?ex_ch=${exCh}&json=1&delay=0`;
   // 即時報價不快取（cacheTtl 0）。

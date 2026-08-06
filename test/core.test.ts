@@ -100,6 +100,12 @@ describe("searchDatasets", () => {
     expect(r.results).toHaveLength(1);
     expect(r.total_matched).toBe(3);
   });
+  it("prototype 上的鍵不會被當成別名", () => {
+    // ALIASES["constructor"] 會撈到 Object.prototype.constructor，
+    // new Set(Function) 會丟 TypeError，或更糟——靜默命中錯誤的資料集。
+    const r = searchDatasets(CATALOG, { query: "constructor" });
+    expect(r.total_matched).toBe(0);
+  });
 });
 
 describe("resolveDataset — 目錄查找/錯誤只此一處", () => {
@@ -128,6 +134,13 @@ describe("describeDataset", () => {
   });
   it("找不到 -> error", () => {
     expect(describeDataset(CATALOG, "no/such")).toHaveProperty("error");
+  });
+  it("__proto__ 不會被當成存在的資料集", () => {
+    // 修補前 catalog["__proto__"] 回 Object.prototype（truthy），
+    // 於是一個不存在的資料集被報成存在、回一份空的有效結果。
+    expect(resolveDataset(CATALOG, "__proto__")).toHaveProperty("error");
+    expect(resolveDataset(CATALOG, "constructor")).toHaveProperty("error");
+    expect(describeDataset(CATALOG, "__proto__")).toHaveProperty("error");
   });
 });
 
@@ -175,6 +188,10 @@ describe("getDataset — 過濾/投影/分頁", () => {
     const r = getDataset(day, many, { limit: -1 }) as any;
     expect(r.returned).toBe(0);
     expect(r.rows_matched).toBe(500);
+  });
+  it("fields 投影不會撈到 prototype 上的成員", () => {
+    const r = getDataset(day, rows, { code: "0050", fields: ["Code", "toString"] }) as any;
+    expect(Object.keys(r.data[0])).toEqual(["Code"]);
   });
   it("負數 offset 當作 0", () => {
     const r = getDataset(day, rows, { limit: 1, offset: -5 }) as any;
