@@ -141,6 +141,50 @@ describe("MCP handler seam", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  // match/fields 的每個元素都會在整份資料集上再跑一輪 filter/map。上限讓最壞
+  // 情況可預期，但不能訂得比合法用法低——目錄裡最寬的資料集有 68 個欄位。
+  it("twse_get_dataset：fields 給滿 68 個欄位（目錄最寬的資料集）仍可通過", async () => {
+    const many = Array.from({ length: 68 }, (_, i) => `F${i}`);
+    const out = await callTool("twse_get_dataset", {
+      dataset_id: "exchangeReport/STOCK_DAY_ALL",
+      fields: many,
+    });
+    expect(out.dataset_id).toBe("exchangeReport/STOCK_DAY_ALL");
+  });
+
+  it("twse_get_dataset：fields 超過 100 個被擋下", async () => {
+    const payload = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: {
+        dataset_id: "exchangeReport/STOCK_DAY_ALL",
+        fields: Array.from({ length: 101 }, (_, i) => `F${i}`),
+      },
+    });
+    expect(payload.result.isError).toBe(true);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("twse_get_dataset：match 超過 20 個欄位被擋下", async () => {
+    const match = Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`F${i}`, "x"]));
+    const payload = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL", match },
+    });
+    expect(payload.result.isError).toBe(true);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  // tools/list 講的話要跟實際擋的一致：fields 的上限轉得成 maxItems，
+  // match 的 refine 轉不成，所以那個上限必須出現在 description 裡。
+  it("tools/list：兩個上限對呼叫端都是可見的", async () => {
+    const payload = await rpc("tools/list", {});
+    const tool = payload.result.tools.find(
+      (t: { name: string }) => t.name === "twse_get_dataset",
+    );
+    expect(tool.inputSchema.properties.fields.maxItems).toBe(100);
+    expect(tool.inputSchema.properties.match.description).toContain("最多 20 個欄位");
+  });
+
   it("twse_etf_snapshot：三表合併，realtime 預設不查", async () => {
     const out = await callTool("twse_etf_snapshot", { code: "0056" });
     expect(out.is_etf).toBe(true);

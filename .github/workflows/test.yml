@@ -5,6 +5,14 @@ on:
     branches: [main]
   pull_request:
 
+# 這個 workflow 只讀 code、跑測試，不需要任何寫入權限。
+# 觸發是 pull_request（不是 pull_request_target），所以 fork PR 拿到的本來就是
+# 唯讀 token；顯式寫出來是為了不受未來組織層級預設值變動影響——GitHub 從 2023
+# 起預設唯讀，但那是設定值，不是保證。對照組是 refresh-catalog.yml，它確實需要
+# contents/issues: write，兩邊擺在一起才看得出差別是刻意的。
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,7 +22,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - run: npm ci
+      # --ignore-scripts：不執行相依套件的安裝腳本。已實測本專案不需要它們
+      # （typecheck、測試、wrangler dry-run 全過），所以這個縮減是免費的。
+      - run: npm ci --ignore-scripts
       - run: npm run typecheck
       # 測試完全離線（stub 掉出站 fetch），CI 不需要連證交所
       - run: npm test
