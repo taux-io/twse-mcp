@@ -85,6 +85,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TITLE: "catalog: 證交所目錄有變動待審"
+          LABEL: catalog-drift
         run: |
           COMPARE="${{ github.server_url }}/${{ github.repository }}/compare/main...${BRANCH}?expand=1"
           BODY=$(printf '%s\n' \
@@ -100,9 +101,20 @@ jobs:
             "⚠️ \`${BRANCH}\` 是機器人專用分支，每次執行都會被覆寫。要修改請另開分支，別直接推到它上面。" \
             "" \
             "_由 \`${GITHUB_WORKFLOW}\` 自動產生（run #${GITHUB_RUN_NUMBER}）_")
-          EXISTING=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number')
+          # 只靠標題搜尋會撈到任何人開的同名 issue：外人只要先開一個佔位，
+          # 通知就會被灌進他的討論串，而且 create 分支永遠不會執行 —— 等於把
+          # 這個 workflow 存在的唯一告警靜音掉。所以再加上作者與標籤兩道過濾。
+          # --force 是 create-or-update，標籤不存在時 gh issue create --label 會
+          # 直接失敗（run: 跑在 bash -e 下會中斷整個 step），先確保它存在。
+          gh label create "$LABEL" \
+            --description "TWSE catalog drift alert" --color FBCA04 --force
+          EXISTING=$(gh issue list --state open \
+            --author app/github-actions \
+            --label "$LABEL" \
+            --search "$TITLE in:title" \
+            --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" --body "$BODY"
           else
-            gh issue create --title "$TITLE" --body "$BODY"
+            gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
           fi
