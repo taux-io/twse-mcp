@@ -92,13 +92,19 @@ async function fetchJson(
   // 送出一張裸錯誤頁（2026-08-03 的 refresh-catalog 排程就是這樣掛的）。
   // 若直接 res.json()，模型收到的是一句生的 "Unexpected token '<'"，
   // 看不出那是上游問題而非它自己參數給錯。
+  //
+  // 但**不能拿 content-type 當判準**：MIS 即時報價站回的是
+  // `text/html;charset=UTF-8`，body 卻是前面墊了一堆換行的合法 JSON。
+  // 拿 content-type 當閘門會把這條正常路徑整個擋掉（實際發生過）。
+  // 所以先讀文字再 parse，parse 不過才丟出附診斷資訊的錯誤。
   const ctype = res.headers.get("content-type") ?? "(none)";
-  if (!ctype.includes("json")) {
-    const body = await res.text();
+  const body = await res.text();
+  try {
+    return JSON.parse(body);
+  } catch {
     throw new Error(
       `上游回的不是 JSON（content-type: ${ctype}，HTTP ${res.status}）for ${url}。` +
-        `開頭：${body.slice(0, 120)}`,
+        `開頭：${body.trim().slice(0, 120)}`,
     );
   }
-  return res.json();
 }
