@@ -37,11 +37,57 @@ function buildCatalog(spec) {
   return catalog;
 }
 
+/**
+ * 抓 swagger，附狀態碼／content-type 檢查與退避重試。
+ *
+ * 2026-08-03 的排程執行就是死在這裡：證交所前面那層 nginx 用 2xx 狀態碼回了一張
+ * 裸錯誤頁，`res.ok` 因此通過，`res.json()` 才丟出 `Unexpected token '<'`。
+ * 光看那個 SyntaxError 完全無法判斷是被擋、維護中、還是格式變了——狀態碼、
+ * content-type、body 一個都沒留下。所以這裡把三者都寫進錯誤訊息。
+ *
+ * 重試：一週只跑一次，失敗代價是整整一週沒有目錄漂移偵測，而上述症狀是暫時性的
+ * （同一支腳本前後都跑得過）。退避從 2 秒起跳。
+ */
+async function fetchSpec() {
+  const attempts = 3;
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      process.stderr.write(`fetching ${SWAGGER_URL} (attempt ${i}/${attempts}) ...\n`);
+      const res = await fetch(SWAGGER_URL, { headers: { Accept: "application/json" } });
+      const ctype = res.headers.get("content-type") ?? "(none)";
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}, content-type: ${ctype}`);
+      // res.ok 擋不住「2xx + HTML」。先讀成文字，格式不對時才有 body 可以印。
+      const body = await res.text();
+      if (!ctype.includes("json")) {
+        throw new Error(
+          `expected JSON, got content-type: ${ctype} (HTTP ${res.status}). ` +
+            `body starts with: ${JSON.stringify(body.slice(0, 200))}`,
+        );
+      }
+      try {
+        return JSON.parse(body);
+      } catch (e) {
+        throw new Error(
+          `content-type said ${ctype} but body is not valid JSON: ${e.message}. ` +
+            `body starts with: ${JSON.stringify(body.slice(0, 200))}`,
+        );
+      }
+    } catch (err) {
+      lastErr = err;
+      process.stderr.write(`  attempt ${i} failed: ${err.message}\n`);
+      if (i < attempts) {
+        const waitMs = 2000 * 2 ** (i - 1);
+        process.stderr.write(`  retrying in ${waitMs}ms\n`);
+        await new Promise((r) => setTimeout(r, waitMs));
+      }
+    }
+  }
+  throw new Error(`swagger fetch failed after ${attempts} attempts: ${lastErr.message}`);
+}
+
 async function main() {
-  process.stderr.write(`fetching ${SWAGGER_URL} ...\n`);
-  const res = await fetch(SWAGGER_URL, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`swagger fetch failed: HTTP ${res.status}`);
-  const spec = await res.json();
+  const spec = await fetchSpec();
   const catalog = buildCatalog(spec);
   const count = Object.keys(catalog).length;
   if (count === 0) throw new Error("catalog is empty — swagger shape may have changed");

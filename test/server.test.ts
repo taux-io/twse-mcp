@@ -220,6 +220,33 @@ describe("MCP handler seam", () => {
     expect(calledUrl).toContain("json=1&delay=0");
   });
 
+  // 2026-08-03 的 refresh-catalog 排程就是死在這個情境：證交所前面那層 nginx
+  // 用 2xx 狀態碼回了一張裸 HTML 錯誤頁，res.ok 通過，res.json() 才丟出
+  // 「Unexpected token '<'」。模型看到那句話會以為是自己參數給錯。
+  it("上游回 2xx + HTML 時，錯誤訊息要指得出是上游問題", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response("<html>\n<head><title>503 Service Unavailable</title></head>", {
+            status: 200,
+            headers: { "content-type": "text/html" },
+          }),
+      ),
+    );
+    const payload = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL" },
+    });
+    expect(payload.result.isError).toBe(true);
+    const text = payload.result.content[0].text;
+    expect(text).toContain("上游回的不是 JSON");
+    expect(text).toContain("text/html");
+    // body 開頭要帶出來，不然下次還是查不出是被擋還是格式變了
+    expect(text).toContain("503 Service Unavailable");
+    expect(text).not.toContain("Unexpected token");
+  });
+
   it("twse_etf_snapshot：查無上市資料時，caveat 要指向做得到的替代路徑（otc 即時報價）", async () => {
     const out = await callTool("twse_etf_snapshot", { code: "00679B" });
     const joined = out.caveats.join("\n");
