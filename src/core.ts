@@ -169,8 +169,11 @@ export function getDataset(
   }
 
   const matched = working.length;
-  const pageSize = Math.min(limit, MAX_ROWS);
-  let page: Row[] = working.slice(offset, offset + pageSize);
+  // 兩邊都要夾：Math.min 只擋得住上界，負的 limit 會讓 slice 從尾端往回算，
+  // 反而一次吐出 n-1 筆，把 MAX_ROWS 這個承諾整個繞過去。
+  const pageSize = Math.max(0, Math.min(limit, MAX_ROWS));
+  const start = Math.max(0, offset);
+  let page: Row[] = working.slice(start, start + pageSize);
   if (fields) {
     page = page.map((r) => {
       const proj: Row = {};
@@ -185,7 +188,7 @@ export function getDataset(
     rows_in_source: totalRaw,
     rows_matched: matched,
     returned: page.length,
-    offset,
+    offset: start,
     note: periodNote(ds),
     data: page,
   };

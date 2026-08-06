@@ -170,6 +170,18 @@ describe("getDataset — 過濾/投影/分頁", () => {
     expect(r.returned).toBe(200);
     expect(r.rows_matched).toBe(500);
   });
+  it("負數 limit 不會反向繞過硬上限", () => {
+    const many: Row[] = Array.from({ length: 500 }, (_, i) => ({ Code: String(i) }));
+    const r = getDataset(day, many, { limit: -1 }) as any;
+    expect(r.returned).toBe(0);
+    expect(r.rows_matched).toBe(500);
+  });
+  it("負數 offset 當作 0", () => {
+    const r = getDataset(day, rows, { limit: 1, offset: -5 }) as any;
+    expect(r.returned).toBe(1);
+    expect(r.offset).toBe(0);
+    expect(r.data[0].Code).toBe("0050");
+  });
 });
 
 describe("buildEtfSnapshot — 三表合併", () => {

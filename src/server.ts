@@ -74,8 +74,8 @@ export function createServer() {
           .optional()
           .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。'),
         fields: z.array(z.string()).optional().describe("只回傳這些欄位。"),
-        limit: z.number().int().default(30).describe("回傳筆數上限（硬上限 200）。"),
-        offset: z.number().int().default(0).describe("分頁位移。"),
+        limit: z.number().int().min(0).default(30).describe("回傳筆數上限（硬上限 200）。"),
+        offset: z.number().int().min(0).default(0).describe("分頁位移。"),
       },
     },
     async ({ dataset_id, code, match, fields, limit, offset }) => {
