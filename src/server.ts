@@ -153,7 +153,11 @@ export function createServer() {
         "取得盤中即時報價（約 5 秒更新一次）。OpenAPI 只有前一交易日資料，" +
         '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
       inputSchema: {
-        codes: z.array(z.string()).describe('代號清單，例如 ["0050", "0056", "2330"]。'),
+        codes: z
+          // trim 在前，維持既有對前後空白的容忍（fetchQuotes 本來就會 trim）。
+          .array(z.string().trim().regex(/^[0-9A-Za-z]{1,10}$/, "代號只能是英數字，最多 10 碼"))
+          .max(50)
+          .describe('代號清單，例如 ["0050", "0056", "2330"]。'),
         market: z.enum(["tse", "otc"]).default("tse").describe('"tse"（上市）或 "otc"（上櫃）。'),
       },
     },

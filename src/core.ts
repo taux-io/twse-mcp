@@ -87,7 +87,9 @@ export function searchDatasets(
   const tag = opts.tag ?? "";
   const limit = opts.limit ?? 25;
   const q = query.toLowerCase().trim();
-  const aliased = new Set(ALIASES[q] ?? []);
+  // Object.hasOwn：純字面量物件的查找會走 prototype chain，query="constructor"
+  // 之類的鍵會撈到 Object.prototype 的東西，不是我們定義的別名。
+  const aliased = new Set(Object.hasOwn(ALIASES, q) ? ALIASES[q] : []);
   const out: SearchResult[] = [];
 
   for (const ds of Object.values(catalog)) {
@@ -118,7 +120,9 @@ export function resolveDataset(
   datasetId: string,
 ): { ds: Dataset } | { error: string } {
   const id = datasetId.replace(/^\//, "");
-  const ds = catalog[id];
+  // 一定要 hasOwn：dataset_id="__proto__" 會查到 Object.prototype，是個 truthy 物件，
+  // 於是一個不存在的資料集被當成存在、回一份空的有效結果，模型無從分辨。
+  const ds = Object.hasOwn(catalog, id) ? catalog[id] : undefined;
   if (!ds) return { error: `找不到 ${id}，請先用 twse_search_datasets 查詢` };
   return { ds };
 }
@@ -177,7 +181,8 @@ export function getDataset(
   if (fields) {
     page = page.map((r) => {
       const proj: Row = {};
-      for (const k of fields) if (k in r) proj[k] = r[k];
+      // hasOwn 而非 in：fields:["toString"] 不該投影出 Object.prototype 的方法。
+      for (const k of fields) if (Object.hasOwn(r, k)) proj[k] = r[k];
       return proj;
     });
   }
