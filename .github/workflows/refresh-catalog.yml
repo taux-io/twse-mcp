@@ -118,3 +118,43 @@ jobs:
           else
             gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
           fi
+
+      # 沒有這一步的話，執行失敗只會留下一個紅色的 run，不會有人看到——
+      # 一週跑一次的排程沒人盯，等於整整一週沒有目錄漂移偵測而不自知。
+      # 2026-08-03 就是這樣過去的（證交所回了 2xx + HTML，腳本掛掉，無人知曉）。
+      - name: 執行失敗時開 issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "catalog: 每週刷新執行失敗"
+          LABEL: catalog-refresh-failed
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
+          BODY=$(printf '%s\n' \
+            "每週的 catalog 刷新執行失敗了，這代表**目錄漂移偵測目前是停擺的**——" \
+            "在修好之前，證交所若新增／移除資料集或欄位，我們不會收到通知。" \
+            "" \
+            "[查看失敗的 run](${RUN_URL})" \
+            "" \
+            "最常見的原因是上游暫時回了非 JSON（證交所前面的 nginx 擋流量或維護時，" \
+            "會用 2xx 狀態碼送出一張 HTML 錯誤頁）。腳本已內建三次退避重試，" \
+            "所以連重試都失敗通常表示問題不是瞬時的。錯誤訊息會附上狀態碼、" \
+            "content-type 與 body 開頭，先看那三項。" \
+            "" \
+            "確認上游恢復後，可用 workflow_dispatch 手動重跑，不必等下週一。" \
+            "" \
+            "_由 \`${GITHUB_WORKFLOW}\` 自動產生（run #${GITHUB_RUN_NUMBER}）_")
+          # 與上一個步驟同樣的理由：標籤要先存在，且查找要綁作者與標籤，
+          # 否則通知會被外人開的同名 issue 接走。
+          gh label create "$LABEL" \
+            --description "TWSE catalog refresh workflow failure" --color B60205 --force
+          EXISTING=$(gh issue list --state open \
+            --author app/github-actions \
+            --label "$LABEL" \
+            --search "$TITLE in:title" \
+            --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
+          fi

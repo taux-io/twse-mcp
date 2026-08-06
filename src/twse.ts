@@ -88,5 +88,17 @@ async function fetchJson(
   }
   const res = await fetch(url, init);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  // res.ok 擋不住「2xx + HTML」：證交所前面那層 nginx 擋流量或維護時，會用 2xx
+  // 送出一張裸錯誤頁（2026-08-03 的 refresh-catalog 排程就是這樣掛的）。
+  // 若直接 res.json()，模型收到的是一句生的 "Unexpected token '<'"，
+  // 看不出那是上游問題而非它自己參數給錯。
+  const ctype = res.headers.get("content-type") ?? "(none)";
+  if (!ctype.includes("json")) {
+    const body = await res.text();
+    throw new Error(
+      `上游回的不是 JSON（content-type: ${ctype}，HTTP ${res.status}）for ${url}。` +
+        `開頭：${body.slice(0, 120)}`,
+    );
+  }
   return res.json();
 }
