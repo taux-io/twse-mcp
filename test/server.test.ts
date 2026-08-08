@@ -3,6 +3,10 @@
  * 對真正的 createMcpHandler fetch handler 灌 JSON-RPC，stub 掉對證交所的出站 fetch，
  * 斷言 MCP client 會看到的回應。這一層測工具註冊 + 參數傳遞 + core/twse 接線，
  * 內部模組怎麼重構都不影響。
+ *
+ * 這個 seam 跑兩遍，一遍一個協定 era（詞彙見 CONTEXT.md）。同一組工具斷言在
+ * legacy 與 modern 下各跑一次，兩條 lane 才不會偷偷分岔——這是本檔存在的第二個理由，
+ * 也是唯一擋得住「相依升級後協定行為無聲改變」的東西。
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpHandler } from "agents/mcp/server";
@@ -71,27 +75,85 @@ beforeEach(() => {
   );
 });
 
-function mcpRequest(body: unknown) {
+// --- 協定 era ---
+// era 判定是純 claim-based：params._meta 裡有沒有協定版本這個保留鍵。header 只做
+// 交叉驗證，本身不決定 era。這兩個常數是規範定義的保留鍵，寫死在測試裡（CI 離線，
+// 不從相依 re-export，否則相依改了值測試會跟著改、就守不住任何東西）。
+const MODERN_REVISION = "2026-07-28";
+const PROTOCOL_VERSION_META_KEY = "io.modelcontextprotocol/protocolVersion";
+const CLIENT_CAPABILITIES_META_KEY = "io.modelcontextprotocol/clientCapabilities";
+
+const ERAS = ["legacy", "modern"] as const;
+type Era = (typeof ERAS)[number];
+
+function mcpRequest(body: unknown, extraHeaders: Record<string, string> = {}) {
   return new Request("http://localhost/mcp", {
     method: "POST",
     headers: {
       "content-type": "application/json",
       accept: "application/json, text/event-stream",
       host: "localhost",
+      ...extraHeaders,
     },
     body: JSON.stringify(body),
   });
 }
 
-/** 解析 streamable-http 的 SSE 回應，回傳 JSON-RPC payload。 */
-async function rpc(method: string, params: unknown) {
-  const handler = createMcpHandler(createServer);
-  const res = await handler(mcpRequest({ jsonrpc: "2.0", id: 1, method, params }), {}, ctx);
-  expect(res.status).toBe(200);
+/**
+ * 依 era 建構請求。
+ * - legacy：裸 JSON-RPC，什麼都不加。
+ * - modern：params._meta 帶兩個必填保留鍵，並補上必填的 MCP-Protocol-Version 與
+ *   Mcp-Method 標頭；tools/call 另需 Mcp-Name。標頭與 body 不一致會被判 -32020，
+ *   所以這裡刻意從 body 推導標頭，而不是各寫一份。
+ */
+function eraRequest(era: Era, method: string, params: Record<string, unknown>) {
+  if (era === "legacy") {
+    return mcpRequest({ jsonrpc: "2.0", id: 1, method, params });
+  }
+  const body = {
+    jsonrpc: "2.0",
+    id: 1,
+    method,
+    params: {
+      ...params,
+      _meta: {
+        [PROTOCOL_VERSION_META_KEY]: MODERN_REVISION,
+        [CLIENT_CAPABILITIES_META_KEY]: {},
+      },
+    },
+  };
+  const headers: Record<string, string> = {
+    "MCP-Protocol-Version": MODERN_REVISION,
+    "Mcp-Method": method,
+  };
+  if (method === "tools/call" && typeof params.name === "string") {
+    headers["Mcp-Name"] = params.name;
+  }
+  return mcpRequest(body, headers);
+}
+
+/** 解析回應：modern 的單次交換回純 JSON，legacy 走 SSE，兩種都要接得住。 */
+async function readPayload(res: Response) {
   const text = await res.text();
-  const dataLine = text.split("\n").find((l) => l.startsWith("data:"));
-  if (!dataLine) throw new Error(`no SSE data line in: ${text}`);
-  return JSON.parse(dataLine.slice("data:".length).trim());
+  if (res.headers.get("content-type")?.includes("text/event-stream")) {
+    const dataLine = text.split("\n").find((l) => l.startsWith("data:"));
+    if (!dataLine) throw new Error(`no SSE data line in: ${text}`);
+    return JSON.parse(dataLine.slice("data:".length).trim());
+  }
+  return JSON.parse(text);
+}
+
+async function send(request: Request) {
+  const handler = createMcpHandler(createServer);
+  return handler(request, {}, ctx);
+}
+
+function rpcFor(era: Era) {
+  return async function rpc(method: string, params: Record<string, unknown>) {
+    const res = await send(eraRequest(era, method, params));
+    expect(res.status).toBe(200);
+    return readPayload(res);
+  };
 }
 
 /** 出站請求過的所有網址。 */
@@ -104,14 +166,16 @@ function quoteUrl(): string | undefined {
   return fetchedUrls().find((u) => u.includes("getStockInfo"));
 }
 
-/** 呼叫工具並把 content[0].text（本身是 JSON 字串）解回物件。 */
-async function callTool(name: string, args: Record<string, unknown>) {
-  const payload = await rpc("tools/call", { name, arguments: args });
-  if (payload.error) throw new Error(JSON.stringify(payload.error));
-  return JSON.parse(payload.result.content[0].text);
-}
+describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
+  const rpc = rpcFor(era);
 
-describe("MCP handler seam", () => {
+  /** 呼叫工具並把 content[0].text（本身是 JSON 字串）解回物件。 */
+  async function callTool(name: string, args: Record<string, unknown>) {
+    const payload = await rpc("tools/call", { name, arguments: args });
+    if (payload.error) throw new Error(JSON.stringify(payload.error));
+    return JSON.parse(payload.result.content[0].text);
+  }
+
   it("tools/list 暴露 5 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
@@ -269,14 +333,6 @@ describe("MCP handler seam", () => {
     expect(quoteUrl()).toBeUndefined();
   });
 
-  it("fetchQuotes 對代號做 URL encode，pinned 參數不會被吃掉", async () => {
-    await fetchQuotes(["0050#foo"]);
-    const calledUrl = quoteUrl()!;
-    expect(calledUrl).not.toContain("#");
-    expect(calledUrl).toContain("%23");
-    expect(calledUrl).toContain("json=1&delay=0");
-  });
-
   // content-type 不是判準：這個回應宣稱 text/html，body 卻是合法 JSON，必須照收。
   // 曾經拿 content-type 當閘門，結果線上整支 twse_realtime_quote 壞掉。
   it("上游宣稱 text/html 但 body 是合法 JSON 時，照樣正常解析", async () => {
@@ -319,5 +375,71 @@ describe("MCP handler seam", () => {
     expect(joined).toContain('market="otc"');
     // 不該再叫使用者自己去查櫃買中心——那是本服務取不到、而使用者也不見得能取到的路
     expect(joined).not.toContain("需查櫃買中心");
+  });
+});
+
+// 不經過 MCP 邊界的一條，所以不跟著 era 跑兩遍。
+describe("twse 出站層", () => {
+  it("fetchQuotes 對代號做 URL encode，pinned 參數不會被吃掉", async () => {
+    await fetchQuotes(["0050#foo"]);
+    const calledUrl = quoteUrl()!;
+    expect(calledUrl).not.toContain("#");
+    expect(calledUrl).toContain("%23");
+    expect(calledUrl).toContain("json=1&delay=0");
+  });
+});
+
+/**
+ * 協定 era 本身的行為。上面的 describe.each 驗的是「兩條 lane 的工具行為一致」，
+ * 這裡驗的是「兩條 lane 確實是不同的 era」——否則 describe.each 可能只是把同一條
+ * lane 跑了兩遍，什麼都沒守到。
+ */
+describe("協定 era", () => {
+  it("modern 的 tools/list 帶結果型別、快取欄位與 serverInfo", async () => {
+    const payload = await rpcFor("modern")("tools/list", {});
+    expect(payload.result.resultType).toBe("complete");
+    expect(payload.result.ttlMs).toBe(0);
+    expect(payload.result.cacheScope).toBe("private");
+    expect(payload.result._meta["io.modelcontextprotocol/serverInfo"]).toMatchObject({
+      name: "twse-opendata",
+    });
+  });
+
+  it("legacy 的 tools/list 不帶結果型別與快取欄位（2025 編碼路徑沒有蓋章邏輯）", async () => {
+    const payload = await rpcFor("legacy")("tools/list", {});
+    expect(payload.result.resultType).toBeUndefined();
+    expect(payload.result.ttlMs).toBeUndefined();
+    expect(payload.result.cacheScope).toBeUndefined();
+  });
+
+  it("server/discover 在 modern 可呼叫，支援版本含 2026-07-28", async () => {
+    const payload = await rpcFor("modern")("server/discover", {});
+    expect(payload.result.supportedVersions).toContain(MODERN_REVISION);
+    expect(payload.result.capabilities).toHaveProperty("tools");
+    expect(payload.result.ttlMs).toBe(0);
+    expect(payload.result.cacheScope).toBe("private");
+  });
+
+  // 這是唯一與 lane 設定無關的 envelope 驗證錯誤：標頭宣告了 modern，body 卻沒有
+  // 對應的 claim，兩邊對不上就不能猜，只能拒絕。
+  it("帶 modern 協定版本標頭但缺 envelope 的請求被拒", async () => {
+    const res = await send(
+      mcpRequest(
+        { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+        { "MCP-Protocol-Version": MODERN_REVISION, "Mcp-Method": "tools/list" },
+      ),
+    );
+    expect(res.status).toBe(400);
+    const payload = await readPayload(res);
+    expect(payload.error.code).toBe(-32602);
+  });
+
+  // 沒有 claim、也沒有 modern 標頭 → 走 legacy lane，正常服務。這條守的是
+  // 「舊 client 還能用」，也就是本專案暫不做 era 收斂的前提。
+  it("既沒有 claim 也沒有標頭的裸請求，仍被 legacy lane 正常服務", async () => {
+    const res = await send(mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }));
+    expect(res.status).toBe(200);
+    const payload = await readPayload(res);
+    expect(payload.result.tools).toHaveLength(5);
   });
 });
