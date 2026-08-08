@@ -29,8 +29,33 @@ function json(value: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 1) }] };
 }
 
+/**
+ * 工具清單的快取效期。
+ *
+ * 五個工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
+ * 更長。壓在 1 小時是因為工具描述是本專案最常微調的東西，「線上說法與 repo 不一致」
+ * 的窗口比多拿一點快取效益更值得在意。
+ *
+ * SDK 的預設是 `ttlMs: 0` + `cacheScope: "private"`（合規但最壞值：等於告訴每個 client
+ * 這份清單完全不可快取、且只有你能存）。只影響 modern era——legacy 的編碼路徑沒有
+ * 快取欄位。
+ */
+const CACHE_TTL_MS = 3_600_000;
+
 export function createServer() {
-  const server = new McpServer({ name: "twse-opendata", version: "0.2.0" });
+  const server = new McpServer(
+    { name: "twse-opendata", version: "0.2.0" },
+    {
+      cacheHints: {
+        // "public"：服務公開、不認證，所有請求者拿到同一份清單，這是對真實可見度的
+        // 誠實描述。規範明訂這個欄位不得當作存取控制使用，此處也不作此用。
+        // 一旦導入認證，這個值就從誠實變成錯誤，而且是安靜地錯（共享快取會跨授權
+        // 情境重用回應）——見 docs/adr/0001。
+        "tools/list": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
+        "server/discover": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
+      },
+    },
+  );
 
   server.registerTool(
     "twse_search_datasets",

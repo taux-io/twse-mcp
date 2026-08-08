@@ -86,6 +86,9 @@ const CLIENT_CAPABILITIES_META_KEY = "io.modelcontextprotocol/clientCapabilities
 const ERAS = ["legacy", "modern"] as const;
 type Era = (typeof ERAS)[number];
 
+/** 與 src/server.ts 的快取提示對齊。寫死而非 import，這樣值被改動時測試會紅。 */
+const TOOL_LIST_TTL_MS = 3_600_000;
+
 function mcpRequest(body: unknown, extraHeaders: Record<string, string> = {}) {
   return new Request("http://localhost/mcp", {
     method: "POST",
@@ -398,8 +401,8 @@ describe("協定 era", () => {
   it("modern 的 tools/list 帶結果型別、快取欄位與 serverInfo", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
     expect(payload.result.resultType).toBe("complete");
-    expect(payload.result.ttlMs).toBe(0);
-    expect(payload.result.cacheScope).toBe("private");
+    expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
+    expect(payload.result.cacheScope).toBe("public");
     expect(payload.result._meta["io.modelcontextprotocol/serverInfo"]).toMatchObject({
       name: "twse-opendata",
     });
@@ -416,8 +419,18 @@ describe("協定 era", () => {
     const payload = await rpcFor("modern")("server/discover", {});
     expect(payload.result.supportedVersions).toContain(MODERN_REVISION);
     expect(payload.result.capabilities).toHaveProperty("tools");
-    expect(payload.result.ttlMs).toBe(0);
-    expect(payload.result.cacheScope).toBe("private");
+    expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
+    expect(payload.result.cacheScope).toBe("public");
+  });
+
+  // 工具清單可快取的前提之一是順序穩定，否則 client 每次拿到的清單都算「變了」，
+  // LLM 的 prompt cache 也跟著失效。規範列為 SHOULD，本專案本來就固定順序註冊。
+  it("工具以固定順序回傳", async () => {
+    const first = await rpcFor("modern")("tools/list", {});
+    const second = await rpcFor("modern")("tools/list", {});
+    const names = (p: { result: { tools: { name: string }[] } }) =>
+      p.result.tools.map((t) => t.name);
+    expect(names(first)).toEqual(names(second));
   });
 
   // 這是唯一與 lane 設定無關的 envelope 驗證錯誤：標頭宣告了 modern，body 卻沒有
