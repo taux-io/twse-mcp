@@ -9,8 +9,7 @@
  * 也是唯一擋得住「相依升級後協定行為無聲改變」的東西。
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMcpHandler } from "agents/mcp/server";
-import { createServer } from "../src/server";
+import worker from "../src/server";
 import { fetchQuotes } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -146,9 +145,13 @@ async function readPayload(res: Response) {
   return JSON.parse(text);
 }
 
+// 走真正的 export default，不是自己另建一個 handler——route、CORS 與探針都掛在
+// 那一層，繞過去等於這些東西沒人守。
+// 轉型只是為了補上 Workers 執行期才會有的 cf 欄位；本檔沒有任何一條測試讀它。
+type IncomingRequest = Parameters<typeof worker.fetch>[0];
+
 async function send(request: Request) {
-  const handler = createMcpHandler(createServer);
-  return handler(request, {}, ctx);
+  return worker.fetch(request as unknown as IncomingRequest, {} as never, ctx);
 }
 
 function rpcFor(era: Era) {
@@ -454,5 +457,72 @@ describe("協定 era", () => {
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
     expect(payload.result.tools).toHaveLength(5);
+  });
+});
+
+/**
+ * 臨時：量測探針（issue #36）。**探針移除時這整個 describe 一起刪掉。**
+ *
+ * 這是本檔唯一一組斷言 log 的測試，也就是唯一一組碰實作細節的測試——探針記的是
+ * side channel，在 MCP 邊界上不可觀察。之所以破例：一支安靜失效的探針會產出空資料，
+ * 而空資料會被讀成「沒有 legacy client」，直接導致錯誤的 era 收斂決定。本專案已經
+ * 有過一次「測試全綠、線上壞掉」（mock 貼著我們希望的形狀而非上游真實形狀），
+ * 不想再來一次。
+ */
+describe("量測探針（臨時）", () => {
+  function probeRecords(spy: { mock: { calls: unknown[][] } }) {
+    return spy.mock.calls
+      .map((c) => {
+        try {
+          return JSON.parse(String(c[0]));
+        } catch {
+          return null;
+        }
+      })
+      .filter((r) => r?.tag === "mcp-client-probe");
+  }
+
+  it("modern 請求記下協定版本與方法標頭", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      await rpcFor("modern")("tools/list", {});
+      const records = probeRecords(spy);
+      expect(records).toHaveLength(1);
+      expect(records[0]).toMatchObject({
+        protocolVersion: MODERN_REVISION,
+        mcpMethod: "tools/list",
+      });
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  // legacy client 不送 modern 標頭，兩個欄位都是 null——這正是要量測的訊號本身，
+  // 不是缺漏。收斂決定看的就是「有多少請求的 protocolVersion 是 null」。
+  it("legacy 請求的協定版本與方法標頭皆為 null", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      await rpcFor("legacy")("tools/list", {});
+      const records = probeRecords(spy);
+      expect(records).toHaveLength(1);
+      expect(records[0].protocolVersion).toBeNull();
+      expect(records[0].mcpMethod).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("記錄不含 era 值（era 會被分類理由污染，見 src/server.ts 的說明）", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      await rpcFor("modern")("tools/list", {});
+      const [record] = probeRecords(spy);
+      expect(record).not.toHaveProperty("era");
+      expect(Object.keys(record).sort()).toEqual(
+        ["mcpMethod", "protocolVersion", "tag", "userAgent"].sort(),
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

@@ -204,8 +204,37 @@ export function createServer() {
   return server;
 }
 
+// 模組層級建一次。factory（createServer）本來就是每個請求呼叫一次，handler 本身
+// 沒有跨請求狀態，先前每個請求重建一個純屬浪費。
+const handler = createMcpHandler(createServer);
+
+/**
+ * 臨時探針：量測 client 分佈，為「要不要做 era 收斂」累積證據。issue #36。
+ * **數週後連同它的測試一起移除。**
+ *
+ * 刻意記標頭而不記 era。分類為 legacy 的理由有六種（http-method / initialize /
+ * no-claim / notification / batch / response），而這裡只拿得到最終的 era 值、
+ * 拿不到理由——一個完全支援 modern 的 client 只要送的是通知或批次就會被算進 legacy，
+ * 於是 legacy 用量被系統性高估，收斂決定永遠做不出來。標頭不受分類理由污染：
+ * 真正只會講 legacy 的 client 不會送出 modern 的協定版本標頭。
+ *
+ * Mcp-Method 在 legacy 請求上會是 null，那本身就是訊號，不是缺漏——要補齊它得讀
+ * request body，而 body 下游還要用。
+ */
+function logClientProbe(request: Request) {
+  console.log(
+    JSON.stringify({
+      tag: "mcp-client-probe",
+      protocolVersion: request.headers.get("mcp-protocol-version"),
+      mcpMethod: request.headers.get("mcp-method"),
+      userAgent: request.headers.get("user-agent"),
+    }),
+  );
+}
+
 export default {
   fetch(request, env, ctx) {
-    return createMcpHandler(createServer)(request, env, ctx);
+    logClientProbe(request);
+    return handler(request, env, ctx);
   },
 } satisfies ExportedHandler;

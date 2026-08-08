@@ -4,10 +4,20 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
-  // 與儀表板的實際設定對齊，避免每次部署互相覆蓋。
-  // 只開 logs（`wrangler tail` 除錯靠它）；traces 對這個唯讀 server 用不到，關著省資源。
+  // 意圖不變：只開 logs，traces 對這個唯讀 server 用不到，關著省資源。
+  // 改的是寫法——先前是 `enabled: false` 配 `logs.enabled: true`，而那個組合的語意
+  // Cloudflare **文件從未規定**（文件那一節只記載頂層兩個欄位，完全沒提到 logs /
+  // traces 子物件，也沒有任何一頁說明優先順序）。只有 wrangler 的實作推導得出
+  // 「巢狀值勝出、log 會落地」，最終裁決者卻是閉源的控制平面。issue #36 的量測要靠
+  // 這些 log 撐起收斂決定，不該建立在未文件化的行為上，所以頂層改為明確開啟。
+  //
+  // 兩個先前註解裡已被推翻的說法，記在這裡免得有人照著它們做決定：
+  //   - 「與儀表板的實際設定對齊，避免每次部署互相覆蓋」——不適用於本欄位。
+  //     wrangler 的遠端／本地設定比對**刻意排除** observability，因為它的遠端預設
+  //     行為與 wrangler 不同。
+  //   - 「`wrangler tail` 除錯靠它」——不是。tail 是另一個子系統，不受本設定影響。
   "observability": {
-    "enabled": false,
+    "enabled": true,
     "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
