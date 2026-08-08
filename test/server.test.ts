@@ -497,9 +497,8 @@ describe("量測探針（臨時）", () => {
     }
   });
 
-  // legacy client 不送 modern 標頭，兩個欄位都是 null——這正是要量測的訊號本身，
-  // 不是缺漏。收斂決定看的就是「有多少請求的 protocolVersion 是 null」。
-  it("legacy 請求的協定版本與方法標頭皆為 null", async () => {
+  // 什麼標頭都不送的 client：兩個欄位都是 null。
+  it("裸 legacy 請求的協定版本與方法標頭皆為 null", async () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
       await rpcFor("legacy")("tools/list", {});
@@ -512,6 +511,57 @@ describe("量測探針（臨時）", () => {
     }
   });
 
+  /**
+   * 這一條守的是判讀規則，不是探針本身。
+   *
+   * 2025-era 的 streamable-HTTP client 依規範**必須**在每個請求送
+   * `MCP-Protocol-Version`。它是 legacy（沒有 envelope claim），但 protocolVersion
+   * 欄位不是 null。先前的註解與測試寫成「數 null 就等於數 legacy」，照那個規則判讀，
+   * 一整批合規的 2025 client 會被讀成「零 legacy 流量」，然後盲切——正是 ADR 說這支
+   * 探針存在就是要防的事。
+   */
+  it("送 2025 協定版本標頭的 legacy client，記到的是那個版本字串而非 null", async () => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const res = await send(
+        mcpRequest(
+          { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+          { "MCP-Protocol-Version": "2025-06-18" },
+        ),
+      );
+      // 走的是 legacy lane：正常服務，且回應不帶 modern 的蓋章欄位。
+      expect(res.status).toBe(200);
+      const payload = await readPayload(res);
+      expect(payload.result.tools).toHaveLength(5);
+      expect(payload.result.resultType).toBeUndefined();
+
+      const [record] = probeRecords(spy);
+      expect(record.protocolVersion).toBe("2025-06-18");
+      expect(record.protocolVersion).not.toBeNull();
+      // 判讀規則：按值分類，等於 modern 修訂版的才算跟上，其餘（含 null）都沒有。
+      expect(record.protocolVersion).not.toBe(MODERN_REVISION);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  // 探針只記真正可能是 MCP 請求的流量。先前無條件記錄，於是掃描、preflight 與 GET
+  // 都會寫下一筆四欄皆 null 的記錄，和真正的 legacy 請求位元組相同，null 桶因此被
+  // 灌滿、收斂條件永遠達不成——而且每一筆都在計費。
+  it.each([
+    ["非 /mcp 路徑", new Request("http://localhost/favicon.ico", { method: "GET" })],
+    ["GET /mcp", new Request("http://localhost/mcp", { method: "GET" })],
+    ["OPTIONS 預檢", new Request("http://localhost/mcp", { method: "OPTIONS" })],
+  ])("%s 不寫探針記錄", async (_label, request) => {
+    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      await send(request);
+      expect(probeRecords(spy)).toHaveLength(0);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("記錄不含 era 值（era 會被分類理由污染，見 src/server.ts 的說明）", async () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
@@ -519,7 +569,7 @@ describe("量測探針（臨時）", () => {
       const [record] = probeRecords(spy);
       expect(record).not.toHaveProperty("era");
       expect(Object.keys(record).sort()).toEqual(
-        ["mcpMethod", "protocolVersion", "tag", "userAgent"].sort(),
+        ["mcpMethod", "origin", "protocolVersion", "tag", "userAgent"].sort(),
       );
     } finally {
       spy.mockRestore();

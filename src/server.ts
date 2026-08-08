@@ -204,30 +204,48 @@ export function createServer() {
   return server;
 }
 
-// 模組層級建一次。factory（createServer）本來就是每個請求呼叫一次，handler 本身
-// 沒有跨請求狀態，先前每個請求重建一個純屬浪費。
-const handler = createMcpHandler(createServer);
+/**
+ * 探針只記真正可能是 MCP 請求的流量。
+ *
+ * 這個常數必須跟 createMcpHandler 的預設 route 一致（我們沒有覆寫它）。不一致的話
+ * 探針會靜靜地記錯東西——它沒有回應可以驗證，所以只能靠測試守（見 test 裡的
+ * 「不寫探針記錄」那組）。
+ */
+const MCP_ROUTE = "/mcp";
 
 /**
  * 臨時探針：量測 client 分佈，為「要不要做 era 收斂」累積證據。issue #36。
  * **數週後連同它的測試一起移除。**
  *
- * 刻意記標頭而不記 era。分類為 legacy 的理由有六種（http-method / initialize /
- * no-claim / notification / batch / response），而這裡只拿得到最終的 era 值、
- * 拿不到理由——一個完全支援 modern 的 client 只要送的是通知或批次就會被算進 legacy，
- * 於是 legacy 用量被系統性高估，收斂決定永遠做不出來。標頭不受分類理由污染：
- * 真正只會講 legacy 的 client 不會送出 modern 的協定版本標頭。
+ * **判讀規則——先前寫錯過一次，別再錯第二次。**
+ * 不要數 `protocolVersion` 是不是 null。2025-era 的 streamable-HTTP client 依規範
+ * **必須**在每個請求送 `MCP-Protocol-Version`，值是 `2025-06-18` 之類；它們是
+ * legacy，但這個欄位不是 null。按 null 數會把一整批合規的 2025 client 讀成「零
+ * legacy 流量」，然後盲切。要按**值**分類：等於 `2026-07-28` 的才算跟上，
+ * 其餘（含 null）都還沒。
  *
- * Mcp-Method 在 legacy 請求上會是 null，那本身就是訊號，不是缺漏——要補齊它得讀
- * request body，而 body 下游還要用。
+ * 刻意不記 era。分類為 legacy 的理由有六種（http-method / initialize / no-claim /
+ * notification / batch / response），而這裡只拿得到最終的 era 值、拿不到理由——
+ * 一個完全支援 modern 的 client 只要送的是通知或批次就會被算進 legacy，於是 legacy
+ * 用量被系統性高估。
+ *
+ * 只記 POST /mcp。先前無條件記錄，於是 404 路徑掃描、CORS preflight 與 GET 全都會
+ * 寫下一筆四欄皆 null 的記錄，和真正的裸 legacy 請求位元組相同——公開端點的背景
+ * 掃描會把 null 桶灌滿，收斂條件永遠達不成，而且每一筆都在計費。
+ *
+ * 記 origin 是為了讓瀏覽器來的流量（會被 origin 檢查擋掉的那些）事後濾得掉；它們
+ * 打得到 POST /mcp，但不可能是 MCP client。
  */
 function logClientProbe(request: Request) {
+  if (request.method !== "POST") return;
+  if (new URL(request.url).pathname !== MCP_ROUTE) return;
   console.log(
     JSON.stringify({
       tag: "mcp-client-probe",
       protocolVersion: request.headers.get("mcp-protocol-version"),
       mcpMethod: request.headers.get("mcp-method"),
       userAgent: request.headers.get("user-agent"),
+      origin: request.headers.get("origin"),
     }),
   );
 }
@@ -235,6 +253,12 @@ function logClientProbe(request: Request) {
 export default {
   fetch(request, env, ctx) {
     logClientProbe(request);
-    return handler(request, env, ctx);
+    // 每個請求建一次，**不要**提到模組層級。曾經提上去過，理由寫的是「handler 沒有
+    // 跨請求狀態」——那是錯的。SDK 的 handler 閉包持有一個 inflight Set，以及
+    // subscriptions/listen 的 router（帶固定訂閱上限，滿了回 -32603）。提到模組層級
+    // 後這兩個結構的生命週期就變成整個 isolate：任何未認證的 client 都能開 listen
+    // stream 把上限塞滿，之後落在同一個 isolate 的其他人一律被拒。每請求重建多一點
+    // 成本，但它讓這些結構跟著請求一起消滅。
+    return createMcpHandler(createServer)(request, env, ctx);
   },
 } satisfies ExportedHandler;
