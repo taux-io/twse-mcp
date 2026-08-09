@@ -4,8 +4,9 @@
  * 把 core 的純邏輯 + twse 的出站層接成 5 個 MCP 工具，用 createMcpHandler 以
  * stateless streamable-http 對外服務（端點 /mcp）。不需 Durable Objects。
  *
- * 工具一律以 `twse_` 為前綴，標示資料來自證交所（即時報價站也是證交所營運，
- * 且同時涵蓋上市與上櫃）。詞彙定義見 CONTEXT.md。
+ * 工具一律以 `twse_` 為前綴。那個前綴標示的是**本服務**，不是資料來源——目錄同時
+ * 涵蓋證交所與期交所，改前綴會破壞既有呼叫端，所以留著並在此說清楚。
+ * 詞彙定義見 CONTEXT.md。
  */
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
@@ -58,6 +59,7 @@ const CACHE_TTL_MS = 3_600_000;
 const OGDL_ATTRIBUTION = [
   "資料來源與授權：",
   "臺灣證券交易所 2026 臺灣證券交易所 OpenAPI",
+  "金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS",
   "此開放資料依政府資料開放授權條款 (Open Government Data License) 進行公眾釋出，" +
     "使用者於遵守本條款各項規定之前提下，得利用之。",
   "政府資料開放授權條款：https://data.gov.tw/license",
@@ -86,8 +88,9 @@ export function createServer() {
     "twse_search_datasets",
     {
       description:
-        "搜尋證交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
-        "會比對資料集代號、中文說明與欄位名稱。",
+        "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
+        "會比對資料集代號、中文說明與欄位名稱。期交所的資料集代號一律以 taifex/ 開頭，" +
+        '搜期貨與選擇權可用 tag="期貨與選擇權"。',
       inputSchema: {
         query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"本益比"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
@@ -116,11 +119,18 @@ export function createServer() {
     "twse_get_dataset",
     {
       description:
-        "取得證交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
-        "證交所每個資料集都是一次回整份（可能上千筆），務必用 code/match/fields 縮小範圍。",
+        "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
+        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/fields 縮小範圍。",
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
-        code: z.string().default("").describe('證券／基金代號，例如 "0050"。會自動偵測代號欄位。'),
+        code: z
+          .string()
+          .default("")
+          .describe(
+            '證券／基金／契約代號，例如 "0050"、"TXF"。會自動偵測代號欄位，' +
+              "實際用了哪個欄位會回在 code_field_used。期交所同一商品在不同報表的" +
+              '代號長度不同（TXF／TX），所以精確比對落空時會退回前綴比對並標註 code_match="prefix"。',
+          ),
         // match/fields 的每個元素都會在整份資料集上再跑一輪 filter/map，
         // 元素數乘上筆數就是這支工具的最壞情況 CPU。不是攻擊面（見稽核報告對
         // denial-of-wallet 的否決），但上限是免費的，讓最壞情況可預期。
@@ -143,7 +153,8 @@ export function createServer() {
       const resolved = resolveDataset(catalog, dataset_id);
       if ("error" in resolved) return json(resolved);
       const { ds } = resolved;
-      const rows = await fetchDataset(ds.id);
+      // 帶目錄欄位進去：期交所有一個端點回 CSV 中文表頭，靠這組名字對回英文欄位。
+      const rows = await fetchDataset(ds.id, Object.keys(ds.fields));
       return json(getDataset(ds, rows, { code, match, fields, limit, offset }));
     },
   );

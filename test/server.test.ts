@@ -10,7 +10,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
-import { fetchQuotes } from "../src/twse";
+import { fetchDataset, fetchQuotes } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
 
@@ -416,6 +416,132 @@ describe("twse 出站層", () => {
 });
 
 /**
+ * 出站主機依 dataset id 分流。期交所的 id 帶 `taifex/` 前綴，那是**本服務的命名**，
+ * 不是上游路徑的一部分——打過去前必須拆掉，否則會變成 /v1/taifex/PutCallRatio 而 404。
+ *
+ * 這組測試斷言實際打出去的 URL，不是斷言某個 helper 的回傳值：路由錯的症狀是
+ * 「線上 404、離線全綠」，只有貼著出站請求量才守得住。
+ */
+describe("出站路由：兩個交易所", () => {
+  /** 攔下所有出站請求並回一份可解析的空陣列，只為了讀 URL。 */
+  function captureUrls() {
+    const urls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: unknown) => {
+        urls.push(String(url));
+        return new Response("[]", { status: 200, headers: { "content-type": "application/json" } });
+      }),
+    );
+    return urls;
+  }
+
+  it("期交所：前綴拆掉，打到期交所主機的 /v1", async () => {
+    const urls = captureUrls();
+    await fetchDataset("taifex/PutCallRatio");
+    expect(urls[0]).toBe("https://openapi.taifex.com.tw/v1/PutCallRatio");
+    expect(urls[0]).not.toContain("twse");
+    expect(urls[0]).not.toContain("taifex/PutCallRatio");
+  });
+
+  it("證交所：id 原樣接在 /v1 之後，行為不變", async () => {
+    const urls = captureUrls();
+    await fetchDataset("exchangeReport/STOCK_DAY_ALL");
+    expect(urls[0]).toBe("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL");
+  });
+
+  // 期交所所有端點的 content-type 都是 application/octet-stream。這條是 parse-first
+  // 那個決定的迴歸鎖：改回用 content-type 當閘門，132 個端點會一起死。
+  it("content-type 是 octet-stream 也照樣解析", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify([{ Date: "20260807", PutOI: "59446" }]), {
+            status: 200,
+            headers: { "content-type": "application/octet-stream" },
+          }),
+      ),
+    );
+    const rows = await fetchDataset("taifex/PutCallRatio");
+    expect(rows).toEqual([{ Date: "20260807", PutOI: "59446" }]);
+  });
+});
+
+/**
+ * 期交所有**恰好一個**端點回 CSV 而不是 JSON：`/v1/DailyMarketReportOpt`（選擇權
+ * 每日行情）。它帶 UTF-8 BOM、CRLF、中文表頭，而 swagger 宣告的卻是英文欄位。
+ *
+ * 目錄的 `fields` 來自 swagger，所以若直接用中文表頭當 key，`describe_dataset`
+ * 說的欄位跟 `get_dataset` 回的 key 會對不上——那正是「安靜給錯答案」。
+ * 實測兩邊都是 18 個且順序一一對應，所以按位置改名成 swagger 的英文欄位。
+ *
+ * 按位置對應是有風險的假設，所以它被一個嚴格的守衛保護著：數量對不上就大聲失敗，
+ * 不做部分對應。壞掉且說得出原因，好過活著卻在說謊。
+ */
+describe("期交所的 CSV 端點", () => {
+  const CSV_FIELDS = ["Date", "Contract", "CallPut", "Volume"];
+  const csv = (body: string) =>
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response("\ufeff" + body, {
+            status: 200,
+            headers: { "content-type": "application/octet-stream" },
+          }),
+      ),
+    );
+
+  it("中文表頭按位置改名成 swagger 的英文欄位，BOM 與 CRLF 都吃掉", async () => {
+    csv("日期,契約,買賣權,成交量\r\n20260807,TXO,買權,123\r\n");
+    const rows = await fetchDataset("taifex/DailyMarketReportOpt", CSV_FIELDS);
+    expect(rows).toEqual([{ Date: "20260807", Contract: "TXO", CallPut: "買權", Volume: "123" }]);
+  });
+
+  it("引號內的逗號不會被切開", async () => {
+    csv('日期,契約,買賣權,成交量\r\n20260807,"臺股期貨,小型",買權,1\r\n');
+    const rows = await fetchDataset("taifex/DailyMarketReportOpt", CSV_FIELDS);
+    expect((rows[0] as Record<string, string>).Contract).toBe("臺股期貨,小型");
+  });
+
+  it("欄位數與目錄對不上時大聲失敗，不做部分對應", async () => {
+    csv("日期,契約,買賣權\r\n20260807,TXO,買權\r\n");
+    await expect(fetchDataset("taifex/DailyMarketReportOpt", CSV_FIELDS)).rejects.toThrow(
+      /欄位數/,
+    );
+  });
+
+  it("沒有給目錄欄位時，保留上游的中文表頭而不是硬猜", async () => {
+    csv("日期,契約\r\n20260807,TXO\r\n");
+    const rows = await fetchDataset("taifex/DailyMarketReportOpt");
+    expect(rows).toEqual([{ 日期: "20260807", 契約: "TXO" }]);
+  });
+
+  it("上游哪天改回 JSON 也不會壞：先當 JSON 解，解不過才當 CSV", async () => {
+    csv(JSON.stringify([{ Date: "20260807", Contract: "TXO" }]));
+    const rows = await fetchDataset("taifex/DailyMarketReportOpt", CSV_FIELDS);
+    expect(rows).toEqual([{ Date: "20260807", Contract: "TXO" }]);
+  });
+
+  // 證交所的端點不該被 CSV 路徑接管：那邊回非 JSON 一律是上游出事（2xx + HTML），
+  // 錯誤訊息必須保持原樣，否則 2026-08-03 那次的診斷資訊會被 CSV parser 吃掉。
+  it("證交所回非 JSON 仍是錯誤，不會被當成 CSV", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response("<html><title>503</title>", {
+            status: 200,
+            headers: { "content-type": "text/html" },
+          }),
+      ),
+    );
+    await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow(/上游回的不是 JSON/);
+  });
+});
+
+/**
  * 協定 era 本身的行為。上面的 describe.each 驗的是「兩條 lane 的工具行為一致」，
  * 這裡驗的是「兩條 lane 確實是不同的 era」——否則 describe.each 可能只是把同一條
  * lane 跑了兩遍，什麼都沒守到。
@@ -467,6 +593,24 @@ describe("協定 era", () => {
     expect(instr).toContain("臺灣證券交易所");
     // mis 未登錄於政府資料開放平臺，不在授權範圍內——這個例外必須說出來。
     expect(instr).toContain("mis.twse.com.tw");
+  });
+
+  /**
+   * 期交所是**另一個提供機關**，需要自己的顯名，不能被證交所那句涵蓋。
+   *
+   * 而且期交所的網站使用條款第三條把預設值設成禁止：「任何人不得逕自使用、修改、
+   * 重製、…散布…」，只有「已授權政府資料開放平臺提供公眾使用之本網站資料，不在此限」。
+   * 也就是說本服務散布這些資料，靠的正是那個豁免；而豁免的條件是 OGDL，OGDL 的條件
+   * 是顯名。顯名掉了，授權就從第一天起不存在。
+   *
+   * 提供機關寫「金融監督管理委員會證券期貨局」而不是期交所，是照 data.gov.tw
+   * 資料集頁面的登錄機關（見 docs/licensing-taifex.md 的查證紀錄）。
+   */
+  it("server/discover 帶期交所的顯名聲明（另一個提供機關）", async () => {
+    const payload = await rpcFor("modern")("server/discover", {});
+    const instr = payload.result.instructions as string;
+    expect(instr).toContain("金融監督管理委員會證券期貨局");
+    expect(instr).toContain("臺灣期貨交易所 OAS");
   });
 
   it("server/discover 在 modern 可呼叫，支援版本含 2026-07-28", async () => {

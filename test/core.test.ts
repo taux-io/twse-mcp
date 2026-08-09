@@ -15,6 +15,7 @@ import {
   resolveDataset,
   searchDatasets,
   type Catalog,
+  type Dataset,
   type Row,
 } from "../src/core";
 
@@ -22,6 +23,7 @@ import {
 const CATALOG: Catalog = {
   "exchangeReport/STOCK_DAY_ALL": {
     id: "exchangeReport/STOCK_DAY_ALL",
+    source: "twse",
     summary: "上市個股日成交資訊",
     description: "上市個股日成交資訊",
     tags: ["證券交易"],
@@ -29,6 +31,7 @@ const CATALOG: Catalog = {
   },
   "opendata/t187ap47_L": {
     id: "opendata/t187ap47_L",
+    source: "twse",
     summary: "基金基本資料彙總表",
     description: "基金基本資料彙總表",
     tags: ["其他"],
@@ -36,6 +39,7 @@ const CATALOG: Catalog = {
   },
   "ETFReport/ETFRank": {
     id: "ETFReport/ETFRank",
+    source: "twse",
     summary: "定期定額交易戶數統計排行月報表",
     description: "",
     tags: ["券商資料"],
@@ -128,6 +132,86 @@ describe("searchDatasets", () => {
     // new Set(Function) 會丟 TypeError，或更糟——靜默命中錯誤的資料集。
     const r = searchDatasets(CATALOG, { query: "constructor" });
     expect(r.total_matched).toBe(0);
+  });
+});
+
+/**
+ * 期交所的識別欄位是五套不相容的詞彙，而且同一個 ticker 在不同報表長度不同
+ * （DailyMarketReportFut 用三碼 CAF，OpenInterestOfLargeTradersFutures 用兩碼 CA）。
+ * 所以 code= 對期交所是「先精確、精確不中再前綴」，並且把用了哪個欄位與哪種比對
+ * 方式講出來——猜錯不該是沉默的，這與 code_field_used 是同一個原則。
+ */
+describe("getDataset — 期交所的 code 比對", () => {
+  const tfx = (fields: Record<string, string>): Dataset => ({
+    id: "taifex/X", source: "taifex", summary: "", description: "", tags: [], fields,
+  });
+
+  it("精確命中 Contract", () => {
+    const ds = tfx({ Contract: "契約" });
+    const rows: Row[] = [{ Contract: "TXF", V: "1" }, { Contract: "TXO", V: "2" }];
+    const r = getDataset(ds, rows, { code: "TXF" }) as any;
+    expect(r.rows_matched).toBe(1);
+    expect(r.code_field_used).toBe("Contract");
+    expect(r.code_match).toBeUndefined(); // 精確命中不標註
+  });
+
+  it("精確不中時退回前綴，且標註是前綴", () => {
+    // 查三碼 TXF，但這張表用兩碼根 TX
+    const ds = tfx({ Contract: "契約" });
+    const rows: Row[] = [{ Contract: "TX", V: "1" }, { Contract: "CA", V: "2" }];
+    const r = getDataset(ds, rows, { code: "TXF" }) as any;
+    expect(r.rows_matched).toBe(1);
+    expect(r.code_field_used).toBe("Contract");
+    expect(r.code_match).toBe("prefix");
+  });
+
+  it("反方向前綴也算：查兩碼、表用三碼", () => {
+    const ds = tfx({ Contract: "契約" });
+    const rows: Row[] = [{ Contract: "CAF", V: "1" }, { Contract: "TXF", V: "2" }];
+    const r = getDataset(ds, rows, { code: "CA" }) as any;
+    expect(r.rows_matched).toBe(1);
+    expect(r.code_match).toBe("prefix");
+  });
+
+  it("跨欄位：ContractCode 裝的是中文品名，也查得到", () => {
+    const ds = tfx({ ContractCode: "契約代碼" });
+    const rows: Row[] = [{ ContractCode: "臺股期貨" }, { ContractCode: "小型臺指期貨" }];
+    const r = getDataset(ds, rows, { code: "臺股期貨" }) as any;
+    expect(r.rows_matched).toBe(1);
+    expect(r.code_field_used).toBe("ContractCode");
+  });
+
+  it("多個識別欄位時，挑真的比對得到的那個", () => {
+    // StockCode 有值但不符，Contract 才是命中的那個
+    const ds = tfx({ StockCode: "股票代號", Contract: "契約" });
+    const rows: Row[] = [{ StockCode: "2330", Contract: "CDF" }];
+    const r = getDataset(ds, rows, { code: "CDF" }) as any;
+    expect(r.rows_matched).toBe(1);
+    expect(r.code_field_used).toBe("Contract");
+  });
+
+  it("完全查不到時，仍回報試過的欄位與 0 筆（不是錯誤）", () => {
+    const ds = tfx({ Contract: "契約" });
+    const rows: Row[] = [{ Contract: "TXF" }];
+    const r = getDataset(ds, rows, { code: "ZZZZ" }) as any;
+    expect(r.rows_matched).toBe(0);
+    expect(r.code_field_used).toBe("Contract");
+  });
+
+  it("沒有任何識別欄位 -> 誠實回錯誤，不假裝支援", () => {
+    const ds = tfx({ Date: "日期", Volume: "成交量" });
+    const rows: Row[] = [{ Date: "20260807", Volume: "1" }];
+    const r = getDataset(ds, rows, { code: "TXF" }) as any;
+    expect(r.error).toContain("沒有可辨識的代號欄位");
+  });
+
+  it("證交所的資料集不受影響：仍是精確比對、不做前綴", () => {
+    const day = CATALOG["exchangeReport/STOCK_DAY_ALL"];
+    const rows: Row[] = [{ Code: "0050" }, { Code: "0056" }];
+    // 前綴若誤啟用，"005" 會撈到兩筆
+    const r = getDataset(day, rows, { code: "005" }) as any;
+    expect(r.rows_matched).toBe(0);
+    expect(r.code_match).toBeUndefined();
   });
 });
 
