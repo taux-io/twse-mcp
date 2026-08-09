@@ -1,5 +1,12 @@
 *[English](README.en.md) ｜ [繁體中文](README.md) ｜ [简体中文](README.zh-CN.md) ｜ [日本語](README.ja.md) ｜ 한국어*
 
+[![tests](https://github.com/taux-io/twse-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/taux-io/twse-mcp/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/taux-io/twse-mcp/blob/main/LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/package.json)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/wrangler.jsonc)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
+
 # 대만 주식 데이터 도우미 (TWSE MCP 서버)
 
 > **이 한국어 문서는 기계 번역입니다.** 어색한 표현이나 오역을 발견하시면
