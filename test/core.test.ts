@@ -100,6 +100,25 @@ describe("searchDatasets", () => {
     expect(r.results).toHaveLength(1);
     expect(r.total_matched).toBe(3);
   });
+
+  /**
+   * core 層的夾值單獨測（繞過 zod），與 getDataset 對等——那支是 schema 與 core
+   * 兩層獨立防守，這支先前只有一層都沒有。
+   *
+   * 負的 limit 會讓 slice 從尾端往回算：slice(0, -1) 回「除了最後一筆以外全部」。
+   * 對 getDataset 那是繞過「硬上限 200」的承諾（run-1 確認的漏洞）；這裡沒有上限可繞，
+   * 但會靜靜地少回一筆，而 -1 是常見的「不限筆數」慣用寫法。
+   */
+  it.each([-1, -2, -50, -999999, 0, NaN])("limit=%p 夾成 0 筆而非從尾端回推", (limit) => {
+    const r = searchDatasets(CATALOG, { limit });
+    expect(r.results).toHaveLength(0);
+    // 總數照實回報，呼叫端才看得出是被夾掉而不是真的沒有
+    expect(r.total_matched).toBe(3);
+  });
+
+  it.each([1, 2, 3, 999999])("limit=%p 正常取用", (limit) => {
+    expect(searchDatasets(CATALOG, { limit }).results).toHaveLength(Math.min(limit, 3));
+  });
   it("prototype 上的鍵不會被當成別名", () => {
     // ALIASES["constructor"] 會撈到 Object.prototype.constructor，
     // new Set(Function) 會丟 TypeError，或更糟——靜默命中錯誤的資料集。

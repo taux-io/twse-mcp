@@ -66,7 +66,9 @@ export function createServer() {
       inputSchema: {
         query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"本益比"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
-        limit: z.number().int().default(25).describe("最多回傳幾筆（預設 25）。"),
+        // .min(0) 與 core 端的夾值是兩層獨立防守，跟 twse_get_dataset 對等：
+        // schema 擋掉合法 client 的手誤，core 擋掉繞過 schema 的呼叫路徑。
+        limit: z.number().int().min(0).default(25).describe("最多回傳幾筆（預設 25）。"),
       },
     },
     async ({ query, tag, limit }) => json(searchDatasets(catalog, { query, tag, limit })),
