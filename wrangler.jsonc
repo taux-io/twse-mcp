@@ -4,6 +4,18 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
+
+  // 關掉 *.workers.dev 那個 origin，只留自訂網域。
+  //
+  // 兩個 origin 同時活著時，任何掛在 taux.io 這個 zone 上的 WAF 或 rate limit 規則，
+  // workers.dev 那條路都繞得過去——而且是**安靜地**繞過：你會以為擋住了。
+  // 這不是現在的問題（服務公開、唯讀、無認證，兩個 origin 給的東西一樣），
+  // 而是 docs/spec-workers-migration.md 明文把速率限制列為「日後再加」，
+  // 所以那個「日後」是排定會發生的。設定要在它之前做，不是之後。
+  //
+  // 代價：twse-mcp.taux-io.workers.dev 部署後立即停止服務。README、server.json
+  // 與所有目錄登錄用的都是 twse-mcp.taux.io，那個主機名從未對外文件化過。
+  "workers_dev": false,
   // 意圖不變：只開 logs，traces 對這個唯讀 server 用不到，關著省資源。
   // 改的是寫法——先前是 `enabled: false` 配 `logs.enabled: true`，而那個組合的語意
   // Cloudflare **文件從未規定**（文件那一節只記載頂層兩個欄位，完全沒提到 logs /
