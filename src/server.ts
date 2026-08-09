@@ -44,7 +44,7 @@ const CACHE_TTL_MS = 3_600_000;
 
 export function createServer() {
   const server = new McpServer(
-    { name: "twse-opendata", version: "0.2.0" },
+    { name: "twse-opendata", version: "0.3.0" },
     {
       cacheHints: {
         // "public"：服務公開、不認證，所有請求者拿到同一份清單，這是對真實可見度的
