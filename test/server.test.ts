@@ -595,6 +595,41 @@ describe("量測探針（臨時）", () => {
     expect(probeRecords()).toHaveLength(0);
   });
 
+  /**
+   * content-type 不是 JSON 的 POST 會被 SDK 以 415 擋下，但它先前仍會寫下一筆四欄皆 null
+   * 的記錄——和真正的裸 legacy 請求位元組相同，正是這個 gate 想消除的污染。
+   * （403 那條不在此列：它的 origin 欄位有值，事後濾得掉。）
+   */
+  it.each([
+    ["text/plain", "text/plain"],
+    ["表單 enctype", "application/x-www-form-urlencoded"],
+    ["無 content-type", ""],
+  ])("POST /mcp 帶 %s 被擋下，不寫探針記錄", async (_label, contentType) => {
+    // host 要自己帶：vitest 的 Request 不會補，真實 HTTP client 一定會送，
+    // 少了它會先被 403「Missing Host header」擋掉，測不到 415 那條路徑。
+    const headers: Record<string, string> = {
+      accept: "application/json, text/event-stream",
+      host: "localhost",
+    };
+    if (contentType) headers["content-type"] = contentType;
+    const res = await send(
+      new Request("http://localhost/mcp", { method: "POST", headers, body: "{}" }),
+    );
+    expect(res.status).toBe(415);
+    expect(probeRecords()).toHaveLength(0);
+  });
+
+  // 帶參數與大小寫都要照收，否則會把合法的 client 漏掉——那是反方向的失真。
+  it.each(["application/json", "application/json; charset=utf-8", "APPLICATION/JSON"])(
+    "content-type %s 仍寫探針記錄",
+    async (contentType) => {
+      await send(
+        mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }, { "content-type": contentType }),
+      );
+      expect(probeRecords()).toHaveLength(1);
+    },
+  );
+
   it("記錄不含 era 值（era 會被分類理由污染，見 src/server.ts 的說明）", async () => {
     await rpcFor("modern")("tools/list", {});
     const [record] = probeRecords();

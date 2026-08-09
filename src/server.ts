@@ -239,6 +239,12 @@ const MCP_ROUTE = "/mcp";
 function logClientProbe(request: Request) {
   if (request.method !== "POST") return;
   if (new URL(request.url).pathname !== MCP_ROUTE) return;
+  // SDK 對非 JSON 的 POST 回 415。少了這道，那些請求仍會寫下一筆四欄皆 null 的記錄，
+  // 和真正的裸 legacy 請求位元組相同——正是上面那個 gate 想消除的污染。
+  // 判定要跟 SDK 一致：可帶 charset 等參數、大小寫不敏感，否則會把合法 client 漏掉，
+  // 那是反方向的失真。（403「Origin 不合」的請求不在此列：它們的 origin 欄位有值，
+  // 事後濾得掉。）
+  if (!/^application\/json\s*(;|$)/i.test(request.headers.get("content-type") ?? "")) return;
   console.log(
     JSON.stringify({
       tag: "mcp-client-probe",
