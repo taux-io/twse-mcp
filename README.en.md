@@ -57,12 +57,16 @@ Click **your name in the bottom-left corner** → choose **Settings** → find
 
 ### Step 2: Paste the URL
 
-Click **"+ Add custom connector"**. A small dialog asks for two things:
+Click **"+ Add custom connector"**. A small dialog asks for two things.
 
-| Field | What to enter |
-|---|---|
-| Name | Anything you like, e.g. `Taiwan Stocks` |
-| URL | `https://twse-mcp.taux.io/mcp` |
+**Name** — anything you like, e.g. `Taiwan Stocks`.
+
+**URL** — paste the line below. Hover over the box and a copy button appears in
+its top-right corner:
+
+```
+https://twse-mcp.taux.io/mcp
+```
 
 Click **Add** and you are done. **No account, no password, no payment.**
 
