@@ -12,7 +12,7 @@ import {
   MIN_DATASETS_PER_SOURCE,
   REQUIRED,
 } from "../scripts/check-catalog.mjs";
-import { DS_DAY, DS_FUND, DS_RANK } from "../src/twse";
+import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
 import { ALIASES, getDataset, periodNote, type Catalog } from "../src/core";
 
 const catalog = catalogJson as unknown as Catalog;
@@ -87,6 +87,73 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
     expect(checkCatalog(withTick).problems.join()).toContain("TimeAndSalesData");
     // 真實目錄本身不該有
     expect(checkCatalog(catalog).problems).toEqual([]);
+  });
+});
+
+/**
+ * 稽核用兩個獨立的獵手各自重現了同一個破口：健檢看的是目錄的 **key**，
+ * 而執行期路由用的是 entry 的 **`.id` 欄位**，中間沒有任何斷言把兩者綁在一起。
+ * 一筆 `key: "opendata/xxx"` 但 `id: "taifex/..."` 的資料會拿到「零問題」的健康報告，
+ * 然後請求跑去另一個交易所、套上錯誤的授權聲明。
+ */
+describe("catalog 健檢腳本 — 守衛自己的破口", () => {
+  it("key 與 entry.id 不一致時要抓出來（路由用的是 id，健檢看的是 key）", () => {
+    const c = structuredClone(catalog);
+    (c["taifex/PutCallRatio"] as unknown as Record<string, unknown>).id = "taifex/TimeAndSalesData";
+    expect(checkCatalog(c).problems.join()).toContain("taifex/PutCallRatio");
+  });
+
+  // 上游把 200 回應的 schema 從裸 $ref 改成 {type:"array", items:{$ref}} 就會發生：
+  // buildTaifex 取到空字串，132 筆全部零欄位，而數量門檻與 malformed 都通過。
+  // 零欄位會讓 twse_describe_dataset 什麼都說不出來，也讓 CSV 守衛失去比對對象。
+  it("大量資料集沒有欄位定義時要抓出來，不能只印個數字就說通過", () => {
+    const c = structuredClone(catalog);
+    for (const [k, d] of Object.entries(c)) {
+      if (d.source === "taifex") (c[k] as unknown as Record<string, unknown>).fields = {};
+    }
+    const { problems } = checkCatalog(c);
+    expect(problems.join()).toMatch(/欄位/);
+  });
+
+  it("少數幾個沒有欄位不算問題（上游本來就可能有這種端點）", () => {
+    const c = structuredClone(catalog);
+    (c["taifex/PutCallRatio"] as unknown as Record<string, unknown>).fields = {};
+    expect(checkCatalog(c).problems).toEqual([]);
+  });
+
+  // 排除清單是字串比對，但它保護的是 URL 路徑，而 URL 會被正規化。
+  // 實測 /v1/./TimeAndSalesData 與 /v1//TimeAndSalesData 都回 255,751,505 bytes。
+  it("巨量端點的等價拼法也要擋掉，不能只擋字面值", () => {
+    for (const id of [
+      "taifex/./TimeAndSalesData",
+      "taifex//TimeAndSalesData",
+      "taifex/x/../TimeAndSalesData",
+    ]) {
+      const c = structuredClone(catalog);
+      c[id] = { ...catalog["taifex/PutCallRatio"], id, source: "taifex" };
+      expect(checkCatalog(c).problems.join(), id).toContain("TimeAndSalesData");
+    }
+  });
+
+  // 路徑正規化本身也是攻擊面：id 帶 ../ 會讓請求跳出 /v1。
+  it("id 含有路徑穿越片段要抓出來", () => {
+    const c = structuredClone(catalog);
+    c["taifex/../../evil"] = { ...catalog["taifex/PutCallRatio"], id: "taifex/../../evil", source: "taifex" };
+    expect(checkCatalog(c).problems.join()).toMatch(/路徑|\.\./);
+  });
+});
+
+/**
+ * CSV 表頭契約釘死在 src/twse.ts，英文欄位名則同時存在於目錄。兩份字面值必須一致，
+ * 否則守衛比對的是一組跟實際回應對不上的名字。這條斷言就是把「常數重複」變成安全的。
+ */
+describe("CSV 表頭契約與目錄一致", () => {
+  it("釘死的英文欄位名與目錄宣告的完全相同（含順序）", () => {
+    for (const [id, spec] of Object.entries(TAIFEX_CSV_DATASETS)) {
+      expect(catalog[id], id).toBeDefined();
+      expect(Object.keys(catalog[id].fields), id).toEqual([...spec.fields]);
+      expect(spec.header.length, id).toBe(spec.fields.length);
+    }
   });
 });
 

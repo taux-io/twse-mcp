@@ -4761,8 +4761,7 @@
    "ContractName": "商品名稱",
    "Volume": "年度成交量",
    "NumberOfTradingDays": "年度交易日數",
-   "AvgDailyTradingVolume": "日平均成交量",
-   "ProductCategory": "商品類別"
+   "AvgDailyTradingVolume": "日平均成交量"
   }
  },
  "taifex/SSFLists": {

@@ -44,9 +44,33 @@ const TAIFEX_EXCLUDE = new Set([
   "TimeAndSalesDataOnCalendarSpreadOrders",
 ]);
 
+/**
+ * 排除清單比對的是**正規化後的最後一段路徑**，不是字面值。
+ *
+ * 它保護的是一個「大小」問題，而它的判準是一個「名字」。稽核實測
+ * `/v1/./TimeAndSalesData`、`/v1//TimeAndSalesData`、`/v1/x/../TimeAndSalesData`、
+ * `/v1/%2e/TimeAndSalesData` 全都回 200 與 255,751,505 bytes——字面比對一個都擋不住。
+ * scripts/check-catalog.mjs 有一份對應的第二道守衛。
+ */
+function lastSegment(path) {
+  const out = [];
+  for (const seg of path.split("/")) {
+    let s;
+    try {
+      s = decodeURIComponent(seg);
+    } catch {
+      s = seg;
+    }
+    if (s === "" || s === ".") continue;
+    if (s === "..") { out.pop(); continue; }
+    out.push(s);
+  }
+  return out.join("/");
+}
+
 /** 證交所：swagger 2.0，欄位在 responses.200.schema.properties。 */
 function buildTwse(spec) {
-  const out = {};
+  const out = Object.create(null);
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
     const op = item?.get;
     if (!op) continue;
@@ -70,17 +94,23 @@ function buildTwse(spec) {
  *
  * 每個 operation 的 tag 都是同一個字串「資料查詢API」，對搜尋毫無鑑別力，所以
  * 改用一個固定 tag「期貨與選擇權」——它至少能讓 `tag=` 過濾把期交所的東西挑出來。
+ *
+ * `$ref` 要處理兩種寫法。期交所目前對 list 端點宣告的是**裸 `$ref`**（嚴格說不太
+ * 對），但慣例寫法是 `{type:"array", items:{$ref}}`。稽核證明過：只認裸 `$ref` 的話，
+ * 上游哪天把它改成慣例寫法，`ref` 會變成空字串、132 筆全部零欄位，而所有數量門檻
+ * 都會通過。那不是理論上的——它是上游把 OpenAPI **寫對**時就會發生的事。
  */
 function buildTaifex(spec) {
-  const out = {};
+  const out = Object.create(null);
   const schemas = spec.components?.schemas ?? {};
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
     const op = item?.get;
     if (!op) continue;
     const name = path.replace(/^\//, "");
-    if (TAIFEX_EXCLUDE.has(name)) continue;
-    const ref = op.responses?.["200"]?.content?.["application/json"]?.schema?.$ref ?? "";
-    const props = schemas[ref.split("/").pop()]?.properties ?? {};
+    if (TAIFEX_EXCLUDE.has(lastSegment(name))) continue;
+    const schema = op.responses?.["200"]?.content?.["application/json"]?.schema ?? {};
+    const ref = schema.$ref ?? schema.items?.$ref ?? "";
+    const props = ref ? (schemas[ref.split("/").pop()]?.properties ?? {}) : {};
     const id = `taifex/${name}`;
     out[id] = {
       id,
@@ -156,7 +186,8 @@ async function fetchSpec(url) {
 }
 
 async function main() {
-  const catalog = {};
+  // null 原型：上游路徑若是 __proto__，普通物件的指派會改到原型而不是新增鍵。
+  const catalog = Object.create(null);
   for (const src of SOURCES) {
     const spec = await fetchSpec(src.url);
     const part = src.build(spec);
@@ -165,8 +196,19 @@ async function main() {
     if (n < src.min) {
       throw new Error(`${src.source}: 只解析出 ${n} 個資料集（門檻 ${src.min}），上游 shape 可能變了`);
     }
+    // 數量對、欄位全空，是 schema 解析斷掉的樣子——而數量門檻看不見它。
+    const empty = Object.values(part).filter((d) => !Object.keys(d.fields).length).length;
+    if (empty > n * 0.2) {
+      throw new Error(
+        `${src.source}: ${empty}/${n} 個資料集沒有解析出任何欄位，schema 的形狀可能變了`,
+      );
+    }
     for (const [id, ds] of Object.entries(part)) {
-      if (catalog[id]) throw new Error(`資料集 id 相撞：${id}（${catalog[id].source} vs ${ds.source}）`);
+      // hasOwn 而非真值判斷：id 若是 constructor／toString，catalog[id] 會取到
+      // Object.prototype 上的東西，於是報出一個不存在的「id 相撞」。
+      if (Object.hasOwn(catalog, id)) {
+        throw new Error(`資料集 id 相撞：${id}（${catalog[id].source} vs ${ds.source}）`);
+      }
       catalog[id] = ds;
     }
     process.stderr.write(`  ${src.source}: ${n} datasets\n`);

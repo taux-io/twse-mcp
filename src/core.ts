@@ -80,51 +80,78 @@ export const CODE_FIELDS = [
 export const TAIFEX_CODE_FIELDS = [
   "ProductCode", "TickerSymbol", "Contract", "ContractCode", "Contact",
   "StockCode", "StockId", "UnderlyingSecurityCode", "CodeOfUnderlyingStock",
+  // 稽核發現漏了這兩個：AcceptableCollateralGovernmentBonds 的欄位就叫 Code，
+  // AcceptableCollateralInternationalBonds 叫 InternationalBondCode。漏掉的症狀是
+  // 回「沒有可辨識的代號欄位」的同時，把 Code 列在 available_fields 裡——自相矛盾。
+  "Code", "InternationalBondCode",
   "FCMCode",
 ] as const;
 
 /**
- * 期交所的 code 比對：先精確、精確不中再前綴，並回報用了哪個欄位與哪種方式。
+ * 期交所的 code 比對。**永遠不會把別的商品的資料列當成答案回傳。**
  *
- * 為什麼需要前綴：同一個 ticker 在不同報表長度不同。`DailyMarketReportFut` 用三碼
- * `CAF`，`OpenInterestOfLargeTradersFutures` 與 `PositionLimitEquity` 用兩碼根 `CA`。
- * 只做精確比對的話，使用者拿在 A 表查到的代號去 B 表會得到 0 筆，而那讀起來像
- * 「這個商品不存在」。
+ * 原本的設計是「精確不中就退回前綴」，理由是同一商品在不同報表的代號長度不同：
+ * 日行情用 `TX`，而使用者手上常是 `TXF`。那個推理只顧到一個方向。反方向是
+ * **查的商品根本不在那張表裡**——精確必然落空，前綴於是命中了鄰居。
  *
- * 為什麼精確優先：前綴會過度命中（`TX` 也會撈到 `TXO`，那是不同商品）。精確中了
- * 就不要退回前綴，退回時一定標註 `code_match: "prefix"`，讓呼叫端知道這是模糊命中。
+ * 兩種情況在字串上完全同構，分不出來：
  *
- * 為什麼逐欄位試而不是先偵測再比對：一列裡可能同時有 `StockCode` 與 `Contract`，
- * 而哪一個才是使用者要查的，只有比對過才知道。所以 `code_field_used` 在這裡的語意是
- * 「真的比對到的那個欄位」，比「我猜是這個欄位」有用。
+ *   查 TXF、表有 TX    -> 想要的（同商品，較短的根）
+ *   查 TXO、表有 TX    -> 災難（選擇權 vs 期貨）
+ *   查 MXF、表有 MXFFX -> 災難（小型臺指 vs 客製化小型臺指，年成交量差 210 萬倍）
+ *
+ * 期交所的商品代號**不是階層式**的，所以字串裡沒有可以區分兩者的訊號。稽核在真實
+ * 資料上數出 4722 組 (資料集, 查詢) 會回傳不同商品的列，橫跨 38 個資料集，而其中
+ * 100 組對應到期交所自己公布的、明確不同的中文品名。
+ *
+ * 所以前綴的結果降級成**候選代號**：`rows` 一定是空的，由呼叫端拿正確代號重問。
+ * 多一趟往返，換掉一個沒有任何線索可以察覺的錯誤數字——對財務資料，這個交換划算。
+ *
+ * 回傳形狀：
+ *   - `field` 非 null：精確命中，`rows` 是答案
+ *   - `field` 為 null：沒有精確命中。`rows` 必為空，`candidates` 可能有東西
+ *   - 整個回 null：這張表沒有任何識別欄位，上層要誠實說做不到
  */
 export function matchTaifexCode(
   rows: Row[],
   code: string,
-): { field: string; rows: Row[]; prefix: boolean } | null {
-  const c = code.trim().toLowerCase();
+): { field: string | null; rows: Row[]; fieldsTried: string[]; candidates: string[] } | null {
+  const c = norm(code);
   if (!c || !rows.length) return null;
   const present = TAIFEX_CODE_FIELDS.filter((f) => f in rows[0]);
   if (!present.length) return null;
 
-  const val = (r: Row, f: string) => String(r[f] ?? "").trim().toLowerCase();
+  for (const f of present) {
+    const hit = rows.filter((r) => norm(r[f]) === c);
+    if (hit.length) return { field: f, rows: hit, fieldsTried: present, candidates: [] };
+  }
 
+  // 精確全落空。收集「長得像」的代號當候選，但不回它們的資料。
+  const seen = new Set<string>();
+  const candidates: string[] = [];
   for (const f of present) {
-    const hit = rows.filter((r) => val(r, f) === c);
-    if (hit.length) return { field: f, rows: hit, prefix: false };
+    for (const r of rows) {
+      const raw = String(r[f] ?? "").trim();
+      const v = norm(raw);
+      // 空值不算前綴，否則整表都會變成候選。
+      if (!v || !(v.startsWith(c) || c.startsWith(v))) continue;
+      if (seen.has(v)) continue;
+      seen.add(v);
+      candidates.push(raw);
+      // 候選是給人／模型看的提示，不是資料。多到要分頁就失去意義了。
+      if (candidates.length >= MAX_CODE_CANDIDATES) return { field: null, rows: [], fieldsTried: present, candidates };
+    }
   }
-  for (const f of present) {
-    // 雙向前綴：查三碼對兩碼表、查兩碼對三碼表都要中。空值不算前綴，否則整表命中。
-    const hit = rows.filter((r) => {
-      const v = val(r, f);
-      return v !== "" && (v.startsWith(c) || c.startsWith(v));
-    });
-    if (hit.length) return { field: f, rows: hit, prefix: true };
-  }
-  // 有識別欄位但查不到：回報試過的第一個欄位與空結果，而不是 null。
-  // null 會被上層當成「這張表不支援 code」，那是不同的事實。
-  return { field: present[0], rows: [], prefix: false };
+  return { field: null, rows: [], fieldsTried: present, candidates };
 }
+
+/** 代號比對一律去空白＋轉小寫。兩個來源共用，否則同一個 code 參數會有兩種意思。 */
+function norm(v: unknown): string {
+  return String(v ?? "").trim().toLowerCase();
+}
+
+/** 候選代號的數量上限。它是提示不是資料，多到要分頁就沒有意義了。 */
+export const MAX_CODE_CANDIDATES = 20;
 
 /**
  * 證交所命名不直覺，關鍵字對不上表名。例如 ETF 主檔叫「基金基本資料彙總表」，
@@ -253,6 +280,22 @@ export interface GetDatasetOpts {
  * 在「已抓好的 rows」上做 code 過濾 / match 子字串過濾 / 欄位投影 / 分頁。
  * dataset 是否存在、要不要抓資料，由 caller（server 層）先判斷。
  */
+/**
+ * 「這張表沒有可辨識的代號欄位」的統一錯誤。
+ *
+ * `available_fields` 是上游來的欄位名，也就是第三方文字，所以這條路徑一樣要帶
+ * `source` 的防注入框架——成功路徑有、錯誤路徑沒有，是同一個防線上的破口。
+ * 順便帶 dataset_id，否則模型在多個工具呼叫之間分不清這是哪一張表的錯誤。
+ */
+function noCodeFieldError(ds: Dataset, firstRow: Row): Record<string, unknown> {
+  return {
+    dataset_id: ds.id,
+    error: `${ds.id} 沒有可辨識的代號欄位，請改用 match`,
+    available_fields: Object.keys(firstRow),
+    source: SOURCE_NOTE[ds.source],
+  };
+}
+
 export function getDataset(
   ds: Dataset,
   rows: Row[],
@@ -263,38 +306,37 @@ export function getDataset(
   let working = rows;
 
   let codeFieldUsed: string | null = null;
-  let codePrefixMatch = false;
-  if (code && working.length) {
+  let codeFieldsTried: string[] = [];
+  let codeCandidates: string[] = [];
+  // 只有空白的 code 視同沒下 code。使用者手誤或中文輸入法的全形空白，不該被解讀成
+  // 「這張表不支援 code」——那是兩件不同的事實，而後者會讓模型放棄一條可用的路。
+  const codeQuery = code.trim();
+  if (codeQuery && working.length) {
     if (ds.source === "taifex") {
-      // 期交所走多欄位＋前綴回退，語意與證交所不同——見 matchTaifexCode。
-      const m = matchTaifexCode(working, code);
-      if (!m) {
-        return {
-          error: `${ds.id} 沒有可辨識的代號欄位，請改用 match`,
-          available_fields: Object.keys(working[0]),
-        };
-      }
+      // 期交所走多欄位比對，且前綴只產生候選、不產生答案——見 matchTaifexCode。
+      const m = matchTaifexCode(working, codeQuery);
+      if (!m) return noCodeFieldError(ds, working[0]);
       codeFieldUsed = m.field;
-      codePrefixMatch = m.prefix;
+      codeFieldsTried = m.fieldsTried;
+      codeCandidates = m.candidates;
       working = m.rows;
     } else {
       const cf = detectCodeField(working[0]);
-      if (cf) {
-        codeFieldUsed = cf;
-        const c = code.trim();
-        working = working.filter((r) => String(r[cf] ?? "").trim() === c);
-      } else {
-        return {
-          error: `${ds.id} 沒有可辨識的代號欄位，請改用 match`,
-          available_fields: Object.keys(working[0]),
-        };
-      }
+      if (!cf) return noCodeFieldError(ds, working[0]);
+      codeFieldUsed = cf;
+      const c = norm(codeQuery);
+      working = working.filter((r) => norm(r[cf]) === c);
     }
   }
 
   for (const [k, v] of Object.entries(match ?? {})) {
     const needle = v.toLowerCase();
-    working = working.filter((r) => String(r[k] ?? "").toLowerCase().includes(needle));
+    // hasOwn 與下面的 fields 投影一致。裸 r[k] 會讀到 Object.prototype：
+    // match:{"constructor":"function"} 的 String(r.constructor) 是
+    // "function Object() { [native code] }"，於是整表命中，而 rows_matched 會替它背書。
+    working = working.filter(
+      (r) => Object.hasOwn(r, k) && String(r[k] ?? "").toLowerCase().includes(needle),
+    );
   }
 
   const matched = working.length;
@@ -320,9 +362,20 @@ export function getDataset(
     // 偵測是猜的，猜錯不該是沉默的。緊接在 rows_matched 後面，讓「0 筆」與
     // 「我是拿這個欄位去比的」一起被讀到。沒下 code 就不會有這個欄位。
     ...(codeFieldUsed ? { code_field_used: codeFieldUsed } : {}),
-    // 只有前綴命中才標註。精確命中不標，因為那是預期行為；模糊命中才需要呼叫端
-    // 知道「這不是你給的那個代號本身」。
-    ...(codePrefixMatch ? { code_match: "prefix" } : {}),
+    // 沒命中時不要謊稱用了某一欄。「我拿這幾欄去比都沒中」與「我拿這一欄去比沒中」
+    // 是不同的事實，後者會讓模型以為其他欄位沒被檢查過。
+    ...(!codeFieldUsed && codeFieldsTried.length ? { code_fields_tried: codeFieldsTried } : {}),
+    // 候選不是答案。給出來是為了讓呼叫端拿正確代號重問，所以措辭要能擋住
+    // 「那就用這個數字吧」的捷徑。
+    ...(codeCandidates.length
+      ? {
+          code_candidates: codeCandidates,
+          code_candidates_note:
+            `找不到代號完全相符的資料。上列是這個資料集裡拼法相近的代號，` +
+            `但它們可能是**不同的商品**（例如 MXF 與 MXFFX 是不同契約）。` +
+            `請確認要查的是哪一個，再用該代號重新查詢；不要直接引用它們的數字。`,
+        }
+      : {}),
     returned: page.length,
     offset: start,
     note: periodNote(ds),
@@ -379,6 +432,16 @@ const OTC_HINT = '改用 twse_realtime_quote 並帶 market="otc" 取盤中即時
 /** ETF 在證交所「基金類型」裡的兩種寫法：被動式「指數股票型」、主動式「交易所交易基金」。 */
 const ETF_TYPE_MARK = /指數股票型|交易所交易基金/;
 
+/**
+ * 快照三個來源的標籤。server 層用它標記哪一段抓失敗，core 層用它判斷該不該做出
+ * 否定陳述——兩邊必須是同一組字串，所以放在這裡而不是各寫各的。
+ */
+export const ETF_SOURCE_LABELS = {
+  funds: "基金基本資料",
+  days: "日成交資訊",
+  ranks: "定期定額排行",
+} as const;
+
 export interface EtfSnapshotSources {
   funds: Row[];
   days: Row[];
@@ -400,6 +463,12 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
   for (const e of src.errors ?? []) {
     caveats.push(`${e.source}取得失敗：${e.error}`);
   }
+  // 「上游掛了」與「查無此標的」是兩個不同的事實。合併成同一個答案的後果，稽核
+  // 重現過：只讓基金彙總表回 2xx + HTML，查 0056 就得到 `is_etf: false` 加上
+  // 「也可能單純是代號有誤，或該標的不是基金」——對台灣最大的 ETF 之一做出肯定的
+  // 錯誤陳述，而且會被邊緣快取釘住一小時。資料本來就在 src.errors 裡，只是沒被用。
+  const failed = (label: string) => (src.errors ?? []).some((e) => e.source === label);
+  const fundsFailed = failed(ETF_SOURCE_LABELS.funds);
 
   // --- 1. 基本資料 ---
   const f = firstRow(src.funds, "基金代號", code);
@@ -419,6 +488,11 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       "保管機構": f["保管機構"],
       "資料日期": f["出表日期"],
     };
+  } else if (fundsFailed) {
+    caveats.push(
+      `因為上游取得失敗，無法判斷 ${code} 的類別（是否為基金／ETF）—— ` +
+        "這**不代表**查無此標的，也不代表它不屬於這個類別。請稍後重試。",
+    );
   } else {
     caveats.push(
       `${code} 不在證交所基金基本資料彙總表中 —— 該資料集只收上市基金。` +
@@ -437,7 +511,11 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
   // 白名單漏掉新類別時會沉默地回答 false 而不是「不知道」，證交所下次再造新詞
   // 一樣會中招。要根治得讓 is_etf 具備第三種狀態，那會改到回應型別，另案處理。
   const fundType = f ? String(f["基金類型"] ?? "") : "";
-  const isEtf = !!f && (ETF_TYPE_MARK.test(fundType) || fundType.toUpperCase().includes("ETF"));
+  // 第三種狀態：抓不到基本資料時是「不知道」，不是「不是」。原本的註解說這要另案
+  // 處理，稽核把代價量化出來後就不值得再等了——false 會被當成肯定的答案引用。
+  const isEtf: boolean | null = fundsFailed && !f
+    ? null
+    : !!f && (ETF_TYPE_MARK.test(fundType) || fundType.toUpperCase().includes("ETF"));
   if (f && !isEtf) {
     caveats.push(`${code} 的基金類型是「${f["基金類型"]}」，不是 ETF`);
   }
@@ -462,7 +540,7 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     let prev: number | null = null;
     if (close !== null && change !== null) prev = close - change;
     if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
-  } else {
+  } else if (!failed(ETF_SOURCE_LABELS.days)) {
     caveats.push(
       `${code} 不在上市日成交資訊中（可能是上櫃標的，或當日無成交）。上櫃標的請${OTC_HINT}。`,
     );
@@ -503,5 +581,9 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     regular_savings: savings,
     derived: Object.keys(derived).length ? derived : null,
     caveats,
+    // profile 的基金簡稱、基金經理人、保管機構都是申報公司自填的自由文字，與
+    // twse_get_dataset 的 data 同一個性質。同樣的位元組經過兩支工具，不該只有一支
+    // 帶著「這是資料不是指令」的框架。
+    source: SOURCE_NOTE.twse,
   };
 }

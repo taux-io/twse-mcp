@@ -32,80 +32,131 @@ export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 /**
- * 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。
+ * 期交所**唯一**會回 CSV 的端點，以及它的表頭契約。
  *
- * `expectedFields` 是目錄宣告的欄位名，只在上游回 CSV 時用得到——見 parseCsv 說明
- * 為什麼需要它。證交所不會走到那條路。
+ * 為什麼要指名而不是對整個 `taifex/` 前綴開退路：退路一旦全開，就等於刪掉
+ * 「上游回非 JSON 要大聲失敗」這道守衛（見 fetchJson 的說明，#29／#31 加的）。
+ * 上游維護時回一個空的 200，CSV parser 會安靜地回 0 筆，而 `cf.cacheTtl` 把那個
+ * 假的「查無資料」釘在邊緣一小時——每個使用者都會收到「期交所沒有這筆資料」，
+ * 而真相是上游掛了。131 個端點不該為了 1 個端點放棄那道守衛。
+ *
+ * 為什麼連表頭**內容**一起釘死：只比對欄位數量的守衛不是守衛。上游把 18 欄的順序
+ * 調換，數量仍是 18，於是每一列的最高價變成最低價——正是這裡要防的「安靜給錯答案」。
+ * 只比數量的版本被 code review 抓出來過。
+ *
+ * 為什麼不從目錄推導英文欄位：稽核證明那條路會被解除武裝。上游若把 200 回應的
+ * schema 從裸 `$ref` 改成慣例的 `{type:"array", items:{$ref}}`，`buildTaifex` 會
+ * 取到空字串，132 筆全部變成零欄位，於是 `expectedFields` 是空的、守衛自動關閉。
+ * 釘死在這裡，再由 test/catalog.test.ts 斷言它與目錄一致——常數重複但有測試綁著，
+ * 是這個 repo 既有的作法。
+ *
+ * 這個端點**會變格式**：同一天實測到 877,988 bytes 的 CSV 與 4,188,322 bytes 的
+ * JSON。所以 JSON 優先不是為了將來，是現在就會交替發生。
  */
-export async function fetchDataset(datasetId: string, expectedFields?: string[]): Promise<Row[]> {
-  const url = datasetUrl(datasetId);
-  const isTaifex = datasetId.startsWith(TAIFEX_PREFIX);
+export const TAIFEX_CSV_DATASETS: Record<
+  string,
+  { header: readonly string[]; fields: readonly string[] }
+> = {
+  "taifex/DailyMarketReportOpt": {
+    header: [
+      "日期", "契約", "到期月份(週別)", "履約價", "買賣權", "開盤價", "最高價", "最低價",
+      "最後成交價", "成交量", "結算價", "未沖銷契約量", "最後最佳買價", "最後最佳賣價",
+      "歷史最高價", "歷史最低價", "是否因訊息面暫停交易", "交易時段",
+    ],
+    fields: [
+      "Date", "Contract", "ContractMonth(Week)", "StrikePrice", "CallPut", "Open", "High", "Low",
+      "Close", "Volume", "SettlementPrice", "OpenInterest", "BestBid", "BestAsk",
+      "HistoricalHigh", "HistoricalLow", "TradingHalt", "TradingSession",
+    ],
+  },
+};
+
+/** 錯誤訊息裡引用上游文字的長度上限。 */
+const UPSTREAM_ECHO_LIMIT = 200;
+
+/** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */
+export async function fetchDataset(datasetId: string): Promise<Row[]> {
+  const csv = TAIFEX_CSV_DATASETS[datasetId];
   const data = await fetchJson(
-    url,
+    datasetUrl(datasetId),
     { Accept: "application/json" },
     DATA_TTL_SECONDS,
-    // CSV 退路只開給期交所。證交所回非 JSON 一律是上游出事（2xx + HTML 錯誤頁），
-    // 把那個 body 餵給 CSV parser 只會把診斷資訊換成一堆假欄位。
-    isTaifex ? (body) => parseCsv(body, expectedFields, datasetId) : undefined,
+    // CSV 退路只給指名的那一個資料集。其餘一律維持「非 JSON = 上游出事」。
+    csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
   );
   return Array.isArray(data) ? (data as Row[]) : [data as Row];
 }
 
 /**
- * 期交所有**恰好一個**端點回 CSV 而不是 JSON：`/v1/DailyMarketReportOpt`（選擇權
- * 每日行情）。它帶 UTF-8 BOM、CRLF、**中文表頭**，而同一支 swagger 為它宣告的是
- * 英文欄位——目錄的 `fields` 就是從那裡來的。
+ * 把期交所那一個 CSV 端點解析成物件陣列，key 換成 swagger 宣告的英文欄位。
  *
- * 所以若直接用中文表頭當 key，`twse_describe_dataset` 說「有 Contract 欄位」而
- * `twse_get_dataset` 回的是 `契約`，`code=`／`match=` 全部落空。那不是壞掉，
- * 是安靜地給錯答案——比壞掉難查得多。
+ * 為什麼要換：目錄的 `fields` 來自 swagger，是英文；CSV 表頭是中文。若直接用中文
+ * 當 key，`twse_describe_dataset` 說有 `Contract` 而 `twse_get_dataset` 回的是
+ * `契約`，`code=`／`match=`／`fields=` 全部落空。那不是壞掉，是安靜地給錯答案。
  *
- * 實測兩邊都是 18 個欄位且順序一一對應，所以**按位置**改名成 swagger 的英文欄位。
- * 按位置對應是個假設，因此它被一道嚴格守衛保護：數量對不上就丟出錯誤，不做部分
- * 對應、不猜。沒拿到 `expectedFields`（例如直接呼叫出站層）時保留中文表頭原樣——
- * 保留事實，而不是硬套一組可能錯位的英文名。
+ * 表頭必須與 TAIFEX_CSV_DATASETS 記錄的完全相同（順序也算）——對不上就丟錯，
+ * 不做部分對應。壞掉且說得出原因，好過活著卻在說謊。
  */
-function parseCsv(body: string, expectedFields: string[] | undefined, datasetId: string): Row[] {
-  const text = body.replace(/^\ufeff/, "");
-  const rows = splitCsv(text);
+function parseCsv(
+  body: string,
+  spec: { header: readonly string[]; fields: readonly string[] },
+  datasetId: string,
+): Row[] {
+  const rows = splitCsv(body);
   const header = rows.shift();
-  if (!header) return [];
-  let keys = header;
-  if (expectedFields?.length) {
-    if (expectedFields.length !== header.length) {
-      throw new Error(
-        `${datasetId} 的 CSV 欄位數與目錄不符（上游 ${header.length}、目錄 ` +
-          `${expectedFields.length}）。上游表頭：${header.join(",")}。` +
-          `按位置對應已停用，請重跑 npm run refresh-catalog 確認上游是否改版。`,
-      );
-    }
-    keys = expectedFields;
+  // 沒有表頭代表這根本不是那份 CSV（空 body、HTML 錯誤頁）。交回給 fetchJson 的
+  // 診斷訊息處理，那裡會帶上 content-type、狀態碼與 body 開頭。
+  if (!header) return NOT_CSV;
+  // 先判斷「這是不是那份 CSV」，再判斷「它有沒有變」。兩者的正確訊息不同：
+  // 前者（空 body、HTML 錯誤頁）該講上游狀態碼與 content-type，後者該講表頭差異。
+  // 用「認得的欄名過半」當判準——順序被調換仍算是那份 CSV，所以會走到下面的
+  // 大聲失敗；而 HTML 一個欄名都對不上，落回 fetchJson 的上游診斷。
+  const known = new Set(spec.header);
+  const recognised = header.filter((h) => known.has(h.trim())).length;
+  if (recognised * 2 < spec.header.length) return NOT_CSV;
+  if (
+    header.length !== spec.header.length ||
+    header.some((h, i) => h.trim() !== spec.header[i])
+  ) {
+    throw new Error(
+      `${datasetId} 的 CSV 表頭與預期不符（預期 ${spec.header.length} 欄、` +
+        `上游 ${header.length} 欄）。上游表頭：` +
+        `${header.join(",").slice(0, UPSTREAM_ECHO_LIMIT)}。` +
+        `按位置對應已停用，請確認上游是否改版。`,
+    );
   }
   const out: Row[] = [];
   for (const cells of rows) {
     if (cells.length !== header.length) {
       throw new Error(
         `${datasetId} 的 CSV 有一列欄位數不符（表頭 ${header.length}、該列 ` +
-          `${cells.length}）：${cells.join(",").slice(0, 200)}`,
+          `${cells.length}）：${cells.join(",").slice(0, UPSTREAM_ECHO_LIMIT)}`,
       );
     }
     const r: Row = {};
-    keys.forEach((k, i) => (r[k] = cells[i]));
+    spec.fields.forEach((k, i) => (r[k] = cells[i]));
     out.push(r);
   }
   return out;
 }
 
+/** parseCsv 用來說「這不是 CSV」的哨兵值。用身分比對，不用內容。 */
+const NOT_CSV: Row[] = [];
+
 /**
- * 最小 RFC 4180 切割：處理雙引號包起來的欄位與其中的逗號、跳脫雙引號（""）與 CRLF。
- * 目前上游那份完全沒有引號，但中文品名裡出現逗號只是遲早的事，而那會讓天真的
- * `split(",")` 整列錯位——錯位不會丟錯誤，只會給出對齊錯誤的答案。
+ * 最小 RFC 4180 切割：引號**只有在欄位開頭**才有特殊意義。
+ *
+ * 那個限定是重點。原本的版本在任何位置遇到 `"` 都進入引號模式，於是一個 `12"`
+ * 這種值會把後面所有逗號與換行吞進同一格，整份檔案從那裡起錯位——而錯位不會
+ * 丟錯誤，只會給出對齊錯誤的答案（或讓整天的資料因為列長度不符而全部失敗）。
  */
 function splitCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";
   let quoted = false;
+  let atCellStart = true;
+  const endCell = () => { row.push(cell); cell = ""; atCellStart = true; };
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (quoted) {
@@ -114,15 +165,15 @@ function splitCsv(text: string): string[][] {
       } else cell += ch;
       continue;
     }
-    if (ch === '"') quoted = true;
-    else if (ch === ",") { row.push(cell); cell = ""; }
+    if (ch === '"' && atCellStart) { quoted = true; atCellStart = false; }
+    else if (ch === ",") endCell();
     else if (ch === "\n" || ch === "\r") {
       if (ch === "\r" && text[i + 1] === "\n") i++;
-      row.push(cell); cell = "";
+      endCell();
       // 尾端換行不該產生一列空資料
       if (row.length > 1 || row[0] !== "") rows.push(row);
       row = [];
-    } else cell += ch;
+    } else { cell += ch; atCellStart = false; }
   }
   if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
   return rows;
@@ -209,7 +260,12 @@ async function fetchJson(
     return JSON.parse(body);
   } catch {
     // 順序是 JSON 優先：上游哪天把 CSV 端點改成 JSON，這裡自動跟上，不需要改碼。
-    if (fallback) return fallback(body);
+    // 退路說「這也不是我認得的格式」時（空 body、HTML 錯誤頁）就落回原本的診斷，
+    // 而不是把空結果當成「查無資料」——後者會被邊緣快取釘住一小時。
+    if (fallback) {
+      const parsed = fallback(body);
+      if (parsed !== NOT_CSV) return parsed;
+    }
     throw new Error(
       `上游回的不是 JSON（content-type: ${ctype}，HTTP ${res.status}）for ${url}。` +
         `開頭：${body.trim().slice(0, 120)}`,
