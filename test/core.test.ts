@@ -66,6 +66,10 @@ describe("detectCodeField — 跨表不一致代號欄位偵測", () => {
   it("無可辨識欄位 -> null", () => expect(detectCodeField({ Foo: "bar" })).toBeNull());
   it("依 CODE_FIELDS 順序，Code 優先於 基金代號", () =>
     expect(detectCodeField({ 基金代號: "a", Code: "b" })).toBe("Code"));
+  // exchangeReport/TWT88U 兩個欄位都有，而那裡的 Code 是「代碼別」（承銷商代碼），
+  // SecurCode 才是證券代號。挑到 Code 的話，用證券代號查會回 rows_matched: 0。
+  it("SecurCode 優先於語意較弱的 Code", () =>
+    expect(detectCodeField({ Code: "11", Name: "富邦", SecurCode: "7689" })).toBe("SecurCode"));
 });
 
 describe("firstRow", () => {
@@ -181,6 +185,25 @@ describe("getDataset — 過濾/投影/分頁", () => {
     const r = getDataset(day, [{ Foo: "bar", Baz: "qux" }], { code: "0050" }) as any;
     expect(r.error).toContain("沒有可辨識的代號欄位");
     expect(r.available_fields).toEqual(["Foo", "Baz"]);
+  });
+  // 偵測猜錯欄位時，rows_matched: 0 與「這個標的不存在」在回應裡長得一模一樣。
+  // 回報實際採用的欄位，讓 caller 分得出來（ETFReport/ETFRank 一列兩個代號欄位，
+  // 順序怎麼排都會有一邊查不到，只能靠揭露）。
+  it("有下 code -> 回報實際採用的代號欄位", () => {
+    const r = getDataset(day, rows, { code: "0056" }) as any;
+    expect(r.code_field_used).toBe("Code");
+  });
+  it("一列有多個代號欄位時，回報的是實際比對的那個", () => {
+    const rank: Row[] = [
+      { No: "1", STOCKsSecurityCode: "2330", ETFsSecurityCode: "0050" },
+    ];
+    const r = getDataset(day, rank, { code: "2330" }) as any;
+    expect(r.code_field_used).toBe("ETFsSecurityCode");
+    expect(r.rows_matched).toBe(0); // 查不到，但看得出是拿哪個欄位比的
+  });
+  it("沒下 code 就不帶 code_field_used", () => {
+    const r = getDataset(day, rows, {}) as any;
+    expect("code_field_used" in r).toBe(false);
   });
   it("match 子字串過濾", () => {
     const r = getDataset(day, rows, { match: { Name: "元大" } }) as any;
@@ -300,6 +323,26 @@ describe("buildEtfSnapshot — 三表合併", () => {
       const funds2: Row[] = [{ 基金代號: "00X", 基金簡稱: "x", 基金類型: t }];
       const r = buildEtfSnapshot("00X", { funds: funds2, days: [], ranks: [], includeRealtime: false }) as any;
       expect(r.is_etf, t).toBe(true);
+    }
+  });
+  // 2025 年開辦的主動式 ETF 用的是第三種寫法：既不含「指數股票型」也不含字面 "ETF"。
+  // 舊白名單只認「指數股票型」，於是線上 267 檔基金裡有 32 檔（含定期定額排行第 5 名
+  // 的 00981A）被回報成 is_etf: false 並附一句「不是 ETF」。
+  it("主動式 ETF（「交易所交易基金」寫法）-> is_etf true 且無誤導 caveat", () => {
+    for (const t of [
+      "國內成分證券主動式交易所交易基金(股票)",
+      "國外成分證券主動式交易所交易基金(股票)",
+      "國外成分證券主動式交易所交易基金(債券)",
+    ]) {
+      const funds2: Row[] = [{ 基金代號: "00981A", 基金簡稱: "統一台股增長主動式", 基金類型: t }];
+      const r = buildEtfSnapshot("00981A", {
+        funds: funds2,
+        days: [],
+        ranks: [],
+        includeRealtime: false,
+      }) as any;
+      expect(r.is_etf, t).toBe(true);
+      expect(r.caveats.some((c: string) => c.includes("不是 ETF")), t).toBe(false);
     }
   });
   it("來源抓取失敗 -> caveat 標記", () => {
