@@ -116,8 +116,13 @@ function mcpRequest(body: unknown, extraHeaders: Record<string, string> = {}) {
  * 依 era 建構請求。
  * - legacy：裸 JSON-RPC，什麼都不加。
  * - modern：params._meta 帶兩個必填保留鍵，並補上必填的 MCP-Protocol-Version 與
- *   Mcp-Method 標頭；tools/call 另需 Mcp-Name。標頭與 body 不一致會被判 -32020，
- *   所以這裡刻意從 body 推導標頭，而不是各寫一份。
+ *   Mcp-Method 標頭；**任何帶 params.name 的 method 都另需 Mcp-Name**。標頭與 body
+ *   不一致會被判 -32020，所以這裡刻意從 body 推導標頭，而不是各寫一份。
+ *
+ *   這條規則原本寫成「只有 tools/call 需要」，實測是錯的：prompts/get 同樣被要求，
+ *   回的是 `-32020 … the body carries params.name="…" but the required Mcp-Name
+ *   header is absent`。改成看 params.name 在不在，才不會每加一個具名 method 就要
+ *   回頭補一次。
  */
 function eraRequest(era: Era, method: string, params: Record<string, unknown>) {
   if (era === "legacy") {
@@ -139,7 +144,7 @@ function eraRequest(era: Era, method: string, params: Record<string, unknown>) {
     "MCP-Protocol-Version": MODERN_REVISION,
     "Mcp-Method": method,
   };
-  if (method === "tools/call" && typeof params.name === "string") {
+  if (typeof params.name === "string") {
     headers["Mcp-Name"] = params.name;
   }
   return mcpRequest(body, headers);
@@ -415,6 +420,128 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
 });
 
 /**
+ * MCP 的 `prompts` 是零安裝的通道：跟著 server 走，使用者不必另外裝任何東西。
+ * 在 Claude Code 裡會變成 `/mcp__twse__<name>` 斜線指令，Claude Desktop 在「+」選單。
+ *
+ * **兩條 lane 都要驗。** 目前已知的全部流量都在 legacy（見 issue #51 的實測），
+ * 所以只在 modern 驗證等於沒有驗證。`agents` 的 legacy lane 沒有自己的 method 表
+ * ——它把同一個 McpServer 接上另一個 transport——但那是讀相依原始碼得到的結論，
+ * 而 ADR-0001 記過同一個教訓：合規性由測試守住，不由「讀過相依的原始碼」守住。
+ */
+describe.each(ERAS)("prompts（%s）", (era) => {
+  const rpc = rpcFor(era);
+
+  it("prompts/list 回三個 prompt，順序固定", async () => {
+    const payload = await rpc("prompts/list", {});
+    const names = payload.result.prompts.map((p: { name: string }) => p.name);
+    expect(names).toEqual(["find_dataset", "etf_overview", "futures_quote"]);
+  });
+
+  // 名稱不帶 twse_ 前綴：在 client 裡已經顯示成 /mcp__twse__<name>，再加一層就成了
+  // /mcp__twse__twse_etf_overview。
+  it("prompt 名稱不重複帶 server 前綴", async () => {
+    const payload = await rpc("prompts/list", {});
+    for (const p of payload.result.prompts) {
+      expect(p.name, p.name).not.toMatch(/^twse_/);
+    }
+  });
+
+  it("每個 prompt 都有描述與一個必填參數", async () => {
+    const payload = await rpc("prompts/list", {});
+    for (const p of payload.result.prompts) {
+      expect(p.description, p.name).toBeTruthy();
+      expect(p.arguments, p.name).toHaveLength(1);
+      expect(p.arguments[0].required, p.name).toBe(true);
+    }
+  });
+
+  it("find_dataset 帶關鍵字，產出的訊息要指向搜尋工具", async () => {
+    const payload = await rpc("prompts/get", {
+      name: "find_dataset",
+      arguments: { query: "三大法人" },
+    });
+    const text = payload.result.messages[0].content.text as string;
+    expect(text).toContain("三大法人");
+    expect(text).toContain("twse_search_datasets");
+  });
+
+  it("etf_overview 帶代號", async () => {
+    const payload = await rpc("prompts/get", {
+      name: "etf_overview",
+      arguments: { code: "0056" },
+    });
+    const text = payload.result.messages[0].content.text as string;
+    expect(text).toContain("0056");
+    expect(text).toContain("twse_etf_snapshot");
+  });
+
+  // 期交所的代號在不同報表長度不同，而 code= 是精確比對。這個 prompt 若不先講，
+  // 使用者拿 TXF 去查日行情會得到 0 筆加一串候選，卻不知道那是正常的。
+  it("futures_quote 要教模型怎麼處理 code_candidates", async () => {
+    const payload = await rpc("prompts/get", {
+      name: "futures_quote",
+      arguments: { contract: "TXF" },
+    });
+    const text = payload.result.messages[0].content.text as string;
+    expect(text).toContain("TXF");
+    expect(text).toContain("code_candidates");
+  });
+
+  it("使用者傳的參數原樣帶進訊息，不會被吃掉或改寫", async () => {
+    const payload = await rpc("prompts/get", {
+      name: "find_dataset",
+      arguments: { query: "融資融券 & 借券" },
+    });
+    expect(payload.result.messages[0].content.text).toContain("融資融券 & 借券");
+  });
+});
+
+/**
+ * prompts/list 與 tools/list 是同一種東西：公開、不認證、所有請求者拿到同一份。
+ * SDK 預設的 ttlMs:0 + private 對它一樣是最壞值。依據與失效條件見 ADR-0001 第二節。
+ */
+describe("prompts/list 的快取提示", () => {
+  it("modern：與 tools/list 同一組值", async () => {
+    const payload = await rpcFor("modern")("prompts/list", {});
+    expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
+    expect(payload.result.cacheScope).toBe("public");
+  });
+
+  it("legacy 的編碼路徑沒有快取欄位（與 tools/list 一致）", async () => {
+    const payload = await rpcFor("legacy")("prompts/list", {});
+    expect(payload.result.ttlMs).toBeUndefined();
+    expect(payload.result.cacheScope).toBeUndefined();
+  });
+
+  // cacheScope: "public" 的前提是回應不隨請求者改變。tools/list 有這條絆線，
+  // prompts/list 也要有——導入認證時兩條要一起變紅。
+  it("回應不隨 Authorization 標頭改變", async () => {
+    const a = await send(eraRequest("modern", "prompts/list", {}));
+    const b = await send(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "prompts/list",
+          params: {
+            _meta: {
+              [PROTOCOL_VERSION_META_KEY]: MODERN_REVISION,
+              [CLIENT_CAPABILITIES_META_KEY]: {},
+            },
+          },
+        },
+        {
+          "MCP-Protocol-Version": MODERN_REVISION,
+          "Mcp-Method": "prompts/list",
+          Authorization: "Bearer whatever",
+        },
+      ),
+    );
+    expect(await a.text()).toBe(await b.text());
+  });
+});
+
+/**
  * 「這是資料不是指令」的框架必須覆蓋每一支會回傳上游自由文字的工具。
  * 稽核指出三支工具走同樣的位元組，卻只有一支帶著那道框架——同一條防線上的破口。
  */
@@ -683,6 +810,22 @@ describe("協定 era", () => {
     const instr = payload.result.instructions as string;
     expect(instr).toContain("金融監督管理委員會證券期貨局");
     expect(instr).toContain("臺灣期貨交易所 OAS");
+  });
+
+  /**
+   * 使用指引與顯名聲明住在同一個 instructions 字串裡。顯名有測試守著，指引也要——
+   * 否則某次「精簡一下 instructions」會把它靜默拿掉，而症狀是模型開始猜 dataset_id
+   * 或直接引用 code_candidates 的數字，兩者都不會有錯誤訊息。
+   */
+  it("server/discover 帶使用指引（選表與 code_candidates 陷阱）", async () => {
+    const payload = await rpcFor("modern")("server/discover", {});
+    const instr = payload.result.instructions as string;
+    expect(instr).toContain("twse_search_datasets");
+    expect(instr).toContain("code_candidates");
+    // 陷阱的具體例子要在，否則「候選不是答案」只是一句空話
+    expect(instr).toContain("MXFFX");
+    // 刻意不寫 T-1：每則回應的 note 已經帶了，重複講是純成本
+    expect(instr).not.toContain("前一交易日");
   });
 
   it("server/discover 在 modern 可呼叫，支援版本含 2026-07-28", async () => {

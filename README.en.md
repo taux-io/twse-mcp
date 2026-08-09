@@ -109,6 +109,25 @@ free plan — can add it themselves.
 
 ---
 
+## Three ready-made shortcuts
+
+Besides just asking in your own words, the service ships three shortcut commands.
+They **appear automatically with the connector** — nothing extra to install.
+
+| Command | What it does | What to pass |
+|---|---|---|
+| `find_dataset` | Finds the right dataset when you do not know which one to use | A keyword, e.g. "institutional investors" |
+| `etf_overview` | Basic data, previous trading day's prices and regular-savings popularity for one listed ETF | An ETF code, e.g. `0056` |
+| `futures_quote` | Daily futures or options quotes | A contract code or product name, e.g. `TX` |
+
+In **Claude Desktop**: click the **"+"** next to the message box and find them in the menu.
+In **Claude Code**: type `/` and they are listed as `/mcp__twse__find_dataset`.
+
+You do not have to use them — they only pre-write common phrasings. Asking in plain
+language works just as well.
+
+---
+
 ## Things you can ask (examples)
 
 > **You ask:** "What's 0056 trading at right now?"
