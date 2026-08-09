@@ -41,10 +41,17 @@ const SOURCE_NOTE =
 /** 資料一天才更新一次，快取一小時很夠。 */
 export const DATA_TTL_SECONDS = 3600;
 
-/** 證交所各資料集的「代號」欄位名稱不統一，依序嘗試。 */
+/**
+ * 證交所各資料集的「代號」欄位名稱不統一，依序嘗試。
+ *
+ * SecurCode 要排在 Code 前面：exchangeReport/TWT88U 兩個都有，而那張表的 `Code` 是
+ * 「代碼別」——承銷商代碼，旁邊就是 `Name: 承銷商名稱`——`SecurCode` 才是證券代號。
+ * `Code` 名字看起來最通用，語意上卻是最不精確的一個，所以讓有明確語意的先贏。
+ * 目錄裡只有 TWT88U 同時具備這兩個欄位，其餘 142 個資料集的偵測結果不受影響。
+ */
 export const CODE_FIELDS = [
-  "Code", "證券代號", "股票代號", "公司代號", "基金代號",
-  "SecurCode", "ETFsSecurityCode", "STOCKsSecurityCode", "債券代號",
+  "SecurCode", "Code", "證券代號", "股票代號", "公司代號", "基金代號",
+  "ETFsSecurityCode", "STOCKsSecurityCode", "債券代號",
 ] as const;
 
 /**
@@ -69,7 +76,15 @@ export function num(v: unknown): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
-/** 依 CODE_FIELDS 順序偵測這個資料集用哪個欄位當代號。 */
+/**
+ * 依 CODE_FIELDS 順序偵測這個資料集用哪個欄位當代號。
+ *
+ * 有些資料集一列裡同時有兩個代號欄位，而且指的是不同標的：ETFReport/ETFRank 的
+ * STOCKsSecurityCode 是個股、ETFsSecurityCode 是 ETF，兩份互不相干的排行併在同一列。
+ * 這種情形「哪個才對」沒有唯一答案，順序怎麼排都會有一邊查不到。所以 getDataset
+ * 會把實際採用的欄位回報出去（code_field_used），讓 rows_matched: 0 不至於被讀成
+ * 「這個標的不存在」——查不到跟查錯欄位，對模型來說本來長得一模一樣。
+ */
 export function detectCodeField(row: Row): string | null {
   for (const f of CODE_FIELDS) {
     if (f in row) return f;
@@ -175,9 +190,11 @@ export function getDataset(
   const totalRaw = rows.length;
   let working = rows;
 
+  let codeFieldUsed: string | null = null;
   if (code && working.length) {
     const cf = detectCodeField(working[0]);
     if (cf) {
+      codeFieldUsed = cf;
       const c = code.trim();
       working = working.filter((r) => String(r[cf] ?? "").trim() === c);
     } else {
@@ -213,6 +230,9 @@ export function getDataset(
     summary: ds.summary,
     rows_in_source: totalRaw,
     rows_matched: matched,
+    // 偵測是猜的，猜錯不該是沉默的。緊接在 rows_matched 後面，讓「0 筆」與
+    // 「我是拿這個欄位去比的」一起被讀到。沒下 code 就不會有這個欄位。
+    ...(codeFieldUsed ? { code_field_used: codeFieldUsed } : {}),
     returned: page.length,
     offset: start,
     note: periodNote(ds),
@@ -251,6 +271,9 @@ export function periodNote(ds: Dataset): string {
  * 而測試會對它的字面文字斷言——只寫一次，改的時候不會有一處漏掉。
  */
 const OTC_HINT = '改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價';
+
+/** ETF 在證交所「基金類型」裡的兩種寫法：被動式「指數股票型」、主動式「交易所交易基金」。 */
+const ETF_TYPE_MARK = /指數股票型|交易所交易基金/;
 
 export interface EtfSnapshotSources {
   funds: Row[];
@@ -300,11 +323,17 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     );
   }
 
-  // 證交所對 ETF 的「基金類型」實際寫法是「…指數股票型基金」，字面不含 "ETF"
-  // （例如 0056 是「國內成分證券指數股票型基金」）。所以認「指數股票型」這個真實
-  // 標記，"ETF" 字樣只是保險。含國外成分、期貨型、槓桿反向 ETF 也都帶「指數股票型」。
+  // 證交所對 ETF 的「基金類型」不只一種寫法，而且會隨新商品增加：
+  //   - 被動式：「…指數股票型基金」（0056 是「國內成分證券指數股票型基金」）
+  //   - 主動式：「…主動式交易所交易基金(股票)」（2025 年開辦，00981A 等 32 檔）
+  // 兩種字面都不含 "ETF"，"ETF" 字樣只是保險。早期只認「指數股票型」，於是主動式
+  // ETF 全被判成 is_etf: false，還附一句「不是 ETF」——「交易所交易基金」正是 ETF
+  // 的中文全稱，等於照著字面把 ETF 說成不是 ETF。
+  //
+  // 白名單漏掉新類別時會沉默地回答 false 而不是「不知道」，證交所下次再造新詞
+  // 一樣會中招。要根治得讓 is_etf 具備第三種狀態，那會改到回應型別，另案處理。
   const fundType = f ? String(f["基金類型"] ?? "") : "";
-  const isEtf = !!(f && (fundType.includes("指數股票型") || fundType.toUpperCase().includes("ETF")));
+  const isEtf = !!f && (ETF_TYPE_MARK.test(fundType) || fundType.toUpperCase().includes("ETF"));
   if (f && !isEtf) {
     caveats.push(`${code} 的基金類型是「${f["基金類型"]}」，不是 ETF`);
   }
