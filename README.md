@@ -1,4 +1,4 @@
-*[English](README.en.md) ｜ 繁體中文*
+*[English](README.en.md) ｜ 繁體中文 ｜ [简体中文](README.zh-CN.md) ｜ [日本語](README.ja.md) ｜ [한국어](README.ko.md)*
 
 # 台股資料小幫手（TWSE MCP）
 
