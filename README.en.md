@@ -26,7 +26,7 @@ Once installed, just ask in your own words, for example:
 
 - **"What's TSMC at right now?"** — Live prices, several tickers at once.
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
-- **"What exactly is the ETF 0056?"** — Which index it tracks, how big it is, how popular it is for regular savings plans, plus which figures you should not take at face value.
+- **"What exactly is the ETF 0056?"** — Which index it tracks, how popular it is for regular savings plans, plus which figures you should not take at face value.
 - **"Does the exchange publish data on …?"** — Finds the right one among a hundred-plus public reports.
 
 You do not need to memorise commands or field names. **Just ask normally** and
@@ -157,7 +157,8 @@ part of that quote.
 1. **This is a personal side project.** I try to keep it running, but it may occasionally rate-limit, go down for maintenance, or change address in future — no guarantee it is always up.
 2. **"Live" quotes are best-effort.** They come from the exchange's web interface and can lag by seconds to minutes, occasionally fail, or differ slightly from what your broker shows.
 3. **For reference only, not investment advice.** Figures may be wrong or delayed. **Verify with the exchange or your broker before you trade** — your gains and losses are your own responsibility.
-4. **No login, no personal data collected.** Your questions go through this service to fetch **public** data from the exchange, and that is all.
+4. **Everything except live quotes may be up to an hour old.** Reports are cached for an hour so the exchange is not hit on every request; intraday prices are never cached and are always fetched fresh.
+5. **No login, and your questions are not recorded.** They go through this service to fetch **public** data from the exchange. While we measure how many people still connect with the older protocol, the service logs which AI tool you use and which protocol version it speaks — **not what you ask** — and that logging will be removed once the measurement is done.
 
 ---
 
@@ -203,7 +204,7 @@ codex mcp add twse --url https://twse-mcp.taux.io/mcp
 | Field | Value |
 |---|---|
 | URL | `https://twse-mcp.taux.io/mcp` |
-| Transport | Streamable HTTP (remote MCP) |
+| Transport | Streamable HTTP (remote MCP); both the older and newer MCP protocol revisions work |
 | Authentication | None |
 
 Field names differ between tools — pick the "Streamable HTTP" option, not the
