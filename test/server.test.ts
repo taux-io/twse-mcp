@@ -213,6 +213,15 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(ids).toContain("opendata/t187ap47_L");
   });
 
+  // schema 那層：負數在到達 core 之前就該被擋下，與 twse_get_dataset 對等。
+  it("twse_search_datasets：負數 limit 被 schema 擋下", async () => {
+    const payload = await rpc("tools/call", {
+      name: "twse_search_datasets",
+      arguments: { query: "ETF", limit: -1 },
+    });
+    expect(payload.result.isError).toBe(true);
+  });
+
   it("twse_describe_dataset：回真實目錄的欄位定義", async () => {
     const out = await callTool("twse_describe_dataset", { dataset_id: "exchangeReport/STOCK_DAY_ALL" });
     expect(out.id).toBe("exchangeReport/STOCK_DAY_ALL");

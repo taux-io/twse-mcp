@@ -123,7 +123,13 @@ export function searchDatasets(
     });
   }
 
-  return { total_matched: out.length, results: out.slice(0, limit) };
+  // 和 getDataset 一樣，負的 limit 會讓 slice 從尾端往回算：slice(0, -1) 回的是
+  // 「除了最後一筆以外全部」。這裡沒有 getDataset 那種「硬上限 200」的承諾可以繞，
+  // 所以不是安全問題——但 -1 是很常見的「不限筆數」慣用寫法，模型用它會靜靜地少拿
+  // 一筆而且收不到任何錯誤。夾成 0 至少是個看得出來的答案（total_matched 仍照實回報）。
+  // NaN 也要夾掉：Math.max(0, NaN) 是 NaN，slice(0, NaN) 回空陣列，行為一致。
+  const take = Math.max(0, limit) || 0;
+  return { total_matched: out.length, results: out.slice(0, take) };
 }
 
 /**
