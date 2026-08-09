@@ -42,10 +42,35 @@ function json(value: unknown) {
  */
 const CACHE_TTL_MS = 3_600_000;
 
+/**
+ * 政府資料開放授權條款第 1 版（OGDL v1）要求的顯名聲明。
+ *
+ * 這不是禮貌，是授權成立的條件。條款三之(二)：「應以符合附件所示『顯名聲明』要求之
+ * 方式，明確標示原資料提供機關之相關聲明；**未盡顯名標示義務者，視為自始未取得開放
+ * 資料之授權**。」而本服務是把這些資料公開再散布出去。
+ *
+ * 措辭照 https://data.gov.tw/license 附件原文，不改寫。
+ *
+ * 放在 MCP 的 `instructions` 而不是每個工具回應裡：它會隨 initialize / server/discover
+ * 送到每個 client，一次到位，而不必讓每筆資料回應都多帶一段法律文字。README 另有一份
+ * 給人類讀的。
+ */
+const OGDL_ATTRIBUTION = [
+  "資料來源與授權：",
+  "臺灣證券交易所 2026 臺灣證券交易所 OpenAPI",
+  "此開放資料依政府資料開放授權條款 (Open Government Data License) 進行公眾釋出，" +
+    "使用者於遵守本條款各項規定之前提下，得利用之。",
+  "政府資料開放授權條款：https://data.gov.tw/license",
+  "",
+  "例外：twse_realtime_quote 的來源是證交所基本市況報導站（mis.twse.com.tw），" +
+    "該站未登錄於政府資料開放平臺，不在上述授權範圍內。",
+].join("\n");
+
 export function createServer() {
   const server = new McpServer(
     { name: "twse-opendata", version: "0.3.0" },
     {
+      instructions: OGDL_ATTRIBUTION,
       cacheHints: {
         // "public"：服務公開、不認證，所有請求者拿到同一份清單，這是對真實可見度的
         // 誠實描述。規範明訂這個欄位不得當作存取控制使用，此處也不作此用。

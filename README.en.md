@@ -162,6 +162,22 @@ part of that quote.
 
 ---
 
+## Data source and licence
+
+臺灣證券交易所 2026 臺灣證券交易所 OpenAPI
+
+此開放資料依政府資料開放授權條款 (Open Government Data License) 進行公眾釋出，使用者於遵守本條款各項規定之前提下，得利用之。
+
+Open Government Data License: <https://data.gov.tw/license>
+
+> **One exception**: intraday quotes come from the exchange's market-information site (`mis.twse.com.tw`), which is not registered on the government open-data platform and is therefore outside the licence above.
+
+This service only proxies and reshapes the data; it makes no warranty as to accuracy. Please carry the attribution above when you cite it.
+
+*(The attribution paragraph is reproduced verbatim in Chinese as the licence requires.)*
+
+---
+
 ## Help make it better
 
 This is an open source project and contributions are welcome — the source is on

@@ -455,6 +455,20 @@ describe("協定 era", () => {
     expect(payload.result.cacheScope).toBeUndefined();
   });
 
+  /**
+   * OGDL 顯名聲明不是禮貌，是授權成立的條件——條款三之(二)明訂「未盡顯名標示義務者，
+   * 視為自始未取得開放資料之授權」。所以它要有測試守著，不能靠人記得。
+   */
+  it("server/discover 帶 OGDL 顯名聲明", async () => {
+    const payload = await rpcFor("modern")("server/discover", {});
+    const instr = payload.result.instructions as string;
+    expect(instr).toContain("政府資料開放授權條款");
+    expect(instr).toContain("https://data.gov.tw/license");
+    expect(instr).toContain("臺灣證券交易所");
+    // mis 未登錄於政府資料開放平臺，不在授權範圍內——這個例外必須說出來。
+    expect(instr).toContain("mis.twse.com.tw");
+  });
+
   it("server/discover 在 modern 可呼叫，支援版本含 2026-07-28", async () => {
     const payload = await rpcFor("modern")("server/discover", {});
     expect(payload.result.supportedVersions).toContain(MODERN_REVISION);
