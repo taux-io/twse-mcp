@@ -57,6 +57,28 @@ const CACHE_TTL_MS = 3_600_000;
  * 送到每個 client，一次到位，而不必讓每筆資料回應都多帶一段法律文字。README 另有一份
  * 給人類讀的。
  */
+/**
+ * 呼叫之前就必須知道、否則會做錯的兩件事。
+ *
+ * 為什麼放在 `instructions` 而不是工具描述：這兩條是**跨工具**的——選錯資料集發生在
+ * 呼叫 twse_get_dataset 之前，而 code_candidates 的誤用發生在讀回應的時候。工具描述
+ * 只在模型看那一支工具時起作用。
+ *
+ * 為什麼只有兩條：`instructions` 會隨每次連線送給每個 client 並進入 system prompt，
+ * 放進去的每個字都佔所有人的 context。刻意不寫「資料是前一交易日」——每則
+ * twse_get_dataset 的回應都已經帶 `note` 欄位講同一件事，重複講是純成本。
+ */
+const USAGE_GUIDANCE = [
+  "使用要點：",
+  "1. 先搜尋再取用。資料集有 275 個，名稱不直覺——ETF 的主檔叫「基金基本資料彙總表」，" +
+    "搜「ETF」找不到它。不確定該用哪一個時，先呼叫 twse_search_datasets，" +
+    "不要憑印象猜 dataset_id。",
+  "2. code 是精確比對。找不到完全相符的代號時會回 0 筆並附上 code_candidates，" +
+    "**那是拼法相近的候選，不是答案**——期交所的 MXF（小型臺指期貨）與 MXFFX" +
+    "（客製化小型臺指）是不同契約，年成交量差兩百萬倍。請向使用者確認要查哪一個，" +
+    "再用該代號重新查詢；絕對不要直接引用候選代號的數字。",
+].join("\n");
+
 const OGDL_ATTRIBUTION = [
   "資料來源與授權：",
   "臺灣證券交易所 2026 臺灣證券交易所 OpenAPI",
@@ -81,13 +103,17 @@ export function createServer() {
   const server = new McpServer(
     { name: "twse-opendata", version: "0.3.0" },
     {
-      instructions: OGDL_ATTRIBUTION,
+      instructions: `${USAGE_GUIDANCE}\n\n${OGDL_ATTRIBUTION}`,
       cacheHints: {
         // "public"：服務公開、不認證，所有請求者拿到同一份清單，這是對真實可見度的
         // 誠實描述。規範明訂這個欄位不得當作存取控制使用，此處也不作此用。
         // 一旦導入認證，這個值就從誠實變成錯誤，而且是安靜地錯（共享快取會跨授權
         // 情境重用回應）——見 docs/adr/0001。
         "tools/list": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
+        // prompts/list 與 tools/list 是同一種東西：寫死在這支檔案裡、執行期永不改變、
+        // 所有請求者拿到同一份。少了這行它就吃 SDK 的 ttlMs:0 + private，而那個
+        // 不一致本身會變成下一個人的疑問。失效條件與 tools/list 共用（ADR-0001）。
+        "prompts/list": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
         "server/discover": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
       },
     },
@@ -252,7 +278,68 @@ export function createServer() {
     },
   );
 
+  /**
+   * 三個零安裝的入口。prompts 跟著 server 走，使用者不必另外安裝任何東西——
+   * 在 Claude Code 裡是 `/mcp__twse__<name>`，Claude Desktop 在「+」選單裡。
+   *
+   * 名稱不帶 `twse_` 前綴：client 顯示時已經有 server 名了，再加一層會變成
+   * `/mcp__twse__twse_etf_overview`。工具有那個前綴是因為它們平鋪在同一個命名空間裡。
+   *
+   * 只有三個。斜線選單塞滿的結果是整體被忽略，所以只放涵蓋最常見入口的那幾個：
+   * 找表（275 個資料集的發現問題）、ETF 概況（現有最強的工具但名字不直觀）、
+   * 期貨行情（新加的 132 張表需要一個看得見的入口）。
+   */
+  server.registerPrompt(
+    "find_dataset",
+    {
+      description: "不知道該用哪個資料集時，用關鍵字找出對的那一個",
+      argsSchema: { query: z.string().describe('關鍵字，例如 "三大法人"、"融資"、"ESG"。') },
+    },
+    ({ query }) => textPrompt(
+      `請用 twse_search_datasets 以「${query}」搜尋可用的資料集，` +
+        "從結果裡挑出最貼近我問題的那一個，用 twse_describe_dataset 確認欄位定義，" +
+        "再取資料。資料集名稱不直覺，請以搜尋結果為準，不要憑印象猜 dataset_id。",
+    ),
+  );
+
+  server.registerPrompt(
+    "etf_overview",
+    {
+      description: "一次看完一檔上市 ETF 的基本資料、前一交易日價量與定期定額熱度",
+      argsSchema: { code: z.string().describe('ETF 代號，例如 "0050"、"0056"、"00878"。') },
+    },
+    ({ code }) => textPrompt(
+      `請用 twse_etf_snapshot 查 ${code} 的完整概況，並把 caveats 裡的提醒一併轉述給我` +
+        "——特別是市值粗估不等於基金規模這類「哪些數字不能當真」的說明。" +
+        "若要當下價格，另外用 twse_realtime_quote。",
+    ),
+  );
+
+  server.registerPrompt(
+    "futures_quote",
+    {
+      description: "查期貨或選擇權的每日行情（臺灣期貨交易所）",
+      argsSchema: {
+        contract: z.string().describe('契約代號或商品名，例如 "TX"、"TXO"、"臺股期貨"。'),
+      },
+    },
+    ({ contract }) => textPrompt(
+      `請查 ${contract} 的期貨／選擇權每日行情。先用 twse_search_datasets 配合 ` +
+        'tag="期貨與選擇權" 找到對的資料集（期貨日行情與選擇權日行情是不同的兩張表），' +
+        `再用 twse_get_dataset 帶 code="${contract}" 取資料。` +
+        "注意：同一個商品在不同報表的代號長度不同（日行情用 TX，你手上可能是 TXF）。" +
+        "如果回應帶 code_candidates，**那是拼法相近的候選而不是答案**，" +
+        "請先告訴我有哪些候選、讓我確認要查哪一個，再用該代號重查——" +
+        "不要直接把候選代號的數字當成答案。",
+    ),
+  );
+
   return server;
+}
+
+/** prompt 的回傳形狀都一樣：一則使用者訊息。包起來免得三處各寫一次巢狀結構。 */
+function textPrompt(text: string) {
+  return { messages: [{ role: "user" as const, content: { type: "text" as const, text } }] };
 }
 
 /**
