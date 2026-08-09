@@ -29,8 +29,33 @@ function json(value: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 1) }] };
 }
 
+/**
+ * 工具清單的快取效期。
+ *
+ * 五個工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
+ * 更長。壓在 1 小時是因為工具描述是本專案最常微調的東西，「線上說法與 repo 不一致」
+ * 的窗口比多拿一點快取效益更值得在意。
+ *
+ * SDK 的預設是 `ttlMs: 0` + `cacheScope: "private"`（合規但最壞值：等於告訴每個 client
+ * 這份清單完全不可快取、且只有你能存）。只影響 modern era——legacy 的編碼路徑沒有
+ * 快取欄位。
+ */
+const CACHE_TTL_MS = 3_600_000;
+
 export function createServer() {
-  const server = new McpServer({ name: "twse-opendata", version: "0.2.0" });
+  const server = new McpServer(
+    { name: "twse-opendata", version: "0.2.0" },
+    {
+      cacheHints: {
+        // "public"：服務公開、不認證，所有請求者拿到同一份清單，這是對真實可見度的
+        // 誠實描述。規範明訂這個欄位不得當作存取控制使用，此處也不作此用。
+        // 一旦導入認證，這個值就從誠實變成錯誤，而且是安靜地錯（共享快取會跨授權
+        // 情境重用回應）——見 docs/adr/0001。
+        "tools/list": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
+        "server/discover": { ttlMs: CACHE_TTL_MS, cacheScope: "public" },
+      },
+    },
+  );
 
   server.registerTool(
     "twse_search_datasets",
@@ -179,8 +204,61 @@ export function createServer() {
   return server;
 }
 
+/**
+ * 探針只記真正可能是 MCP 請求的流量。
+ *
+ * 這個常數必須跟 createMcpHandler 的預設 route 一致（我們沒有覆寫它）。不一致的話
+ * 探針會靜靜地記錯東西——它沒有回應可以驗證，所以只能靠測試守（見 test 裡的
+ * 「不寫探針記錄」那組）。
+ */
+const MCP_ROUTE = "/mcp";
+
+/**
+ * 臨時探針：量測 client 分佈，為「要不要做 era 收斂」累積證據。issue #36。
+ * **數週後連同它的測試一起移除。**
+ *
+ * **判讀規則——先前寫錯過一次，別再錯第二次。**
+ * 不要數 `protocolVersion` 是不是 null。2025-era 的 streamable-HTTP client 依規範
+ * **必須**在每個請求送 `MCP-Protocol-Version`，值是 `2025-06-18` 之類；它們是
+ * legacy，但這個欄位不是 null。按 null 數會把一整批合規的 2025 client 讀成「零
+ * legacy 流量」，然後盲切。要按**值**分類：等於 `2026-07-28` 的才算跟上，
+ * 其餘（含 null）都還沒。
+ *
+ * 刻意不記 era。分類為 legacy 的理由有六種（http-method / initialize / no-claim /
+ * notification / batch / response），而這裡只拿得到最終的 era 值、拿不到理由——
+ * 一個完全支援 modern 的 client 只要送的是通知或批次就會被算進 legacy，於是 legacy
+ * 用量被系統性高估。
+ *
+ * 只記 POST /mcp。先前無條件記錄，於是 404 路徑掃描、CORS preflight 與 GET 全都會
+ * 寫下一筆四欄皆 null 的記錄，和真正的裸 legacy 請求位元組相同——公開端點的背景
+ * 掃描會把 null 桶灌滿，收斂條件永遠達不成，而且每一筆都在計費。
+ *
+ * 記 origin 是為了讓瀏覽器來的流量（會被 origin 檢查擋掉的那些）事後濾得掉；它們
+ * 打得到 POST /mcp，但不可能是 MCP client。
+ */
+function logClientProbe(request: Request) {
+  if (request.method !== "POST") return;
+  if (new URL(request.url).pathname !== MCP_ROUTE) return;
+  console.log(
+    JSON.stringify({
+      tag: "mcp-client-probe",
+      protocolVersion: request.headers.get("mcp-protocol-version"),
+      mcpMethod: request.headers.get("mcp-method"),
+      userAgent: request.headers.get("user-agent"),
+      origin: request.headers.get("origin"),
+    }),
+  );
+}
+
 export default {
   fetch(request, env, ctx) {
+    logClientProbe(request);
+    // 每個請求建一次，**不要**提到模組層級。曾經提上去過，理由寫的是「handler 沒有
+    // 跨請求狀態」——那是錯的。SDK 的 handler 閉包持有一個 inflight Set，以及
+    // subscriptions/listen 的 router（帶固定訂閱上限，滿了回 -32603）。提到模組層級
+    // 後這兩個結構的生命週期就變成整個 isolate：任何未認證的 client 都能開 listen
+    // stream 把上限塞滿，之後落在同一個 isolate 的其他人一律被拒。每請求重建多一點
+    // 成本，但它讓這些結構跟著請求一起消滅。
     return createMcpHandler(createServer)(request, env, ctx);
   },
 } satisfies ExportedHandler;
