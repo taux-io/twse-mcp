@@ -3,7 +3,7 @@
   "name": "io.github.taux-io/twse-mcp",
   "title": "TWSE Open Data (Taiwan Stock Exchange)",
   "description": "Taiwan Stock Exchange (TWSE) open data as MCP tools: stock quotes, ETF data, 140+ public datasets.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "websiteUrl": "https://github.com/taux-io/twse-mcp",
   "repository": {
     "url": "https://github.com/taux-io/twse-mcp",
