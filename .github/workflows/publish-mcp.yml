@@ -1,0 +1,56 @@
+# 打 `v*` tag 時，把 `server.json` 重新發布到官方 MCP Registry。
+#
+# 這支不建置、不發 npm 套件——本專案是 remote server，registry 條目只有 `remotes`
+# 指向線上端點，沒有可安裝的套件（npm 上的 `twse-mcp` 是別人的，與本專案無關）。
+# 所以這裡唯一的工作是把 server.json 送上去。
+#
+# 用 OIDC 而非 PAT：不需要任何長期 secret，`id-token: write` 換來的是一次性的憑證。
+# 官方文件的 PAT 版本要求把 token 放進受保護的 Environment，那對這個規模的專案是
+# 沒必要的維護負擔。
+name: publish to mcp registry
+
+on:
+  push:
+    tags: ["v*"]
+  # 手動重發：registry 標示為 preview，官方明說可能有資料重置，
+  # 屆時不必為了重發而硬打一個新 tag。
+  workflow_dispatch:
+
+concurrency:
+  group: publish-mcp
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # OIDC 換憑證用。顯式寫出 contents: read，是為了不受未來組織層級預設值變動影響
+      # ——與 test.yml 同樣的理由。
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      # server.json 的 version 要跟 tag 一致，否則 registry 上會出現一個與 tag
+      # 對不起來的版本。以 tag 為準覆寫，而不是要求人記得先改檔案。
+      - name: sync version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          jq --arg v "$VERSION" '.version = $v' server.json > server.tmp
+          mv server.tmp server.json
+          echo "server.json version -> $VERSION"
+
+      - name: install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      # 先驗證再登入：schema 錯誤不該浪費一次認證，也讓失敗訊息停在看得懂的地方。
+      - name: validate server.json
+        run: ./mcp-publisher validate
+
+      - name: authenticate
+        run: ./mcp-publisher login github-oidc
+
+      - name: publish
+        run: ./mcp-publisher publish
