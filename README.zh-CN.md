@@ -1,5 +1,12 @@
 *[English](README.en.md) ｜ [繁體中文](README.md) ｜ 简体中文 ｜ [日本語](README.ja.md) ｜ [한국어](README.ko.md)*
 
+[![tests](https://github.com/taux-io/twse-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/taux-io/twse-mcp/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/taux-io/twse-mcp/blob/main/LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/package.json)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/wrangler.jsonc)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
+
 # 台股数据小助手（TWSE MCP 服务器）
 
 > **这份简体中文版由繁体中文版转换并做了用词本地化。** 如果发现用词不自然或有错，
