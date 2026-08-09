@@ -23,7 +23,7 @@ settings** — about a minute's work.
 > others all support it.)
 
 > A personal, free-of-charge side project. All data comes from public sources
-> published by the Taiwan Stock Exchange.
+> published by the Taiwan Stock Exchange and the Taiwan Futures Exchange.
 
 ---
 
@@ -34,7 +34,8 @@ Once installed, just ask in your own words, for example:
 - **"What's TSMC at right now?"** — Live prices, several tickers at once.
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
 - **"What exactly is the ETF 0056?"** — Which index it tracks, how popular it is for regular savings plans, plus which figures you should not take at face value.
-- **"Does the exchange publish data on …?"** — Finds the right one among a hundred-plus public reports.
+- **"Where did the TAIEX futures settle yesterday?"** — Daily futures and options quotes, institutional-investor flows and open interest, as published by the futures exchange.
+- **"Does the exchange publish data on …?"** — Finds the right one among two hundred-plus public reports.
 
 You do not need to memorise commands or field names. **Just ask normally** and
 the AI will look it up.
@@ -56,12 +57,16 @@ Click **your name in the bottom-left corner** → choose **Settings** → find
 
 ### Step 2: Paste the URL
 
-Click **"+ Add custom connector"**. A small dialog asks for two things:
+Click **"+ Add custom connector"**. A small dialog asks for two things.
 
-| Field | What to enter |
-|---|---|
-| Name | Anything you like, e.g. `Taiwan Stocks` |
-| URL | `https://twse-mcp.taux.io/mcp` |
+**Name** — anything you like, e.g. `Taiwan Stocks`.
+
+**URL** — paste the line below. Hover over the box and a copy button appears in
+its top-right corner:
+
+```
+https://twse-mcp.taux.io/mcp
+```
 
 Click **Add** and you are done. **No account, no password, no payment.**
 
@@ -172,6 +177,8 @@ part of that quote.
 ## Data source and licence
 
 臺灣證券交易所 2026 臺灣證券交易所 OpenAPI
+
+金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS
 
 此開放資料依政府資料開放授權條款 (Open Government Data License) 進行公眾釋出，使用者於遵守本條款各項規定之前提下，得利用之。
 

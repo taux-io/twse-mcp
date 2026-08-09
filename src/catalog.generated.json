@@ -1,6 +1,7 @@
 {
  "opendata/t187ap46_L_21": {
   "id": "opendata/t187ap46_L_21",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-職業安全衛生",
   "description": "上市公司企業ESG資訊揭露彙總資料-職業安全衛生(臺灣證券交易所)",
   "tags": [
@@ -20,6 +21,7 @@
  },
  "opendata/t187ap45_L": {
   "id": "opendata/t187ap45_L",
+  "source": "twse",
   "summary": "上市公司股利分派情形",
   "description": "上市公司股利分派情形",
   "tags": [
@@ -54,6 +56,7 @@
  },
  "opendata/t187ap46_L_20": {
   "id": "opendata/t187ap46_L_20",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟",
   "description": "上市公司企業ESG資訊揭露彙總資料-反競爭行為法律訴訟，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -69,6 +72,7 @@
  },
  "opendata/t187ap46_L_19": {
   "id": "opendata/t187ap46_L_19",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-風險管理政策",
   "description": "上市公司企業ESG資訊揭露彙總資料-風險管理政策，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -85,6 +89,7 @@
  },
  "opendata/t187ap46_L_18": {
   "id": "opendata/t187ap46_L_18",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-持股及控制力",
   "description": "上市公司企業ESG資訊揭露彙總資料-持股及控制力，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -100,6 +105,7 @@
  },
  "opendata/t187ap46_L_17": {
   "id": "opendata/t187ap46_L_17",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-普惠金融",
   "description": "上市公司企業ESG資訊揭露彙總資料-普惠金融，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -117,6 +123,7 @@
  },
  "opendata/t187ap46_L_16": {
   "id": "opendata/t187ap46_L_16",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-資訊安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-資訊安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -134,6 +141,7 @@
  },
  "opendata/t187ap46_L_15": {
   "id": "opendata/t187ap46_L_15",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-社區關係",
   "description": "上市公司企業ESG資訊揭露彙總資料-社區關係，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -149,6 +157,7 @@
  },
  "opendata/t187ap46_L_14": {
   "id": "opendata/t187ap46_L_14",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-產品品質與安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-產品品質與安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -166,6 +175,7 @@
  },
  "opendata/t187ap46_L_13": {
   "id": "opendata/t187ap46_L_13",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-供應鏈管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-供應鏈管理，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -183,6 +193,7 @@
  },
  "opendata/t187ap46_L_12": {
   "id": "opendata/t187ap46_L_12",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-食品安全",
   "description": "上市公司企業ESG資訊揭露彙總資料-食品安全，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -204,6 +215,7 @@
  },
  "opendata/t187ap46_L_11": {
   "id": "opendata/t187ap46_L_11",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-產品生命週期",
   "description": "上市公司企業ESG資訊揭露彙總資料-產品生命週期，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -220,6 +232,7 @@
  },
  "opendata/t187ap46_L_10": {
   "id": "opendata/t187ap46_L_10",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-燃料管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-燃料管理，本項目為產業永續指標，公司依產業別加強揭露，故非所有公司揭露相關資訊",
   "tags": [
@@ -238,6 +251,7 @@
  },
  "opendata/t187ap46_L_9": {
   "id": "opendata/t187ap46_L_9",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-功能性委員會",
   "description": "上市公司企業ESG資訊揭露彙總資料-功能性委員會",
   "tags": [
@@ -257,6 +271,7 @@
  },
  "opendata/t187ap46_L_8": {
   "id": "opendata/t187ap46_L_8",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-氣候相關議題管理",
   "tags": [
@@ -278,6 +293,7 @@
  },
  "opendata/t187ap47_L": {
   "id": "opendata/t187ap47_L",
+  "source": "twse",
   "summary": "基金基本資料彙總表",
   "description": "基金基本資料彙總表",
   "tags": [
@@ -317,6 +333,7 @@
  },
  "opendata/t187ap05_P": {
   "id": "opendata/t187ap05_P",
+  "source": "twse",
   "summary": "公開發行公司每月營業收入彙總表",
   "description": "公開發行公司每月營業收入彙總表",
   "tags": [
@@ -341,6 +358,7 @@
  },
  "opendata/t187ap46_L_7": {
   "id": "opendata/t187ap46_L_7",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-投資人溝通",
   "description": "上市公司企業ESG資訊揭露彙總資料-投資人溝通",
   "tags": [
@@ -356,6 +374,7 @@
  },
  "opendata/t187ap46_L_6": {
   "id": "opendata/t187ap46_L_6",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-董事會",
   "description": "上市公司企業ESG資訊揭露彙總資料-董事會",
   "tags": [
@@ -376,6 +395,7 @@
  },
  "opendata/t187ap46_L_5": {
   "id": "opendata/t187ap46_L_5",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-人力發展",
   "description": "上市公司企業ESG資訊揭露彙總資料-人力發展",
   "tags": [
@@ -400,6 +420,7 @@
  },
  "opendata/t187ap46_L_4": {
   "id": "opendata/t187ap46_L_4",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-廢棄物管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-廢棄物管理",
   "tags": [
@@ -423,6 +444,7 @@
  },
  "opendata/t187ap46_L_3": {
   "id": "opendata/t187ap46_L_3",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-水資源管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-水資源管理",
   "tags": [
@@ -442,6 +464,7 @@
  },
  "opendata/t187ap46_L_2": {
   "id": "opendata/t187ap46_L_2",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-能源管理",
   "description": "上市公司企業ESG資訊揭露彙總資料-能源管理",
   "tags": [
@@ -459,6 +482,7 @@
  },
  "opendata/t187ap46_L_1": {
   "id": "opendata/t187ap46_L_1",
+  "source": "twse",
   "summary": "上市公司企業ESG資訊揭露彙總資料-溫室氣體排放",
   "description": "上市公司企業ESG資訊揭露彙總資料-溫室氣體排放",
   "tags": [
@@ -483,6 +507,7 @@
  },
  "ETFReport/ETFRank": {
   "id": "ETFReport/ETFRank",
+  "source": "twse",
   "summary": "定期定額交易戶數統計排行月報表",
   "description": "定期定額交易戶數統計排行月報表",
   "tags": [
@@ -500,6 +525,7 @@
  },
  "brokerService/secRegData": {
   "id": "brokerService/secRegData",
+  "source": "twse",
   "summary": "開辦定期定額業務證券商名單",
   "description": "開辦定期定額業務證券商名單",
   "tags": [
@@ -514,6 +540,7 @@
  },
  "opendata/t187ap07_X_ci": {
   "id": "opendata/t187ap07_X_ci",
+  "source": "twse",
   "summary": "公發公司資產負債表-一般業",
   "description": "公發公司資產負債表-一般業",
   "tags": [
@@ -550,6 +577,7 @@
  },
  "opendata/t187ap07_X_mim": {
   "id": "opendata/t187ap07_X_mim",
+  "source": "twse",
   "summary": "公發公司資產負債表-異業",
   "description": "公發公司資產負債表-異業",
   "tags": [
@@ -585,6 +613,7 @@
  },
  "opendata/t187ap06_X_basi": {
   "id": "opendata/t187ap06_X_basi",
+  "source": "twse",
   "summary": "公發公司綜合損益表-金融業",
   "description": "公發公司綜合損益表-金融業",
   "tags": [
@@ -620,6 +649,7 @@
  },
  "opendata/t187ap06_X_bd": {
   "id": "opendata/t187ap06_X_bd",
+  "source": "twse",
   "summary": "公發公司綜合損益表-證券期貨業",
   "description": "公發公司綜合損益表-證券期貨業",
   "tags": [
@@ -655,6 +685,7 @@
  },
  "opendata/t187ap06_X_ci": {
   "id": "opendata/t187ap06_X_ci",
+  "source": "twse",
   "summary": "公發公司綜合損益表-一般業",
   "description": "公發公司綜合損益表-一般業",
   "tags": [
@@ -698,6 +729,7 @@
  },
  "opendata/t187ap06_X_fh": {
   "id": "opendata/t187ap06_X_fh",
+  "source": "twse",
   "summary": "公發公司綜合損益表-金控業",
   "description": "公發公司綜合損益表-金控業",
   "tags": [
@@ -733,6 +765,7 @@
  },
  "opendata/t187ap06_X_ins": {
   "id": "opendata/t187ap06_X_ins",
+  "source": "twse",
   "summary": "公發公司綜合損益表-保險業",
   "description": "公發公司綜合損益表-保險業",
   "tags": [
@@ -769,6 +802,7 @@
  },
  "opendata/t187ap06_X_mim": {
   "id": "opendata/t187ap06_X_mim",
+  "source": "twse",
   "summary": "公發公司綜合損益表-異業",
   "description": "公發公司綜合損益表-異業",
   "tags": [
@@ -800,6 +834,7 @@
  },
  "news/eventList": {
   "id": "news/eventList",
+  "source": "twse",
   "summary": "證交所活動訊息",
   "description": "證交所活動訊息",
   "tags": [
@@ -813,6 +848,7 @@
  },
  "company/applylistingForeign": {
   "id": "company/applylistingForeign",
+  "source": "twse",
   "summary": "外國公司向證交所申請第一上市之公司",
   "description": "外國公司向證交所申請第一上市之公司",
   "tags": [
@@ -836,6 +872,7 @@
  },
  "company/newlisting": {
   "id": "company/newlisting",
+  "source": "twse",
   "summary": "最近上市公司",
   "description": "最近上市公司",
   "tags": [
@@ -859,6 +896,7 @@
  },
  "company/suspendListingCsvAndHtml": {
   "id": "company/suspendListingCsvAndHtml",
+  "source": "twse",
   "summary": "終止上市公司",
   "description": "終止上市公司",
   "tags": [
@@ -872,6 +910,7 @@
  },
  "brokerService/brokerList": {
   "id": "brokerService/brokerList",
+  "source": "twse",
   "summary": "證券商總公司基本資料",
   "description": "證券商總公司基本資料",
   "tags": [
@@ -887,6 +926,7 @@
  },
  "news/newsList": {
   "id": "news/newsList",
+  "source": "twse",
   "summary": "證交所新聞",
   "description": "證交所新聞",
   "tags": [
@@ -900,6 +940,7 @@
  },
  "exchangeReport/BWIBBU_ALL": {
   "id": "exchangeReport/BWIBBU_ALL",
+  "source": "twse",
   "summary": "上市個股日本益比、殖利率及股價淨值比（依代碼查詢）",
   "description": "上市個股日本益比、殖利率及股價淨值比（依代碼查詢）",
   "tags": [
@@ -916,6 +957,7 @@
  },
  "exchangeReport/STOCK_DAY_AVG_ALL": {
   "id": "exchangeReport/STOCK_DAY_AVG_ALL",
+  "source": "twse",
   "summary": "上市個股日收盤價及月平均價",
   "description": "上市個股日收盤價及月平均價",
   "tags": [
@@ -931,6 +973,7 @@
  },
  "exchangeReport/STOCK_DAY_ALL": {
   "id": "exchangeReport/STOCK_DAY_ALL",
+  "source": "twse",
   "summary": "上市個股日成交資訊",
   "description": "上市個股日成交資訊",
   "tags": [
@@ -952,6 +995,7 @@
  },
  "exchangeReport/FMSRFK_ALL": {
   "id": "exchangeReport/FMSRFK_ALL",
+  "source": "twse",
   "summary": "上市個股月成交資訊",
   "description": "上市個股月成交資訊",
   "tags": [
@@ -972,6 +1016,7 @@
  },
  "exchangeReport/FMNPTK_ALL": {
   "id": "exchangeReport/FMNPTK_ALL",
+  "source": "twse",
   "summary": "上市個股年成交資訊",
   "description": "上市個股年成交資訊",
   "tags": [
@@ -993,6 +1038,7 @@
  },
  "exchangeReport/MI_INDEX": {
   "id": "exchangeReport/MI_INDEX",
+  "source": "twse",
   "summary": "每日收盤行情-大盤統計資訊",
   "description": "每日收盤行情-大盤統計資訊",
   "tags": [
@@ -1010,6 +1056,7 @@
  },
  "company/applylistingLocal": {
   "id": "company/applylistingLocal",
+  "source": "twse",
   "summary": "申請上市之本國公司",
   "description": "申請上市之本國公司",
   "tags": [
@@ -1033,6 +1080,7 @@
  },
  "fund/MI_QFIIS_cat": {
   "id": "fund/MI_QFIIS_cat",
+  "source": "twse",
   "summary": "集中市場外資及陸資投資類股持股比率表",
   "description": "集中市場外資及陸資投資類股持股比率表",
   "tags": [
@@ -1048,6 +1096,7 @@
  },
  "fund/MI_QFIIS_sort_20": {
   "id": "fund/MI_QFIIS_sort_20",
+  "source": "twse",
   "summary": "集中市場外資及陸資持股前 20 名彙總表",
   "description": "集中市場外資及陸資持股前 20 名彙總表",
   "tags": [
@@ -1067,6 +1116,7 @@
  },
  "exchangeReport/BFI61U": {
   "id": "exchangeReport/BFI61U",
+  "source": "twse",
   "summary": "中央登錄公債補息資料表",
   "description": "中央登錄公債補息資料表",
   "tags": [
@@ -1083,6 +1133,7 @@
  },
  "exchangeReport/TWT88U": {
   "id": "exchangeReport/TWT88U",
+  "source": "twse",
   "summary": "上市個股首五日無漲跌幅",
   "description": "上市個股首五日無漲跌幅",
   "tags": [
@@ -1105,6 +1156,7 @@
  },
  "Announcement/BFZFZU_T": {
   "id": "Announcement/BFZFZU_T",
+  "source": "twse",
   "summary": "投資理財節目異常推介個股",
   "description": "投資理財節目異常推介個股",
   "tags": [
@@ -1119,6 +1171,7 @@
  },
  "exchangeReport/TWTB4U": {
   "id": "exchangeReport/TWTB4U",
+  "source": "twse",
   "summary": "上市股票每日當日沖銷交易標的及統計",
   "description": "上市股票每日當日沖銷交易標的及統計",
   "tags": [
@@ -1133,6 +1186,7 @@
  },
  "exchangeReport/TWTBAU1": {
   "id": "exchangeReport/TWTBAU1",
+  "source": "twse",
   "summary": "集中市場暫停先賣後買當日沖銷交易標的預告表",
   "description": "集中市場暫停先賣後買當日沖銷交易標的預告表",
   "tags": [
@@ -1148,6 +1202,7 @@
  },
  "exchangeReport/TWTBAU2": {
   "id": "exchangeReport/TWTBAU2",
+  "source": "twse",
   "summary": "集中市場暫停先賣後買當日沖銷交易歷史查詢",
   "description": "集中市場暫停先賣後買當日沖銷交易歷史查詢",
   "tags": [
@@ -1163,6 +1218,7 @@
  },
  "exchangeReport/MI_INDEX4": {
   "id": "exchangeReport/MI_INDEX4",
+  "source": "twse",
   "summary": "每日上市上櫃跨市場成交資訊",
   "description": "每日上市上櫃跨市場成交資訊",
   "tags": [
@@ -1177,6 +1233,7 @@
  },
  "indicesReport/FRMSA": {
   "id": "indicesReport/FRMSA",
+  "source": "twse",
   "summary": "寶島股價指數歷史資料",
   "description": "寶島股價指數歷史資料",
   "tags": [
@@ -1190,6 +1247,7 @@
  },
  "indicesReport/TAI50I": {
   "id": "indicesReport/TAI50I",
+  "source": "twse",
   "summary": "臺灣 50 指數歷史資料",
   "description": "臺灣 50 指數歷史資料",
   "tags": [
@@ -1203,6 +1261,7 @@
  },
  "exchangeReport/MI_5MINS": {
   "id": "exchangeReport/MI_5MINS",
+  "source": "twse",
   "summary": "每 5 秒委託成交統計",
   "description": "每 5 秒委託成交統計",
   "tags": [
@@ -1221,6 +1280,7 @@
  },
  "exchangeReport/FMTQIK": {
   "id": "exchangeReport/FMTQIK",
+  "source": "twse",
   "summary": "集中市場每日市場成交資訊",
   "description": "集中市場每日市場成交資訊",
   "tags": [
@@ -1237,6 +1297,7 @@
  },
  "exchangeReport/MI_INDEX20": {
   "id": "exchangeReport/MI_INDEX20",
+  "source": "twse",
   "summary": "集中市場每日成交量前二十名證券",
   "description": "集中市場每日成交量前二十名證券",
   "tags": [
@@ -1261,6 +1322,7 @@
  },
  "exchangeReport/TWT53U": {
   "id": "exchangeReport/TWT53U",
+  "source": "twse",
   "summary": "集中市場零股交易行情單",
   "description": "集中市場零股交易行情單",
   "tags": [
@@ -1281,6 +1343,7 @@
  },
  "exchangeReport/TWTAWU": {
   "id": "exchangeReport/TWTAWU",
+  "source": "twse",
   "summary": "集中市場暫停交易證券",
   "description": "集中市場暫停交易證券",
   "tags": [
@@ -1298,6 +1361,7 @@
  },
  "exchangeReport/BFT41U": {
   "id": "exchangeReport/BFT41U",
+  "source": "twse",
   "summary": "集中市場盤後定價交易",
   "description": "集中市場盤後定價交易",
   "tags": [
@@ -1316,6 +1380,7 @@
  },
  "exchangeReport/BFI84U": {
   "id": "exchangeReport/BFI84U",
+  "source": "twse",
   "summary": "集中市場停資停券預告表",
   "description": "集中市場停資停券預告表",
   "tags": [
@@ -1331,6 +1396,7 @@
  },
  "exchangeReport/MI_MARGN": {
   "id": "exchangeReport/MI_MARGN",
+  "source": "twse",
   "summary": "集中市場融資融券餘額",
   "description": "集中市場融資融券餘額",
   "tags": [
@@ -1357,6 +1423,7 @@
  },
  "indicesReport/MI_5MINS_HIST": {
   "id": "indicesReport/MI_5MINS_HIST",
+  "source": "twse",
   "summary": "發行量加權股價指數歷史資料",
   "description": "發行量加權股價指數歷史資料",
   "tags": [
@@ -1372,6 +1439,7 @@
  },
  "block/BFIAUU_d": {
   "id": "block/BFIAUU_d",
+  "source": "twse",
   "summary": "集中市場鉅額交易日成交量值統計",
   "description": "集中市場鉅額交易日成交量值統計",
   "tags": [
@@ -1388,6 +1456,7 @@
  },
  "block/BFIAUU_m": {
   "id": "block/BFIAUU_m",
+  "source": "twse",
   "summary": "集中市場鉅額交易月成交量值統計",
   "description": "集中市場鉅額交易月成交量值統計",
   "tags": [
@@ -1403,6 +1472,7 @@
  },
  "block/BFIAUU_y": {
   "id": "block/BFIAUU_y",
+  "source": "twse",
   "summary": "集中市場鉅額交易年成交量值統計",
   "description": "集中市場鉅額交易年成交量值統計",
   "tags": [
@@ -1417,6 +1487,7 @@
  },
  "exchangeReport/STOCK_FIRST": {
   "id": "exchangeReport/STOCK_FIRST",
+  "source": "twse",
   "summary": "每日第一上市外國股票成交量值",
   "description": "每日第一上市外國股票成交量值",
   "tags": [
@@ -1443,6 +1514,7 @@
  },
  "exchangeReport/TWT85U": {
   "id": "exchangeReport/TWT85U",
+  "source": "twse",
   "summary": "集中市場證券變更交易",
   "description": "集中市場證券變更交易",
   "tags": [
@@ -1456,6 +1528,7 @@
  },
  "holidaySchedule/holidaySchedule": {
   "id": "holidaySchedule/holidaySchedule",
+  "source": "twse",
   "summary": "有價證券集中交易市場開（休）市日期",
   "description": "有價證券集中交易市場開（休）市日期",
   "tags": [
@@ -1470,6 +1543,7 @@
  },
  "exchangeReport/BWIBBU_d": {
   "id": "exchangeReport/BWIBBU_d",
+  "source": "twse",
   "summary": "上市個股日本益比、殖利率及股價淨值比（依日期查詢）",
   "description": "上市個股日本益比、殖利率及股價淨值比（依日期查詢）",
   "tags": [
@@ -1489,6 +1563,7 @@
  },
  "indicesReport/MFI94U": {
   "id": "indicesReport/MFI94U",
+  "source": "twse",
   "summary": "發行量加權股價報酬指數",
   "description": "發行量加權股價報酬指數",
   "tags": [
@@ -1501,6 +1576,7 @@
  },
  "SBL/TWT96U": {
   "id": "SBL/TWT96U",
+  "source": "twse",
   "summary": "上市上櫃股票當日可借券賣出股數",
   "description": "上市上櫃股票當日可借券賣出股數",
   "tags": [
@@ -1515,6 +1591,7 @@
  },
  "exchangeReport/TWT84U": {
   "id": "exchangeReport/TWT84U",
+  "source": "twse",
   "summary": "上市個股股價升降幅度",
   "description": "上市個股股價升降幅度",
   "tags": [
@@ -1536,6 +1613,7 @@
  },
  "opendata/twtazu_od": {
   "id": "opendata/twtazu_od",
+  "source": "twse",
   "summary": "集中市場漲跌證券數統計表",
   "description": "集中市場漲跌證券數統計表",
   "tags": [
@@ -1555,6 +1633,7 @@
  },
  "opendata/t187ap04_L": {
   "id": "opendata/t187ap04_L",
+  "source": "twse",
   "summary": "上市公司每日重大訊息",
   "description": "上市公司每日重大訊息",
   "tags": [
@@ -1574,6 +1653,7 @@
  },
  "opendata/t187ap03_L": {
   "id": "opendata/t187ap03_L",
+  "source": "twse",
   "summary": "上市公司基本資料",
   "description": "上市公司基本資料",
   "tags": [
@@ -1617,6 +1697,7 @@
  },
  "opendata/t187ap05_L": {
   "id": "opendata/t187ap05_L",
+  "source": "twse",
   "summary": "上市公司每月營業收入彙總表",
   "description": "上市公司每月營業收入彙總表",
   "tags": [
@@ -1641,6 +1722,7 @@
  },
  "opendata/t187ap01": {
   "id": "opendata/t187ap01",
+  "source": "twse",
   "summary": "券商業務別人員數",
   "description": "券商業務別人員數",
   "tags": [
@@ -1681,6 +1763,7 @@
  },
  "opendata/t187ap02_L": {
   "id": "opendata/t187ap02_L",
+  "source": "twse",
   "summary": "上市公司持股逾 10% 大股東名單",
   "description": "上市公司持股逾 10% 大股東名單",
   "tags": [
@@ -1695,6 +1778,7 @@
  },
  "opendata/t187ap14_L": {
   "id": "opendata/t187ap14_L",
+  "source": "twse",
   "summary": "上市公司各產業EPS統計資訊",
   "description": "上市公司各產業EPS統計資訊",
   "tags": [
@@ -1717,6 +1801,7 @@
  },
  "opendata/t187ap15_L": {
   "id": "opendata/t187ap15_L",
+  "source": "twse",
   "summary": "上市公司截至各季綜合損益財測達成情形(簡式)",
   "description": "上市公司截至各季綜合損益財測達成情形(簡式)",
   "tags": [
@@ -1736,6 +1821,7 @@
  },
  "opendata/t187ap16_L": {
   "id": "opendata/t187ap16_L",
+  "source": "twse",
   "summary": "上市公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
   "description": "上市公司當季綜合損益經會計師查核(核閱)數與當季預測數差異達百分之十以上者，或截至當季累計差異達百分之二十以上者(簡式)",
   "tags": [
@@ -1757,6 +1843,7 @@
  },
  "opendata/t187ap17_L": {
   "id": "opendata/t187ap17_L",
+  "source": "twse",
   "summary": "上市公司營益分析查詢彙總表(全體公司彙總報表)",
   "description": "上市公司營益分析查詢彙總表(全體公司彙總報表)",
   "tags": [
@@ -1777,6 +1864,7 @@
  },
  "opendata/t187ap20": {
   "id": "opendata/t187ap20",
+  "source": "twse",
   "summary": "各券商每月月計表",
   "description": "各券商每月月計表",
   "tags": [
@@ -1795,6 +1883,7 @@
  },
  "opendata/t187ap21": {
   "id": "opendata/t187ap21",
+  "source": "twse",
   "summary": "各券商收支概況表資料",
   "description": "各券商收支概況表資料",
   "tags": [
@@ -1812,6 +1901,7 @@
  },
  "opendata/t187ap18": {
   "id": "opendata/t187ap18",
+  "source": "twse",
   "summary": "證券商基本資料",
   "description": "證券商基本資料",
   "tags": [
@@ -1890,6 +1980,7 @@
  },
  "opendata/t187ap19": {
   "id": "opendata/t187ap19",
+  "source": "twse",
   "summary": "電子式交易統計資訊",
   "description": "電子式交易統計資訊",
   "tags": [
@@ -1920,6 +2011,7 @@
  },
  "opendata/t187ap08_L": {
   "id": "opendata/t187ap08_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人持股不足法定成數彙總表",
   "description": "上市公司董事、監察人持股不足法定成數彙總表",
   "tags": [
@@ -1945,6 +2037,7 @@
  },
  "opendata/t187ap11_L": {
   "id": "opendata/t187ap11_L",
+  "source": "twse",
   "summary": "上市公司董監事持股餘額明細資料",
   "description": "上市公司董監事持股餘額明細資料",
   "tags": [
@@ -1968,6 +2061,7 @@
  },
  "opendata/t187ap12_L": {
   "id": "opendata/t187ap12_L",
+  "source": "twse",
   "summary": "上市公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
   "description": "上市公司每日內部人持股轉讓事前申報表-持股轉讓日報表",
   "tags": [
@@ -1994,6 +2088,7 @@
  },
  "opendata/t187ap13_L": {
   "id": "opendata/t187ap13_L",
+  "source": "twse",
   "summary": "上市公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
   "description": "上市公司每日內部人持股轉讓事前申報表-持股未轉讓日報表",
   "tags": [
@@ -2016,6 +2111,7 @@
  },
  "opendata/t187ap22_L": {
   "id": "opendata/t187ap22_L",
+  "source": "twse",
   "summary": "上市公司金管會證券期貨局裁罰案件專區",
   "description": "上市公司金管會證券期貨局裁罰案件專區",
   "tags": [
@@ -2033,6 +2129,7 @@
  },
  "opendata/t187ap30_L": {
   "id": "opendata/t187ap30_L",
+  "source": "twse",
   "summary": "上市公司獨立董監事兼任情形彙總表",
   "description": "上市公司獨立董監事兼任情形彙總表",
   "tags": [
@@ -2055,6 +2152,7 @@
  },
  "opendata/t187ap29_A_L": {
   "id": "opendata/t187ap29_A_L",
+  "source": "twse",
   "summary": "上市公司董事酬金相關資訊 ",
   "description": "上市公司董事酬金相關資訊 ",
   "tags": [
@@ -2085,6 +2183,7 @@
  },
  "opendata/t187ap29_B_L": {
   "id": "opendata/t187ap29_B_L",
+  "source": "twse",
   "summary": "上市公司監察人酬金相關資訊 ",
   "description": "上市公司監察人酬金相關資訊 ",
   "tags": [
@@ -2110,6 +2209,7 @@
  },
  "opendata/t187ap29_C_L": {
   "id": "opendata/t187ap29_C_L",
+  "source": "twse",
   "summary": "上市公司合併報表董事酬金相關資訊 ",
   "description": "上市公司合併報表董事酬金相關資訊 ",
   "tags": [
@@ -2140,6 +2240,7 @@
  },
  "opendata/t187ap29_D_L": {
   "id": "opendata/t187ap29_D_L",
+  "source": "twse",
   "summary": "上市公司合併報表監察人酬金相關資訊 ",
   "description": "上市公司合併報表監察人酬金相關資訊 ",
   "tags": [
@@ -2165,6 +2266,7 @@
  },
  "opendata/t187ap23_L": {
   "id": "opendata/t187ap23_L",
+  "source": "twse",
   "summary": "上市公司違反資訊申報、重大訊息及說明記者會規定專區",
   "description": "上市公司違反資訊申報、重大訊息及說明記者會規定專區",
   "tags": [
@@ -2183,6 +2285,7 @@
  },
  "opendata/t187ap31_L": {
   "id": "opendata/t187ap31_L",
+  "source": "twse",
   "summary": "上市公司財務報告經監察人承認情形",
   "description": "上市公司財務報告經監察人承認情形",
   "tags": [
@@ -2199,6 +2302,7 @@
  },
  "opendata/t187ap36_L": {
   "id": "opendata/t187ap36_L",
+  "source": "twse",
   "summary": "上市認購(售)權證年度發行量概況統計表",
   "description": "上市認購(售)權證年度發行量概況統計表",
   "tags": [
@@ -2217,6 +2321,7 @@
  },
  "opendata/t187ap03_P": {
   "id": "opendata/t187ap03_P",
+  "source": "twse",
   "summary": "公開發行公司基本資料",
   "description": "公開發行公司基本資料",
   "tags": [
@@ -2260,6 +2365,7 @@
  },
  "opendata/t187ap43_L": {
   "id": "opendata/t187ap43_L",
+  "source": "twse",
   "summary": "上市認購(售)權證交易人數檔",
   "description": "上市認購(售)權證交易人數檔",
   "tags": [
@@ -2273,6 +2379,7 @@
  },
  "opendata/t187ap42_L": {
   "id": "opendata/t187ap42_L",
+  "source": "twse",
   "summary": "上市認購(售)權證每日成交資料檔",
   "description": "上市認購(售)權證每日成交資料檔",
   "tags": [
@@ -2289,6 +2396,7 @@
  },
  "announcement/punish": {
   "id": "announcement/punish",
+  "source": "twse",
   "summary": "集中市場公布處置股票",
   "description": "集中市場公布處置股票",
   "tags": [
@@ -2309,6 +2417,7 @@
  },
  "opendata/t187ap10_L": {
   "id": "opendata/t187ap10_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
   "description": "上市公司董事、監察人持股不足法定成數連續達3個月以上彙總表",
   "tags": [
@@ -2331,6 +2440,7 @@
  },
  "opendata/t187ap38_L": {
   "id": "opendata/t187ap38_L",
+  "source": "twse",
   "summary": "上市公司股東會公告-召集股東常(臨時)會公告資料彙總表(95年度起適用)",
   "description": "上市公司股東會公告-召集股東常(臨時)會公告資料彙總表(95年度起適用)",
   "tags": [
@@ -2361,6 +2471,7 @@
  },
  "opendata/t187ap24_L": {
   "id": "opendata/t187ap24_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動公司",
   "tags": [
@@ -2376,6 +2487,7 @@
  },
  "opendata/t187ap37_L": {
   "id": "opendata/t187ap37_L",
+  "source": "twse",
   "summary": "上市權證基本資料彙總表",
   "description": "上市權證基本資料彙總表",
   "tags": [
@@ -2406,6 +2518,7 @@
  },
  "opendata/t187ap26_L": {
   "id": "opendata/t187ap26_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更停止買賣公司",
   "tags": [
@@ -2420,6 +2533,7 @@
  },
  "opendata/t187ap41_L": {
   "id": "opendata/t187ap41_L",
+  "source": "twse",
   "summary": "上市公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
   "description": "上市公司召開股東常 (臨時) 會日期、地點及採用電子投票情形等資料彙總表",
   "tags": [
@@ -2442,6 +2556,7 @@
  },
  "announcement/notetrans": {
   "id": "announcement/notetrans",
+  "source": "twse",
   "summary": "集中市場公布注意累計次數異常資訊",
   "description": "集中市場公布注意累計次數異常資訊",
   "tags": [
@@ -2455,6 +2570,7 @@
  },
  "announcement/notice": {
   "id": "announcement/notice",
+  "source": "twse",
   "summary": "集中市場當日公布注意股票",
   "description": "集中市場當日公布注意股票",
   "tags": [
@@ -2473,6 +2589,7 @@
  },
  "opendata/t187ap25_L": {
   "id": "opendata/t187ap25_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-營業範圍重大變更公司",
   "tags": [
@@ -2490,6 +2607,7 @@
  },
  "opendata/t187ap27_L": {
   "id": "opendata/t187ap27_L",
+  "source": "twse",
   "summary": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
   "description": "上市公司經營權及營業範圍異(變)動專區-經營權異動且營業範圍重大變更列為變更交易公司",
   "tags": [
@@ -2504,6 +2622,7 @@
  },
  "opendata/t187ap32_L": {
   "id": "opendata/t187ap32_L",
+  "source": "twse",
   "summary": "上市公司公司治理之相關規程規則",
   "description": "上市公司公司治理之相關規程規則",
   "tags": [
@@ -2518,6 +2637,7 @@
  },
  "opendata/t187ap33_L": {
   "id": "opendata/t187ap33_L",
+  "source": "twse",
   "summary": "上市公司董事長是否兼任總經理",
   "description": "上市公司董事長是否兼任總經理",
   "tags": [
@@ -2534,6 +2654,7 @@
  },
  "opendata/t187ap09_L": {
   "id": "opendata/t187ap09_L",
+  "source": "twse",
   "summary": "上市公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
   "description": "上市公司董事、監察人質權設定占董事及監察人實際持有股數彙總表",
   "tags": [
@@ -2547,6 +2668,7 @@
  },
  "opendata/OpenData_BRK01": {
   "id": "opendata/OpenData_BRK01",
+  "source": "twse",
   "summary": "證券商營業員男女人數統計資料",
   "description": "證券商營業員男女人數統計資料",
   "tags": [
@@ -2562,6 +2684,7 @@
  },
  "opendata/OpenData_BRK02": {
   "id": "opendata/OpenData_BRK02",
+  "source": "twse",
   "summary": "證券商分公司基本資料",
   "description": "證券商分公司基本資料",
   "tags": [
@@ -2578,6 +2701,7 @@
  },
  "opendata/t187ap34_L": {
   "id": "opendata/t187ap34_L",
+  "source": "twse",
   "summary": "上市公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
   "description": "上市公司採累積投票制、全額連記法、候選人提名制選任董監事及當選資料彙總表",
   "tags": [
@@ -2601,6 +2725,7 @@
  },
  "opendata/t187ap35_L": {
   "id": "opendata/t187ap35_L",
+  "source": "twse",
   "summary": "上市公司股東行使提案權情形彙總表",
   "description": "上市公司股東行使提案權情形彙總表",
   "tags": [
@@ -2618,6 +2743,7 @@
  },
  "exchangeReport/TWT48U_ALL": {
   "id": "exchangeReport/TWT48U_ALL",
+  "source": "twse",
   "summary": "上市股票除權除息預告表",
   "description": "上市股票除權除息預告表",
   "tags": [
@@ -2640,6 +2766,7 @@
  },
  "opendata/t187ap06_L_bd": {
   "id": "opendata/t187ap06_L_bd",
+  "source": "twse",
   "summary": "上市公司綜合損益表(證券期貨業)",
   "description": "上市公司綜合損益表(證券期貨業)",
   "tags": [
@@ -2675,6 +2802,7 @@
  },
  "opendata/t187ap06_L_ci": {
   "id": "opendata/t187ap06_L_ci",
+  "source": "twse",
   "summary": "上市公司綜合損益表(一般業)",
   "description": "上市公司綜合損益表(一般業)",
   "tags": [
@@ -2718,6 +2846,7 @@
  },
  "opendata/t187ap06_L_fh": {
   "id": "opendata/t187ap06_L_fh",
+  "source": "twse",
   "summary": "上市公司綜合損益表(金控業)",
   "description": "上市公司綜合損益表(金控業)",
   "tags": [
@@ -2753,6 +2882,7 @@
  },
  "opendata/t187ap06_L_ins": {
   "id": "opendata/t187ap06_L_ins",
+  "source": "twse",
   "summary": "上市公司綜合損益表(保險業)",
   "description": "上市公司綜合損益表(保險業)",
   "tags": [
@@ -2789,6 +2919,7 @@
  },
  "opendata/t187ap06_L_mim": {
   "id": "opendata/t187ap06_L_mim",
+  "source": "twse",
   "summary": "上市公司綜合損益表(異業)",
   "description": "上市公司綜合損益表(異業)",
   "tags": [
@@ -2820,6 +2951,7 @@
  },
  "opendata/t187ap07_L_bd": {
   "id": "opendata/t187ap07_L_bd",
+  "source": "twse",
   "summary": "上市公司資產負債表(證券期貨業)",
   "description": "上市公司資產負債表(證券期貨業)",
   "tags": [
@@ -2856,6 +2988,7 @@
  },
  "opendata/t187ap07_L_ci": {
   "id": "opendata/t187ap07_L_ci",
+  "source": "twse",
   "summary": "上市公司資產負債表(一般業)",
   "description": "上市公司資產負債表(一般業)",
   "tags": [
@@ -2892,6 +3025,7 @@
  },
  "opendata/t187ap07_L_fh": {
   "id": "opendata/t187ap07_L_fh",
+  "source": "twse",
   "summary": "上市公司資產負債表(金控業)",
   "description": "上市公司資產負債表(金控業)",
   "tags": [
@@ -2962,6 +3096,7 @@
  },
  "opendata/t187ap07_L_ins": {
   "id": "opendata/t187ap07_L_ins",
+  "source": "twse",
   "summary": "上市公司資產負債表(保險業)",
   "description": "上市公司資產負債表(保險業)",
   "tags": [
@@ -3025,6 +3160,7 @@
  },
  "opendata/t187ap07_L_mim": {
   "id": "opendata/t187ap07_L_mim",
+  "source": "twse",
   "summary": "上市公司資產負債表(異業)",
   "description": "上市公司資產負債表(異業)",
   "tags": [
@@ -3060,6 +3196,7 @@
  },
  "opendata/t187ap07_X_basi": {
   "id": "opendata/t187ap07_X_basi",
+  "source": "twse",
   "summary": "公發公司資產負債表-金融業",
   "description": "公發公司資產負債表-金融業",
   "tags": [
@@ -3130,6 +3267,7 @@
  },
  "opendata/t187ap07_X_bd": {
   "id": "opendata/t187ap07_X_bd",
+  "source": "twse",
   "summary": "公發公司資產負債表-證券期貨業",
   "description": "公發公司資產負債表-證券期貨業",
   "tags": [
@@ -3166,6 +3304,7 @@
  },
  "opendata/t187ap07_X_fh": {
   "id": "opendata/t187ap07_X_fh",
+  "source": "twse",
   "summary": "公發公司資產負債表-金控業",
   "description": "公發公司資產負債表-金控業",
   "tags": [
@@ -3236,6 +3375,7 @@
  },
  "opendata/t187ap07_X_ins": {
   "id": "opendata/t187ap07_X_ins",
+  "source": "twse",
   "summary": "公發公司資產負債表-保險業",
   "description": "公發公司資產負債表-保險業",
   "tags": [
@@ -3299,6 +3439,7 @@
  },
  "opendata/t187ap11_P": {
   "id": "opendata/t187ap11_P",
+  "source": "twse",
   "summary": "公發公司董監事持股餘額明細",
   "description": "公發公司董監事持股餘額明細",
   "tags": [
@@ -3322,6 +3463,7 @@
  },
  "opendata/t187ap06_L_basi": {
   "id": "opendata/t187ap06_L_basi",
+  "source": "twse",
   "summary": "上市公司綜合損益表(金融業)",
   "description": "上市公司綜合損益表(金融業)",
   "tags": [
@@ -3357,6 +3499,7 @@
  },
  "opendata/t187ap07_L_basi": {
   "id": "opendata/t187ap07_L_basi",
+  "source": "twse",
   "summary": "上市公司資產負債表(金融業)",
   "description": "上市公司資產負債表(金融業)",
   "tags": [
@@ -3423,6 +3566,2383 @@
    "母公司暨子公司所持有之母公司庫藏股股數（單位：股）": "母公司暨子公司所持有之母公司庫藏股股數（單位：股）",
    "預收股款（權益項下）之約當發行股數（單位：股）": "預收股款（權益項下）之約當發行股數（單位：股）",
    "每股參考淨值": "每股參考淨值"
+  }
+ },
+ "taifex/CCP_CMLists": {
+  "id": "taifex/CCP_CMLists",
+  "source": "taifex",
+  "summary": "店頭集中結算會員名冊",
+  "description": "店頭集中結算會員名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMName": "結算會員中文名稱",
+   "Type": "結算會員類別",
+   "Date": "日期"
+  }
+ },
+ "taifex/productsExemptedAH": {
+  "id": "taifex/productsExemptedAH",
+  "source": "taifex",
+  "summary": "盤後交易時段指定豁免及非豁免代為沖銷商品",
+  "description": "盤後交易時段指定豁免及非豁免代為沖銷商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Products": "中文簡稱",
+   "TickerSymbol": "商品契約代號",
+   "IsProductsExemptedFromLiquidationOnBehalfOfAPrincipalInTheAfterHourSession": "是否為盤後交易時段豁免代為沖銷商品",
+   "Date": "日期"
+  }
+ },
+ "taifex/SSFAdjustedInfo": {
+  "id": "taifex/SSFAdjustedInfo",
+  "source": "taifex",
+  "summary": "股票期貨/選擇權調整型契約資訊內容",
+  "description": "股票期貨/選擇權調整型契約資訊內容",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代碼",
+   "StockCode": "標的證券代號",
+   "ContractName": "標的簡稱",
+   "TWSEStock/TPExStock/TWSEETF": "標的類別",
+   "Futures/Options": "商品類別",
+   "UnderlyingSecurityShares": "約定標的物證券股數",
+   "UnderlyingSecurityDistributionofCashDividends": "約定標的物配發之現金股利",
+   "UnderlyingSecurityFairValueOfPreemptiveRightsToParticipateInCashCapitalIncrease": "約定標的物優先參與現金增資之相當價值",
+   "DeliveryMonths": "存續到期月份"
+  }
+ },
+ "taifex/SSFRefferedOpeningPriceAh": {
+  "id": "taifex/SSFRefferedOpeningPriceAh",
+  "source": "taifex",
+  "summary": "股票期貨調整開盤參考價(盤後交易時段)",
+  "description": "股票期貨調整開盤參考價(盤後交易時段)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "StockCode": "股票代號",
+   "ContractName": "商品名稱",
+   "TickerSymbol": "商品代號",
+   "DeliveryMonth": "月份",
+   "ReferredOpeningPrice": "開盤參考價"
+  }
+ },
+ "taifex/SSFRefferedOpeningPrice": {
+  "id": "taifex/SSFRefferedOpeningPrice",
+  "source": "taifex",
+  "summary": "股票期貨/選擇權調整開盤參考價",
+  "description": "股票期貨/選擇權調整開盤參考價（期貨交易所）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "StockCode": "股票代號",
+   "ContractName": "商品名稱",
+   "TickerSymbol": "商品代號",
+   "DeliveryMonth": "月份",
+   "ReferredOpeningPrice": "開盤參考價"
+  }
+ },
+ "taifex/ContractAdj": {
+  "id": "taifex/ContractAdj",
+  "source": "taifex",
+  "summary": "股票期貨/選擇權契約調整一覽事項",
+  "description": "股票期貨/選擇權契約調整一覽事項（期貨交易所）\r\n",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contact": "商品代號",
+   "StockName": "股票名稱",
+   "StockId": "股票代號",
+   "CashDividend(CapitalRepayment)NTD/share": "現金股利(減資退還現金)元/股",
+   "StockDividend": "股票股利股/股",
+   "CorporateAction": "契約調整類別",
+   "AdjustmentDate": "契約調整日"
+  }
+ },
+ "taifex/DailyMarketReportFut": {
+  "id": "taifex/DailyMarketReportFut",
+  "source": "taifex",
+  "summary": "期貨每日交易行情",
+  "description": "期貨每日交易行情",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "Open": "開盤價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Last": "最後成交價",
+   "Change": "漲跌價",
+   "%": "漲跌%",
+   "Volume": "合計成交量",
+   "SettlementPrice": "結算價",
+   "OpenInterest": "未沖銷契約數",
+   "BestBid": "最後最佳買價",
+   "BestAsk": "最後最佳賣價",
+   "HistoricalHigh": "歷史最高價",
+   "HistoricalLow": "歷史最低價",
+   "TradingHalt": "是否因訊息面暫停交易",
+   "TradingSession": "交易時段",
+   "Volume(ExecutionsAmongSpreadOrderAndSingleOrderOnly)": "價差對單式委託成交量"
+  }
+ },
+ "taifex/DailyMarketReportOpt": {
+  "id": "taifex/DailyMarketReportOpt",
+  "source": "taifex",
+  "summary": "選擇權每日交易行情",
+  "description": "選擇權每日交易行情",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價",
+   "CallPut": "買賣權",
+   "Open": "開盤價",
+   "High": "最高價",
+   "Low": "最低價",
+   "Close": "最後成交價",
+   "Volume": "成交量",
+   "SettlementPrice": "結算價",
+   "OpenInterest": "未沖銷契約量",
+   "BestBid": "最後最佳買價",
+   "BestAsk": "最後最佳賣價",
+   "HistoricalHigh": "歷史最高價",
+   "HistoricalLow": "歷史最低價",
+   "TradingHalt": "是否因訊息面暫停交易",
+   "TradingSession": "交易時段"
+  }
+ },
+ "taifex/DailyOptionsDelta": {
+  "id": "taifex/DailyOptionsDelta",
+  "source": "taifex",
+  "summary": "選擇權每日Delta值",
+  "description": "選擇權每日Delta值",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "契約",
+   "CallPut": "買賣權",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "Delta": "Delta值",
+   "ContractSettlementDay": "契約到期日"
+  }
+ },
+ "taifex/PutCallRatio": {
+  "id": "taifex/PutCallRatio",
+  "source": "taifex",
+  "summary": "臺指選擇權Put/Call比",
+  "description": "臺指選擇權Put/Call比",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "PutVolume": "賣權成交量",
+   "CallVolume": "買權成交量",
+   "PutCallVolumeRatio%": "買賣權成交量比率%",
+   "PutOI": "賣權未平倉量",
+   "CallOI": "買權未平倉量",
+   "PutCallOIRatio%": "買賣權未平倉量比率%"
+  }
+ },
+ "taifex/BlockTradeContinuousMatchingSingleOrder": {
+  "id": "taifex/BlockTradeContinuousMatchingSingleOrder",
+  "source": "taifex",
+  "summary": "鉅額交易逐筆撮合之單式委託成交",
+  "description": "鉅額交易逐筆撮合之單式委託成交",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "CallPut": "買/賣權",
+   "TradePrice": "成交價格",
+   "Volume": "成交數量",
+   "TradingSession": "交易時段"
+  }
+ },
+ "taifex/BlockTradeContinuousMatchingCombinationOrder": {
+  "id": "taifex/BlockTradeContinuousMatchingCombinationOrder",
+  "source": "taifex",
+  "summary": "鉅額交易逐筆撮合之組合式委託成交",
+  "description": "鉅額交易逐筆撮合之組合式委託成交",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "No": "組合式序號",
+   "Date": "日期",
+   "NumberOfContracts": "契約數",
+   "TradingSession": "交易時段",
+   "SubNo": "子序號",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "CallPut": "買/賣權",
+   "TradePrice": "成交價格",
+   "Volume": "成交數量"
+  }
+ },
+ "taifex/BlockTradeNegotiation": {
+  "id": "taifex/BlockTradeNegotiation",
+  "source": "taifex",
+  "summary": "鉅額交易議價申報成交",
+  "description": "鉅額交易議價申報成交",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "No": "組合式序號",
+   "Date": "日期",
+   "NumberOfContracts": "契約數",
+   "TradingSession": "交易時段",
+   "SubNo": "子序號",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "CallPut": "買/賣權",
+   "TradePrice": "成交價格",
+   "Volume": "成交數量"
+  }
+ },
+ "taifex/BlockTrade": {
+  "id": "taifex/BlockTrade",
+  "source": "taifex",
+  "summary": "鉅額交易各商品成交資訊",
+  "description": "鉅額交易各商品成交資訊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "交易日期",
+   "Contract": "契約",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "CallPut": "買/賣權",
+   "Volume": "成交數量",
+   "HighestPrice": "最高價格",
+   "LowestPrice": "最低價格",
+   "TradingSession": "交易時段"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
+  "source": "taifex",
+  "summary": "三大法人-總表-依日期",
+  "description": "三大法人-總表-依日期",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Millions)": "多方交易契約金額(百萬元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Millions)": "空方交易契約金額(百萬元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Millions)": "多空交易契約金額淨額(百萬元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueOfOpenInterest(Long)(Millions)": "多方未平倉契約金額(百萬元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueOfOpenInterest(Short)(Millions)": "空方未平倉契約金額(百萬元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueOfOpenInterest(Net)(Millions)": "多空未平倉契約金額淨額(百萬元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek",
+  "source": "taifex",
+  "summary": "三大法人-總表-依週別",
+  "description": "三大法人-總表-依週別",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Millions)": "多方交易契約金額(百萬元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Millions)": "空方交易契約金額(百萬元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Millions)": "多空交易契約金額淨額(百萬元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueOfOpenInterest(Long)(Millions)": "多方未平倉契約金額(百萬元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueOfOpenInterest(Short)(Millions)": "空方未平倉契約金額(百萬元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueOfOpenInterest(Net)(Millions)": "多空未平倉契約金額淨額(百萬元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate",
+  "source": "taifex",
+  "summary": "三大法人-區分期貨與選擇權二類-依日期",
+  "description": "三大法人-區分期貨與選擇權二類-依日期",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Item": "身份別",
+   "FuturesTradingVolume(Long)": "期貨多方交易口數",
+   "OptionsTradingVolume(Long)": "選擇權多方交易口數",
+   "FuturesTradingValue(Long)(Thousands)": "期貨多方交易契約金額(千元)",
+   "OptionsTradingValue(Long)(Thousands)": "選擇權多方交易契約金額(千元)",
+   "FuturesTradingVolume(Short)": "期貨空方交易口數",
+   "OptionsTradingVolume(Short)": "選擇權空方交易口數",
+   "FuturesTradingValue(Short)(Thousands)": "期貨空方交易契約金額(千元)",
+   "OptionsTradingValue(Short)(Thousands)": "選擇權空方交易契約金額(千元)",
+   "FuturesTradingVolume(Net)": "期貨多空交易口數淨額",
+   "OptionsTradingVolume(Net)": "選擇權多空交易口數淨額",
+   "FuturesTradingValue(Net)(Thousands)": "期貨多空交易契約金額淨額(千元)",
+   "OptionsTradingValue(Net)(Thousands)": "選擇權多空交易契約金額淨額(千元)",
+   "FuturesOpenInterest(Long)": "期貨多方未平倉口數",
+   "OptionsOpenInterest(Long)": "選擇權多方未平倉口數",
+   "FuturesContractValueofOpenInterest(Long)(Thousands)": "期貨多方未平倉契約金額(千元)",
+   "OptionsContractValueofOpenInterest(Long)(Thousands)": "選擇權多方未平倉契約金額(千元)",
+   "FuturesOpenInterest(Short)": "期貨空方未平倉口數",
+   "OptionsOpenInterest(Short)": "選擇權空方未平倉口數",
+   "FuturesContractValueofOpenInterest(Short)(Thousands)": "期貨空方未平倉契約金額(千元)",
+   "OptionsContractValueofOpenInterest(Short)(Thousands)": "選擇權空方未平倉契約金額(千元)",
+   "FuturesOpenInterest(Net)": "期貨多空未平倉口數淨額",
+   "OptionsOpenInterest(Net)": "選擇權多空未平倉口數淨額",
+   "FuturesContractValueofOpenInterest(Net)(Thousands)": "期貨多空未平倉契約金額淨額(千元)",
+   "OptionsContractValueofOpenInterest(Net)(Thousands)": "選擇權多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek",
+  "source": "taifex",
+  "summary": "三大法人-區分期貨與選擇權二類-依週別",
+  "description": "三大法人-區分期貨與選擇權二類-依週別",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "Item": "身份別",
+   "FuturesTradingVolume(Long)": "期貨多方交易口數",
+   "OptionsTradingVolume(Long)": "選擇權多方交易口數",
+   "FuturesTradingValue(Long)(Thousands)": "期貨多方交易契約金額(千元)",
+   "OptionsTradingValue(Long)(Thousands)": "選擇權多方交易契約金額(千元)",
+   "FuturesTradingVolume(Short)": "期貨空方交易口數",
+   "OptionsTradingVolume(Short)": "選擇權空方交易口數",
+   "FuturesTradingValue(Short)(Thousands)": "期貨空方交易契約金額(千元)",
+   "OptionsTradingValue(Short)(Thousands)": "選擇權空方交易契約金額(千元)",
+   "FuturesTradingVolume(Net)": "期貨多空交易口數淨額",
+   "OptionsTradingVolume(Net)": "選擇權多空交易口數淨額",
+   "FuturesTradingValue(Net)(Thousands)": "期貨多空交易契約金額淨額(千元)",
+   "OptionsTradingValue(Net)(Thousands)": "選擇權多空交易契約金額淨額(千元)",
+   "FuturesOpenInterest(Long)": "期貨多方未平倉口數",
+   "OptionsOpenInterest(Long)": "選擇權多方未平倉口數",
+   "FuturesContractValueofOpenInterest(Long)(Thousands)": "期貨多方未平倉契約金額(千元)",
+   "OptionsContractValueofOpenInterest(Long)(Thousands)": "選擇權多方未平倉契約金額(千元)",
+   "FuturesOpenInterest(Short)": "期貨空方未平倉口數",
+   "OptionsOpenInterest(Short)": "選擇權空方未平倉口數",
+   "FuturesContractValueofOpenInterest(Short)(Thousands)": "期貨空方未平倉契約金額(千元)",
+   "OptionsContractValueofOpenInterest(Short)(Thousands)": "選擇權空方未平倉契約金額(千元)",
+   "FuturesOpenInterest(Net)": "期貨多空未平倉口數淨額",
+   "OptionsOpenInterest(Net)": "選擇權多空未平倉口數淨額",
+   "FuturesContractValueofOpenInterest(Net)(Thousands)": "期貨多空未平倉契約金額淨額(千元)",
+   "OptionsContractValueofOpenInterest(Net)(Thousands)": "選擇權多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
+  "source": "taifex",
+  "summary": "三大法人-區分各期貨契約-依日期",
+  "description": "三大法人-區分各期貨契約-依日期",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ContractCode": "商品名稱",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Thousands)": "多方交易契約金額(千元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Thousands)": "空方交易契約金額(千元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Thousands)": "多空交易契約金額淨額(千元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "多方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "空方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek",
+  "source": "taifex",
+  "summary": "三大法人-區分各期貨契約-依週別",
+  "description": "三大法人-區分各期貨契約-依週別",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "ContractCode": "商品名稱",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Thousands)": "多方交易契約金額(千元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Thousands)": "空方交易契約金額(千元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Thousands)": "多空交易契約金額淨額(千元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "多方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "空方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate",
+  "source": "taifex",
+  "summary": "三大法人-區分各選擇權契約-依日期",
+  "description": "三大法人-區分各選擇權契約-依日期",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ContractCode": "商品名稱",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Thousands)": "多方交易契約金額(千元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Thousands)": "空方交易契約金額(千元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Thousands)": "多空交易契約金額淨額(千元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "多方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "空方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek",
+  "source": "taifex",
+  "summary": "三大法人-區分各選擇權契約-依週別",
+  "description": "三大法人-區分各選擇權契約-依週別",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "ContractCode": "商品名稱",
+   "Item": "身份別",
+   "TradingVolume(Long)": "多方交易口數",
+   "TradingValue(Long)(Thousands)": "多方交易契約金額(千元)",
+   "TradingVolume(Short)": "空方交易口數",
+   "TradingValue(Short)(Thousands)": "空方交易契約金額(千元)",
+   "TradingVolume(Net)": "多空交易口數淨額",
+   "TradingValue(Net)(Thousands)": "多空交易契約金額淨額(千元)",
+   "OpenInterest(Long)": "多方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "多方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "空方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "空方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "多空未平倉口數淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "多空未平倉契約金額淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate",
+  "source": "taifex",
+  "summary": "三大法人-選擇權買賣權分計-依日期",
+  "description": "三大法人-選擇權買賣權分計-依日期",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ContractCode": "商品名稱",
+   "CallPut": "買賣權別",
+   "Item": "身份別",
+   "TradingVolume(Long)": "買方交易口數",
+   "TradingValue(Long)(Thousands)": "買方交易契約金額(千元)",
+   "TradingVolume(Short)": "賣方交易口數",
+   "TradingValue(Short)(Thousands)": "賣方交易契約金額(千元)",
+   "TradingVolume(Net)": "交易口數買賣淨額",
+   "TradingValue(Net)(Thousands)": "交易契約金額買賣淨額(千元)",
+   "OpenInterest(Long)": "買方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "買方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "賣方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "賣方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "未平倉口數買賣淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "未平倉契約金額買賣淨額(千元)"
+  }
+ },
+ "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek": {
+  "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek",
+  "source": "taifex",
+  "summary": "三大法人-選擇權買賣權分計-依週別",
+  "description": "三大法人-選擇權買賣權分計-依週別",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "ContractCode": "商品名稱",
+   "CallPut": "買賣權別",
+   "Item": "身份別",
+   "TradingVolume(Long)": "買方交易口數",
+   "TradingValue(Long)(Thousands)": "買方交易契約金額(千元)",
+   "TradingVolume(Short)": "賣方交易口數",
+   "TradingValue(Short)(Thousands)": "賣方交易契約金額(千元)",
+   "TradingVolume(Net)": "交易口數買賣淨額",
+   "TradingValue(Net)(Thousands)": "交易契約金額買賣淨額(千元)",
+   "OpenInterest(Long)": "買方未平倉口數",
+   "ContractValueofOpenInterest(Long)(Thousands)": "買方未平倉契約金額(千元)",
+   "OpenInterest(Short)": "賣方未平倉口數",
+   "ContractValueofOpenInterest(Short)(Thousands)": "賣方未平倉契約金額(千元)",
+   "OpenInterest(Net)": "未平倉口數買賣淨額",
+   "ContractValueofOpenInterest(Net)(Thousands)": "未平倉契約金額買賣淨額(千元)"
+  }
+ },
+ "taifex/OpenInterestOfLargeTradersFutures": {
+  "id": "taifex/OpenInterestOfLargeTradersFutures",
+  "source": "taifex",
+  "summary": "期貨大額交易人未沖銷部位資料",
+  "description": "期貨大額交易人未沖銷部位資料",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "契約",
+   "ContractName": "商品名稱(契約名稱)",
+   "SettlementMonth": "到期月份(週別)",
+   "TypeOfTraders": "交易人類別",
+   "Top5Buy": "前五大交易人買方",
+   "Top5Sell": "前五大交易人賣方",
+   "Top10Buy": "前十大交易人買方",
+   "Top10Sell": "前十大交易人賣方",
+   "OIOfMarket": "全市場未沖銷部位數"
+  }
+ },
+ "taifex/OpenInterestOfLargeTradersOptions": {
+  "id": "taifex/OpenInterestOfLargeTradersOptions",
+  "source": "taifex",
+  "summary": "選擇權大額交易人未沖銷部位資料",
+  "description": "選擇權大額交易人未沖銷部位資料",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "契約",
+   "ContractName": "商品名稱(契約名稱)",
+   "CallPut": "買賣權",
+   "SettlementMonth": "到期月份(週別)",
+   "TypeOfTraders": "交易人類別",
+   "Top5Buy": "前五大交易人買方",
+   "Top5Sell": "前五大交易人賣方",
+   "Top10Buy": "前十大交易人買方",
+   "Top10Sell": "前十大交易人賣方",
+   "OIOfMarket": "全市場未沖銷部位數"
+  }
+ },
+ "taifex/DailyForeignExchangeRates": {
+  "id": "taifex/DailyForeignExchangeRates",
+  "source": "taifex",
+  "summary": "每日外幣參考匯率",
+  "description": "每日外幣參考匯率",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "USD/NTD": "美元／新台幣",
+   "RMB/NTD": "人民幣／新台幣",
+   "EUR/USD": "歐元／美元",
+   "USD/JPY": "美元／日幣",
+   "GBP/USD": "英鎊／美元",
+   "AUD/USD": "澳幣／美元",
+   "USD/HKD": "美元／港幣",
+   "USD/RMB": "美元／人民幣",
+   "USD/ZAR": "美元／南非幣",
+   "NZD/USD": "紐幣／美元"
+  }
+ },
+ "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions": {
+  "id": "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions",
+  "source": "taifex",
+  "summary": "個股類全市場部位限制",
+  "description": "個股類全市場部位限制",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "資料日期",
+   "TypeOfTheUnderlyingSecurity": "標的證券類別",
+   "CodeOfUnderlyingStock": "代號",
+   "NameOfUnderlyingStock": "名稱",
+   "TotalOpenInterestOfSingleStockFuturesAndEquityOptions": "股票期貨與股票選擇權未沖銷部位表彰股數或單位數(A)",
+   "NumberOfSharesOutstandingOfUnderlyingStockOrNumberOfUnitsOutstandingOfETF": "標的證券在外流通股數或已發行(募集",
+   "Ratio": "銷售)單位數)(B)"
+  }
+ },
+ "taifex/SingleStockFuturesContractReferredOpeningPrice": {
+  "id": "taifex/SingleStockFuturesContractReferredOpeningPrice",
+  "source": "taifex",
+  "summary": "股票期貨契約調整開盤參考價",
+  "description": "股票期貨契約調整開盤參考價",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "開盤參考價日期",
+   "StockCode": "股票代號",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "DeliveryMonth": "月份",
+   "ReferredOpeningPrice": "開盤參考價"
+  }
+ },
+ "taifex/FuturesAndOptionsFeeSchedule": {
+  "id": "taifex/FuturesAndOptionsFeeSchedule",
+  "source": "taifex",
+  "summary": "期交所期貨暨選擇權商品相關費用表",
+  "description": "期交所期貨暨選擇權商品相關費用表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品",
+   "TransactionFee": "交易經手費",
+   "ClearingFee": "結算手續費",
+   "SettlementFee": "交割手續費",
+   "FuturesTransactionTaxRate": "期貨交易稅率"
+  }
+ },
+ "taifex/FinalSettlementPrice": {
+  "id": "taifex/FinalSettlementPrice",
+  "source": "taifex",
+  "summary": "最後結算價",
+  "description": "最後結算價",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "DeliveryMonth": "契約月份",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/SettledPositionsOfContractsOnExpirationDate": {
+  "id": "taifex/SettledPositionsOfContractsOnExpirationDate",
+  "source": "taifex",
+  "summary": "到期契約履約交割",
+  "description": "到期契約履約交割",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "DeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long": "買方到期部位數",
+   "Short": "賣方到期部位數"
+  }
+ },
+ "taifex/IndexFuturesAndOptionsMargining": {
+  "id": "taifex/IndexFuturesAndOptionsMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-股價指數類",
+  "description": "保證金一覽表-股價指數類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品別",
+   "ClearingMargin": "結算保證金",
+   "MaintenanceMargin": "維持保證金",
+   "InitialMargin": "原始保證金",
+   "Date": "日期"
+  }
+ },
+ "taifex/InterestRateFuturesMargining": {
+  "id": "taifex/InterestRateFuturesMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-利率類",
+  "description": "保證金一覽表-利率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品別",
+   "ClearingMargin": "結算保證金",
+   "MaintenanceMargin": "維持保證金",
+   "InitialMargin": "原始保證金",
+   "Date": "日期"
+  }
+ },
+ "taifex/GoldFuturesAndOptionsMargining": {
+  "id": "taifex/GoldFuturesAndOptionsMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-商品類",
+  "description": "保證金一覽表-商品類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品別",
+   "ClearingMargin": "結算保證金",
+   "MaintenanceMargin": "維持保證金",
+   "InitialMargin": "原始保證金",
+   "Date": "日期"
+  }
+ },
+ "taifex/SingleStockFuturesMargining": {
+  "id": "taifex/SingleStockFuturesMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-股票類",
+  "description": "保證金一覽表-股票類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "股票期貨英文代碼",
+   "UnderlyingSecurityCode": "股票期貨標的證券代號",
+   "ContractName": "股票期貨中文簡稱",
+   "UnderlyingOfSingleStockFutures": "股票期貨標的證券",
+   "GroupLevel": "保證金所屬級距",
+   "ClearingMarginRate": "結算保證金適用比例",
+   "MaintenanceMarginRate": "維持保證金適用比例",
+   "InitialMarginRate": "原始保證金適用比例",
+   "Date": "日期"
+  }
+ },
+ "taifex/SingleStockFuturesETFMargining": {
+  "id": "taifex/SingleStockFuturesETFMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-股票類(ETF)",
+  "description": "保證金一覽表-股票類(ETF)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "股票期貨英文代碼",
+   "UnderlyingSecurityCode": "股票期貨標的證券代號",
+   "ContractName": "股票期貨中文簡稱",
+   "UnderlyingOfSingleStockFutures": "股票期貨標的證券",
+   "ClearingMargin": "結算保證金",
+   "MaintenanceMargin": "維持保證金",
+   "InitialMargin": "原始保證金",
+   "Date": "日期"
+  }
+ },
+ "taifex/AcceptableCollateralGovernmentBonds": {
+  "id": "taifex/AcceptableCollateralGovernmentBonds",
+  "source": "taifex",
+  "summary": "有價證券保證金之可抵繳標的-公債",
+  "description": "有價證券保證金之可抵繳標的-公債",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Code": "公債代號",
+   "Name": "公債名稱",
+   "DenominatedCurrency": "交易幣別"
+  }
+ },
+ "taifex/AcceptableCollateralInternationalBonds": {
+  "id": "taifex/AcceptableCollateralInternationalBonds",
+  "source": "taifex",
+  "summary": "有價證券保證金之可抵繳標的-國際債",
+  "description": "有價證券保證金之可抵繳標的-國際債",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "InternationalBondCode": "國際債代號",
+   "ShortName": "國際債名稱",
+   "Currency": "交易幣別"
+  }
+ },
+ "taifex/AcceptableCollateralStock": {
+  "id": "taifex/AcceptableCollateralStock",
+  "source": "taifex",
+  "summary": "有價證券保證金之可抵繳標的-股票(含ETF)",
+  "description": "有價證券保證金之可抵繳標的-股票(含ETF)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "StockId": "股票代號",
+   "StockName": "股票名稱"
+  }
+ },
+ "taifex/NetValuePerShareStatement": {
+  "id": "taifex/NetValuePerShareStatement",
+  "source": "taifex",
+  "summary": "期貨商每股淨值明細表",
+  "description": "期貨商每股淨值明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "年月",
+   "FCMCode": "期貨商代號",
+   "NetValue": "淨值(元)",
+   "Shares": "股數(仟股)",
+   "NetValuePerShare": "每股淨值"
+  }
+ },
+ "taifex/AccumulatedIncomeStatementBeforeTaxStatement": {
+  "id": "taifex/AccumulatedIncomeStatementBeforeTaxStatement",
+  "source": "taifex",
+  "summary": "期貨商稅前累計損益明細表",
+  "description": "期貨商稅前累計損益明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "年月",
+   "FCMCode": "期貨商代號",
+   "Revenue": "本期收入",
+   "Expense": "本期支出",
+   "NetIncome": "本期損益"
+  }
+ },
+ "taifex/Daily_FUT": {
+  "id": "taifex/Daily_FUT",
+  "source": "taifex",
+  "summary": "期貨商交易量日報表－期貨",
+  "description": "期貨商交易量日報表－期貨",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Date": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Weekly_FUT": {
+  "id": "taifex/Weekly_FUT",
+  "source": "taifex",
+  "summary": "期貨商交易量週報表－期貨",
+  "description": "期貨商交易量週報表－期貨",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Monthly_FUT": {
+  "id": "taifex/Monthly_FUT",
+  "source": "taifex",
+  "summary": "期貨商交易量月報表－期貨",
+  "description": "期貨商交易量月報表－期貨",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "YYYYMM": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Yearly_FUT": {
+  "id": "taifex/Yearly_FUT",
+  "source": "taifex",
+  "summary": "期貨商交易量年報表－期貨",
+  "description": "期貨商交易量年報表－期貨",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "YYYY": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Daily_OPT": {
+  "id": "taifex/Daily_OPT",
+  "source": "taifex",
+  "summary": "期貨商交易量日報表－選擇權",
+  "description": "期貨商交易量日報表－選擇權",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Date": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Weekly_OPT": {
+  "id": "taifex/Weekly_OPT",
+  "source": "taifex",
+  "summary": "期貨商交易量週報表－選擇權",
+  "description": "期貨商交易量週報表－選擇權",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "FromDate": "開始日期",
+   "ToDate": "結束日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Monthly_OPT": {
+  "id": "taifex/Monthly_OPT",
+  "source": "taifex",
+  "summary": "期貨商交易量月報表－選擇權",
+  "description": "期貨商交易量月報表－選擇權",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "YYYYMM": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/Yearly_OPT": {
+  "id": "taifex/Yearly_OPT",
+  "source": "taifex",
+  "summary": "期貨商交易量年報表－選擇權",
+  "description": "期貨商交易量年報表－選擇權",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "YYYY": "日期",
+   "Contract": "商品",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/CustodianBankLists": {
+  "id": "taifex/CustodianBankLists",
+  "source": "taifex",
+  "summary": "保管銀行名冊",
+  "description": "保管銀行名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Name": "保銀名稱",
+   "Address": "保銀地址",
+   "TelNo": "保銀電話",
+   "Date": "日期"
+  }
+ },
+ "taifex/CMLists": {
+  "id": "taifex/CMLists",
+  "source": "taifex",
+  "summary": "結算會員名冊",
+  "description": "結算會員名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "結算會員代號",
+   "FCMName": "結算會員名稱",
+   "Type": "結算會員類別",
+   "Date": "日期"
+  }
+ },
+ "taifex/ClearingBankLists": {
+  "id": "taifex/ClearingBankLists",
+  "source": "taifex",
+  "summary": "結算銀行名冊",
+  "description": "結算銀行名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "ClearBankName": "結算銀行名稱",
+   "Date": "日期"
+  }
+ },
+ "taifex/FCMLists": {
+  "id": "taifex/FCMLists",
+  "source": "taifex",
+  "summary": "期貨商總公司名冊",
+  "description": "期貨商總公司名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Address": "地址",
+   "TelNo": "電話"
+  }
+ },
+ "taifex/FCMBranchLists": {
+  "id": "taifex/FCMBranchLists",
+  "source": "taifex",
+  "summary": "期貨商分公司名冊",
+  "description": "期貨商分公司名冊",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Address": "地址",
+   "TelNo": "電話"
+  }
+ },
+ "taifex/Daily_OPT_W": {
+  "id": "taifex/Daily_OPT_W",
+  "source": "taifex",
+  "summary": "期貨商交易量週到期選擇權日報表",
+  "description": "期貨商交易量週到期選擇權日報表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Date": "日期",
+   "Volume": "短天期選擇權交易口數",
+   "Ratio": "市占率"
+  }
+ },
+ "taifex/PositionLimitNonEquity": {
+  "id": "taifex/PositionLimitNonEquity",
+  "source": "taifex",
+  "summary": "交易人部位限制-非個股類",
+  "description": "交易人部位限制-非個股類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "Individual": "自然人部位限制",
+   "Institution": "法人部位限制",
+   "ProprietaryTrader/MarketMaker": "期貨商部位限制"
+  }
+ },
+ "taifex/PositionLimitEquity": {
+  "id": "taifex/PositionLimitEquity",
+  "source": "taifex",
+  "summary": "交易人部位限制-個股類",
+  "description": "交易人部位限制-個股類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "商品代號",
+   "Tier": "級數",
+   "StockName": "證券標的名稱",
+   "StockCode": "證券代號",
+   "StockFuturesFlag": "是否為股票期貨標的",
+   "StockOptionsFlag": "是否為股票選擇權標的",
+   "Individual": "自然人部位限制",
+   "Institution/Proprietary": "法人/期貨自營商部位限制",
+   "MarketMaker": "造市者部位限制"
+  }
+ },
+ "taifex/DailyVolumeReportOnCalendarSpreadOrders": {
+  "id": "taifex/DailyVolumeReportOnCalendarSpreadOrders",
+  "source": "taifex",
+  "summary": "每日期貨價差委託成交概況表",
+  "description": "每日期貨價差委託成交概況表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "交易日期",
+   "ProductCode": "商品代號",
+   "FuturesSpreadTradingVolume(Buy+Sell)": "價差委託成交量(B+S)",
+   "MarketVolume(Buy+Sell)": "市場總成交量(B+S)",
+   "PercentageofFuturesSpreadTradingVolumeinMarket(%)": "價差委託成交比率(%)"
+  }
+ },
+ "taifex/MarketMakerListsFut": {
+  "id": "taifex/MarketMakerListsFut",
+  "source": "taifex",
+  "summary": "期貨商品造市者清單",
+  "description": "期貨商品造市者清單",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "造市者期貨商代號",
+   "FCMName": "造市者名稱",
+   "Contract": "造市商品代號",
+   "ContractName": "造市商品名稱"
+  }
+ },
+ "taifex/MarketMakerListsOpt": {
+  "id": "taifex/MarketMakerListsOpt",
+  "source": "taifex",
+  "summary": "選擇權商品造市者清單",
+  "description": "選擇權商品造市者清單",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "FCMCode": "造市者期貨商代號",
+   "FCMName": "造市者名稱",
+   "Contract": "造市商品代號",
+   "ContractName": "造市商品名稱"
+  }
+ },
+ "taifex/AnnualTradingVolume": {
+  "id": "taifex/AnnualTradingVolume",
+  "source": "taifex",
+  "summary": "各商品年成交量統計表",
+  "description": "各商品年成交量統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "Volume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/SSFLists": {
+  "id": "taifex/SSFLists",
+  "source": "taifex",
+  "summary": "股票期貨交易標的",
+  "description": "股票期貨交易標的",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "股票期貨商品代碼",
+   "UnderlyingStock": "標的證券",
+   "StockCode": "證券代號",
+   "StockName": "標的證券簡稱",
+   "Type": "標的證券種類"
+  }
+ },
+ "taifex/SSOLists": {
+  "id": "taifex/SSOLists",
+  "source": "taifex",
+  "summary": "股票選擇權交易標的",
+  "description": "股票選擇權交易標的",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contract": "股票期貨商品代碼",
+   "UnderlyingStock": "標的證券",
+   "StockCode": "證券代號",
+   "StockName": "標的證券簡稱",
+   "Type": "標的證券種類"
+  }
+ },
+ "taifex/BTContinuousMatchingSingleOrderFutures": {
+  "id": "taifex/BTContinuousMatchingSingleOrderFutures",
+  "source": "taifex",
+  "summary": "鉅額交易逐筆撮合之單式委託成交-期貨商品",
+  "description": "鉅額交易逐筆撮合之單式委託成交-期貨商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代碼",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "TradePrice": "成交價格",
+   "Volume": "成交數量"
+  }
+ },
+ "taifex/BTContinuousMatchingSingleOrderOptions": {
+  "id": "taifex/BTContinuousMatchingSingleOrderOptions",
+  "source": "taifex",
+  "summary": "鉅額交易逐筆撮合之單式委託成交-選擇權商品",
+  "description": "鉅額交易逐筆撮合之單式委託成交-選擇權商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代碼",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "CallPut": "買/賣權",
+   "TradePrice": "成交價格",
+   "Volume": "成交數量"
+  }
+ },
+ "taifex/BTDailyTradeInformationFutures": {
+  "id": "taifex/BTDailyTradeInformationFutures",
+  "source": "taifex",
+  "summary": "鉅額交易各商品成交資訊-期貨商品",
+  "description": "鉅額交易各商品成交資訊-期貨商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代碼",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "Volume": "成交數量",
+   "HighestPrice": "最高價格",
+   "LowestPrice": "最低價格"
+  }
+ },
+ "taifex/BTDailyTradeInformationOptions": {
+  "id": "taifex/BTDailyTradeInformationOptions",
+  "source": "taifex",
+  "summary": "鉅額交易各商品成交資訊-選擇權商品",
+  "description": "鉅額交易各商品成交資訊-選擇權商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代碼",
+   "ContractMonth(Week)": "到期月份(週別)",
+   "StrikePrice": "履約價格",
+   "Call/Put": "買/賣權",
+   "Volume": "成交數量",
+   "HighestPrice": "最高價格",
+   "LowestPrice": "最低價格"
+  }
+ },
+ "taifex/DailySummaryOfBlockTradeFutures": {
+  "id": "taifex/DailySummaryOfBlockTradeFutures",
+  "source": "taifex",
+  "summary": "鉅額交易成交量統計-期貨商品",
+  "description": "鉅額交易成交量統計-期貨商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ProductCategory": "商品代碼",
+   "Volume": "成交口數",
+   "MarketShare%": "市佔率%"
+  }
+ },
+ "taifex/DailySummaryOfBlockTradeOptions": {
+  "id": "taifex/DailySummaryOfBlockTradeOptions",
+  "source": "taifex",
+  "summary": "鉅額交易成交量統計-選擇權商品",
+  "description": "鉅額交易成交量統計-選擇權商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ProductCategory": "商品代碼",
+   "Volume": "成交口數",
+   "MarketShare%": "市佔率%"
+  }
+ },
+ "taifex/FinalSettlementPriceFutures": {
+  "id": "taifex/FinalSettlementPriceFutures",
+  "source": "taifex",
+  "summary": "最後結算價-期貨商品",
+  "description": "最後結算價-期貨商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceOptions": {
+  "id": "taifex/FinalSettlementPriceOptions",
+  "source": "taifex",
+  "summary": "最後結算價-選擇權商品",
+  "description": "最後結算價-選擇權商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/SettledPositionsFutures": {
+  "id": "taifex/SettledPositionsFutures",
+  "source": "taifex",
+  "summary": "到期契約履約交割-期貨商品",
+  "description": "到期契約履約交割-期貨商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數"
+  }
+ },
+ "taifex/SettledPositionsOptions": {
+  "id": "taifex/SettledPositionsOptions",
+  "source": "taifex",
+  "summary": "到期契約履約交割-選擇權商品",
+  "description": "到期契約履約交割-選擇權商品",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Call/Put": "買賣權別",
+   "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
+   "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
+   "AbandonedOIofIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內放棄履約部位數",
+   "ActualExecutedOI(Lot)": "實際履約部位數"
+  }
+ },
+ "taifex/NetValuePerShareS": {
+  "id": "taifex/NetValuePerShareS",
+  "source": "taifex",
+  "summary": "兼營期貨商每股淨值明細表",
+  "description": "兼營期貨商每股淨值明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetValue(NTD)": "淨值(元)",
+   "Shares(InThousand)": "股數(仟)",
+   "NetValuePerShare": "每股淨值"
+  }
+ },
+ "taifex/NetValuePerShareF": {
+  "id": "taifex/NetValuePerShareF",
+  "source": "taifex",
+  "summary": "專營期貨商每股淨值明細表",
+  "description": "專營期貨商每股淨值明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetValue(NTD)": "淨值(元)",
+   "Shares(InThousand)": "股數(仟)",
+   "NetValuePerShare": "每股淨值"
+  }
+ },
+ "taifex/NetValuePerShareR": {
+  "id": "taifex/NetValuePerShareR",
+  "source": "taifex",
+  "summary": "複委託期貨商每股淨值明細表",
+  "description": "複委託期貨商每股淨值明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetValue(NTD)": "淨值(元)",
+   "Shares(InThousand)": "股數(仟)",
+   "NetValuePerShare": "每股淨值"
+  }
+ },
+ "taifex/AccumulatedIncomeStateS": {
+  "id": "taifex/AccumulatedIncomeStateS",
+  "source": "taifex",
+  "summary": "兼營期貨商稅前累計損益明細表",
+  "description": "兼營期貨商稅前累計損益明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Revenue": "本期收入",
+   "Expense": "本期支出",
+   "NetIncome": "本期損益"
+  }
+ },
+ "taifex/AccumulatedIncomeStateF": {
+  "id": "taifex/AccumulatedIncomeStateF",
+  "source": "taifex",
+  "summary": "專營期貨商稅前累計損益明細表",
+  "description": "專營期貨商稅前累計損益明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Revenue": "本期收入",
+   "Expense": "本期支出",
+   "NetIncome": "本期損益"
+  }
+ },
+ "taifex/AccumulatedIncomeStateR": {
+  "id": "taifex/AccumulatedIncomeStateR",
+  "source": "taifex",
+  "summary": "複委託期貨商稅前累計損益明細表",
+  "description": "複委託期貨商稅前累計損益明細表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "Revenue": "本期收入",
+   "Expense": "本期支出",
+   "NetIncome": "本期損益"
+  }
+ },
+ "taifex/NetIncomeRankingS": {
+  "id": "taifex/NetIncomeRankingS",
+  "source": "taifex",
+  "summary": "兼營期貨商稅前損益排序表",
+  "description": "兼營期貨商稅前損益排序表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeThisMonth": "本月損益"
+  }
+ },
+ "taifex/NetIncomeRankingF": {
+  "id": "taifex/NetIncomeRankingF",
+  "source": "taifex",
+  "summary": "專營期貨商稅前損益排序表",
+  "description": "專營期貨商稅前損益排序表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeThisMonth": "本月損益"
+  }
+ },
+ "taifex/NetIncomeRankingR": {
+  "id": "taifex/NetIncomeRankingR",
+  "source": "taifex",
+  "summary": "複委託期貨商稅前損益排序表",
+  "description": "複委託期貨商稅前損益排序表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeThisMonth": "本月損益"
+  }
+ },
+ "taifex/IncomeStatementS": {
+  "id": "taifex/IncomeStatementS",
+  "source": "taifex",
+  "summary": "兼營期貨商稅前累計損益彙總表",
+  "description": "兼營期貨商稅前累計損益彙總表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTaxThisMonth": "本月稅前損益",
+   "AccumulatedNetIncomeLastMonth": "截至上月累計損益",
+   "AccumulatedNetIncome": "截至本月累計損益"
+  }
+ },
+ "taifex/IncomeStatementF": {
+  "id": "taifex/IncomeStatementF",
+  "source": "taifex",
+  "summary": "專營期貨商稅前累計損益彙總表",
+  "description": "專營期貨商稅前累計損益彙總表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTaxThisMonth": "本月稅前損益",
+   "AccumulatedNetIncomeLastMonth": "截至上月累計損益",
+   "AccumulatedNetIncome": "截至本月累計損益"
+  }
+ },
+ "taifex/IncomeStatementR": {
+  "id": "taifex/IncomeStatementR",
+  "source": "taifex",
+  "summary": "複委託期貨商稅前累計損益彙總表",
+  "description": "複委託期貨商稅前累計損益彙總表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTaxThisMonth": "本月稅前損益",
+   "AccumulatedNetIncomeLastMonth": "截至上月累計損益",
+   "AccumulatedNetIncome": "截至本月累計損益"
+  }
+ },
+ "taifex/EPSBeforeTaxS": {
+  "id": "taifex/EPSBeforeTaxS",
+  "source": "taifex",
+  "summary": "兼營期貨商每股稅前盈餘統計表",
+  "description": "兼營期貨商每股稅前盈餘統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTax": "當月稅前損益",
+   "AccumulatedIncomeBeforeTax": "累計稅前損益",
+   "Shares": "股數",
+   "EPS-NetIncomeBeforeTax": "當月每股稅前盈餘",
+   "EPS-AccumulatedIncomeBeforeTax": "累計每股稅前盈餘"
+  }
+ },
+ "taifex/EPSBeforeTaxF": {
+  "id": "taifex/EPSBeforeTaxF",
+  "source": "taifex",
+  "summary": "專營期貨商每股稅前盈餘統計表",
+  "description": "專營期貨商每股稅前盈餘統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTax": "當月稅前損益",
+   "AccumulatedIncomeBeforeTax": "累計稅前損益",
+   "Shares": "股數",
+   "EPS-NetIncomeBeforeTax": "當月每股稅前盈餘",
+   "EPS-AccumulatedIncomeBeforeTax": "累計每股稅前盈餘"
+  }
+ },
+ "taifex/EPSBeforeTaxR": {
+  "id": "taifex/EPSBeforeTaxR",
+  "source": "taifex",
+  "summary": "複委託期貨商每股稅前盈餘統計表",
+  "description": "複委託期貨商每股稅前盈餘統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "FCMCode": "期貨商代號",
+   "FCMName": "期貨商名稱",
+   "NetIncomeBeforeTax": "當月稅前損益",
+   "AccumulatedIncomeBeforeTax": "累計稅前損益",
+   "Shares": "股數",
+   "EPS-NetIncomeBeforeTax": "當月每股稅前盈餘",
+   "EPS-AccumulatedIncomeBeforeTax": "累計每股稅前盈餘"
+  }
+ },
+ "taifex/MarketParticipants": {
+  "id": "taifex/MarketParticipants",
+  "source": "taifex",
+  "summary": "市場參與者統計",
+  "description": "市場參與者統計",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ProprietaryTradersFCMsWithExclusiveFuturesTradingBusinessNoOfParticipatingFirms": "自營商專營家數",
+   "ProprietaryTradersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessNoOfParticipatingFirms": "自營商他業兼營家數",
+   "BrokersFuturesBrokersHeadOfficeNoOfParticipatingFirms": "經紀商專營總公司家數",
+   "BrokersFuturesBrokersBranchOfficeNoOfParticipatingFirms": "經紀商專營分總公司家數",
+   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessHeadOfficeNoOfParticipatingFirms": "經紀商他業兼營總公司家數",
+   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessBranchOfficeNoOfParticipatingFirms": "經紀商他業兼營分總公司家數",
+   "IntroducingBrokersHeadOfficeNoOfParticipatingFirms": "交易輔助人總公司家數",
+   "IntroducingBrokersBranchOfficeNoOfParticipatingFirms": "交易輔助人分公司家數",
+   "ClearingMembersGeneralClearingMembersNoOfParticipatingFirms": "一般結算會員家數",
+   "ClearingMembersIndividualClearingMembersNoOfParticipatingFirms": "個別結算會員家數",
+   "SettlementBanks": "結算銀行家數",
+   "TotalNoOfTradingAccountsIndividualsAccounts": "自然人交易人開戶數",
+   "TotalNoOfTradingAccountsInstitutionalInvestorsAccounts": "法人交易人開戶數",
+   "NumberOfActiveNoteAccountsIndividualsAccounts": "自然人交易戶數",
+   "NumberOfActiveNoteAccountsInstitutionalInvestorsAccounts": "法人交易戶數"
+  }
+ },
+ "taifex/MonthlyTradingStatisticsFutures": {
+  "id": "taifex/MonthlyTradingStatisticsFutures",
+  "source": "taifex",
+  "summary": "期貨各類交易人各商品交易量統計表",
+  "description": "期貨各類交易人各商品交易量統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ContactName": "商品名稱",
+   "TotalVolume": "交易量合計(單邊)",
+   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)",
+   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)",
+   "ProprietaryTraders(Buy)": "期貨自營商(買)",
+   "ProprietaryTraders(Sell)": "期貨自營商(賣)",
+   "MonthEndOpenInterest": "期末未沖銷量"
+  }
+ },
+ "taifex/MonthlyTradingStatisticsOptions": {
+  "id": "taifex/MonthlyTradingStatisticsOptions",
+  "source": "taifex",
+  "summary": "選擇權各類交易人各商品交易量統計表",
+  "description": "選擇權各類交易人各商品交易量統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ContactName": "商品名稱",
+   "TotalVolume": "交易量合計(單邊)",
+   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)",
+   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)",
+   "ProprietaryTraders(Buy)": "期貨自營商(買)",
+   "ProprietaryTraders(Sell)": "期貨自營商(賣)",
+   "MonthEndOpenInterest": "期末未沖銷量"
+  }
+ },
+ "taifex/FinalSettlementPriceSSF": {
+  "id": "taifex/FinalSettlementPriceSSF",
+  "source": "taifex",
+  "summary": "最後結算價-股票期貨",
+  "description": "最後結算價-股票期貨",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceSSO": {
+  "id": "taifex/FinalSettlementPriceSSO",
+  "source": "taifex",
+  "summary": "最後結算價-股票選擇權",
+  "description": "最後結算價-股票選擇權",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceIndexFutures": {
+  "id": "taifex/FinalSettlementPriceIndexFutures",
+  "source": "taifex",
+  "summary": "最後結算價-股價指數類（指數期貨）",
+  "description": "最後結算價-股價指數類（指數期貨）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceIndexOptions": {
+  "id": "taifex/FinalSettlementPriceIndexOptions",
+  "source": "taifex",
+  "summary": "最後結算價-股價指數類（指數選擇權）",
+  "description": "最後結算價-股價指數類（指數選擇權）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceIR": {
+  "id": "taifex/FinalSettlementPriceIR",
+  "source": "taifex",
+  "summary": "最後結算價-利率類",
+  "description": "最後結算價-利率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceGold": {
+  "id": "taifex/FinalSettlementPriceGold",
+  "source": "taifex",
+  "summary": "最後結算價-商品類",
+  "description": "最後結算價-商品類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/FinalSettlementPriceFx": {
+  "id": "taifex/FinalSettlementPriceFx",
+  "source": "taifex",
+  "summary": "最後結算價-匯率類",
+  "description": "最後結算價-匯率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "到期日",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementPrice": "最後結算價"
+  }
+ },
+ "taifex/SettledPositionsIndexFutures": {
+  "id": "taifex/SettledPositionsIndexFutures",
+  "source": "taifex",
+  "summary": "到期契約履約交割-股價指數類（指數期貨）",
+  "description": "到期契約履約交割-股價指數類（指數期貨）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數"
+  }
+ },
+ "taifex/SettledPositionsIndexOptions": {
+  "id": "taifex/SettledPositionsIndexOptions",
+  "source": "taifex",
+  "summary": "到期契約履約交割-股價指數類（指數選擇權）",
+  "description": "到期契約履約交割-股價指數類（指數選擇權）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Call/Put": "買賣權別",
+   "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
+   "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
+   "AbandonedOIofIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內放棄履約部位數",
+   "ActualExecutedOI(Lot)": "實際履約部位數"
+  }
+ },
+ "taifex/SettledPositionsSSF": {
+  "id": "taifex/SettledPositionsSSF",
+  "source": "taifex",
+  "summary": "到期契約履約交割-股票類（股票期貨）",
+  "description": "到期契約履約交割-股票類（股票期貨）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數"
+  }
+ },
+ "taifex/SettledPositionsSSO": {
+  "id": "taifex/SettledPositionsSSO",
+  "source": "taifex",
+  "summary": "到期契約履約交割-股票類（股票選擇權）",
+  "description": "到期契約履約交割-股票類（股票選擇權）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Call/Put": "買賣權別",
+   "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
+   "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
+   "AbandonedOIofIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內放棄履約部位數",
+   "ActualExecutedOI(Lot)": "實際履約部位數"
+  }
+ },
+ "taifex/SettledPositionsIR": {
+  "id": "taifex/SettledPositionsIR",
+  "source": "taifex",
+  "summary": "到期契約履約交割-利率類",
+  "description": "到期契約履約交割-利率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數"
+  }
+ },
+ "taifex/SettledPositionsGold": {
+  "id": "taifex/SettledPositionsGold",
+  "source": "taifex",
+  "summary": "到期契約履約交割-商品類",
+  "description": "到期契約履約交割-商品類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Call/Put": "買賣權別",
+   "CashSettlementLong(lot)": "期貨現金交割買方到期部位數",
+   "CashSettlementShort(lot)": "期貨現金交割賣方到期部位數",
+   "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
+   "CashSettlementOIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期現金交割價內未沖銷部位數",
+   "CashSettlementAbandonedOIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期現金交割價內放棄履約部位數",
+   "CashSettlementActualExecutedOI(Lot)": "現金交割實際履約部位數",
+   "PhysicalDelivery(lot)": "轉現貨部位數"
+  }
+ },
+ "taifex/SettledPositionsFX": {
+  "id": "taifex/SettledPositionsFX",
+  "source": "taifex",
+  "summary": "到期契約履約交割-匯率類",
+  "description": "到期契約履約交割-匯率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Call/Put": "買賣權別",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數",
+   "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
+   "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
+   "AbandonedOIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內放棄履約部位數",
+   "ActualExecutedOI(Lot)": "實際履約部位數"
+  }
+ },
+ "taifex/AnnualTradingIndexFutures": {
+  "id": "taifex/AnnualTradingIndexFutures",
+  "source": "taifex",
+  "summary": "商品年成交量統計-股價指數類（指數期貨）",
+  "description": "商品年成交量統計-股價指數類（指數期貨）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/AnnualTradingIndexOptions": {
+  "id": "taifex/AnnualTradingIndexOptions",
+  "source": "taifex",
+  "summary": "商品年成交量統計-股價指數類（指數選擇權）",
+  "description": "商品年成交量統計-股價指數類（指數選擇權）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/AnnualTradingSSF": {
+  "id": "taifex/AnnualTradingSSF",
+  "source": "taifex",
+  "summary": "商品年成交量統計-股票類（股票期貨）",
+  "description": "商品年成交量統計-股票類（股票期貨）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/AnnualTradingSSO": {
+  "id": "taifex/AnnualTradingSSO",
+  "source": "taifex",
+  "summary": "商品年成交量統計-股票類（股票選擇權）",
+  "description": "商品年成交量統計-股票類（股票選擇權）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/AnnualTradingIR": {
+  "id": "taifex/AnnualTradingIR",
+  "source": "taifex",
+  "summary": "商品年成交量統計-利率類",
+  "description": "商品年成交量統計-利率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/AnnualTradingGold": {
+  "id": "taifex/AnnualTradingGold",
+  "source": "taifex",
+  "summary": "商品年成交量統計-商品類",
+  "description": "商品年成交量統計-商品類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/eTradeQty": {
+  "id": "taifex/eTradeQty",
+  "source": "taifex",
+  "summary": "每月市場電子式交易下單統計（網路與DMA下單）",
+  "description": "每月市場電子式交易下單統計（網路與DMA下單）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "Volume": "市場電子式交易成交量統計"
+  }
+ },
+ "taifex/STFTop10": {
+  "id": "taifex/STFTop10",
+  "source": "taifex",
+  "summary": "每日股票期貨交易量前十大統計表",
+  "description": "每日股票期貨交易量前十大統計表",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "Volume": "成交量"
+  }
+ },
+ "taifex/AnnualTradingFX": {
+  "id": "taifex/AnnualTradingFX",
+  "source": "taifex",
+  "summary": "商品年成交量統計-匯率類",
+  "description": "商品年成交量統計-匯率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "年度",
+   "Contract": "商品代號",
+   "ContractName": "商品名稱",
+   "TotalVolume": "年度成交量",
+   "NumberOfTradingDays": "年度交易日數",
+   "AvgDailyTradingVolume": "日平均成交量"
+  }
+ },
+ "taifex/SettledPositionsFXFutures": {
+  "id": "taifex/SettledPositionsFXFutures",
+  "source": "taifex",
+  "summary": "到期契約履約交割-匯率期貨類",
+  "description": "到期契約履約交割-匯率期貨類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "TheFinalSettlementDay": "最後結算日",
+   "ContractDeliveryMonth": "契約月份",
+   "ContractName": "商品名稱",
+   "Contract": "商品代號",
+   "Long(lot)": "買方到期部位數",
+   "Short(lot)": "賣方到期部位數"
+  }
+ },
+ "taifex/FXFuturesAndOptionsMargining": {
+  "id": "taifex/FXFuturesAndOptionsMargining",
+  "source": "taifex",
+  "summary": "保證金一覽表-匯率類",
+  "description": "保證金一覽表-匯率類",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Contracts": "商品別",
+   "ClearingMargin": "結算保證金",
+   "MaintenanceMargin": "維持保證金",
+   "InitialMargin": "原始保證金",
+   "Date": "日期"
+  }
+ },
+ "taifex/AcceptableCollateralLogStock": {
+  "id": "taifex/AcceptableCollateralLogStock",
+  "source": "taifex",
+  "summary": "有價證券保證金之可抵繳標的增刪紀錄",
+  "description": "有價證券保證金之可抵繳標的增刪紀錄",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "StockId": "股票代號",
+   "StockName": "股票名稱",
+   "New/Delete": "異動別"
+  }
+ },
+ "taifex/va01": {
+  "id": "taifex/va01",
+  "source": "taifex",
+  "summary": "每日股價指數類選擇權未平倉量增減",
+  "description": "每日股價指數類選擇權未平倉量增減",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "OpenInterest": "股價指數類選擇權未平倉量",
+   "PreviousDay": "前一日",
+   "PreviousDayOpenInterest": "前一日股價指數類選擇權未平倉量",
+   "Change": "未平倉量增減"
+  }
+ },
+ "taifex/va02": {
+  "id": "taifex/va02",
+  "source": "taifex",
+  "summary": "每日個股選擇權未平倉量增減(區分股票與ETF)",
+  "description": "每日個股選擇權未平倉量增減(區分股票與ETF)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ContractType": "股票/ETF選擇權",
+   "OpenInterest": "個股選擇權未平倉量",
+   "PreviousDay": "前一日",
+   "PreviousDayOpenInterest": "前一日個股選擇權未平倉量",
+   "Change": "未平倉量增減"
+  }
+ },
+ "taifex/va03": {
+  "id": "taifex/va03",
+  "source": "taifex",
+  "summary": "每日商品類選擇權未平倉量增減",
+  "description": "每日商品類選擇權未平倉量增減",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "OpenInterest": "商品類選擇權未平倉量",
+   "PreviousDay": "前一日",
+   "PreviousDayOpenInterest": "前一日商品類選擇權未平倉量",
+   "Change": "未平倉量增減"
+  }
+ },
+ "taifex/va04": {
+  "id": "taifex/va04",
+  "source": "taifex",
+  "summary": "股價指數類期貨商品每月平均成交金額",
+  "description": "股價指數類期貨商品每月平均成交金額",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "股價指數類期貨商品每月平均成交金額"
+  }
+ },
+ "taifex/va05": {
+  "id": "taifex/va05",
+  "source": "taifex",
+  "summary": "個股期貨商品每月平均成交金額(區分股票與ETF)",
+  "description": "個股期貨商品每月平均成交金額(區分股票與ETF)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ContractType": "STF/ETF",
+   "AverageDailyTradingValueForTheMonth": "個股期貨商品每月平均成交金額"
+  }
+ },
+ "taifex/va06": {
+  "id": "taifex/va06",
+  "source": "taifex",
+  "summary": "利率期貨商品每月平均成交金額",
+  "description": "利率期貨商品每月平均成交金額",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "利率期貨商品每月平均成交金額"
+  }
+ },
+ "taifex/va07": {
+  "id": "taifex/va07",
+  "source": "taifex",
+  "summary": "股價指數類選擇權商品每月平均成交金額(權利金)",
+  "description": "股價指數類選擇權商品每月平均成交金額(權利金)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "股價指數類選擇權商品每月平均成交金額(權利金)"
+  }
+ },
+ "taifex/va08": {
+  "id": "taifex/va08",
+  "source": "taifex",
+  "summary": "個股選擇權商品每月平均成交金額(權利金-區分股票與ETF)",
+  "description": "個股選擇權商品每月平均成交金額(權利金-區分股票與ETF)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ContractType": "股票/ETF",
+   "AverageDailyTradingValueForTheMonth": "個股選擇權商品每月平均成交金額(權利金)"
+  }
+ },
+ "taifex/va09": {
+  "id": "taifex/va09",
+  "source": "taifex",
+  "summary": "商品類期貨每月平均成交金額",
+  "description": "商品類期貨每月平均成交金額",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "商品類期貨每月平均成交金額"
+  }
+ },
+ "taifex/va10": {
+  "id": "taifex/va10",
+  "source": "taifex",
+  "summary": "商品類選擇權每月平均成交金額(權利金)",
+  "description": "商品類選擇權每月平均成交金額(權利金)",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "商品類選擇權每月平均成交金額(權利金)"
+  }
+ },
+ "taifex/va11": {
+  "id": "taifex/va11",
+  "source": "taifex",
+  "summary": "匯率類期貨每月平均成交金額",
+  "description": "匯率類期貨每月平均成交金額",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "AverageDailyTradingValueForTheMonth": "匯率類期貨每月平均成交金額"
+  }
+ },
+ "taifex/va12": {
+  "id": "taifex/va12",
+  "source": "taifex",
+  "summary": "每日個股期貨交易量統計表（區分股票與ETF）",
+  "description": "每日個股期貨交易量統計表（區分股票與ETF）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "Date": "日期",
+   "ContractType": "股票期貨/ETF期貨",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/va13": {
+  "id": "taifex/va13",
+  "source": "taifex",
+  "summary": "每月個股期貨交易量統計表（區分股票與ETF）",
+  "description": "每月個股期貨交易量統計表（區分股票與ETF）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYYMM": "資料年月",
+   "ContractType": "股票期貨/ETF期貨",
+   "Volume": "交易量"
+  }
+ },
+ "taifex/va14": {
+  "id": "taifex/va14",
+  "source": "taifex",
+  "summary": "每年個股期貨交易量統計表（區分股票與ETF）",
+  "description": "每年個股期貨交易量統計表（區分股票與ETF）",
+  "tags": [
+   "期貨與選擇權"
+  ],
+  "fields": {
+   "YYYY": "資料年度",
+   "ContractType": "股票期貨/ETF期貨",
+   "Volume": "交易量"
   }
  }
 }
