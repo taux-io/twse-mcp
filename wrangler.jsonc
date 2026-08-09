@@ -16,6 +16,12 @@
   //     wrangler 的遠端／本地設定比對**刻意排除** observability，因為它的遠端預設
   //     行為與 wrangler 不同。
   //   - 「`wrangler tail` 除錯靠它」——不是。tail 是另一個子系統，不受本設定影響。
+  //
+  // 「頂層開了，traces 會不會跟著開？」——不會，而且真正的保障不是下面那行
+  // `traces.enabled: false`。Cloudflare 的 traces 文件寫明：自動追蹤仍在 early beta，
+  // 頂層 `enabled = true` **目前只會開 logs**，日後要讓它同時開 traces 還需要更新
+  // `compatibility_date` 才會生效。所以擋著 traces 的是這個 compatibility_date，
+  // 下面那行是第二道、不依賴巢狀優先順序的明示。兩者都留著。
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,

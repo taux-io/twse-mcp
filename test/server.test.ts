@@ -8,7 +8,7 @@
  * legacy 與 modern 下各跑一次，兩條 lane 才不會偷偷分岔——這是本檔存在的第二個理由，
  * 也是唯一擋得住「相依升級後協定行為無聲改變」的東西。
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
 import { fetchQuotes } from "../src/twse";
 
@@ -47,7 +47,14 @@ function misResponse(v: unknown) {
   });
 }
 
+/**
+ * 探針對每個請求輸出一行 JSON。全域 stub 掉，否則 46 條測試的 stdout 會被探針記錄淹沒，
+ * 真正在查的失敗訊息全埋在裡面。探針那組測試直接讀這個 spy。
+ */
+let logSpy: ReturnType<typeof vi.spyOn>;
+
 beforeEach(() => {
+  logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: unknown) => {
@@ -72,6 +79,10 @@ beforeEach(() => {
       return jsonResponse([]);
     }),
   );
+});
+
+afterEach(() => {
+  logSpy.mockRestore();
 });
 
 // --- 協定 era ---
@@ -411,6 +422,23 @@ describe("協定 era", () => {
     });
   });
 
+  /**
+   * 兩條 lane 的 wire 編碼要各自釘死。
+   *
+   * 先前這件事是被 rpc() 隱性守住的：舊版 helper 只會解 SSE，不是 SSE 就丟例外，
+   * 於是每一條測試都順帶釘住了 legacy 的編碼。改成雙 era 之後 readPayload 兩種都收，
+   * 那道隱性保護就沒了——`agents` 一升版把 legacy lane 換成 application/json，
+   * 46 條測試照樣全綠，而只解 SSE frame 的 legacy client 會完全讀不到回應。
+   */
+  it.each([
+    ["legacy", "text/event-stream"],
+    ["modern", "application/json"],
+  ] as const)("%s lane 的 tools/list 回 %s", async (era, contentType) => {
+    const res = await send(eraRequest(era, "tools/list", {}));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain(contentType);
+  });
+
   it("legacy 的 tools/list 不帶結果型別與快取欄位（2025 編碼路徑沒有蓋章邏輯）", async () => {
     const payload = await rpcFor("legacy")("tools/list", {});
     expect(payload.result.resultType).toBeUndefined();
@@ -424,6 +452,31 @@ describe("協定 era", () => {
     expect(payload.result.capabilities).toHaveProperty("tools");
     expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
     expect(payload.result.cacheScope).toBe("public");
+  });
+
+  /**
+   * `cacheScope: "public"` 的絆線。
+   *
+   * 那個值只有在「所有請求者拿到同一份清單」時才誠實。ADR-0001 把失效條件寫成散文
+   * （導入認證時必須重看），但散文攔不住任何人——加一道 bearer token 檢查不會讓任何
+   * 測試變紅、不會讓 typecheck 失敗、也不會有警告，而共享快取會繼續把某個呼叫者的
+   * 清單餵給另一個授權情境的呼叫者長達一小時，安靜地錯。
+   *
+   * 這條測試就是那個警告。它斷言帶不帶 Authorization 標頭拿到的回應**位元組相同**。
+   * 哪天有人導入認證，這裡會紅，而紅的地方就指向 docs/adr/0001 的失效觸發條件。
+   */
+  it("回應不隨 Authorization 標頭改變（cacheScope: public 的前提）", async () => {
+    const plain = await send(eraRequest("modern", "tools/list", {}));
+    const withAuth = await send(
+      (() => {
+        const r = eraRequest("modern", "tools/list", {});
+        const h = new Headers(r.headers);
+        h.set("authorization", "Bearer some-token");
+        return new Request(r, { headers: h });
+      })(),
+    );
+    expect(plain.status).toBe(withAuth.status);
+    expect(await plain.text()).toBe(await withAuth.text());
   });
 
   // 工具清單可快取的前提之一是順序穩定，否則 client 每次拿到的清單都算「變了」，
@@ -470,8 +523,9 @@ describe("協定 era", () => {
  * 不想再來一次。
  */
 describe("量測探針（臨時）", () => {
-  function probeRecords(spy: { mock: { calls: unknown[][] } }) {
-    return spy.mock.calls
+  /** console.log 由檔案層級的 beforeEach 統一 stub，這裡只讀它。 */
+  function probeRecords() {
+    return logSpy.mock.calls
       .map((c) => {
         try {
           return JSON.parse(String(c[0]));
@@ -483,32 +537,22 @@ describe("量測探針（臨時）", () => {
   }
 
   it("modern 請求記下協定版本與方法標頭", async () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    try {
-      await rpcFor("modern")("tools/list", {});
-      const records = probeRecords(spy);
-      expect(records).toHaveLength(1);
-      expect(records[0]).toMatchObject({
-        protocolVersion: MODERN_REVISION,
-        mcpMethod: "tools/list",
-      });
-    } finally {
-      spy.mockRestore();
-    }
+    await rpcFor("modern")("tools/list", {});
+    const records = probeRecords();
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      protocolVersion: MODERN_REVISION,
+      mcpMethod: "tools/list",
+    });
   });
 
   // 什麼標頭都不送的 client：兩個欄位都是 null。
   it("裸 legacy 請求的協定版本與方法標頭皆為 null", async () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    try {
-      await rpcFor("legacy")("tools/list", {});
-      const records = probeRecords(spy);
-      expect(records).toHaveLength(1);
-      expect(records[0].protocolVersion).toBeNull();
-      expect(records[0].mcpMethod).toBeNull();
-    } finally {
-      spy.mockRestore();
-    }
+    await rpcFor("legacy")("tools/list", {});
+    const records = probeRecords();
+    expect(records).toHaveLength(1);
+    expect(records[0].protocolVersion).toBeNull();
+    expect(records[0].mcpMethod).toBeNull();
   });
 
   /**
@@ -521,28 +565,22 @@ describe("量測探針（臨時）", () => {
    * 探針存在就是要防的事。
    */
   it("送 2025 協定版本標頭的 legacy client，記到的是那個版本字串而非 null", async () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    try {
-      const res = await send(
-        mcpRequest(
-          { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
-          { "MCP-Protocol-Version": "2025-06-18" },
-        ),
-      );
-      // 走的是 legacy lane：正常服務，且回應不帶 modern 的蓋章欄位。
-      expect(res.status).toBe(200);
-      const payload = await readPayload(res);
-      expect(payload.result.tools).toHaveLength(5);
-      expect(payload.result.resultType).toBeUndefined();
+    const res = await send(
+      mcpRequest(
+        { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+        { "MCP-Protocol-Version": "2025-06-18" },
+      ),
+    );
+    // 走的是 legacy lane：正常服務，且回應不帶 modern 的蓋章欄位。
+    expect(res.status).toBe(200);
+    const payload = await readPayload(res);
+    expect(payload.result.tools).toHaveLength(5);
+    expect(payload.result.resultType).toBeUndefined();
 
-      const [record] = probeRecords(spy);
-      expect(record.protocolVersion).toBe("2025-06-18");
-      expect(record.protocolVersion).not.toBeNull();
-      // 判讀規則：按值分類，等於 modern 修訂版的才算跟上，其餘（含 null）都沒有。
-      expect(record.protocolVersion).not.toBe(MODERN_REVISION);
-    } finally {
-      spy.mockRestore();
-    }
+    const [record] = probeRecords();
+    expect(record.protocolVersion).toBe("2025-06-18");
+    // 判讀規則：按值分類，等於 modern 修訂版的才算跟上，其餘（含 null）都沒有。
+    expect(record.protocolVersion).not.toBe(MODERN_REVISION);
   });
 
   // 探針只記真正可能是 MCP 請求的流量。先前無條件記錄，於是掃描、preflight 與 GET
@@ -553,26 +591,16 @@ describe("量測探針（臨時）", () => {
     ["GET /mcp", new Request("http://localhost/mcp", { method: "GET" })],
     ["OPTIONS 預檢", new Request("http://localhost/mcp", { method: "OPTIONS" })],
   ])("%s 不寫探針記錄", async (_label, request) => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    try {
-      await send(request);
-      expect(probeRecords(spy)).toHaveLength(0);
-    } finally {
-      spy.mockRestore();
-    }
+    await send(request);
+    expect(probeRecords()).toHaveLength(0);
   });
 
   it("記錄不含 era 值（era 會被分類理由污染，見 src/server.ts 的說明）", async () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    try {
-      await rpcFor("modern")("tools/list", {});
-      const [record] = probeRecords(spy);
-      expect(record).not.toHaveProperty("era");
-      expect(Object.keys(record).sort()).toEqual(
-        ["mcpMethod", "origin", "protocolVersion", "tag", "userAgent"].sort(),
-      );
-    } finally {
-      spy.mockRestore();
-    }
+    await rpcFor("modern")("tools/list", {});
+    const [record] = probeRecords();
+    expect(record).not.toHaveProperty("era");
+    expect(Object.keys(record).sort()).toEqual(
+      ["mcpMethod", "origin", "protocolVersion", "tag", "userAgent"].sort(),
+    );
   });
 });
