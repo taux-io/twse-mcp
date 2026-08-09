@@ -10,6 +10,7 @@
     "dry-run": "wrangler deploy --dry-run --outdir=dist",
     "refresh-catalog": "node scripts/refresh-catalog.mjs",
     "check-catalog": "node scripts/check-catalog.mjs",
+    "check-readmes": "node scripts/check-readmes.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

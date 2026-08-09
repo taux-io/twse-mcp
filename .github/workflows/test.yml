@@ -28,5 +28,9 @@ jobs:
       - run: npm run typecheck
       # 測試完全離線（stub 掉出站 fetch），CI 不需要連證交所
       - run: npm test
+
+      # 多語 README 的結構一致性。翻譯品質要母語者，這裡只擋「英文版加了一節、
+      # 日文版沒跟上」「網址改了只改兩份」這種眼睛看不出來的漂移。
+      - run: npm run check-readmes
       # 型別/設定檢查：確認 Worker 能 bundle，壞掉的部署設定在合併前就擋下
       - run: npm run dry-run
