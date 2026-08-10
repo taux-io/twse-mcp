@@ -564,6 +564,151 @@ describe("官方首頁", () => {
 });
 
 /**
+ * 英文版首頁。
+ *
+ * 動機是 SEO 的天花板：MCP 生態的搜尋幾乎都是英文（"Taiwan stock MCP server"），
+ * 而只有 zh-TW 一個語系時，連 hreflang 都無從設起。
+ *
+ * **兩個語系會漂移，這是這組測試存在的主要理由。** 五份 README 已經證明過這件事，
+ * 所以 repo 才有 check-readmes。這裡用同一招。
+ */
+describe("英文版首頁", () => {
+  const get = (path: string, method = "GET") =>
+    send(
+      new Request(`http://twse-mcp.taux.io${path}`, {
+        method,
+        headers: { host: "twse-mcp.taux.io" },
+      }),
+    );
+
+  it("GET /en 回英文 HTML", async () => {
+    const res = await get("/en");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    expect(html).toContain('lang="en"');
+    expect(html).toContain("Taiwan");
+  });
+
+  it("英文版帶得出端點網址與安裝指令", async () => {
+    const html = await (await get("/en")).text();
+    expect(html).toContain("https://twse-mcp.taux.io/mcp");
+    expect(html).toContain("claude mcp add");
+  });
+
+  // hreflang 要互指才成立：兩個語系各自宣告全部替代版本，外加 x-default。
+  it("兩個語系互相宣告 hreflang，且都有 x-default", async () => {
+    const pairs: [string, string][] = [
+      ["/", "https://twse-mcp.taux.io/"],
+      ["/en", "https://twse-mcp.taux.io/en"],
+    ];
+    for (const [path, canonical] of pairs) {
+      const html = await (await get(path)).text();
+      expect(html, path).toContain('hreflang="zh-Hant"');
+      expect(html, path).toContain('hreflang="en"');
+      expect(html, path).toContain('hreflang="x-default"');
+      expect(html, path).toContain(`<link rel="canonical" href="${canonical}">`);
+    }
+  });
+
+  it("兩個語系互相看得見對方（人也要找得到，不只爬蟲）", async () => {
+    expect(await (await get("/")).text()).toContain('href="https://twse-mcp.taux.io/en"');
+    expect(await (await get("/en")).text()).toContain('href="https://twse-mcp.taux.io/"');
+  });
+
+  it("sitemap 兩個語系都列", async () => {
+    const body = await (await get("/sitemap.xml")).text();
+    expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
+    expect(body).toContain("<loc>https://twse-mcp.taux.io/en</loc>");
+  });
+
+  // OGDL 的顯名聲明必須維持中文原文——條款要求的就是那組措辭，翻成英文等於沒盡義務。
+  // 五份 README 早就是這樣處理的，並附一句說明為什麼。
+  it("英文版的顯名聲明保留中文原文，並解釋原因", async () => {
+    const html = await (await get("/en")).text();
+    expect(html).toContain("臺灣證券交易所 2026 臺灣證券交易所 OpenAPI");
+    expect(html).toContain("金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS");
+    expect(html).toMatch(/licence|license/i);
+  });
+
+  it("英文版有自帶主詞的定義句與結構化資料", async () => {
+    const html = await (await get("/en")).text();
+    const text = html.replace(/<[^>]+>/g, "");
+    expect(text).toMatch(/Taiwan Stock MCP is a free[^.]*MCP server/);
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(
+      (b) => JSON.parse(b[1]),
+    );
+    expect(ld.map((o) => o["@type"])).toEqual(
+      expect.arrayContaining(["SoftwareApplication", "HowTo", "FAQPage"]),
+    );
+    expect(ld.find((o) => o["@type"] === "SoftwareApplication").inLanguage).toBe("en");
+  });
+
+  it("英文版也是零可執行腳本、同一組安全標頭", async () => {
+    const res = await get("/en");
+    expect(res.headers.get("content-security-policy")).toContain("script-src 'none'");
+    const html = await res.text();
+    for (const m of html.matchAll(/<script\b([^>]*)>/gi)) {
+      expect(m[1]).toContain('type="application/ld+json"');
+    }
+  });
+
+  // 搜尋結果片段有硬性長度：title 約 60 字元、description 約 155 就截斷。
+  // 超過的部分不是「多寫一點」，是白寫——而且沒有任何回饋告訴你被截了。
+  // 英文版第一版寫了 251 字元的 description，就是這條守衛抓出來的。
+  it("兩個語系的 title 與 description 都在搜尋片段的長度內", async () => {
+    for (const path of ["/", "/en"]) {
+      const html = await (await get(path)).text();
+      const title = html.match(/<title>(.*?)<\/title>/)![1];
+      const desc = html.match(/name="description" content="(.*?)"/)![1];
+      expect(title.length, `${path} title=${title.length}`).toBeLessThanOrEqual(65);
+      expect(title.length, `${path} title=${title.length}`).toBeGreaterThanOrEqual(15);
+      expect(desc.length, `${path} desc=${desc.length}`).toBeLessThanOrEqual(160);
+      expect(desc.length, `${path} desc=${desc.length}`).toBeGreaterThanOrEqual(50);
+    }
+  });
+
+  it("llms.txt 兩種語言的查詢都服務得到，並指出兩個語系頁面", async () => {
+    const body = await (await get("/llms.txt")).text();
+    expect(body).toContain("https://twse-mcp.taux.io/en");
+    expect(body).toMatch(/Taiwan Stock MCP is a free/);
+    expect(body).toContain("台股 MCP 是一個免費的");
+  });
+});
+
+/**
+ * 兩個語系的結構必須一致。五份 README 證明過內容會漂移——改了一邊忘了另一邊，
+ * 而 CI 不會有任何反應。check-readmes 是為此存在的，這組斷言是同一招的頁面版。
+ */
+describe("兩個語系不會漂移", () => {
+  const get = (p: string) =>
+    send(new Request(`http://twse-mcp.taux.io${p}`, { headers: { host: "twse-mcp.taux.io" } }));
+  const parse = async (p: string) => {
+    const html = await (await get(p)).text();
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(
+      (b) => JSON.parse(b[1]),
+    );
+    return {
+      sections: [...html.matchAll(/<h2 id="([^"]+)">/g)].map((m) => m[1]),
+      faq: ld.find((o) => o["@type"] === "FAQPage").mainEntity.length,
+      steps: ld.find((o) => o["@type"] === "HowTo").step.length,
+      features: ld.find((o) => o["@type"] === "SoftwareApplication").featureList.length,
+      shortcuts: [...html.matchAll(/<td><code>([a-z_]+)<\/code><\/td>/g)].map((m) => m[1]),
+    };
+  };
+
+  it("章節、FAQ、步驟、功能、快捷指令的數量與識別都對齊", async () => {
+    const zh = await parse("/");
+    const en = await parse("/en");
+    expect(en.sections).toEqual(zh.sections);
+    expect(en.faq).toBe(zh.faq);
+    expect(en.steps).toBe(zh.steps);
+    expect(en.features).toBe(zh.features);
+    expect(en.shortcuts).toEqual(zh.shortcuts);
+  });
+});
+
+/**
  * 讓生成式引擎（ChatGPT、Perplexity、AI Overviews）能正確引用這個服務。
  *
  * 與傳統 SEO 的差別在於**它們是抽句子而不是排名**：答案引擎會把頁面上的句子直接
