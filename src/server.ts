@@ -25,6 +25,7 @@ import {
 } from "./core";
 import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
 import { LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { OG_IMAGE_BASE64 } from "./og-image";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -425,7 +426,13 @@ const SITE_HEADERS: Record<string, string> = {
  * 首頁不是 catch-all：把 /admin、/.env 這類掃描回成 200 的漂亮頁面，只會讓
  * 探針資料與存取日誌變難讀，也讓掃描者以為這裡有東西。
  */
-const STATIC_ROUTES: Record<string, { body: string; type: string }> = {
+/**
+ * 社群卡片圖。og:image 必須是 URL 不能是 data: URI，所以由 Worker 服務。
+ * base64 在模組載入時解一次——它是常數，每請求重解只是浪費 CPU。
+ */
+const OG_PNG = Uint8Array.from(atob(OG_IMAGE_BASE64), (c) => c.charCodeAt(0));
+
+const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; cache?: string }> = {
   "/": { body: renderPage("zh"), type: "text/html; charset=utf-8" },
   // 英文版。MCP 生態的搜尋幾乎都是英文，而只有一個語系時 hreflang 無從設起。
   "/en": { body: renderPage("en"), type: "text/html; charset=utf-8" },
@@ -433,6 +440,8 @@ const STATIC_ROUTES: Record<string, { body: string; type: string }> = {
   // 給大型語言模型讀的精簡版（llmstxt.org 的約定）。與首頁的分工見 src/site.ts。
   "/llms.txt": { body: LLMS_TXT, type: "text/markdown; charset=utf-8" },
   "/sitemap.xml": { body: SITEMAP_XML, type: "application/xml; charset=utf-8" },
+  // 圖的內容只隨部署改變，而抓取端（Slack、X、Discord…）會重複來拿，所以放長快取。
+  "/og.png": { body: OG_PNG, type: "image/png", cache: "public, max-age=86400, s-maxage=604800" },
 };
 
 export default {
@@ -443,7 +452,11 @@ export default {
       const route = STATIC_ROUTES[new URL(request.url).pathname];
       if (route) {
         return new Response(request.method === "HEAD" ? null : route.body, {
-          headers: { "content-type": route.type, ...SITE_HEADERS },
+          headers: {
+            "content-type": route.type,
+            ...SITE_HEADERS,
+            ...(route.cache ? { "cache-control": route.cache } : {}),
+          },
         });
       }
     }

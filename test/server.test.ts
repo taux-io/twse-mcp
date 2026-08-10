@@ -1023,6 +1023,146 @@ describe("出站路由：兩個交易所", () => {
 });
 
 /**
+ * 社群分享卡片的圖。
+ *
+ * og:image **必須是 URL**，不能是 data: URI，所以圖得由 Worker 自己服務。
+ * 圖上沒有文字：畫字需要字型光柵化（標題還含中文，要一套 CJK 字型），那會拉進一個
+ * 相當大的相依，跟「整頁零外部資源」衝突。標題與描述本來就由 og:title / og:description
+ * 提供，圖只需要是可辨識的視覺標記。
+ */
+describe("og:image", () => {
+  const get = (p: string, method = "GET") =>
+    send(
+      new Request(`http://twse-mcp.taux.io${p}`, { method, headers: { host: "twse-mcp.taux.io" } }),
+    );
+
+  it("/og.png 回真的 PNG，尺寸是 Open Graph 建議的 1200x630", async () => {
+    const res = await get("/og.png");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/png");
+    const buf = new Uint8Array(await res.arrayBuffer());
+    expect([...buf.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    const dv = new DataView(buf.buffer, buf.byteOffset);
+    expect(dv.getUint32(16)).toBe(1200);
+    expect(dv.getUint32(20)).toBe(630);
+  });
+
+  it("兩個語系都用絕對網址指向它，並宣告大圖卡片", async () => {
+    for (const p of ["/", "/en"]) {
+      const html = await (await get(p)).text();
+      expect(html, p).toContain('property="og:image" content="https://twse-mcp.taux.io/og.png"');
+      expect(html, p).toContain('name="twitter:image" content="https://twse-mcp.taux.io/og.png"');
+      expect(html, p).toContain('name="twitter:card" content="summary_large_image"');
+      // 尺寸讓抓取端不必先下載就能排版
+      expect(html, p).toContain('property="og:image:width" content="1200"');
+    }
+  });
+
+  it("圖可以放心長快取：內容只隨部署改變", async () => {
+    const cc = (await get("/og.png")).headers.get("cache-control") ?? "";
+    expect(cc).toContain("public");
+    expect(cc).toMatch(/max-age=\d{4,}/);
+  });
+});
+
+/**
+ * 回應大小上限。
+ *
+ * 稽核的 hardening note：`res.text()` 之前沒有任何大小檢查，而排除清單是拿「名字
+ * 黑名單」去防一個「大小」問題——只要任何一個已收錄端點在上游長大，同樣的 OOM
+ * 就會發生，完全不需要路徑技巧。上一輪把繞法堵掉了，沒堵根因。
+ *
+ * **只看 content-length 不夠。** 分塊傳輸沒有那個標頭，而它也可以說謊。所以宣告值
+ * 先擋一次，然後邊讀邊數——第二道才是真正的守衛。
+ *
+ * 上限取 48 MB：目錄裡最大的資料集實測 36.1 MB（`opendata/t187ap37_L`，在真的
+ * 128 MB production isolate 上回 200），留三成成長空間；而被排除的逐筆成交端點是
+ * 255 MB，遠在界線之外。
+ */
+describe("上游回應的大小上限", () => {
+  const bigHeaders = (n: number) => ({
+    "content-type": "application/json",
+    "content-length": String(n),
+  });
+
+  // 斷言的是「**我們**沒有去要 reader」，不是「位元組沒有流動」。
+  // undici 的 Response 一建構就會自己開始抽取底層串流，所以在 Node 這一層
+  // 觀測到的 pull 來自平台而非本程式；能守住的是我們自己的行為。
+  // （在 workers runtime 上，提前拒絕才真的省下傳輸——那一點這裡驗不到。）
+  it("content-length 宣告超標時直接拒絕，不去讀 body", async () => {
+    let gotReader = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        const res = new Response("[]", { status: 200, headers: bigHeaders(300_000_000) });
+        const real = res.body!.getReader.bind(res.body);
+        Object.defineProperty(res.body, "getReader", {
+          value: (...a: unknown[]) => {
+            gotReader = true;
+            return (real as (...x: unknown[]) => unknown)(...a);
+          },
+        });
+        return res;
+      }),
+    );
+    await expect(fetchDataset("taifex/PutCallRatio")).rejects.toThrow(/過大|too large/i);
+    expect(gotReader).toBe(false);
+  });
+
+  // 分塊傳輸沒有 content-length，宣告值也可能說謊。這條才是真正的守衛。
+  it("沒有 content-length 但實際超標時，讀到一半就中止", async () => {
+    const chunk = new Uint8Array(1024 * 1024); // 1 MB
+    chunk.fill(65);
+    let sent = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        const body = new ReadableStream({
+          pull(c) {
+            if (sent >= 200) return c.close();
+            sent++;
+            c.enqueue(chunk);
+          },
+        });
+        return new Response(body, {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }),
+    );
+    await expect(fetchDataset("taifex/PutCallRatio")).rejects.toThrow(/過大|too large/i);
+    // 中止在上限附近，不是把 200 MB 全部讀完
+    expect(sent).toBeLessThan(60);
+  });
+
+  it("錯誤訊息說得出是哪個資料集、多大、上限多少", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("[]", { status: 200, headers: bigHeaders(99_000_000) })),
+    );
+    const err = await fetchDataset("taifex/PutCallRatio").catch((e: Error) => e);
+    const msg = (err as Error).message;
+    expect(msg).toContain("taifex/PutCallRatio");
+    expect(msg).toMatch(/99|94/); // 位元組或 MB 任一種呈現
+    expect(msg).toMatch(/48/);
+  });
+
+  it("正常大小不受影響", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify([{ Date: "20260807" }]), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+      ),
+    );
+    await expect(fetchDataset("taifex/PutCallRatio")).resolves.toEqual([{ Date: "20260807" }]);
+  });
+});
+
+/**
  * 期交所有**恰好一個**端點回 CSV 而不是 JSON：`/v1/DailyMarketReportOpt`。
  *
  * 三件事讓這條路徑比看起來危險：
