@@ -564,6 +564,111 @@ describe("官方首頁", () => {
 });
 
 /**
+ * 讓生成式引擎（ChatGPT、Perplexity、AI Overviews）能正確引用這個服務。
+ *
+ * 與傳統 SEO 的差別在於**它們是抽句子而不是排名**：答案引擎會把頁面上的句子直接
+ * 放進回答裡，所以每個關鍵事實都必須是**自帶主詞的完整句**。頁面上寫「它是免費的」
+ * 被抽出去就變成沒有主詞的孤句，讀者不知道在講什麼。
+ *
+ * 另一半是實體消歧：`sameAs` 指向官方網址，是讓引擎確定「臺灣證券交易所」是哪一個
+ * 機構、而不是猜的最強訊號。
+ */
+describe("生成式引擎最佳化（GEO）", () => {
+  const get = (path: string, method = "GET") =>
+    send(
+      new Request(`http://twse-mcp.taux.io${path}`, {
+        method,
+        headers: { host: "twse-mcp.taux.io" },
+      }),
+    );
+  const ld = async () =>
+    [...(await (await get("/")).text()).matchAll(
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g,
+    )].map((b) => JSON.parse(b[1]));
+
+  it("llms.txt 存在，且是 markdown", async () => {
+    const res = await get("/llms.txt");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+  });
+
+  // llmstxt.org 的形狀：H1 標題、blockquote 一句話摘要、然後是分節連結。
+  it("llms.txt 有 H1、一句話摘要與端點網址", async () => {
+    const body = await (await get("/llms.txt")).text();
+    expect(body).toMatch(/^# .+/);
+    expect(body).toMatch(/\n> .+/);
+    expect(body).toContain("https://twse-mcp.taux.io/mcp");
+    expect(body).toContain("https://github.com/taux-io/twse-mcp");
+  });
+
+  it("robots.txt 對訓練與檢索兩類 AI 爬蟲都表態，並指向 llms.txt", async () => {
+    const body = await (await get("/robots.txt")).text();
+    // 檢索類：回答當下抓取並引用，是 GEO 真正在意的
+    for (const ua of ["OAI-SearchBot", "Claude-SearchBot", "PerplexityBot"]) {
+      expect(body, ua).toContain(ua);
+    }
+    // 訓練類
+    for (const ua of ["GPTBot", "ClaudeBot", "Google-Extended"]) {
+      expect(body, ua).toContain(ua);
+    }
+    expect(body).toContain("/llms.txt");
+  });
+
+  it("頁面用 link rel=alternate 指向 llms.txt", async () => {
+    const html = await (await get("/")).text();
+    expect(html).toMatch(/<link rel="alternate"[^>]*type="text\/markdown"[^>]*llms\.txt/);
+  });
+
+  // 答案引擎抽的是句子。第一句必須自帶主詞，否則抽出去是孤句。
+  // 比對去標籤後的純文字：句子裡有 <strong> 是排版決定，不該讓語意斷言跟著碎掉。
+  it("開頭有自帶主詞的定義句", async () => {
+    const html = await (await get("/")).text();
+    const text = html.replace(/<[^>]+>/g, "");
+    expect(text).toMatch(/台股 MCP 是一個[^。]*MCP 伺服器/);
+  });
+
+  it("安裝步驟有 HowTo 結構化資料", async () => {
+    const types = (await ld()).map((o) => o["@type"]);
+    expect(types).toContain("HowTo");
+    const howto = (await ld()).find((o) => o["@type"] === "HowTo");
+    expect(howto.step.length).toBeGreaterThanOrEqual(3);
+    for (const st of howto.step) {
+      expect(st["@type"]).toBe("HowToStep");
+      expect(st.text).toBeTruthy();
+    }
+  });
+
+  // sameAs 是實體消歧最強的訊號：讓引擎確定講的是哪一個機構，而不是猜。
+  it("把兩個交易所標成有官方連結的實體", async () => {
+    const app = (await ld()).find((o) => o["@type"] === "SoftwareApplication");
+    const names = app.mentions.map((m: { name: string }) => m.name).join("|");
+    expect(names).toContain("臺灣證券交易所");
+    expect(names).toContain("臺灣期貨交易所");
+    for (const m of app.mentions) {
+      expect(m["@type"], m.name).toBe("Organization");
+      expect(Array.isArray(m.sameAs) && m.sameAs.length > 0, m.name).toBe(true);
+    }
+  });
+
+  it("SoftwareApplication 指得出原始碼與功能清單", async () => {
+    const app = (await ld()).find((o) => o["@type"] === "SoftwareApplication");
+    expect(app.sameAs).toContain("https://github.com/taux-io/twse-mcp");
+    expect(app.featureList.length).toBeGreaterThanOrEqual(4);
+  });
+
+  // 答案引擎會引用到某一節。沒有 id 就只能連到整頁，引用精度掉一層。
+  it("每個章節標題都有穩定的 ASCII 錨點且不重複", async () => {
+    const html = await (await get("/")).text();
+    const h2 = [...html.matchAll(/<h2 id="([^"]+)">/g)].map((m) => m[1]);
+    expect(h2.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(h2).size).toBe(h2.length);
+    for (const id of h2) expect(id, id).toMatch(/^[a-z0-9-]+$/);
+    // 沒有帶 id 的 h2 就是漏網的
+    expect(html).not.toMatch(/<h2>/);
+  });
+});
+
+/**
  * MCP 的 `prompts` 是零安裝的通道：跟著 server 走，使用者不必另外裝任何東西。
  * 在 Claude Code 裡會變成 `/mcp__twse__<name>` 斜線指令，Claude Desktop 在「+」選單。
  *

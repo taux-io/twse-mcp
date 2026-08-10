@@ -59,6 +59,70 @@ const FAQ: { q: string; a: string }[] = [
   },
 ];
 
+/**
+ * 實體消歧。`sameAs` 指向官方網址，是讓搜尋與答案引擎確定「臺灣證券交易所」是**哪一個**
+ * 機構、而不是從字面猜的最強訊號。這對本服務特別重要：它的價值主張就是「資料出自這兩個
+ * 機構」，引擎認不出機構，那句話就沒有分量。
+ */
+const ENTITIES = [
+  {
+    "@type": "Organization",
+    name: "臺灣證券交易所",
+    alternateName: "TWSE",
+    sameAs: ["https://www.twse.com.tw/", "https://zh.wikipedia.org/wiki/臺灣證券交易所"],
+  },
+  {
+    "@type": "Organization",
+    name: "臺灣期貨交易所",
+    alternateName: "TAIFEX",
+    sameAs: ["https://www.taifex.com.tw/", "https://zh.wikipedia.org/wiki/臺灣期貨交易所"],
+  },
+  {
+    "@type": "Organization",
+    name: "政府資料開放平臺",
+    sameAs: ["https://data.gov.tw/"],
+  },
+];
+
+/**
+ * 章節錨點。答案引擎會引用到某一節，沒有 id 就只能連到整頁，引用精度掉一層。
+ * 用 ASCII slug 而不是中文標題的百分比編碼——後者在被複製貼上時會爛掉。
+ */
+const SECTIONS = {
+  problem: "這解決什麼問題",
+  install: "一分鐘裝好",
+  shortcuts: "三個現成的快捷入口",
+  ask: "可以問什麼",
+  scope: "有些查得到，有些查不到",
+  caveats: "使用前先知道",
+  faq: "常見問題",
+  license: "資料來源與授權",
+} as const;
+
+/** 安裝步驟。頁面與 HowTo 結構化資料共用，避免兩邊分家後改一邊。 */
+const INSTALL_STEPS = [
+  {
+    name: "打開連接器設定",
+    text: "在 Claude 網頁版或桌面版點左下角你的名字，選 Settings（設定），再點左側選單的 Connectors（連接器）。",
+  },
+  {
+    name: "新增自訂連接器",
+    text: `按「+ Add custom connector」，名稱隨你取，網址填 ${MCP_ENDPOINT}，然後按 Add。`,
+  },
+  {
+    name: "在對話中打開它",
+    text: "回到聊天畫面開一個新對話，點輸入框旁的「+」，選 Connectors，把剛才加的連接器打開。",
+  },
+];
+
+const FEATURES = [
+  "台股上市股票與 ETF 的盤中即時報價",
+  "前一交易日的開盤、最高、最低、收盤與成交量",
+  "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
+  "臺灣期貨交易所的每日行情、三大法人與大額交易人未沖銷部位",
+  "臺灣證交所與期交所合計 275 個公開資料集的搜尋與查詢",
+];
+
 const SHORTCUTS = [
   { name: "find_dataset", what: "不知道該查哪張表時，用關鍵字找出對的那一個", arg: "關鍵字，例如「三大法人」" },
   { name: "etf_overview", what: "一次看完一檔上市 ETF 的基本資料、前一交易日價量與定期定額熱度", arg: "ETF 代號，例如 0056" },
@@ -83,7 +147,9 @@ const LD_SOFTWARE = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "台股 MCP（twse-mcp）",
+  alternateName: ["twse-mcp", "Taiwan Stock MCP"],
   applicationCategory: "DeveloperApplication",
+  applicationSubCategory: "Model Context Protocol Server",
   operatingSystem: "Any",
   url: SITE_ORIGIN,
   description: DESCRIPTION,
@@ -91,7 +157,31 @@ const LD_SOFTWARE = {
   isAccessibleForFree: true,
   license: "https://opensource.org/licenses/MIT",
   codeRepository: REPO,
+  sameAs: [REPO],
   inLanguage: "zh-Hant-TW",
+  featureList: FEATURES,
+  // 引擎靠這個確定「這個服務講的兩個交易所」是哪兩個機構。
+  mentions: ENTITIES,
+};
+
+/**
+ * 安裝步驟的 HowTo。它同時服務兩邊：搜尋引擎可能以步驟形式顯示，而答案引擎需要
+ * 一組**有順序、自成一句**的指示才有辦法照著回答「怎麼安裝」。
+ */
+const LD_HOWTO = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "如何在 Claude 裡安裝台股 MCP",
+  description: "把台股 MCP 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
+  totalTime: "PT1M",
+  tool: [{ "@type": "HowToTool", name: "Claude（網頁版或桌面版）" }],
+  step: INSTALL_STEPS.map((st, i) => ({
+    "@type": "HowToStep",
+    position: i + 1,
+    name: st.name,
+    text: st.text,
+    url: `${SITE_ORIGIN}/#install`,
+  })),
 };
 
 const LD_FAQ = {
@@ -199,7 +289,9 @@ export function renderHome(): string {
 <meta name="twitter:description" content="${esc(DESCRIPTION)}">
 <meta name="robots" content="index,follow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E">
+<link rel="alternate" type="text/markdown" href="${SITE_ORIGIN}/llms.txt" title="給 AI 讀的精簡版">
 <script type="application/ld+json">${JSON.stringify(LD_SOFTWARE)}</script>
+<script type="application/ld+json">${JSON.stringify(LD_HOWTO)}</script>
 <script type="application/ld+json">${JSON.stringify(LD_FAQ)}</script>
 <style>${CSS}</style>
 </head>
@@ -208,21 +300,19 @@ export function renderHome(): string {
 
 <header>
 <h1>讓 AI 查得到真正的台股資料</h1>
-<p class="lede">把臺灣證券交易所與臺灣期貨交易所的公開資料，接成 Claude 等 AI 助理可以直接查詢的工具。免費、不用安裝、不用註冊——複製一個網址就好。</p>
+<p class="lede"><strong>台股 MCP</strong> 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢臺灣證券交易所與臺灣期貨交易所的公開資料。不用安裝、不用註冊、不需要 API key——複製一個網址就好。</p>
 <pre class="endpoint"><code>${MCP_ENDPOINT}</code></pre>
 </header>
 
-<h2>這解決什麼問題</h2>
+<h2 id="problem">這解決什麼問題</h2>
 <p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。這個服務讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
 <p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 275 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。這個服務把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
 <p><strong>不想寫程式，也不想申請什麼。</strong>沒有 API key、沒有註冊、沒有 SDK。貼一個網址，用中文問就好。</p>
 
-<h2>一分鐘裝好</h2>
+<h2 id="install">一分鐘裝好</h2>
 <h3>Claude（網頁版或桌面版）</h3>
 <ol class="steps">
-<li>點左下角你的名字 → <strong>Settings（設定）</strong> → 左側選單的 <strong>Connectors（連接器）</strong>。</li>
-<li>按 <strong>「+ Add custom connector」</strong>，名稱隨你取，網址填上面那一行，按 <strong>Add</strong>。</li>
-<li>回到聊天，<strong>開一個新對話</strong>，點輸入框旁的 <strong>「+」</strong> → <strong>Connectors</strong>，把它打開。</li>
+${INSTALL_STEPS.map((st) => `<li>${esc(st.text)}</li>`).join("\n")}
 </ol>
 <p>免費方案就能用。裝好後問一句「0050 現在多少？」，回得出具體價格就成功了。</p>
 
@@ -231,7 +321,7 @@ export function renderHome(): string {
 <pre><code>codex mcp add twse --url ${MCP_ENDPOINT}</code></pre>
 <p>其他工具請選 <strong>Streamable HTTP</strong>（遠端 MCP），不要選舊的 SSE；不需要認證。</p>
 
-<h2>三個現成的快捷入口</h2>
+<h2 id="shortcuts">三個現成的快捷入口</h2>
 <p>它們跟著連接器自動出現，不用另外安裝。Claude Desktop 在「+」選單裡，Claude Code 輸入 <code>/</code> 就會列出來。</p>
 <table>
 <thead><tr><th>指令</th><th>做什麼</th><th>帶什麼</th></tr></thead>
@@ -241,7 +331,7 @@ ${shortcutRows()}
 </table>
 <p>不用也沒關係——它們只是把常見問法先寫好，直接用中文問一樣有效。</p>
 
-<h2>可以問什麼</h2>
+<h2 id="ask">可以問什麼</h2>
 <ul>
 <li>「台積電現在多少？」——盤中即時報價，一次問好幾檔也行。</li>
 <li>「0050 昨天收盤多少、量多大？」——前一交易日的開高低收與成交量。</li>
@@ -250,7 +340,7 @@ ${shortcutRows()}
 <li>「交易所有沒有 ⋯⋯ 的資料？」——在兩百多張公開報表裡找到對的那一張。</li>
 </ul>
 
-<h2>有些查得到，有些查不到</h2>
+<h2 id="scope">有些查得到，有些查不到</h2>
 <div class="note">
 <p style="margin:0"><strong>上櫃股票目前只有即時報價。</strong>歷史與統計報表取不到——證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。這是已知限制，寫在這裡免得你以為是查詢方式錯了。</p>
 </div>
@@ -260,7 +350,7 @@ ${shortcutRows()}
 <li><strong>不提供</strong>：技術指標、選股、投資建議，以及任何本服務自行計算的預測。</li>
 </ul>
 
-<h2>使用前先知道</h2>
+<h2 id="caveats">使用前先知道</h2>
 <ul>
 <li><strong>這是個人做的免費專案。</strong>盡量讓它一直開著，但可能偶爾限流、臨時維護，或日後換網址。</li>
 <li><strong>即時報價是「盡量即時」。</strong>來自交易所的網頁介面，可能有幾秒到幾分鐘延遲，或與你的券商略有出入。</li>
@@ -268,10 +358,10 @@ ${shortcutRows()}
 <li><strong>僅供參考，不是投資建議。</strong>下單前請自行向交易所或券商確認，盈虧自負。</li>
 </ul>
 
-<h2>常見問題</h2>
+<h2 id="faq">常見問題</h2>
 ${faqHtml()}
 
-<h2>資料來源與授權</h2>
+<h2 id="license">資料來源與授權</h2>
 <p class="attr">
 臺灣證券交易所 2026 臺灣證券交易所 OpenAPI<br>
 金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS<br>
@@ -302,11 +392,82 @@ ${faqHtml()}
  * `/mcp` 對 GET 只會回 405，讓爬蟲去敲它沒有意義，所以 Disallow。
  * 這不是安全措施——robots.txt 不擋任何人，它只是省下無謂的抓取。
  */
-export const ROBOTS_TXT = `User-agent: *
+export const ROBOTS_TXT = `# 完整說明見 ${SITE_ORIGIN}/llms.txt
+
+User-agent: *
+Allow: /
+Disallow: /mcp
+
+# 下面這些是明示，不是變更：上面的 * 已經允許它們。
+# 寫出來是為了讓「我們歡迎 AI 引用這個服務」成為讀得到的意圖，而不是靠預設值推測。
+# 這個服務本身就是給 AI 用的，攔住 AI 爬蟲會與它存在的理由矛盾。
+
+# 檢索型（回答問題當下抓取並引用）
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+Allow: /
+Disallow: /mcp
+
+# 訓練型
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
 Allow: /
 Disallow: /mcp
 
 Sitemap: ${SITE_ORIGIN}/sitemap.xml
+`;
+
+/**
+ * `/llms.txt`——llmstxt.org 的約定：給大型語言模型讀的精簡版，H1 標題、blockquote
+ * 一句話摘要，然後是分節連結。
+ *
+ * 它與 HTML 首頁的分工：首頁是給人看的，有排版與漸進揭露；這份是給機器讀的，
+ * 每一行都自帶主詞、沒有指代、沒有「見上文」。答案引擎抽走任何一段都仍然完整。
+ */
+export const LLMS_TXT = `# 台股 MCP（twse-mcp）
+
+> 台股 MCP 是一個免費的遠端 MCP（Model Context Protocol）伺服器，讓 Claude 等 AI 助理直接查詢臺灣證券交易所（TWSE）與臺灣期貨交易所（TAIFEX）的公開資料。使用者不需要安裝軟體、不需要註冊帳號、也不需要 API key。
+
+## 連線方式
+
+- 端點：${MCP_ENDPOINT}
+- 傳輸：Streamable HTTP（遠端 MCP），2025 與 2026 兩代協定修訂版皆支援
+- 認證：不需要
+- 費用：免費。Claude 的免費方案即可加入自訂連接器。
+
+## 能查什麼
+
+${FEATURES.map((f) => `- ${f}`).join("\n")}
+
+## 查不到什麼
+
+- 上櫃（OTC）股票只有盤中即時報價；歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。
+- 台股 MCP 不提供技術指標、選股或投資建議，也不做任何自行計算的預測。
+
+## 資料新鮮度
+
+- 盤中即時報價約每 5 秒更新，來源是證交所基本市況報導站，屬盡力而為。
+- 其餘各類報表最新到前一交易日，並在邊緣快取一小時。
+
+## 資料來源與授權
+
+- 臺灣證券交易所 2026 臺灣證券交易所 OpenAPI
+- 金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS
+- 此開放資料依政府資料開放授權條款（Open Government Data License）進行公眾釋出：https://data.gov.tw/license
+- 例外：盤中即時報價來自 mis.twse.com.tw，該站未登錄於政府資料開放平臺，不在上述授權範圍內。
+
+## 延伸資料
+
+- 官方首頁：${SITE_ORIGIN}/
+- 原始碼與問題回報：${REPO}
+- 安裝說明（繁體中文）：${REPO}/blob/main/README.md
+- 安裝說明（English）：${REPO}/blob/main/README.en.md
+- 授權查證紀錄：${REPO}/blob/main/docs/licensing-taifex.md
 `;
 
 export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>

@@ -24,7 +24,7 @@ import {
   type Row,
 } from "./core";
 import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
-import { renderHome, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { LLMS_TXT, renderHome, ROBOTS_TXT, SITEMAP_XML } from "./site";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -428,6 +428,8 @@ const SITE_HEADERS: Record<string, string> = {
 const STATIC_ROUTES: Record<string, { body: string; type: string }> = {
   "/": { body: renderHome(), type: "text/html; charset=utf-8" },
   "/robots.txt": { body: ROBOTS_TXT, type: "text/plain; charset=utf-8" },
+  // 給大型語言模型讀的精簡版（llmstxt.org 的約定）。與首頁的分工見 src/site.ts。
+  "/llms.txt": { body: LLMS_TXT, type: "text/markdown; charset=utf-8" },
   "/sitemap.xml": { body: SITEMAP_XML, type: "application/xml; charset=utf-8" },
 };
 
