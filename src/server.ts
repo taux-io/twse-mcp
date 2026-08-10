@@ -24,6 +24,7 @@ import {
   type Row,
 } from "./core";
 import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
+import { LLMS_TXT, renderHome, ROBOTS_TXT, SITEMAP_XML } from "./site";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -394,8 +395,57 @@ function logClientProbe(request: Request) {
   );
 }
 
+/**
+ * 首頁的安全標頭。
+ *
+ * 這一頁沒有任何會被執行的腳本（見 src/site.ts），所以 CSP 不是在收緊一個寬鬆的
+ * 預設，而是把「本來就沒有」寫成規則——日後有人加了 script，是瀏覽器擋下來，
+ * 不是 review 漏看。`default-src 'none'` 意味著連字型、圖片、XHR 都不允許外連；
+ * 頁面確實一個外部資源都沒有（favicon 是 data: URI，所以要放行 img-src data:）。
+ *
+ * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。那在沒有腳本
+ * 的頁面上不構成注入面：CSS 無法讀取或外送任何東西，而 default-src 'none' 已經
+ * 擋掉所有連線。
+ */
+const SITE_HEADERS: Record<string, string> = {
+  "content-security-policy":
+    "default-src 'none'; style-src 'unsafe-inline'; img-src data:; " +
+    "base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'none'",
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  // 靜態內容，改動只隨部署發生。邊緣快取久一點、瀏覽器短一點，
+  // 讓「線上說法與 repo 不一致」的窗口壓在十分鐘內。
+  "cache-control": "public, max-age=600, s-maxage=3600",
+};
+
+/**
+ * 靜態頁面的路由表。
+ *
+ * **只有列在這裡的路徑會被接管**，其餘一律落回 MCP handler——包含未知路徑的 404。
+ * 首頁不是 catch-all：把 /admin、/.env 這類掃描回成 200 的漂亮頁面，只會讓
+ * 探針資料與存取日誌變難讀，也讓掃描者以為這裡有東西。
+ */
+const STATIC_ROUTES: Record<string, { body: string; type: string }> = {
+  "/": { body: renderHome(), type: "text/html; charset=utf-8" },
+  "/robots.txt": { body: ROBOTS_TXT, type: "text/plain; charset=utf-8" },
+  // 給大型語言模型讀的精簡版（llmstxt.org 的約定）。與首頁的分工見 src/site.ts。
+  "/llms.txt": { body: LLMS_TXT, type: "text/markdown; charset=utf-8" },
+  "/sitemap.xml": { body: SITEMAP_XML, type: "application/xml; charset=utf-8" },
+};
+
 export default {
   fetch(request, env, ctx) {
+    // 靜態頁面在探針之前處理：探針只認 POST /mcp，這裡不會污染它，但先回傳
+    // 可以少建一次 MCP handler（那個建構是刻意每請求做的，見下方說明）。
+    if (request.method === "GET" || request.method === "HEAD") {
+      const route = STATIC_ROUTES[new URL(request.url).pathname];
+      if (route) {
+        return new Response(request.method === "HEAD" ? null : route.body, {
+          headers: { "content-type": route.type, ...SITE_HEADERS },
+        });
+      }
+    }
+
     logClientProbe(request);
     // 每個請求建一次，**不要**提到模組層級。曾經提上去過，理由寫的是「handler 沒有
     // 跨請求狀態」——那是錯的。SDK 的 handler 閉包持有一個 inflight Set，以及

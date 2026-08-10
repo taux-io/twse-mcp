@@ -420,6 +420,255 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
 });
 
 /**
+ * 官方首頁。與 MCP 端點同一個 Worker、同一個網域——貼給使用者的網址是
+ * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，
+ * 而不是一句 `Not Found`。
+ *
+ * **零 JavaScript 是一個安全決定，不是風格偏好。** 沒有腳本就沒有 XSS 的落點，
+ * CSP 因此可以鎖到 `script-src 'none'`，而不必去論證某段 inline script 是安全的。
+ * 這條有測試守著，免得日後有人「加個小小的分析script」把它悄悄拆掉。
+ */
+describe("官方首頁", () => {
+  const get = (path: string, method = "GET") =>
+    send(
+      new Request(`http://twse-mcp.taux.io${path}`, {
+        method,
+        headers: { host: "twse-mcp.taux.io" },
+      }),
+    );
+
+  it("GET / 回 HTML", async () => {
+    const res = await get("/");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    expect(html).toContain("<!doctype html>");
+    expect(html).toContain('lang="zh-Hant-TW"');
+  });
+
+  it("頁面帶得出使用者真正需要的那一行：MCP 端點網址", async () => {
+    const html = await (await get("/")).text();
+    expect(html).toContain("https://twse-mcp.taux.io/mcp");
+  });
+
+  // OGDL 顯名是授權成立的條件，不是禮貌。公開的對外門面漏掉它，與 server 的
+  // instructions 漏掉它是同一個問題。兩個提供機關都要在。
+  it("頁面帶兩個提供機關的顯名聲明", async () => {
+    const html = await (await get("/")).text();
+    expect(html).toContain("臺灣證券交易所");
+    expect(html).toContain("金融監督管理委員會證券期貨局");
+    expect(html).toContain("政府資料開放授權條款");
+    expect(html).toContain("https://data.gov.tw/license");
+  });
+
+  // 「零 JavaScript」的精確定義：沒有任何**會被執行**的腳本。
+  // `<script type="application/ld+json">` 依 HTML 規範是 data block，永遠不執行
+  // （prepare-the-script 在型別檢查那一步就中止），所以它不算 JavaScript，
+  // 也不會被 CSP 的 script-src 攔——而它是結構化資料唯一被爬蟲讀取的載體。
+  it("沒有任何會被執行的腳本", async () => {
+    const html = await (await get("/")).text();
+    const scripts = [...html.matchAll(/<script\b([^>]*)>/gi)].map((m) => m[1]);
+    for (const attrs of scripts) {
+      expect(attrs, attrs).toContain('type="application/ld+json"');
+      expect(attrs, attrs).not.toContain("src=");
+    }
+    expect(html).not.toMatch(/\son(click|load|error|mouse[a-z]+|focus|blur)\s*=/i);
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("安全標頭：CSP 禁掉腳本與內嵌、禁止被 iframe", async () => {
+    const res = await get("/");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("script-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).not.toContain("unsafe-eval");
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(res.headers.get("referrer-policy")).toBeTruthy();
+  });
+
+  it("SEO：標題、描述、canonical、OG 與結構化資料都在", async () => {
+    const html = await (await get("/")).text();
+    expect(html).toMatch(/<title>[^<]{10,70}<\/title>/);
+    expect(html).toMatch(/<meta name="description" content="[^"]{50,160}"/);
+    expect(html).toContain('rel="canonical"');
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('application/ld+json');
+  });
+
+  it("結構化資料是合法 JSON，且宣告成軟體應用與 FAQ", async () => {
+    const html = await (await get("/")).text();
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+    expect(blocks.length).toBeGreaterThan(0);
+    const types = blocks.map((b) => JSON.parse(b[1])["@type"]);
+    expect(types).toContain("SoftwareApplication");
+    expect(types).toContain("FAQPage");
+  });
+
+  // 頁面上寫得出來的問答，就該讓搜尋引擎也讀得到——兩邊分家的話，改了一邊會靜默失準。
+  it("FAQ 結構化資料的每個問題都真的出現在頁面上", async () => {
+    const html = await (await get("/")).text();
+    const faq = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+      .map((b) => JSON.parse(b[1]))
+      .find((o) => o["@type"] === "FAQPage");
+    expect(faq.mainEntity.length).toBeGreaterThan(2);
+    for (const q of faq.mainEntity) {
+      expect(html, q.name).toContain(q.name);
+    }
+  });
+
+  it("HEAD / 不回 body 但狀態與標頭一致", async () => {
+    const res = await get("/", "HEAD");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    expect(await res.text()).toBe("");
+  });
+
+  it("robots.txt 允許索引並指向 sitemap", async () => {
+    const res = await get("/robots.txt");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/plain");
+    const body = await res.text();
+    expect(body).toContain("Sitemap: https://twse-mcp.taux.io/sitemap.xml");
+    expect(body).not.toContain("Disallow: /\n");
+  });
+
+  it("sitemap.xml 是合法 XML 且只列公開頁面", async () => {
+    const res = await get("/sitemap.xml");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("xml");
+    const body = await res.text();
+    expect(body).toContain("<urlset");
+    expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
+    // MCP 端點不是給搜尋引擎看的
+    expect(body).not.toContain("/mcp<");
+  });
+
+  // 首頁不能吃掉 MCP 的路由，也不能污染探針資料。
+  it("不影響 /mcp：POST 仍走 MCP handler", async () => {
+    const payload = await rpcFor("legacy")("tools/list", {});
+    expect(payload.result.tools).toHaveLength(5);
+  });
+
+  it("GET / 不寫探針記錄", async () => {
+    logSpy.mockClear();
+    await get("/");
+    const probes = logSpy.mock.calls.filter((c) => String(c[0]).includes("mcp-client-probe"));
+    expect(probes).toHaveLength(0);
+  });
+
+  it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {
+    expect((await get("/.env")).status).toBe(404);
+    expect((await get("/admin")).status).toBe(404);
+  });
+});
+
+/**
+ * 讓生成式引擎（ChatGPT、Perplexity、AI Overviews）能正確引用這個服務。
+ *
+ * 與傳統 SEO 的差別在於**它們是抽句子而不是排名**：答案引擎會把頁面上的句子直接
+ * 放進回答裡，所以每個關鍵事實都必須是**自帶主詞的完整句**。頁面上寫「它是免費的」
+ * 被抽出去就變成沒有主詞的孤句，讀者不知道在講什麼。
+ *
+ * 另一半是實體消歧：`sameAs` 指向官方網址，是讓引擎確定「臺灣證券交易所」是哪一個
+ * 機構、而不是猜的最強訊號。
+ */
+describe("生成式引擎最佳化（GEO）", () => {
+  const get = (path: string, method = "GET") =>
+    send(
+      new Request(`http://twse-mcp.taux.io${path}`, {
+        method,
+        headers: { host: "twse-mcp.taux.io" },
+      }),
+    );
+  const ld = async () =>
+    [...(await (await get("/")).text()).matchAll(
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g,
+    )].map((b) => JSON.parse(b[1]));
+
+  it("llms.txt 存在，且是 markdown", async () => {
+    const res = await get("/llms.txt");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+  });
+
+  // llmstxt.org 的形狀：H1 標題、blockquote 一句話摘要、然後是分節連結。
+  it("llms.txt 有 H1、一句話摘要與端點網址", async () => {
+    const body = await (await get("/llms.txt")).text();
+    expect(body).toMatch(/^# .+/);
+    expect(body).toMatch(/\n> .+/);
+    expect(body).toContain("https://twse-mcp.taux.io/mcp");
+    expect(body).toContain("https://github.com/taux-io/twse-mcp");
+  });
+
+  it("robots.txt 對訓練與檢索兩類 AI 爬蟲都表態，並指向 llms.txt", async () => {
+    const body = await (await get("/robots.txt")).text();
+    // 檢索類：回答當下抓取並引用，是 GEO 真正在意的
+    for (const ua of ["OAI-SearchBot", "Claude-SearchBot", "PerplexityBot"]) {
+      expect(body, ua).toContain(ua);
+    }
+    // 訓練類
+    for (const ua of ["GPTBot", "ClaudeBot", "Google-Extended"]) {
+      expect(body, ua).toContain(ua);
+    }
+    expect(body).toContain("/llms.txt");
+  });
+
+  it("頁面用 link rel=alternate 指向 llms.txt", async () => {
+    const html = await (await get("/")).text();
+    expect(html).toMatch(/<link rel="alternate"[^>]*type="text\/markdown"[^>]*llms\.txt/);
+  });
+
+  // 答案引擎抽的是句子。第一句必須自帶主詞，否則抽出去是孤句。
+  // 比對去標籤後的純文字：句子裡有 <strong> 是排版決定，不該讓語意斷言跟著碎掉。
+  it("開頭有自帶主詞的定義句", async () => {
+    const html = await (await get("/")).text();
+    const text = html.replace(/<[^>]+>/g, "");
+    expect(text).toMatch(/台股 MCP 是一個[^。]*MCP 伺服器/);
+  });
+
+  it("安裝步驟有 HowTo 結構化資料", async () => {
+    const types = (await ld()).map((o) => o["@type"]);
+    expect(types).toContain("HowTo");
+    const howto = (await ld()).find((o) => o["@type"] === "HowTo");
+    expect(howto.step.length).toBeGreaterThanOrEqual(3);
+    for (const st of howto.step) {
+      expect(st["@type"]).toBe("HowToStep");
+      expect(st.text).toBeTruthy();
+    }
+  });
+
+  // sameAs 是實體消歧最強的訊號：讓引擎確定講的是哪一個機構，而不是猜。
+  it("把兩個交易所標成有官方連結的實體", async () => {
+    const app = (await ld()).find((o) => o["@type"] === "SoftwareApplication");
+    const names = app.mentions.map((m: { name: string }) => m.name).join("|");
+    expect(names).toContain("臺灣證券交易所");
+    expect(names).toContain("臺灣期貨交易所");
+    for (const m of app.mentions) {
+      expect(m["@type"], m.name).toBe("Organization");
+      expect(Array.isArray(m.sameAs) && m.sameAs.length > 0, m.name).toBe(true);
+    }
+  });
+
+  it("SoftwareApplication 指得出原始碼與功能清單", async () => {
+    const app = (await ld()).find((o) => o["@type"] === "SoftwareApplication");
+    expect(app.sameAs).toContain("https://github.com/taux-io/twse-mcp");
+    expect(app.featureList.length).toBeGreaterThanOrEqual(4);
+  });
+
+  // 答案引擎會引用到某一節。沒有 id 就只能連到整頁，引用精度掉一層。
+  it("每個章節標題都有穩定的 ASCII 錨點且不重複", async () => {
+    const html = await (await get("/")).text();
+    const h2 = [...html.matchAll(/<h2 id="([^"]+)">/g)].map((m) => m[1]);
+    expect(h2.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(h2).size).toBe(h2.length);
+    for (const id of h2) expect(id, id).toMatch(/^[a-z0-9-]+$/);
+    // 沒有帶 id 的 h2 就是漏網的
+    expect(html).not.toMatch(/<h2>/);
+  });
+});
+
+/**
  * MCP 的 `prompts` 是零安裝的通道：跟著 server 走，使用者不必另外裝任何東西。
  * 在 Claude Code 裡會變成 `/mcp__twse__<name>` 斜線指令，Claude Desktop 在「+」選單。
  *
