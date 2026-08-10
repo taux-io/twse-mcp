@@ -24,7 +24,7 @@ import {
   type Row,
 } from "./core";
 import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
-import { LLMS_TXT, renderHome, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -426,7 +426,9 @@ const SITE_HEADERS: Record<string, string> = {
  * 探針資料與存取日誌變難讀，也讓掃描者以為這裡有東西。
  */
 const STATIC_ROUTES: Record<string, { body: string; type: string }> = {
-  "/": { body: renderHome(), type: "text/html; charset=utf-8" },
+  "/": { body: renderPage("zh"), type: "text/html; charset=utf-8" },
+  // 英文版。MCP 生態的搜尋幾乎都是英文，而只有一個語系時 hreflang 無從設起。
+  "/en": { body: renderPage("en"), type: "text/html; charset=utf-8" },
   "/robots.txt": { body: ROBOTS_TXT, type: "text/plain; charset=utf-8" },
   // 給大型語言模型讀的精簡版（llmstxt.org 的約定）。與首頁的分工見 src/site.ts。
   "/llms.txt": { body: LLMS_TXT, type: "text/markdown; charset=utf-8" },
