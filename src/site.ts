@@ -25,6 +25,8 @@
  */
 
 /** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
+import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
+
 export const SITE_ORIGIN = "https://twse-mcp.taux.io";
 /** 使用者唯一需要複製的東西。 */
 export const MCP_ENDPOINT = `${SITE_ORIGIN}/mcp`;
@@ -439,6 +441,12 @@ body{
 }
 .wrap{max-width:44rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .switch{display:flex;justify-content:flex-end;margin:0 0 1.5rem;font-size:.85rem}
+.switch a{
+  display:inline-flex;align-items:center;gap:.4rem;
+  border:1px solid var(--line);border-radius:999px;padding:.25rem .8rem;
+  text-decoration:none;color:var(--muted);background:var(--surface);
+}
+.switch a:hover{border-color:var(--accent);color:var(--accent)}
 header{margin-bottom:3rem}
 h1{font-size:1.9rem;line-height:1.35;margin:0 0 .6rem;letter-spacing:-.01em;text-wrap:balance}
 .lede{font-size:1.1rem;color:var(--muted);margin:0 0 1.75rem}
@@ -619,7 +627,12 @@ ${alternates}
 <meta property="og:description" content="${esc(p.description)}">
 <meta property="og:url" content="${canonical}">
 <meta property="og:locale" content="${loc === "zh" ? "zh_TW" : "en_US"}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${SITE_ORIGIN}/og.png">
+<meta property="og:image:width" content="${OG_IMAGE_WIDTH}">
+<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${SITE_ORIGIN}/og.png">
 <meta name="twitter:title" content="${esc(p.title)}">
 <meta name="twitter:description" content="${esc(p.description)}">
 <meta name="robots" content="index,follow">
@@ -633,7 +646,7 @@ ${alternates}
 <body>
 <div class="wrap">
 
-<nav class="switch"><a href="${SITE_ORIGIN}${LOCALES[other].path}" hreflang="${LOCALES[other].hreflang}">${esc(LOCALES[other].label)}</a></nav>
+<nav class="switch"><a href="${SITE_ORIGIN}${LOCALES[other].path}" hreflang="${LOCALES[other].hreflang}">${loc === "zh" ? "文" : "中"}A　${esc(LOCALES[other].label)}</a></nav>
 
 <header>
 <h1>${esc(p.h1)}</h1>

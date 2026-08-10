@@ -74,6 +74,64 @@ export const TAIFEX_CSV_DATASETS: Record<
 /** 錯誤訊息裡引用上游文字的長度上限。 */
 const UPSTREAM_ECHO_LIMIT = 200;
 
+/**
+ * 上游回應的大小上限。
+ *
+ * 排除清單（TAIFEX_EXCLUDE）是拿「名字黑名單」去防一個「大小」問題——只要任何一個
+ * 已收錄端點在上游長大，同樣的 OOM 就會發生，完全不需要路徑技巧。那是稽核留下的
+ * hardening note，這裡才是根因的守衛。
+ *
+ * 48 MB 的依據：目錄裡最大的資料集實測 36.1 MB（`opendata/t187ap37_L`，在真的
+ * 128 MB production isolate 上回 200、耗時 2.15 秒），留約三成成長空間；而被排除的
+ * 逐筆成交端點是 255.8 MB，遠在界線之外。上限落在「已知會動的」與「已知會爆的」之間。
+ */
+const MAX_BODY_BYTES = 48 * 1024 * 1024;
+
+/**
+ * 讀取回應本文，超過上限就中止。
+ *
+ * **只看 content-length 不夠。** 分塊傳輸沒有那個標頭，而它本身也可以說謊。所以
+ * 宣告值先擋一次（省下整趟傳輸），然後邊讀邊數——第二道才是真正的守衛。
+ *
+ * 中止的方式是 `reader.cancel()`：讓上游連線立刻收掉，而不是讀完再丟棄。
+ */
+async function readCapped(res: Response, label: string): Promise<string> {
+  const declared = Number(res.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+    throw new Error(tooLarge(label, declared));
+  }
+  if (!res.body) return "";
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  let seen = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      seen += value.byteLength;
+      if (seen > MAX_BODY_BYTES) {
+        await reader.cancel();
+        throw new Error(tooLarge(label, seen, true));
+      }
+      out += decoder.decode(value, { stream: true });
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return out + decoder.decode();
+}
+
+function tooLarge(label: string, bytes: number, partial = false): string {
+  const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
+  return (
+    `${label} 的回應過大（${partial ? "已讀取超過 " : ""}${mb(bytes)}（${bytes} bytes），` +
+    `上限 ${mb(MAX_BODY_BYTES)}）。整份資料會被讀進記憶體，超過上限會把 Worker 打爛` +
+    `而不是給出答案。若這個資料集確實長大了，請調整 MAX_BODY_BYTES 並重新評估記憶體。`
+  );
+}
+
 /** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */
 export async function fetchDataset(datasetId: string): Promise<Row[]> {
   const csv = TAIFEX_CSV_DATASETS[datasetId];
@@ -83,6 +141,7 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
     DATA_TTL_SECONDS,
     // CSV 退路只給指名的那一個資料集。其餘一律維持「非 JSON = 上游出事」。
     csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
+    datasetId,
   );
   return Array.isArray(data) ? (data as Row[]) : [data as Row];
 }
@@ -234,6 +293,8 @@ async function fetchJson(
   cacheTtl: number,
   /** JSON 解析失敗時的退路。只有已知會回非 JSON 的上游才傳，其餘維持原本的錯誤。 */
   fallback?: (body: string) => unknown,
+  /** 錯誤訊息裡用來指認來源的標籤。給了 dataset id 就比裸 URL 好讀。 */
+  label = url,
 ): Promise<unknown> {
   const init: RequestInit = { headers };
   // `cf` 是 Workers 專屬；在 Node 下被忽略，無害。
@@ -255,7 +316,7 @@ async function fetchJson(
   // 拿 content-type 當閘門會把這條正常路徑整個擋掉（實際發生過）。
   // 所以先讀文字再 parse，parse 不過才丟出附診斷資訊的錯誤。
   const ctype = res.headers.get("content-type") ?? "(none)";
-  const body = await res.text();
+  const body = await readCapped(res, label);
   try {
     return JSON.parse(body);
   } catch {
