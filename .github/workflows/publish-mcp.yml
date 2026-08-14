@@ -41,9 +41,35 @@ jobs:
           mv server.tmp server.json
           echo "server.json version -> $VERSION"
 
-      - name: install mcp-publisher
+      # 固定版本 + 驗 digest，而不是 `latest | tar xz`。
+      #
+      # 這一步握有 `id-token: write`，換到的憑證能改寫本專案在官方 MCP Registry 的
+      # 條目，而該條目的 `remotes[].url` 正是所有 registry 安裝指向的端點。把未固定、
+      # 未驗證的二進位放進這個位置，等於讓上游的一次發布事故就能靜默改掉所有人的連線
+      # 目標。稽核 run-6 的 H-1 就是這件事。
+      #
+      # 為什麼是硬編 digest 而不是抓 checksums 檔：能替換產物的人也能替換 checksums
+      # 檔，那只擋得住傳輸損毀，擋不住惡意替換。digest 寫在版控裡，改動看得見。
+      # 為什麼不是 `gh attestation verify`：實測該 repo 沒有 GitHub attestation
+      # （API 回 404）；`.sigstore.json` 要 cosign，而裝 cosign 又是另一個未固定的
+      # 下載——循環回原本的問題。
+      #
+      # 升版步驟：改 VERSION，然後從官方 checksums 取新的 digest 填進 SHA256——
+      #   curl -fsSL https://github.com/modelcontextprotocol/registry/releases/download/vX.Y.Z/registry_X.Y.Z_checksums.txt \
+      #     | grep -E '  mcp-publisher_linux_amd64\.tar\.gz$'
+      # runner 固定是 ubuntu-latest（x86_64），所以只釘 linux_amd64 這一個平台。
+      - name: install mcp-publisher (pinned + verified)
+        env:
+          VERSION: v1.8.1
+          SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
         run: |
-          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          set -euo pipefail
+          ASSET="mcp-publisher_linux_amd64.tar.gz"
+          curl -fsSL --retry 3 -o "$ASSET" \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${VERSION}/${ASSET}"
+          echo "${SHA256}  ${ASSET}" | sha256sum -c -
+          tar xzf "$ASSET" mcp-publisher
+          rm -f "$ASSET"
 
       # 先驗證再登入：schema 錯誤不該浪費一次認證，也讓失敗訊息停在看得懂的地方。
       - name: validate server.json
