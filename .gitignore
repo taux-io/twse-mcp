@@ -9,3 +9,7 @@ dist/
 
 # --- 本機工具設定（因人而異，不進版控）---
 .claude/settings.local.json
+
+# --- 私有工作區（安全性 spec／票，不進公開版控）---
+.scratch/
+docs/spec-security-run7.md

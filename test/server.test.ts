@@ -417,6 +417,109 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     // 不該再叫使用者自己去查櫃買中心——那是本服務取不到、而使用者也不見得能取到的路
     expect(joined).not.toContain("需查櫃買中心");
   });
+
+  // 上游維護時會回一個格式完全正確的空陣列 `[]`。JSON.parse 過得去，於是它一路變成
+  // 「查無此標的」的肯定答案，而 cf.cacheTtl 把那個假答案釘在邊緣一小時。這三個
+  // 資料集必定有資料（建置期 refresh-catalog 已用 min:100 守著），執行期回 0 筆
+  // 一律當成上游故障。與上面的 2xx+HTML 是同一類「安靜地說查無」的問題。
+  it("twse_get_dataset：必定有資料的資料集回 200 [] 時，是錯誤而非空結果", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse([])));
+    const payload = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL" },
+    });
+    expect(payload.result.isError).toBe(true);
+    expect(payload.result.content[0].text).toContain("0 筆");
+  });
+
+  it("twse_etf_snapshot：三個資料集都回 200 [] 時，is_etf 是 null（不知道），不是 false", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse([])));
+    const out = await callTool("twse_etf_snapshot", { code: "0050" });
+    // 對台灣最大的 ETF 之一，上游空回應不可以變成肯定的「不是 ETF」
+    expect(out.is_etf).toBeNull();
+    expect(out.caveats.join()).toContain("取得失敗");
+    expect(out.caveats.join()).not.toContain("不是基金");
+  });
+});
+
+/**
+ * JSON-RPC 批次的扇出上限與並行上限。
+ *
+ * SDK 的 legacy lane 會把頂層陣列的每個元素**同時**送進 handler，沒有節流；每個
+ * twse_get_dataset 元素各自 fetchDataset 一次、把整份上游 body 讀進字串。稽核實測：
+ * 一個 40.6 KB 的 275 元素批次 → 峰值並行 275 次 fetch → 抽 236.8 MB（放大 5973 倍），
+ * 足以 OOM 一個 128 MB isolate，並對交易所發動並行下載。
+ *
+ * 兩道守衛：批次大小在進 SDK 前擋（server.ts），fetchDataset 的並行在出站層擋（twse.ts）。
+ * 兩個常數寫死在這裡而非 import——值被改動時測試會紅（與 TOOL_LIST_TTL_MS 同一招）。
+ */
+const MAX_BATCH_ELEMENTS = 8;
+const MAX_CONCURRENT_FETCHES = 3;
+
+/** 會計數並行度的 fetch stub：回傳 [peak 追蹤器, restore]。稽核 harness 的作法。 */
+function countingFetchStub(bodyFor: (url: string) => unknown = () => [{ Code: "0056" }]) {
+  const state = { peak: 0, inflight: 0, calls: 0 };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: unknown) => {
+      state.calls++;
+      state.inflight++;
+      state.peak = Math.max(state.peak, state.inflight);
+      await new Promise((r) => setTimeout(r, 25)); // 撐開視窗，才觀察得到並行
+      state.inflight--;
+      return jsonResponse(bodyFor(String(url)));
+    }),
+  );
+  return state;
+}
+
+describe("批次扇出上限與並行上限", () => {
+  function batch(n: number) {
+    const arr = Array.from({ length: n }, (_, i) => ({
+      jsonrpc: "2.0",
+      id: i,
+      method: "tools/call",
+      params: { name: "twse_get_dataset", arguments: { dataset_id: "exchangeReport/STOCK_DAY_AVG_ALL", limit: 1 } },
+    }));
+    return new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream", host: "localhost" },
+      body: JSON.stringify(arr),
+    });
+  }
+
+  it("超過上限的批次回 -32600，且完全不發出出站請求", async () => {
+    const state = countingFetchStub();
+    const res = await send(batch(MAX_BATCH_ELEMENTS + 1));
+    const body = (await res.json()) as { error: { code: number } };
+    expect(body.error.code).toBe(-32600);
+    expect(state.calls).toBe(0);
+  });
+
+  it("上限以內的批次照常處理，且並行出站 fetch 數不超過上限", async () => {
+    const state = countingFetchStub();
+    const res = await send(batch(MAX_BATCH_ELEMENTS));
+    expect(res.status).toBe(200);
+    await res.text(); // 抽乾 SSE，確保 8 個工具呼叫都跑完再斷言
+    // 8 個元素都會觸發 fetchDataset，但同時在飛的不超過 semaphore 上限
+    expect(state.calls).toBe(MAX_BATCH_ELEMENTS);
+    expect(state.peak).toBeLessThanOrEqual(MAX_CONCURRENT_FETCHES);
+  });
+
+  it("twse_etf_snapshot 的三資料集並行不被 semaphore 卡死（三個能同時在飛）", async () => {
+    const state = countingFetchStub((u) =>
+      u.includes("t187ap47_L") ? FUNDS : u.includes("STOCK_DAY_ALL") ? DAY : u.includes("ETFRank") ? RANKS : [],
+    );
+    const req = new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream", host: "localhost" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "twse_etf_snapshot", arguments: { code: "0056" } } }),
+    });
+    const res = await send(req);
+    expect(res.status).toBe(200);
+    await res.text(); // 抽乾 SSE，確保三個出站抓取都跑完再斷言
+    expect(state.peak).toBe(MAX_CONCURRENT_FETCHES); // 正好三個並行
+  });
 });
 
 /**
@@ -998,10 +1101,12 @@ describe("出站路由：兩個交易所", () => {
     expect(urls[0]).not.toContain("taifex/PutCallRatio");
   });
 
+  // 用 STOCK_DAY_AVG_ALL 而非 STOCK_DAY_ALL：後者屬於「必定有資料」的三個資料集，
+  // 對空回應會拋錯（見「必定有資料的資料集回 200 []」那組），而這條只想讀出站 URL。
   it("證交所：id 原樣接在 /v1 之後，行為不變", async () => {
     const urls = captureUrls();
-    await fetchDataset("exchangeReport/STOCK_DAY_ALL");
-    expect(urls[0]).toBe("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL");
+    await fetchDataset("exchangeReport/STOCK_DAY_AVG_ALL");
+    expect(urls[0]).toBe("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL");
   });
 
   // 期交所所有端點的 content-type 都是 application/octet-stream。這條是 parse-first
