@@ -14,6 +14,8 @@ import {
 } from "../scripts/check-catalog.mjs";
 import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
 import { ALIASES, getDataset, periodNote, type Catalog } from "../src/core";
+import { MCP_ENDPOINT } from "../src/site";
+import serverJson from "../server.json";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -293,5 +295,21 @@ describe("checkCatalog — 遇到畸形資料要回報，不能自己爆掉", ()
     const broken = { ...catalog, weird: { id: "weird", summary: "x", description: "", tags: [] } };
     expect(() => checkCatalog(broken as never)).not.toThrow();
     expect(checkCatalog(broken as never).problems.join()).toContain("結構不對");
+  });
+});
+
+/**
+ * server.json 的 remotes[0].url 是**所有從 registry 安裝的 client 連過去的位址**。
+ * 改掉它不會讓任何測試變紅、不會讓 typecheck 失敗、也不會被 check-readmes 抓到
+ * （那支只看五份 README），而 publish-mcp.yml 打一個 v* tag 就會把它送上官方 registry。
+ *
+ * 這條斷言把那個一行修改變成一個在 PR 階段就看得見的紅燈。它擋不住有 write 權限的人
+ * 硬改，但擋得住「安靜地改」——而安靜正是那個攻擊唯一的價值；同時也擋得住誠實的手誤。
+ */
+describe("server.json — 對外端點不可被無聲改掉", () => {
+  it("remotes[0].url 與 site.ts 的 MCP_ENDPOINT 一致", () => {
+    expect(serverJson.remotes).toHaveLength(1);
+    expect(serverJson.remotes[0].url).toBe(MCP_ENDPOINT);
+    expect(serverJson.remotes[0].type).toBe("streamable-http");
   });
 });

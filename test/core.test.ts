@@ -548,6 +548,26 @@ describe("buildEtfSnapshot — 三表合併", () => {
     }) as any;
     expect(r.caveats.some((c: string) => c.includes("日成交資訊取得失敗"))).toBe(true);
   });
+
+  // 大小寫不敏感在兩邊一致（getDataset 版見上面 :293）。快照走的是 firstRow，
+  // 而 firstRow 原本是大小寫敏感比對——於是 00679b 對台灣真實存在的債券 ETF
+  // 回 is_etf: false，同一個 code 用 twse_get_dataset 卻查得到。影響所有帶英文
+  // 字尾的上市 ETF（…B/…L/…R/…A）。
+  it("代號大小寫不影響快照結果（00679b == 00679B）", () => {
+    const src = (code: string) => ({
+      funds: [{ 基金代號: "00679B", 基金簡稱: "元大美債20年", 基金類型: "國外成分證券指數股票型基金" }],
+      days: [{ Code: "00679B", Name: "元大美債20年", ClosingPrice: "30.00", Change: "0.10" }],
+      ranks: [{ ETFsSecurityCode: "00679B", No: "5", ETFsNumberofTradingAccounts: "1,000" }],
+      includeRealtime: false,
+      errors: [] as { source: string; error: string }[],
+    });
+    const upper = buildEtfSnapshot("00679B", src("00679B")) as any;
+    const lower = buildEtfSnapshot("00679b", src("00679b")) as any;
+    for (const k of ["is_etf", "name", "profile", "quote", "regular_savings"]) {
+      expect(lower[k], k).toEqual(upper[k]);
+    }
+    expect(lower.is_etf).toBe(true);
+  });
 });
 
 /**
@@ -584,6 +604,24 @@ describe("buildEtfSnapshot — 上游故障不可以講成查無資料", () => {
       errors: [{ source: "日成交資訊", error: "Error: boom" }],
     }) as any;
     expect(r.caveats.join()).not.toContain("不在上市日成交資訊中");
+  });
+
+  // 定期定額排行那一段原本是裸 else，兩個兄弟分支（基金基本資料、日成交資訊）都
+  // 已經先看 failed() 才決定要不要做否定陳述，只有這一段沒有。0050 是那張榜上最大
+  // 的一檔，抓失敗時卻被說成「不在榜上」。
+  it("定期定額排行抓失敗時，不可以說「不在定期定額排行榜上」", () => {
+    const r = buildEtfSnapshot("0050", {
+      ...base,
+      errors: [{ source: "定期定額排行", error: "Error: boom" }],
+    }) as any;
+    expect(r.caveats.join()).not.toContain("不在定期定額排行榜上");
+    expect(r.caveats.join()).toContain("無法判斷");
+  });
+
+  // 但別把「查無」整個拿掉：真的查過而且真的不在榜上，是常見且有意義的答案。
+  it("定期定額排行成功但真的沒有這一檔時，維持原本的說法", () => {
+    const r = buildEtfSnapshot("9999", { ...base, errors: [] }) as any;
+    expect(r.caveats.join()).toContain("不在定期定額排行榜上");
   });
 
   it("三個都正常但真的查不到時，維持原本的說法", () => {
