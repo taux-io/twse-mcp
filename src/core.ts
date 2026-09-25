@@ -25,11 +25,17 @@ export interface Dataset {
 
 export type Catalog = Record<string, Dataset>;
 
+/** 某一段來源抓取失敗的紀錄。source 是給人讀的來源標籤，快照類工具用它決定能不能做否定陳述。 */
+export interface SourceError {
+  source: string;
+  error: string;
+}
+
 /** 硬上限，保護 client 的 context window。 */
 export const MAX_ROWS = 200;
 
 /**
- * data 區塊是證交所回應的原文轉載，我們不改寫也不驗證。目錄裡 143 個資料集
+ * data 區塊是證交所回應的原文轉載，我們不改寫也不驗證。目錄裡證交所的 143 個資料集
  * 有 88 個帶申報公司自填的自由文字欄位（`說明`、`主旨 `——是的，那個欄位名尾端
  * 有一個空白——以及 ESG 敘述表），內容由發布公司決定，不經證交所或我們審核。
  *
@@ -282,10 +288,6 @@ export interface GetDatasetOpts {
 }
 
 /**
- * 在「已抓好的 rows」上做 code 過濾 / match 子字串過濾 / 欄位投影 / 分頁。
- * dataset 是否存在、要不要抓資料，由 caller（server 層）先判斷。
- */
-/**
  * 「這張表沒有可辨識的代號欄位」的統一錯誤。
  *
  * `available_fields` 是上游來的欄位名，也就是第三方文字，所以這條路徑一樣要帶
@@ -301,6 +303,10 @@ function noCodeFieldError(ds: Dataset, firstRow: Row): Record<string, unknown> {
   };
 }
 
+/**
+ * 在「已抓好的 rows」上做 code 過濾 / match 子字串過濾 / 欄位投影 / 分頁。
+ * dataset 是否存在、要不要抓資料，由 caller（server 層）先判斷。
+ */
 export function getDataset(
   ds: Dataset,
   rows: Row[],
@@ -445,6 +451,7 @@ export const ETF_SOURCE_LABELS = {
   funds: "基金基本資料",
   days: "日成交資訊",
   ranks: "定期定額排行",
+  realtime: "即時報價",
 } as const;
 
 export interface EtfSnapshotSources {
@@ -455,7 +462,7 @@ export interface EtfSnapshotSources {
   realtime?: Row[] | null;
   includeRealtime: boolean;
   /** 哪幾個資料集抓失敗（來源標籤 -> 錯誤型別名），用來補 caveat。 */
-  errors?: { source: string; error: string }[];
+  errors?: SourceError[];
 }
 
 /**
@@ -569,6 +576,14 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     caveats.push(
       `因為上游取得失敗，無法判斷 ${code} 是否在定期定額排行榜上——這**不代表**它不在榜上。請稍後重試。`,
     );
+  }
+
+  // --- 3.5 即時報價 ---
+  // 與上面三段同一個原則：抓失敗的那段由 errors 迴圈補上「取得失敗」，這裡不再
+  // 說別的；只有真的查到、真的沒有，才說沒有。先前失敗會被吞成 []，於是回
+  // `realtime: null` 而 caveats 一句話都沒有——使用者要了即時價，卻不知道為什麼沒拿到。
+  if (src.includeRealtime && !src.realtime?.length && !failed(ETF_SOURCE_LABELS.realtime)) {
+    caveats.push(`即時報價站沒有回傳 ${code} 的資料（可能尚未開盤或非上市標的）。上櫃標的請${OTC_HINT}。`);
   }
 
   // --- 4. 衍生指標 ---

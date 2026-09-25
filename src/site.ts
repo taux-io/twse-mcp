@@ -24,9 +24,16 @@
  * 英文版原樣附上並加一句說明為什麼——五份 README 也是這樣處理的。
  */
 
-/** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
+import catalog from "./catalog.generated.json";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
 
+/**
+ * 資料集數量從目錄算，不寫死。寫死的數字在每次目錄刷新後都會悄悄變成錯的，
+ * 而首頁、llms.txt 與 MCP 的 instructions 講的應該是同一個數。
+ */
+export const DATASET_COUNT = Object.keys(catalog).length;
+
+/** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
 export const SITE_ORIGIN = "https://twse-mcp.taux.io";
 /** 使用者唯一需要複製的東西。 */
 export const MCP_ENDPOINT = `${SITE_ORIGIN}/mcp`;
@@ -131,7 +138,7 @@ const ZH: Page = {
   title: "台股 MCP｜讓 AI 查台灣證交所與期交所的公開資料",
   description:
     "免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢台股即時報價、ETF 資料、" +
-    "期貨選擇權行情與臺灣證交所、期交所的 275 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。",
+    `期貨選擇權行情與臺灣證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。`,
   h1: "讓 AI 查得到真正的台股資料",
   lede:
     "<strong>台股 MCP</strong> 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
@@ -141,7 +148,7 @@ const ZH: Page = {
     "前一交易日的開盤、最高、最低、收盤與成交量",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
     "臺灣期貨交易所的每日行情、三大法人與大額交易人未沖銷部位",
-    "臺灣證交所與期交所合計 275 個公開資料集的搜尋與查詢",
+    `臺灣證交所與期交所合計 ${DATASET_COUNT} 個公開資料集的搜尋與查詢`,
   ],
   installSteps: [
     {
@@ -207,7 +214,7 @@ const ZH: Page = {
   body: {
     problem: `
 <p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。台股 MCP 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
-<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 275 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。台股 MCP 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
+<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。台股 MCP 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
 <p><strong>不想寫程式，也不想申請什麼。</strong>沒有 API key、沒有註冊、沒有 SDK。貼一個網址，用中文問就好。</p>`,
     ask: `
 <ul>
@@ -267,7 +274,7 @@ const EN: Page = {
   // test/server.test.ts 有守衛，改文案時會擋下超長。
   description:
     "Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and " +
-    "options, and 275 TWSE/TAIFEX open datasets. No install, no signup.",
+    `options, and ${DATASET_COUNT} TWSE/TAIFEX open datasets. No install, no signup.`,
   h1: "Give your AI real Taiwan market data",
   lede:
     "<strong>Taiwan Stock MCP</strong> is a free remote MCP server that lets Claude and other AI " +
@@ -278,7 +285,7 @@ const EN: Page = {
     "Previous trading day's open, high, low, close and volume",
     "Per-ETF profile, tracked index and regular-savings popularity",
     "TAIFEX daily futures and options quotes, institutional flows and large-trader open interest",
-    "Search and query across 275 open datasets from TWSE and TAIFEX combined",
+    `Search and query across ${DATASET_COUNT} open datasets from TWSE and TAIFEX combined`,
   ],
   installSteps: [
     {
@@ -344,7 +351,7 @@ const EN: Page = {
   body: {
     problem: `
 <p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Stock MCP makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
-<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is 275 reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
+<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
 <p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language — Chinese or English.</p>`,
     ask: `
 <ul>

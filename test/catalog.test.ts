@@ -16,6 +16,7 @@ import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
 import { ALIASES, getDataset, periodNote, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
+import pkg from "../package.json";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -311,5 +312,11 @@ describe("server.json — 對外端點不可被無聲改掉", () => {
     expect(serverJson.remotes).toHaveLength(1);
     expect(serverJson.remotes[0].url).toBe(MCP_ENDPOINT);
     expect(serverJson.remotes[0].type).toBe("streamable-http");
+  });
+
+  // serverInfo.version 讀 package.json；registry 讀 server.json。兩份各改各的，
+  // registry 上的版本就會與線上實際回報的不同，而沒有任何東西會提醒。
+  it("version 與 package.json 一致", () => {
+    expect(serverJson.version).toBe(pkg.version);
   });
 });

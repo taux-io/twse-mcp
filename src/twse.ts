@@ -9,7 +9,7 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
-import { DATA_TTL_SECONDS, type Row } from "./core";
+import { DATA_TTL_SECONDS, type Row, type SourceError } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 /** 期交所的 servers.url。裸 path（沒有 /v1）會被 302 導回 Swagger UI 首頁。 */
@@ -199,6 +199,42 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
     );
   }
   return rows;
+}
+
+/**
+ * 錯誤轉成給人讀的一行字。保留 message：只記 name 的話，線上問題會退化成一句沒有
+ * 資訊的 "TypeError"，查不出是逾時、被重導、還是被對方擋掉。
+ */
+export function errorText(reason: unknown): string {
+  const e = reason as Error | undefined;
+  return [e?.name ?? "Error", e?.message].filter(Boolean).join(": ");
+}
+
+/**
+ * 同時抓多個資料集，任何一個失敗都不拖垮其他。
+ *
+ * 快照類工具共用這一段：每一段的成敗要各自回報（`errors` 以來源標籤指認），
+ * core 才能分辨「上游掛了」與「查無此標的」——那是這個 repo 修過三次的同一類錯誤，
+ * 抓取的形狀只寫一次，新工具就不會各自重新發明一個少了守衛的版本。
+ * 失敗的那段給空陣列，是否據此做否定陳述由 core 看 `errors` 決定。
+ */
+export async function fetchSources<K extends string>(
+  sources: Record<K, { dataset: string; label: string }>,
+): Promise<{ rows: Record<K, Row[]>; errors: SourceError[] }> {
+  const keys = Object.keys(sources) as K[];
+  const settled = await Promise.allSettled(keys.map((k) => fetchDataset(sources[k].dataset)));
+  const rows = {} as Record<K, Row[]>;
+  const errors: SourceError[] = [];
+  settled.forEach((r, i) => {
+    const k = keys[i];
+    if (r.status === "fulfilled") {
+      rows[k] = r.value;
+    } else {
+      rows[k] = [];
+      errors.push({ source: sources[k].label, error: errorText(r.reason) });
+    }
+  });
+  return { rows, errors };
 }
 
 /**

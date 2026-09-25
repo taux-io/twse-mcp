@@ -193,6 +193,18 @@ function fetchedUrls(): string[] {
   return (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.map((c) => String(c[0]));
 }
 
+/**
+ * 讓符合條件的出站請求改回指定回應，其餘照 beforeEach 的路由走。
+ * 只想弄壞一個來源時用它，不必把整張路由表抄一份。
+ */
+function overrideFetch(match: (url: string) => boolean, respond: () => Response | Promise<Response>) {
+  const base = fetch as unknown as (u: unknown, i?: unknown) => Promise<Response>;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (u: unknown, i?: unknown) => (match(String(u)) ? respond() : base(u, i))),
+  );
+}
+
 /** 這次打到即時報價站的網址（沒打到就是 undefined）。 */
 function quoteUrl(): string | undefined {
   return fetchedUrls().find((u) => u.includes("getStockInfo"));
@@ -319,6 +331,44 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
     expect(Array.isArray(out.realtime)).toBe(true);
     expect(out.realtime[0].last).toBe("38.45");
+  });
+
+  // 先前 rtTask 的失敗被吞成 []，於是 realtime: null 而 caveats 一句話都沒有。
+  it("twse_etf_snapshot：即時報價失敗時要寫進 caveats，而不是安靜地回 null", async () => {
+    overrideFetch((u) => u.includes("getStockInfo"), () => new Response("busy", { status: 503 }));
+    const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
+    expect(out.realtime).toBeNull();
+    expect(out.caveats.join()).toContain("即時報價取得失敗");
+    expect(out.caveats.join()).toContain("503");
+    // 其他三段不受影響
+    expect(out.is_etf).toBe(true);
+  });
+
+  it("twse_etf_snapshot：即時報價查了但沒有這一檔時，說清楚沒拿到", async () => {
+    overrideFetch((u) => u.includes("getStockInfo"), () => misResponse({ msgArray: [] }));
+    const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
+    expect(out.realtime).toBeNull();
+    expect(out.caveats.join()).toContain("即時報價站沒有回傳 0056");
+    expect(out.caveats.join()).not.toContain("取得失敗");
+  });
+
+  it("工具回應不縮排（整段進模型 context，排版空白是純成本）", async () => {
+    const payload = await rpc("tools/call", { name: "twse_search_datasets", arguments: { query: "ETF" } });
+    expect(payload.result.content[0].text).not.toContain("\n");
+  });
+
+  it("tools/list：每支工具都標明唯讀；只查目錄的兩支不出站", async () => {
+    const payload = await rpc("tools/list", {});
+    const byName = Object.fromEntries(
+      payload.result.tools.map((t: { name: string; annotations?: Record<string, boolean> }) => [t.name, t.annotations]),
+    );
+    for (const a of Object.values(byName) as Record<string, boolean>[]) {
+      expect(a).toMatchObject({ readOnlyHint: true, destructiveHint: false, idempotentHint: true });
+    }
+    expect(byName.twse_search_datasets.openWorldHint).toBe(false);
+    expect(byName.twse_describe_dataset.openWorldHint).toBe(false);
+    expect(byName.twse_get_dataset.openWorldHint).toBe(true);
+    expect(byName.twse_realtime_quote.openWorldHint).toBe(true);
   });
 
   it("twse_realtime_quote：回映射後的報價，且 market 帶進出站請求", async () => {
