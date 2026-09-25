@@ -16,14 +16,21 @@ import { dirname, join } from "node:path";
 const CATALOG = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.generated.json");
 
 /**
- * twse_etf_snapshot 直接依賴這三個資料集，少一個該工具就殘廢。
- * 這份清單必須與 src/twse.ts 的 DS_FUND/DS_DAY/DS_RANK 一致——
+ * twse_etf_snapshot 與 twse_stock_snapshot 直接依賴這些資料集，少一個該工具就殘廢
+ * （twse_lookup 用的兩個主檔也在其中）。
+ * 這份清單必須與 src/twse.ts 的 SNAPSHOT_DATASETS 一致——
  * test/catalog.test.ts 會斷言兩邊相同，改了一邊沒改另一邊 CI 就會紅。
  */
 export const REQUIRED = [
   "opendata/t187ap47_L",
   "exchangeReport/STOCK_DAY_ALL",
   "ETFReport/ETFRank",
+  "opendata/t187ap03_L",
+  "exchangeReport/BWIBBU_ALL",
+  "opendata/t187ap05_L",
+  "exchangeReport/TWT48U_ALL",
+  "announcement/notice",
+  "announcement/punish",
 ];
 
 /** 目錄少於這個數量，幾乎必然是上游出事而非真的縮編。 */
@@ -93,7 +100,7 @@ export function checkCatalog(catalog) {
 
   const missing = REQUIRED.filter((id) => !catalog[id]);
   if (missing.length) {
-    problems.push(`twse_etf_snapshot 依賴的資料集消失：${missing.join(", ")}`);
+    problems.push(`快照類工具依賴的資料集消失：${missing.join(", ")}`);
   }
 
   const bySource = {};

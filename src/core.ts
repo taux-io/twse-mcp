@@ -817,3 +817,328 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     source: SOURCE_NOTE.twse,
   };
 }
+
+/**
+ * 民國日期轉西元。證交所多數報表用民國年：`1150924`（年月日）、`11508`（年月）。
+ *
+ * 模型對「115」這種年份的判讀不可靠，會當成西元 115 年或乾脆略過。快照是給人讀的
+ * 摘要，所以在這裡轉好；認不出的格式原樣回傳，不猜。
+ */
+export function rocToIso(v: unknown): string | null {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  const m = /^(\d{2,3})(\d{2})(\d{2})?$/.exec(s);
+  if (!m) return s;
+  const year = Number(m[1]) + 1911;
+  return m[3] ? `${year}-${m[2]}-${m[3]}` : `${year}-${m[2]}`;
+}
+
+/** 名稱比對用的正規化：全形轉半形（NFKC）、小寫、「臺」統一成「台」。 */
+function normName(v: unknown): string {
+  return normQuery(String(v ?? "").normalize("NFKC").trim());
+}
+
+/**
+ * 代號查詢兩個來源的標籤。與 ETF_SOURCE_LABELS 同理：server 標記失敗、core 判斷
+ * 能不能說「查無」，兩邊必須是同一組字串。
+ */
+export const LOOKUP_SOURCE_LABELS = {
+  companies: "上市公司基本資料",
+  funds: "基金基本資料",
+} as const;
+
+export interface LookupSources {
+  companies: Row[];
+  funds: Row[];
+  errors?: SourceError[];
+}
+
+/** 代號查詢的上限。它是用來挑一個代號的清單，不是資料。 */
+export const MAX_LOOKUP_RESULTS = 50;
+
+/**
+ * 用名稱或代號找上市公司與上市基金（含 ETF）。
+ *
+ * 為什麼只查這兩張主檔，不查日成交資訊：日成交資訊也有 Name，但裡面有上萬檔權證，
+ * 名稱都帶標的公司名（「台積電元大5A購01」）——搜「台積電」會先得到一整頁權證。
+ * 兩張主檔各自就是「一家公司／一檔基金一列」，剛好是這個問題要的粒度。
+ *
+ * 排序：代號完全相符 > 簡稱完全相符 > 簡稱開頭相符 > 任一名稱包含。同一級維持資料順序。
+ */
+export function lookupSecurities(
+  query: string,
+  src: LookupSources,
+  limit = 10,
+): Record<string, unknown> {
+  const q = normName(query);
+  const caveats: string[] = [];
+  for (const e of src.errors ?? []) caveats.push(`${e.source}取得失敗：${e.error}`);
+  const failedAny = (src.errors ?? []).length > 0;
+
+  type Hit = { rank: number; i: number; item: Record<string, unknown> };
+  const hits: Hit[] = [];
+  const consider = (
+    i: number,
+    code: unknown,
+    short: unknown,
+    others: unknown[],
+    item: Record<string, unknown>,
+  ) => {
+    const c = normName(code);
+    const sn = normName(short);
+    let rank = 0;
+    if (c && c === q) rank = 4;
+    else if (sn && sn === q) rank = 3;
+    else if (sn.startsWith(q)) rank = 2;
+    else if ([sn, ...others.map(normName)].some((n) => n.includes(q))) rank = 1;
+    if (rank) hits.push({ rank, i, item: { ...item, match: rank >= 3 ? "exact" : "partial" } });
+  };
+
+  if (q) {
+    src.companies.forEach((r, i) =>
+      consider(i, r["公司代號"], r["公司簡稱"], [r["公司名稱"], r["英文簡稱"]], {
+        code: r["公司代號"],
+        name: r["公司簡稱"],
+        full_name: r["公司名稱"],
+        kind: "上市公司",
+      }),
+    );
+    const offset = src.companies.length;
+    src.funds.forEach((r, i) =>
+      consider(offset + i, r["基金代號"], r["基金簡稱"], [r["基金中文名稱"], r["基金英文名稱"]], {
+        code: r["基金代號"],
+        name: r["基金簡稱"],
+        full_name: r["基金中文名稱"],
+        kind: "上市基金",
+        fund_type: r["基金類型"],
+      }),
+    );
+  }
+  hits.sort((a, b) => b.rank - a.rank || a.i - b.i);
+  const take = Math.max(0, Math.min(limit, MAX_LOOKUP_RESULTS)) || 0;
+
+  if (!hits.length) {
+    caveats.push(
+      failedAny
+        ? `因為上游取得失敗，無法確定「${query.trim()}」是否存在——這**不代表**查無此標的。請稍後重試。`
+        : `上市公司與上市基金裡都找不到「${query.trim()}」。本工具只收上市標的；` +
+            `上櫃、興櫃公司的名稱對照取不到（來源封鎖雲端連線），若已知上櫃代號，${OTC_HINT}。`,
+    );
+  }
+
+  return {
+    query: query.trim(),
+    total_matched: hits.length,
+    results: hits.slice(0, take).map((h) => h.item),
+    caveats,
+    // 公司與基金名稱是申報者自填的文字，與 twse_get_dataset 的 data 同性質。
+    source: SOURCE_NOTE.twse,
+  };
+}
+
+/**
+ * 個股快照七個來源的標籤。用途與 ETF_SOURCE_LABELS 相同。
+ * 「日成交資訊」與 ETF 快照是同一個資料集，所以沿用同一個字串。
+ */
+export const STOCK_SOURCE_LABELS = {
+  company: "上市公司基本資料",
+  days: ETF_SOURCE_LABELS.days,
+  valuation: "本益比與殖利率",
+  revenue: "月營收",
+  exRights: "除權除息預告",
+  notice: "注意股公告",
+  punish: "處置股公告",
+} as const;
+
+export interface StockSnapshotSources {
+  company: Row[];
+  days: Row[];
+  valuation: Row[];
+  revenue: Row[];
+  exRights: Row[];
+  notice: Row[];
+  punish: Row[];
+  errors?: SourceError[];
+}
+
+/** 百分比字串（上游給到小數點後十幾位）收成兩位小數。 */
+function pct(v: unknown): number | null {
+  const n = num(v);
+  return n === null ? null : Math.round(n * 100) / 100;
+}
+
+/**
+ * 合併七個證交所資料集成單一上市公司概況。與 buildEtfSnapshot 同一套原則：
+ * 任何一段缺就標 null + 記 caveat，**抓失敗的那段不做否定陳述**。
+ *
+ * 否定陳述只有在「真的查過、真的沒有」時才說。每一段都走同一個 absent() ——
+ * ETF 快照那邊的 bug 活下來，正是因為三個分支裡有一個少了守衛，而那件事用讀的看不出來。
+ */
+export function buildStockSnapshot(code: string, src: StockSnapshotSources): Record<string, unknown> {
+  code = code.trim();
+  const caveats: string[] = [];
+  const errors = src.errors ?? [];
+  for (const e of errors) caveats.push(`${e.source}取得失敗：${e.error}`);
+  const failed = (label: string) => errors.some((e) => e.source === label);
+  /**
+   * 沒找到時該說什麼。抓失敗就說「無法判斷」；否則才說出否定的事實——
+   * 沒給 negative 的段落（空結果本身就是答案，例如近期沒有除權息）則不說話。
+   */
+  const absent = (label: string, negative?: string) => {
+    if (failed(label)) {
+      caveats.push(`因為上游取得失敗，無法判斷 ${code} 的${label}——這**不代表**沒有。請稍後重試。`);
+    } else if (negative) {
+      caveats.push(negative);
+    }
+  };
+  const all = (rows: Row[], field: string) => rows.filter((r) => norm(r[field]) === norm(code));
+
+  // --- 1. 基本資料 ---
+  const co = firstRow(src.company, "公司代號", code);
+  const rev = firstRow(src.revenue, "公司代號", code);
+  let profile: Record<string, unknown> | null = null;
+  if (co) {
+    profile = {
+      "公司簡稱": co["公司簡稱"],
+      "公司名稱": co["公司名稱"],
+      "英文簡稱": co["英文簡稱"],
+      // 基本資料表的產業別是代碼（"24"）；中文名稱只出現在月營收表，有就用它。
+      "產業別": rev?.["產業別"] ?? co["產業別"],
+      "董事長": co["董事長"],
+      "總經理": co["總經理"],
+      "成立日期": rocToIso(co["成立日期"]) ?? co["成立日期"],
+      "上市日期": rocToIso(co["上市日期"]) ?? co["上市日期"],
+      "實收資本額_元": num(co["實收資本額"]),
+      "已發行普通股數": num(co["已發行普通股數或TDR原股發行股數"]),
+      "網址": co["網址"],
+      "資料日期": rocToIso(co["出表日期"]),
+    };
+  } else {
+    absent(
+      STOCK_SOURCE_LABELS.company,
+      `${code} 不在上市公司基本資料中——該資料集只收上市公司。` +
+        `若這是 ETF 或基金，請改用 twse_etf_snapshot；若是上櫃公司，${OTC_HINT}` +
+        "（上櫃的歷史與統計資料則無法取得）；也可能單純是代號有誤，可先用 twse_lookup 以名稱查代號。",
+    );
+  }
+  const isListed: boolean | null = co ? true : failed(STOCK_SOURCE_LABELS.company) ? null : false;
+
+  // --- 2. 前一交易日價量 ---
+  const d = firstRow(src.days, "Code", code);
+  let quote: Record<string, unknown> | null = null;
+  if (d) {
+    const close = num(d["ClosingPrice"]);
+    const change = num(d["Change"]);
+    quote = {
+      "日期": rocToIso(d["Date"]),
+      "開盤": num(d["OpeningPrice"]),
+      "最高": num(d["HighestPrice"]),
+      "最低": num(d["LowestPrice"]),
+      "收盤": close,
+      "漲跌": change,
+      "成交股數": num(d["TradeVolume"]),
+      "成交金額": num(d["TradeValue"]),
+      "成交筆數": num(d["Transaction"]),
+    };
+    const prev = close !== null && change !== null ? close - change : null;
+    if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
+  } else {
+    absent(STOCK_SOURCE_LABELS.days, `${code} 不在上市日成交資訊中（可能是上櫃標的，或前一交易日無成交）。`);
+  }
+
+  // --- 3. 本益比、殖利率、股價淨值比 ---
+  const v = firstRow(src.valuation, "Code", code);
+  let valuation: Record<string, unknown> | null = null;
+  if (v) {
+    valuation = {
+      "本益比": num(v["PEratio"]),
+      "殖利率%": num(v["DividendYield"]),
+      "股價淨值比": num(v["PBratio"]),
+      "日期": rocToIso(v["Date"]),
+    };
+    // 上游對虧損公司的本益比給 "-"。null 是「不適用」，不是「查不到」，要說清楚。
+    if (valuation["本益比"] === null) {
+      caveats.push(`${code} 的本益比為空（上游給「${String(v["PEratio"] ?? "")}」），通常代表近四季虧損，本益比不適用`);
+    }
+  } else {
+    absent(STOCK_SOURCE_LABELS.valuation, `${code} 不在本益比與殖利率資料中。`);
+  }
+
+  // --- 4. 月營收 ---
+  let revenue: Record<string, unknown> | null = null;
+  if (rev) {
+    revenue = {
+      "資料年月": rocToIso(rev["資料年月"]),
+      "當月營收_千元": num(rev["營業收入-當月營收"]),
+      "月增率%": pct(rev["營業收入-上月比較增減(%)"]),
+      "年增率%": pct(rev["營業收入-去年同月增減(%)"]),
+      "累計營收_千元": num(rev["累計營業收入-當月累計營收"]),
+      "累計年增率%": pct(rev["累計營業收入-前期比較增減(%)"]),
+      "備註": rev["備註"] || null,
+    };
+  } else {
+    absent(STOCK_SOURCE_LABELS.revenue, `${code} 不在最新一期上市公司月營收彙總表中（可能尚未公告）。`);
+  }
+
+  // --- 5. 除權除息預告 ---
+  // 空陣列是一個有意義的答案（近期沒有預告），null 才是不知道。
+  const ex = all(src.exRights, "Code");
+  const exRights = failed(STOCK_SOURCE_LABELS.exRights)
+    ? null
+    : ex.map((r) => ({
+        "除權除息日": rocToIso(r["Date"]),
+        "權息": r["Exdividend"],
+        "現金股利": num(r["CashDividend"]),
+        "無償配股率": num(r["StockDividendRatio"]),
+      }));
+  if (exRights === null) absent(STOCK_SOURCE_LABELS.exRights);
+
+  // --- 6. 注意股與處置股 ---
+  // 同樣是三態：true／false 是查過的答案，null 是抓失敗。當日沒有任何注意股時上游
+  // 會回一列 Code 為空的佔位資料，比對代號時自然不會命中，所以不必特別處理。
+  const noticeRows = all(src.notice, "Code");
+  const punishRows = all(src.punish, "Code");
+  const alerts = {
+    "注意股": failed(STOCK_SOURCE_LABELS.notice) ? null : noticeRows.length > 0,
+    "處置股": failed(STOCK_SOURCE_LABELS.punish) ? null : punishRows.length > 0,
+    ...(punishRows.length
+      ? {
+          "處置內容": punishRows.map((r) => ({
+            "處置期間": r["DispositionPeriod"],
+            "處置原因": r["ReasonsOfDisposition"],
+            "處置措施": r["DispositionMeasures"],
+          })),
+        }
+      : {}),
+    ...(noticeRows.length
+      ? { "注意原因": noticeRows.map((r) => r["TradingInfoForAttention"]) }
+      : {}),
+  };
+  if (alerts["注意股"] === null) absent(STOCK_SOURCE_LABELS.notice);
+  if (alerts["處置股"] === null) absent(STOCK_SOURCE_LABELS.punish);
+
+  // --- 7. 衍生指標 ---
+  const derived: Record<string, unknown> = {};
+  const shares = profile ? (profile["已發行普通股數"] as number | null) : null;
+  const close = quote ? (quote["收盤"] as number | null) : null;
+  if (shares && close) {
+    derived["市值_億元"] = Math.round((shares * close) / 1e8 * 100) / 100;
+    caveats.push("市值 = 已發行普通股數 × 前一交易日收盤價，不含特別股，股數以基本資料的出表日期為準");
+  }
+
+  return {
+    code,
+    name: (profile?.["公司簡稱"] ?? d?.["Name"] ?? v?.["Name"]) ?? null,
+    is_listed_company: isListed,
+    profile,
+    quote,
+    valuation,
+    monthly_revenue: revenue,
+    upcoming_ex_rights: exRights,
+    alerts,
+    derived: Object.keys(derived).length ? derived : null,
+    caveats,
+    note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 twse_realtime_quote）",
+    source: SOURCE_NOTE.twse,
+  };
+}

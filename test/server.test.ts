@@ -30,6 +30,20 @@ const DAY = [
 ];
 const RANKS = [{ ETFsSecurityCode: "0056", No: "2", ETFsNumberofTradingAccounts: "380,000" }];
 
+// 個股快照與代號查詢用的主檔。形狀照真實上游（民國日期、字串數字、產業別是代碼）。
+const COMPANIES = [
+  { 出表日期: "1150924", 公司代號: "2330", 公司簡稱: "台積電", 公司名稱: "台灣積體電路製造股份有限公司", 英文簡稱: "TSMC", 產業別: "24", 上市日期: "19940905", 已發行普通股數或TDR原股發行股數: "25932370067" },
+  { 出表日期: "1150924", 公司代號: "2303", 公司簡稱: "聯電", 公司名稱: "聯華電子股份有限公司", 英文簡稱: "UMC", 產業別: "24", 已發行普通股數或TDR原股發行股數: "12500000000" },
+];
+const VALUATION = [{ Date: "1150924", Code: "2330", Name: "台積電", PEratio: "28.69", DividendYield: "0.89", PBratio: "9.98" }];
+const REVENUE = [
+  { 資料年月: "11508", 公司代號: "2330", 公司名稱: "台積電", 產業別: "半導體業", "營業收入-當月營收": "514805337", "營業收入-上月比較增減(%)": "10.099818994181083", "營業收入-去年同月增減(%)": "53.320053714712955" },
+];
+const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "5.0" }];
+// 當日沒有注意股時，上游回一列 Code 為空的佔位資料——照實模擬。
+const NOTICE = [{ Number: "0", Code: "", Name: "", NumberOfAnnouncement: "0", TradingInfoForAttention: "", Date: "", ClosingPrice: "0", PE: "0" }];
+const PUNISH = [{ Number: "1", Date: "1150917", Code: "2305", Name: "全友", DispositionPeriod: "115/09/18～115/09/30", ReasonsOfDisposition: "連續五次", DispositionMeasures: "第一次處置" }];
+
 function jsonResponse(v: unknown) {
   return new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
 }
@@ -62,6 +76,12 @@ beforeEach(() => {
       if (u.includes("STOCK_DAY_ALL")) return jsonResponse(DAY);
       if (u.includes("t187ap47_L")) return jsonResponse(FUNDS);
       if (u.includes("ETFRank")) return jsonResponse(RANKS);
+      if (u.includes("t187ap03_L")) return jsonResponse(COMPANIES);
+      if (u.includes("BWIBBU_ALL")) return jsonResponse(VALUATION);
+      if (u.includes("t187ap05_L")) return jsonResponse(REVENUE);
+      if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
+      if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
+      if (u.includes("announcement/punish")) return jsonResponse(PUNISH);
       if (u.includes("getStockInfo")) {
         // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
         const otc = u.includes("otc_");
@@ -220,7 +240,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     return JSON.parse(payload.result.content[0].text);
   }
 
-  it("tools/list 暴露 5 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
+  it("tools/list 暴露 7 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
@@ -228,8 +248,10 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
         "twse_etf_snapshot",
         "twse_describe_dataset",
         "twse_get_dataset",
+        "twse_lookup",
         "twse_realtime_quote",
         "twse_search_datasets",
+        "twse_stock_snapshot",
       ].sort(),
     );
   });
@@ -372,6 +394,91 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     });
     const failed = payload.error !== undefined || payload.result?.isError === true;
     expect(failed).toBe(true);
+  });
+
+  it("twse_lookup：用名稱找到代號，完全相符排第一", async () => {
+    const out = await callTool("twse_lookup", { query: "台積電" });
+    expect(out.results[0]).toMatchObject({ code: "2330", name: "台積電", kind: "上市公司", match: "exact" });
+    // 基金一起查：ETF 的名稱也找得到
+    const etf = await callTool("twse_lookup", { query: "高股息" });
+    expect(etf.results[0]).toMatchObject({ code: "0056", kind: "上市基金" });
+  });
+
+  it("twse_lookup：英文簡稱、全形代號、臺／台都視為同一個", async () => {
+    expect((await callTool("twse_lookup", { query: "tsmc" })).results[0].code).toBe("2330");
+    expect((await callTool("twse_lookup", { query: "２３３０" })).results[0].code).toBe("2330");
+    expect((await callTool("twse_lookup", { query: "臺積電" })).results[0].code).toBe("2330");
+  });
+
+  it("twse_lookup：上游掛了時不說「查無」", async () => {
+    overrideFetch((u) => u.includes("t187ap03_L"), () => new Response("down", { status: 502 }));
+    const out = await callTool("twse_lookup", { query: "台積電" });
+    expect(out.total_matched).toBe(0);
+    const text = out.caveats.join();
+    expect(text).toContain("上市公司基本資料取得失敗");
+    expect(text).toContain("不代表");
+    expect(text).not.toContain("都找不到");
+  });
+
+  it("twse_stock_snapshot：七表合併", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(out.is_listed_company).toBe(true);
+    expect(out.name).toBe("台積電");
+    // 產業別取月營收表的中文名稱，不是基本資料表的代碼
+    expect(out.profile.產業別).toBe("半導體業");
+    expect(out.profile.上市日期).toBe("19940905");
+    expect(out.quote.收盤).toBe(1000);
+    expect(out.valuation).toMatchObject({ 本益比: 28.69, "殖利率%": 0.89, 日期: "2026-09-24" });
+    expect(out.monthly_revenue).toMatchObject({ 資料年月: "2026-08", 當月營收_千元: 514805337, "年增率%": 53.32 });
+    expect(out.upcoming_ex_rights).toEqual([
+      { 除權除息日: "2026-10-08", 權息: "息", 現金股利: 5, 無償配股率: null },
+    ]);
+    expect(out.alerts).toMatchObject({ 注意股: false, 處置股: false });
+    expect(out.derived.市值_億元).toBe(259323.7);
+  });
+
+  it("twse_stock_snapshot：處置股會標出來並附處置內容", async () => {
+    overrideFetch(
+      (u) => u.includes("t187ap03_L"),
+      () => jsonResponse([...COMPANIES, { 公司代號: "2305", 公司簡稱: "全友" }]),
+    );
+    const out = await callTool("twse_stock_snapshot", { code: "2305" });
+    expect(out.alerts.處置股).toBe(true);
+    expect(out.alerts.處置內容[0].處置期間).toBe("115/09/18～115/09/30");
+  });
+
+  it("twse_stock_snapshot：抓失敗的段落是「無法判斷」，不是否定陳述", async () => {
+    overrideFetch(
+      (u) => u.includes("announcement/punish") || u.includes("t187ap05_L"),
+      () => new Response("<html>busy</html>", { status: 200, headers: { "content-type": "text/html" } }),
+    );
+    const out = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(out.alerts.處置股).toBeNull();
+    expect(out.monthly_revenue).toBeNull();
+    const text = out.caveats.join();
+    expect(text).toContain("處置股公告取得失敗");
+    expect(text).toContain("無法判斷 2330 的月營收");
+    expect(text).not.toContain("不在最新一期");
+    // 其他段落不受影響
+    expect(out.valuation.本益比).toBe(28.69);
+  });
+
+  it("twse_stock_snapshot：主檔回空陣列視為上游故障（is_listed_company 是 null 不是 false）", async () => {
+    overrideFetch((u) => u.includes("t187ap03_L"), () => jsonResponse([]));
+    const out = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(out.is_listed_company).toBeNull();
+    expect(out.caveats.join()).toContain("0 筆");
+  });
+
+  it("twse_stock_snapshot：不是上市公司時指向做得到的路（ETF 快照、上櫃即時報價、名稱查詢）", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "0056" });
+    expect(out.is_listed_company).toBe(false);
+    const text = out.caveats.join();
+    expect(text).toContain("twse_etf_snapshot");
+    expect(text).toContain('market="otc"');
+    expect(text).toContain("twse_lookup");
+    // 價量段照常：0056 在日成交資訊裡
+    expect(out.quote.收盤).toBe(38.2);
   });
 
   it("工具回應不縮排（整段進模型 context，排版空白是純成本）", async () => {
@@ -722,7 +829,7 @@ describe("官方首頁", () => {
   // 首頁不能吃掉 MCP 的路由，也不能污染探針資料。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
     const payload = await rpcFor("legacy")("tools/list", {});
-    expect(payload.result.tools).toHaveLength(5);
+    expect(payload.result.tools).toHaveLength(7);
   });
 
   it("GET / 不寫探針記錄", async () => {
@@ -1602,7 +1709,7 @@ describe("協定 era", () => {
     const res = await send(mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }));
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(5);
+    expect(payload.result.tools).toHaveLength(7);
   });
 });
 
@@ -1667,7 +1774,7 @@ describe("量測探針（臨時）", () => {
     // 走的是 legacy lane：正常服務，且回應不帶 modern 的蓋章欄位。
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(5);
+    expect(payload.result.tools).toHaveLength(7);
     expect(payload.result.resultType).toBeUndefined();
 
     const [record] = probeRecords();

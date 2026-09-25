@@ -17,6 +17,8 @@ import {
   type Catalog,
   type Dataset,
   type Row,
+  lookupSecurities,
+  rocToIso,
 } from "../src/core";
 
 // --- 迷你目錄 fixture（對應 Python 版的 FAKE_SWAGGER） ---
@@ -748,5 +750,50 @@ describe("getDataset — where 與 sort_by", () => {
     const r = getDataset(ds, rows, {}) as any;
     expect(r).not.toHaveProperty("sorted_by");
     expect(r).not.toHaveProperty("where_excluded_non_numeric");
+  });
+});
+
+describe("rocToIso — 民國日期轉西元", () => {
+  it.each([
+    ["1150924", "2026-09-24"],
+    ["11508", "2026-08"],
+    ["990101", "2010-01-01"],
+    // 已經是西元八碼的，不猜、原樣回傳
+    ["19940905", "19940905"],
+    ["115/09/18", "115/09/18"],
+  ])("%s -> %s", (input, out) => expect(rocToIso(input)).toBe(out));
+  it("空值是 null", () => {
+    expect(rocToIso("")).toBeNull();
+    expect(rocToIso(undefined)).toBeNull();
+  });
+});
+
+describe("lookupSecurities", () => {
+  const companies = [
+    { 公司代號: "2330", 公司簡稱: "台積電", 公司名稱: "台灣積體電路製造股份有限公司", 英文簡稱: "TSMC" },
+    { 公司代號: "3530", 公司簡稱: "晶心科", 公司名稱: "晶心科技", 英文簡稱: "" },
+    { 公司代號: "9999", 公司簡稱: "積電通", 公司名稱: "積電通股份有限公司", 英文簡稱: "" },
+  ];
+  const funds = [{ 基金代號: "00878", 基金簡稱: "國泰永續高股息", 基金中文名稱: "國泰台灣ESG永續高股息ETF基金", 基金類型: "ETF" }];
+
+  it("排序：代號完全相符 > 簡稱完全相符 > 簡稱開頭 > 包含", () => {
+    const r = lookupSecurities("積電", { companies, funds }) as any;
+    // 「積電通」簡稱開頭相符，排在只有「包含」的台積電前面
+    expect(r.results.map((x: any) => x.code)).toEqual(["9999", "2330"]);
+    expect(r.results.every((x: any) => x.match === "partial")).toBe(true);
+  });
+  it("代號完全相符標 exact", () => {
+    const r = lookupSecurities(" 00878 ", { companies, funds }) as any;
+    expect(r.results[0]).toMatchObject({ code: "00878", kind: "上市基金", fund_type: "ETF", match: "exact" });
+  });
+  it("找不到時說清楚只收上市標的，並指向上櫃可用的路", () => {
+    const r = lookupSecurities("環球晶", { companies, funds }) as any;
+    expect(r.total_matched).toBe(0);
+    expect(r.caveats.join()).toContain("只收上市標的");
+    expect(r.caveats.join()).toContain('market="otc"');
+  });
+  it("limit 夾在上限內，total_matched 照實回報", () => {
+    const r = lookupSecurities("股", { companies, funds }, 999) as any;
+    expect(r.total_matched).toBe(3);
   });
 });

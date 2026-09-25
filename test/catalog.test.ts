@@ -12,7 +12,7 @@ import {
   MIN_DATASETS_PER_SOURCE,
   REQUIRED,
 } from "../scripts/check-catalog.mjs";
-import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
+import { DS_DAY, DS_FUND, DS_RANK, SNAPSHOT_DATASETS, TAIFEX_CSV_DATASETS } from "../src/twse";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
@@ -36,7 +36,7 @@ describe("catalog 健檢腳本", () => {
 
   // 健檢腳本是 .mjs、程式是 .ts，兩邊各有一份 id。這條斷言讓「只改一邊」變成紅燈。
   it("健檢腳本的必要清單與程式碼的常數一致", () => {
-    expect([...REQUIRED].sort()).toEqual([DS_FUND, DS_DAY, DS_RANK].sort());
+    expect([...REQUIRED].sort()).toEqual([...SNAPSHOT_DATASETS].sort());
   });
 });
 

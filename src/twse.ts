@@ -29,6 +29,23 @@ export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
+// twse_stock_snapshot 另外用到的資料集（日成交資訊與 ETF 快照共用 DS_DAY）
+export const DS_COMPANY = "opendata/t187ap03_L"; // 上市公司基本資料
+export const DS_VALUATION = "exchangeReport/BWIBBU_ALL"; // 上市個股日本益比、殖利率及股價淨值比
+export const DS_REVENUE = "opendata/t187ap05_L"; // 上市公司每月營業收入彙總表
+export const DS_EX_RIGHTS = "exchangeReport/TWT48U_ALL"; // 上市股票除權除息預告表
+export const DS_NOTICE = "announcement/notice"; // 集中市場當日公布注意股票
+export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股票
+
+/**
+ * 快照類工具寫死依賴的全部資料集。scripts/check-catalog.mjs 的 REQUIRED 必須與它
+ * 一致（test/catalog.test.ts 斷言），目錄刷新時少了任何一個都會在建置期被擋下。
+ */
+export const SNAPSHOT_DATASETS = [
+  DS_FUND, DS_DAY, DS_RANK,
+  DS_COMPANY, DS_VALUATION, DS_REVENUE, DS_EX_RIGHTS, DS_NOTICE, DS_PUNISH,
+] as const;
+
 /**
  * 必定有資料的資料集。回 0 筆一律當成上游故障，不當成「查無資料」。
  *
@@ -38,10 +55,15 @@ export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排
  * 邊緣一小時。這與 2xx+HTML 是同一類問題，只差在 body 是合法 JSON。
  *
  * 為什麼**只**涵蓋這三個、不對整個目錄套用：目錄裡有可能合法回 0 筆的資料集
- * （當日無事件的公告類）。這三個是 twse_etf_snapshot 依賴的、寫死的常數，而且
- * 建置期的 refresh-catalog 已用 `min:100` 守著它們必定有資料——執行期補上對應的守衛。
+ * （當日無事件的公告類）。這些是快照類工具依賴的、寫死的常數，每一個都是涵蓋
+ * 全體上市標的的主檔——執行期補上與建置期 refresh-catalog `min:100` 對應的守衛。
  */
-const ALWAYS_POPULATED: ReadonlySet<string> = new Set([DS_FUND, DS_DAY, DS_RANK]);
+const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
+  DS_FUND, DS_DAY, DS_RANK,
+  // 個股快照與代號查詢的三個主檔：上千家上市公司，任何一天都不可能是 0 筆。
+  // 除權除息預告、注意股、處置股**不在此列**——它們合法地會是空的（當天沒有事件）。
+  DS_COMPANY, DS_VALUATION, DS_REVENUE,
+]);
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 

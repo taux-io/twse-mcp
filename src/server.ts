@@ -1,7 +1,7 @@
 /**
  * server.ts — MCP handler 薄殼。
  * ==============================
- * 把 core 的純邏輯 + twse 的出站層接成 5 個 MCP 工具，用 createMcpHandler 以
+ * 把 core 的純邏輯 + twse 的出站層接成 7 個 MCP 工具，用 createMcpHandler 以
  * stateless streamable-http 對外服務（端點 /mcp）。不需 Durable Objects。
  *
  * 工具一律以 `twse_` 為前綴。那個前綴標示的是**本服務**，不是資料來源——目錄同時
@@ -16,7 +16,12 @@ import catalogJson from "./catalog.generated.json";
 import pkg from "../package.json";
 import {
   buildEtfSnapshot,
+  buildStockSnapshot,
   ETF_SOURCE_LABELS,
+  LOOKUP_SOURCE_LABELS,
+  lookupSecurities,
+  MAX_LOOKUP_RESULTS,
+  STOCK_SOURCE_LABELS,
   describeDataset,
   getDataset,
   resolveDataset,
@@ -24,7 +29,21 @@ import {
   type Catalog,
   type Row,
 } from "./core";
-import { DS_DAY, DS_FUND, DS_RANK, errorText, fetchDataset, fetchQuotes, fetchSources } from "./twse";
+import {
+  DS_COMPANY,
+  DS_DAY,
+  DS_EX_RIGHTS,
+  DS_FUND,
+  DS_NOTICE,
+  DS_PUNISH,
+  DS_RANK,
+  DS_REVENUE,
+  DS_VALUATION,
+  errorText,
+  fetchDataset,
+  fetchQuotes,
+  fetchSources,
+} from "./twse";
 import { DATASET_COUNT, LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
@@ -56,7 +75,7 @@ const REMOTE_READ = { ...LOCAL_READ, openWorldHint: true } as const;
 /**
  * 工具清單的快取效期。
  *
- * 五個工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
+ * 工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
  * 更長。壓在 1 小時是因為工具描述是本專案最常微調的東西，「線上說法與 repo 不一致」
  * 的窗口比多拿一點快取效益更值得在意。
  *
@@ -290,6 +309,61 @@ export function createServer() {
           errors,
         }),
       );
+    },
+  );
+
+  server.registerTool(
+    "twse_lookup",
+    {
+      description:
+        "用名稱或代號找上市公司與上市基金（含 ETF）的代號。使用者只講名稱（「台積電」「元大高股息」）" +
+        "時先用這個取得代號，不要憑印象猜代號。比對公司簡稱、全名、英文簡稱與代號，不分全半形與台／臺。" +
+        "只收上市標的；上櫃公司的名稱對照取不到。",
+      annotations: REMOTE_READ,
+      inputSchema: {
+        query: z.string().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_LOOKUP_RESULTS)
+          .default(10)
+          .describe(`最多回傳幾筆（預設 10，上限 ${MAX_LOOKUP_RESULTS}）。`),
+      },
+    },
+    async ({ query, limit }) => {
+      const { rows, errors } = await fetchSources({
+        companies: { dataset: DS_COMPANY, label: LOOKUP_SOURCE_LABELS.companies },
+        funds: { dataset: DS_FUND, label: LOOKUP_SOURCE_LABELS.funds },
+      });
+      return json(lookupSecurities(query, { ...rows, errors }, limit));
+    },
+  );
+
+  server.registerTool(
+    "twse_stock_snapshot",
+    {
+      description:
+        "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
+        "最新月營收（含月增率與年增率）、近期除權除息預告、是否為注意股或處置股，以及市值。" +
+        "合併七個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+      annotations: REMOTE_READ,
+      inputSchema: {
+        code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 twse_lookup。'),
+      },
+    },
+    async ({ code }) => {
+      const { rows, errors } = await fetchSources({
+        company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
+        days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
+        valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
+        revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
+        exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
+        notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
+        punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
+      });
+      return json(buildStockSnapshot(code, { ...rows, errors }));
     },
   );
 
