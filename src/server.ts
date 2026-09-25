@@ -1,7 +1,7 @@
 /**
  * server.ts — MCP handler 薄殼。
  * ==============================
- * 把 core 的純邏輯 + twse 的出站層接成 5 個 MCP 工具，用 createMcpHandler 以
+ * 把 core 的純邏輯 + twse 的出站層接成 7 個 MCP 工具，用 createMcpHandler 以
  * stateless streamable-http 對外服務（端點 /mcp）。不需 Durable Objects。
  *
  * 工具一律以 `twse_` 為前綴。那個前綴標示的是**本服務**，不是資料來源——目錄同時
@@ -13,9 +13,15 @@ import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 
 import catalogJson from "./catalog.generated.json";
+import pkg from "../package.json";
 import {
   buildEtfSnapshot,
+  buildStockSnapshot,
   ETF_SOURCE_LABELS,
+  LOOKUP_SOURCE_LABELS,
+  lookupSecurities,
+  MAX_LOOKUP_RESULTS,
+  STOCK_SOURCE_LABELS,
   describeDataset,
   getDataset,
   resolveDataset,
@@ -23,20 +29,53 @@ import {
   type Catalog,
   type Row,
 } from "./core";
-import { DS_DAY, DS_FUND, DS_RANK, fetchDataset, fetchQuotes } from "./twse";
-import { LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import {
+  DS_COMPANY,
+  DS_DAY,
+  DS_EX_RIGHTS,
+  DS_FUND,
+  DS_NOTICE,
+  DS_PUNISH,
+  DS_RANK,
+  DS_REVENUE,
+  DS_VALUATION,
+  errorText,
+  fetchDataset,
+  fetchQuotes,
+  fetchSources,
+} from "./twse";
+import { DATASET_COUNT, LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
 const catalog = catalogJson as unknown as Catalog;
 
+/**
+ * 工具回應一律是 JSON 字串。**不縮排**：這段文字整段進模型的 context，
+ * 200 筆資料的縮排空白與換行是實打實的 token，而模型讀 JSON 不需要排版。
+ */
 function json(value: unknown) {
-  return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 1) }] };
+  return { content: [{ type: "text" as const, text: JSON.stringify(value) }] };
 }
+
+/**
+ * 工具行為提示。全部唯讀、重呼叫無副作用；差別只在會不會連外部。
+ * client 會據此決定能不能免確認直接呼叫，而這些工具確實只讀公開資料。
+ *
+ * 搜尋與欄位描述只查簽入版控的目錄，不出站，所以 openWorldHint 是 false——
+ * 誠實描述比一律填 true 更有用，client 可以放心對它們做更激進的自動呼叫。
+ */
+const LOCAL_READ = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const;
+const REMOTE_READ = { ...LOCAL_READ, openWorldHint: true } as const;
 
 /**
  * 工具清單的快取效期。
  *
- * 五個工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
+ * 工具寫死在這支檔案裡，執行期永不改變——只有重新部署才會變，所以理論上可以設得
  * 更長。壓在 1 小時是因為工具描述是本專案最常微調的東西，「線上說法與 repo 不一致」
  * 的窗口比多拿一點快取效益更值得在意。
  *
@@ -45,6 +84,28 @@ function json(value: unknown) {
  * 快取欄位。
  */
 const CACHE_TTL_MS = 3_600_000;
+
+/**
+ * 呼叫之前就必須知道、否則會做錯的兩件事。
+ *
+ * 為什麼放在 `instructions` 而不是工具描述：這兩條是**跨工具**的——選錯資料集發生在
+ * 呼叫 twse_get_dataset 之前，而 code_candidates 的誤用發生在讀回應的時候。工具描述
+ * 只在模型看那一支工具時起作用。
+ *
+ * 為什麼只有兩條：`instructions` 會隨每次連線送給每個 client 並進入 system prompt，
+ * 放進去的每個字都佔所有人的 context。刻意不寫「資料是前一交易日」——每則
+ * twse_get_dataset 的回應都已經帶 `note` 欄位講同一件事，重複講是純成本。
+ */
+const USAGE_GUIDANCE = [
+  "使用要點：",
+  `1. 先搜尋再取用。資料集有 ${DATASET_COUNT} 個，` + "名稱不直覺——ETF 的主檔叫「基金基本資料彙總表」，" +
+    "搜「ETF」找不到它。不確定該用哪一個時，先呼叫 twse_search_datasets，" +
+    "不要憑印象猜 dataset_id。",
+  "2. code 是精確比對。找不到完全相符的代號時會回 0 筆並附上 code_candidates，" +
+    "**那是拼法相近的候選，不是答案**——期交所的 MXF（小型臺指期貨）與 MXFFX" +
+    "（客製化小型臺指）是不同契約，年成交量差兩百萬倍。請向使用者確認要查哪一個，" +
+    "再用該代號重新查詢；絕對不要直接引用候選代號的數字。",
+].join("\n");
 
 /**
  * 政府資料開放授權條款第 1 版（OGDL v1）要求的顯名聲明。
@@ -59,28 +120,6 @@ const CACHE_TTL_MS = 3_600_000;
  * 送到每個 client，一次到位，而不必讓每筆資料回應都多帶一段法律文字。README 另有一份
  * 給人類讀的。
  */
-/**
- * 呼叫之前就必須知道、否則會做錯的兩件事。
- *
- * 為什麼放在 `instructions` 而不是工具描述：這兩條是**跨工具**的——選錯資料集發生在
- * 呼叫 twse_get_dataset 之前，而 code_candidates 的誤用發生在讀回應的時候。工具描述
- * 只在模型看那一支工具時起作用。
- *
- * 為什麼只有兩條：`instructions` 會隨每次連線送給每個 client 並進入 system prompt，
- * 放進去的每個字都佔所有人的 context。刻意不寫「資料是前一交易日」——每則
- * twse_get_dataset 的回應都已經帶 `note` 欄位講同一件事，重複講是純成本。
- */
-const USAGE_GUIDANCE = [
-  "使用要點：",
-  "1. 先搜尋再取用。資料集有 275 個，名稱不直覺——ETF 的主檔叫「基金基本資料彙總表」，" +
-    "搜「ETF」找不到它。不確定該用哪一個時，先呼叫 twse_search_datasets，" +
-    "不要憑印象猜 dataset_id。",
-  "2. code 是精確比對。找不到完全相符的代號時會回 0 筆並附上 code_candidates，" +
-    "**那是拼法相近的候選，不是答案**——期交所的 MXF（小型臺指期貨）與 MXFFX" +
-    "（客製化小型臺指）是不同契約，年成交量差兩百萬倍。請向使用者確認要查哪一個，" +
-    "再用該代號重新查詢；絕對不要直接引用候選代號的數字。",
-].join("\n");
-
 const OGDL_ATTRIBUTION = [
   "資料來源與授權：",
   "臺灣證券交易所 2026 臺灣證券交易所 OpenAPI",
@@ -103,7 +142,8 @@ const QUOTE_SOURCE_NOTE =
 
 export function createServer() {
   const server = new McpServer(
-    { name: "twse-opendata", version: "0.3.0" },
+    // 版本只有 package.json 一個來源；server.json 由 test/catalog.test.ts 斷言與它一致。
+    { name: "twse-opendata", version: pkg.version },
     {
       instructions: `${USAGE_GUIDANCE}\n\n${OGDL_ATTRIBUTION}`,
       cacheHints: {
@@ -126,10 +166,12 @@ export function createServer() {
     {
       description:
         "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
-        "會比對資料集代號、中文說明與欄位名稱。期交所的資料集代號一律以 taifex/ 開頭，" +
+        "會比對資料集代號、中文說明與欄位名稱；多個關鍵字用空白分隔（每個都要命中），" +
+        "結果依相關度排序。期交所的資料集代號一律以 taifex/ 開頭，" +
         '搜期貨與選擇權可用 tag="期貨與選擇權"。',
+      annotations: LOCAL_READ,
       inputSchema: {
-        query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"本益比"。留空列出全部。'),
+        query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"三大法人 期貨"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
         // .min(0) 與 core 端的夾值是兩層獨立防守，跟 twse_get_dataset 對等：
         // schema 擋掉合法 client 的手誤，core 擋掉繞過 schema 的呼叫路徑。
@@ -143,6 +185,7 @@ export function createServer() {
     "twse_describe_dataset",
     {
       description: "查看某個資料集的完整欄位定義，取資料前用來確認要過濾／投影哪些欄位。",
+      annotations: LOCAL_READ,
       inputSchema: {
         dataset_id: z
           .string()
@@ -157,7 +200,9 @@ export function createServer() {
     {
       description:
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
-        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/fields 縮小範圍。",
+        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/where/fields 縮小範圍。" +
+        "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
+      annotations: REMOTE_READ,
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
         code: z
@@ -183,17 +228,43 @@ export function createServer() {
           // 不會帶上這個上限，所以寫進 description，免得又是一個「說了卻沒守」
           // 或「守了卻沒說」的落差。fields 的 .max() 則會轉成 maxItems。
           .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。最多 20 個欄位。'),
+        // where 與 match 一樣，每個元素是整份資料集上的一輪 filter，所以一樣給上限。
+        where: z
+          .array(
+            z.object({
+              field: z.string(),
+              op: z.enum(["gt", "gte", "lt", "lte", "eq", "ne"]),
+              value: z.number(),
+            }),
+          )
+          .max(10)
+          .optional()
+          .describe(
+            '數值條件，全部都要成立。例如本益比低於 10、殖利率至少 5%：' +
+              '[{"field":"PEratio","op":"lt","value":10},{"field":"DividendYield","op":"gte","value":5}]。' +
+              "欄位值會去逗號轉數字；空值或非數字（例如虧損公司的本益比）無法比較，會被排除並回報筆數。",
+          ),
+        sort_by: z
+          .string()
+          .default("")
+          .describe(
+            "依這個欄位排序，在分頁之前做——要「前 N 名」就用它配 limit。" +
+              "多數值是數字就依數值排，否則依字串排；空值與非數字一律排最後。",
+          ),
+        order: z.enum(["desc", "asc"]).default("desc").describe('"desc"（大到小，預設）或 "asc"。'),
         fields: z.array(z.string()).max(100).optional().describe("只回傳這些欄位。"),
         limit: z.number().int().min(0).default(30).describe("回傳筆數上限（硬上限 200）。"),
         offset: z.number().int().min(0).default(0).describe("分頁位移。"),
       },
     },
-    async ({ dataset_id, code, match, fields, limit, offset }) => {
+    async ({ dataset_id, code, match, where, sort_by, order, fields, limit, offset }) => {
       const resolved = resolveDataset(catalog, dataset_id);
       if ("error" in resolved) return json(resolved);
       const { ds } = resolved;
       const rows = await fetchDataset(ds.id);
-      return json(getDataset(ds, rows, { code, match, fields, limit, offset }));
+      return json(
+        getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset }),
+      );
     },
   );
 
@@ -204,6 +275,7 @@ export function createServer() {
         "一次取得單一上市 ETF 的完整概況：基本資料 + 前一交易日價量 + 定期定額熱度。" +
         "價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
         "合併三個證交所資料集並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+      annotations: REMOTE_READ,
       inputSchema: {
         code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
         include_realtime: z
@@ -213,47 +285,86 @@ export function createServer() {
       },
     },
     async ({ code, include_realtime }) => {
-      const tasks: Promise<Row[]>[] = [
-        fetchDataset(DS_FUND),
-        fetchDataset(DS_DAY),
-        fetchDataset(DS_RANK),
-      ];
-      const rtTask = include_realtime ? fetchQuotes([code]) : null;
-      const settled = await Promise.allSettled(tasks);
-      const [funds, days, ranks] = settled.map((r) =>
-        r.status === "fulfilled" ? r.value : [],
-      );
-      // 與 core 的判斷共用同一組字串；各寫各的會讓「哪一段失敗」的比對悄悄失效。
-      const labels = [ETF_SOURCE_LABELS.funds, ETF_SOURCE_LABELS.days, ETF_SOURCE_LABELS.ranks];
-      const errors = settled
-        .map((r, i) => {
-          if (r.status !== "rejected") return null;
-          const e = r.reason as Error | undefined;
-          // 保留 message：只記 name 的話，線上問題會退化成一句沒有資訊的 "TypeError"，
-          // 查不出是逾時、被重導、還是被對方擋掉。
-          const error = [e?.name ?? "Error", e?.message].filter(Boolean).join(": ");
-          return { source: labels[i], error };
-        })
-        .filter((x) => x !== null);
-
-      let realtime: Row[] | null = null;
-      if (rtTask) {
-        realtime = await rtTask.then(
-          (q) => q as unknown as Row[],
-          () => [],
-        );
-      }
+      // 即時報價與三個資料集同時發出。錯誤處理要**立刻**掛上：等 allSettled 結束才接的話，
+      // 它若先失敗，就會在那段空窗期被記成一筆 unhandled rejection。
+      const rtTask = include_realtime
+        ? fetchQuotes([code]).then(
+            (q) => ({ rows: q as unknown as Row[], error: null }),
+            (e: unknown) => ({ rows: [] as Row[], error: errorText(e) }),
+          )
+        : null;
+      const { rows, errors } = await fetchSources({
+        funds: { dataset: DS_FUND, label: ETF_SOURCE_LABELS.funds },
+        days: { dataset: DS_DAY, label: ETF_SOURCE_LABELS.days },
+        ranks: { dataset: DS_RANK, label: ETF_SOURCE_LABELS.ranks },
+      });
+      const rt = rtTask ? await rtTask : null;
+      if (rt?.error) errors.push({ source: ETF_SOURCE_LABELS.realtime, error: rt.error });
 
       return json(
         buildEtfSnapshot(code, {
-          funds,
-          days,
-          ranks,
-          realtime,
+          ...rows,
+          realtime: rt ? rt.rows : null,
           includeRealtime: include_realtime,
           errors,
         }),
       );
+    },
+  );
+
+  server.registerTool(
+    "twse_lookup",
+    {
+      description:
+        "用名稱或代號找上市公司與上市基金（含 ETF）的代號。使用者只講名稱（「台積電」「元大高股息」）" +
+        "時先用這個取得代號，不要憑印象猜代號。比對公司簡稱、全名、英文簡稱與代號，不分全半形與台／臺。" +
+        "只收上市標的；上櫃公司的名稱對照取不到。",
+      annotations: REMOTE_READ,
+      inputSchema: {
+        // trim 在 min 之前：只有空白的查詢在 core 裡等同空查詢，只會回一句沒有意義的「找不到「」」。
+        query: z.string().trim().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_LOOKUP_RESULTS)
+          .default(10)
+          .describe(`最多回傳幾筆（預設 10，上限 ${MAX_LOOKUP_RESULTS}）。`),
+      },
+    },
+    async ({ query, limit }) => {
+      const { rows, errors } = await fetchSources({
+        companies: { dataset: DS_COMPANY, label: LOOKUP_SOURCE_LABELS.companies },
+        funds: { dataset: DS_FUND, label: LOOKUP_SOURCE_LABELS.funds },
+      });
+      return json(lookupSecurities(query, { ...rows, errors }, limit));
+    },
+  );
+
+  server.registerTool(
+    "twse_stock_snapshot",
+    {
+      description:
+        "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
+        "最新月營收（含月增率與年增率）、近期除權除息預告、是否為注意股或處置股，以及市值。" +
+        "合併七個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+      annotations: REMOTE_READ,
+      inputSchema: {
+        code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 twse_lookup。'),
+      },
+    },
+    async ({ code }) => {
+      const { rows, errors } = await fetchSources({
+        company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
+        days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
+        valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
+        revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
+        exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
+        notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
+        punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
+      });
+      return json(buildStockSnapshot(code, { ...rows, errors, today: taipeiToday() }));
     },
   );
 
@@ -263,6 +374,7 @@ export function createServer() {
       description:
         "取得盤中即時報價（約 5 秒更新一次）。OpenAPI 只有前一交易日資料，" +
         '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
+      annotations: REMOTE_READ,
       inputSchema: {
         codes: z
           // trim 在前，維持既有對前後空白的容忍（fetchQuotes 本來就會 trim）。
@@ -288,7 +400,7 @@ export function createServer() {
    * `/mcp__twse__twse_etf_overview`。工具有那個前綴是因為它們平鋪在同一個命名空間裡。
    *
    * 只有三個。斜線選單塞滿的結果是整體被忽略，所以只放涵蓋最常見入口的那幾個：
-   * 找表（275 個資料集的發現問題）、ETF 概況（現有最強的工具但名字不直觀）、
+   * 找表（數百個資料集的發現問題）、ETF 概況（現有最強的工具但名字不直觀）、
    * 期貨行情（新加的 132 張表需要一個看得見的入口）。
    */
   server.registerPrompt(
@@ -337,6 +449,15 @@ export function createServer() {
   );
 
   return server;
+}
+
+/**
+ * 台灣時間的今天（`YYYY-MM-DD`）。Worker 跑在 UTC，而交易所的日期是台灣日期——
+ * 台灣早上八點前用 UTC 算會差一天，剛好是盤前查處置與除息的時段。台灣沒有日光節約，
+ * 固定 +8 小時即可。
+ */
+function taipeiToday(): string {
+  return new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
 }
 
 /** prompt 的回傳形狀都一樣：一則使用者訊息。包起來免得三處各寫一次巢狀結構。 */
@@ -420,18 +541,18 @@ const SITE_HEADERS: Record<string, string> = {
 };
 
 /**
+ * 社群卡片圖。og:image 必須是 URL 不能是 data: URI，所以由 Worker 服務。
+ * base64 在模組載入時解一次——它是常數，每請求重解只是浪費 CPU。
+ */
+const OG_PNG = Uint8Array.from(atob(OG_IMAGE_BASE64), (c) => c.charCodeAt(0));
+
+/**
  * 靜態頁面的路由表。
  *
  * **只有列在這裡的路徑會被接管**，其餘一律落回 MCP handler——包含未知路徑的 404。
  * 首頁不是 catch-all：把 /admin、/.env 這類掃描回成 200 的漂亮頁面，只會讓
  * 探針資料與存取日誌變難讀，也讓掃描者以為這裡有東西。
  */
-/**
- * 社群卡片圖。og:image 必須是 URL 不能是 data: URI，所以由 Worker 服務。
- * base64 在模組載入時解一次——它是常數，每請求重解只是浪費 CPU。
- */
-const OG_PNG = Uint8Array.from(atob(OG_IMAGE_BASE64), (c) => c.charCodeAt(0));
-
 const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; cache?: string }> = {
   "/": { body: renderPage("zh"), type: "text/html; charset=utf-8" },
   // 英文版。MCP 生態的搜尋幾乎都是英文，而只有一個語系時 hreflang 無從設起。

@@ -9,7 +9,7 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
-import { DATA_TTL_SECONDS, type Row } from "./core";
+import { DATA_TTL_SECONDS, type Row, type SourceError } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 /** 期交所的 servers.url。裸 path（沒有 /v1）會被 302 導回 Swagger UI 首頁。 */
@@ -29,6 +29,23 @@ export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
+// twse_stock_snapshot 另外用到的資料集（日成交資訊與 ETF 快照共用 DS_DAY）
+export const DS_COMPANY = "opendata/t187ap03_L"; // 上市公司基本資料
+export const DS_VALUATION = "exchangeReport/BWIBBU_ALL"; // 上市個股日本益比、殖利率及股價淨值比
+export const DS_REVENUE = "opendata/t187ap05_L"; // 上市公司每月營業收入彙總表
+export const DS_EX_RIGHTS = "exchangeReport/TWT48U_ALL"; // 上市股票除權除息預告表
+export const DS_NOTICE = "announcement/notice"; // 集中市場當日公布注意股票
+export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股票
+
+/**
+ * 快照類工具寫死依賴的全部資料集。scripts/check-catalog.mjs 的 REQUIRED 必須與它
+ * 一致（test/catalog.test.ts 斷言），目錄刷新時少了任何一個都會在建置期被擋下。
+ */
+export const SNAPSHOT_DATASETS = [
+  DS_FUND, DS_DAY, DS_RANK,
+  DS_COMPANY, DS_VALUATION, DS_REVENUE, DS_EX_RIGHTS, DS_NOTICE, DS_PUNISH,
+] as const;
+
 /**
  * 必定有資料的資料集。回 0 筆一律當成上游故障，不當成「查無資料」。
  *
@@ -38,10 +55,15 @@ export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排
  * 邊緣一小時。這與 2xx+HTML 是同一類問題，只差在 body 是合法 JSON。
  *
  * 為什麼**只**涵蓋這三個、不對整個目錄套用：目錄裡有可能合法回 0 筆的資料集
- * （當日無事件的公告類）。這三個是 twse_etf_snapshot 依賴的、寫死的常數，而且
- * 建置期的 refresh-catalog 已用 `min:100` 守著它們必定有資料——執行期補上對應的守衛。
+ * （當日無事件的公告類）。這些是快照類工具依賴的、寫死的常數，每一個都是涵蓋
+ * 全體上市標的的主檔——執行期補上與建置期 refresh-catalog `min:100` 對應的守衛。
  */
-const ALWAYS_POPULATED: ReadonlySet<string> = new Set([DS_FUND, DS_DAY, DS_RANK]);
+const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
+  DS_FUND, DS_DAY, DS_RANK,
+  // 個股快照與代號查詢的三個主檔：上千家上市公司，任何一天都不可能是 0 筆。
+  // 除權除息預告、注意股、處置股**不在此列**——它們合法地會是空的（當天沒有事件）。
+  DS_COMPANY, DS_VALUATION, DS_REVENUE,
+]);
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
@@ -157,6 +179,11 @@ function tooLarge(label: string, bytes: number, partial = false): string {
  *
  * 值取 3：twse_etf_snapshot 本來就會同時抓三個資料集（DS_FUND/DS_DAY/DS_RANK），
  * 那是既有的正常行為，semaphore 不該把它拖慢，所以上限剛好容得下它。
+ *
+ * twse_stock_snapshot 要抓七個，**刻意不為它調高**：這個值乘上 MAX_BODY_BYTES 就是
+ * isolate 的最壞記憶體，7 × 48 MB 已超過 128 MB。代價是邊緣快取未命中時分三輪
+ * （3+3+1）抓完，期間同一個 isolate 的其他呼叫要排隊。這七個資料集最大約 1.3 MB，
+ * 每輪都短，而且邊緣快取命中時幾乎不花時間——延遲是有意識的取捨，記憶體上限不是。
  */
 const MAX_CONCURRENT_FETCHES = 3;
 let inFlight = 0;
@@ -199,6 +226,42 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
     );
   }
   return rows;
+}
+
+/**
+ * 錯誤轉成給人讀的一行字。保留 message：只記 name 的話，線上問題會退化成一句沒有
+ * 資訊的 "TypeError"，查不出是逾時、被重導、還是被對方擋掉。
+ */
+export function errorText(reason: unknown): string {
+  const e = reason as Error | undefined;
+  return [e?.name ?? "Error", e?.message].filter(Boolean).join(": ");
+}
+
+/**
+ * 同時抓多個資料集，任何一個失敗都不拖垮其他。
+ *
+ * 快照類工具共用這一段：每一段的成敗要各自回報（`errors` 以來源標籤指認），
+ * core 才能分辨「上游掛了」與「查無此標的」——那是這個 repo 修過三次的同一類錯誤，
+ * 抓取的形狀只寫一次，新工具就不會各自重新發明一個少了守衛的版本。
+ * 失敗的那段給空陣列，是否據此做否定陳述由 core 看 `errors` 決定。
+ */
+export async function fetchSources<K extends string>(
+  sources: Record<K, { dataset: string; label: string }>,
+): Promise<{ rows: Record<K, Row[]>; errors: SourceError[] }> {
+  const keys = Object.keys(sources) as K[];
+  const settled = await Promise.allSettled(keys.map((k) => fetchDataset(sources[k].dataset)));
+  const rows = {} as Record<K, Row[]>;
+  const errors: SourceError[] = [];
+  settled.forEach((r, i) => {
+    const k = keys[i];
+    if (r.status === "fulfilled") {
+      rows[k] = r.value;
+    } else {
+      rows[k] = [];
+      errors.push({ source: sources[k].label, error: errorText(r.reason) });
+    }
+  });
+  return { rows, errors };
 }
 
 /**

@@ -24,9 +24,16 @@
  * 英文版原樣附上並加一句說明為什麼——五份 README 也是這樣處理的。
  */
 
-/** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
+import catalog from "./catalog.generated.json";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
 
+/**
+ * 資料集數量從目錄算，不寫死。寫死的數字在每次目錄刷新後都會悄悄變成錯的，
+ * 而首頁、llms.txt 與 MCP 的 instructions 講的應該是同一個數。
+ */
+export const DATASET_COUNT = Object.keys(catalog).length;
+
+/** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
 export const SITE_ORIGIN = "https://twse-mcp.taux.io";
 /** 使用者唯一需要複製的東西。 */
 export const MCP_ENDPOINT = `${SITE_ORIGIN}/mcp`;
@@ -131,7 +138,7 @@ const ZH: Page = {
   title: "台股 MCP｜讓 AI 查台灣證交所與期交所的公開資料",
   description:
     "免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢台股即時報價、ETF 資料、" +
-    "期貨選擇權行情與臺灣證交所、期交所的 275 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。",
+    `期貨選擇權行情與臺灣證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。`,
   h1: "讓 AI 查得到真正的台股資料",
   lede:
     "<strong>台股 MCP</strong> 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
@@ -139,9 +146,11 @@ const ZH: Page = {
   features: [
     "台股上市股票與 ETF 的盤中即時報價",
     "前一交易日的開盤、最高、最低、收盤與成交量",
+    "單一上市公司的概況：本益比、殖利率、最新月營收年增率、除權息與處置狀態",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
+    "依本益比、殖利率等交易所公布的數字篩選與排序，以及用名稱查代號",
     "臺灣期貨交易所的每日行情、三大法人與大額交易人未沖銷部位",
-    "臺灣證交所與期交所合計 275 個公開資料集的搜尋與查詢",
+    `臺灣證交所與期交所合計 ${DATASET_COUNT} 個公開資料集的搜尋與查詢`,
   ],
   installSteps: [
     {
@@ -207,12 +216,14 @@ const ZH: Page = {
   body: {
     problem: `
 <p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。台股 MCP 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
-<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 275 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。台股 MCP 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
+<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。台股 MCP 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
 <p><strong>不想寫程式，也不想申請什麼。</strong>沒有 API key、沒有註冊、沒有 SDK。貼一個網址，用中文問就好。</p>`,
     ask: `
 <ul>
 <li>「台積電現在多少？」——盤中即時報價，一次問好幾檔也行。</li>
 <li>「0050 昨天收盤多少、量多大？」——前一交易日的開高低收與成交量。</li>
+<li>「台積電最近營收成長多少？本益比、殖利率呢？」——上市公司一頁式概況，含月營收年增率與是否被列為處置股。</li>
+<li>「殖利率 6% 以上、本益比低於 10 的有哪些？」——依交易所公布的數字篩選與排序，不用自己一頁頁翻。</li>
 <li>「0056 這檔 ETF 到底是什麼？」——追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
 <li>「台指期昨天收在哪？」——期貨與選擇權的每日行情、三大法人、未平倉。</li>
 <li>「交易所有沒有 ⋯⋯ 的資料？」——在兩百多張公開報表裡找到對的那一張。</li>
@@ -224,7 +235,7 @@ const ZH: Page = {
 <ul>
 <li><strong>上市股票與 ETF</strong>：即時報價、前一交易日價量、基本資料、定期定額熱度、財報與公司治理揭露。</li>
 <li><strong>期貨與選擇權</strong>：每日行情、三大法人、大額交易人未沖銷部位、保證金、契約規格。</li>
-<li><strong>不提供</strong>：技術指標、選股、投資建議，以及任何本服務自行計算的預測。</li>
+<li><strong>不提供</strong>：技術指標、選股建議、投資建議，以及任何本服務自行計算的預測。可以依交易所公布的數字（例如本益比、殖利率）篩選與排序，但挑哪一檔是你的判斷。</li>
 </ul>`,
     caveats: `
 <ul>
@@ -267,7 +278,7 @@ const EN: Page = {
   // test/server.test.ts 有守衛，改文案時會擋下超長。
   description:
     "Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and " +
-    "options, and 275 TWSE/TAIFEX open datasets. No install, no signup.",
+    `options, and ${DATASET_COUNT} TWSE/TAIFEX open datasets. No install, no signup.`,
   h1: "Give your AI real Taiwan market data",
   lede:
     "<strong>Taiwan Stock MCP</strong> is a free remote MCP server that lets Claude and other AI " +
@@ -276,9 +287,11 @@ const EN: Page = {
   features: [
     "Intraday quotes for TWSE-listed stocks and ETFs",
     "Previous trading day's open, high, low, close and volume",
+    "Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, ex-dividend and disposition status",
     "Per-ETF profile, tracked index and regular-savings popularity",
+    "Filter and sort by published figures such as P/E and yield, and look up a ticker by company name",
     "TAIFEX daily futures and options quotes, institutional flows and large-trader open interest",
-    "Search and query across 275 open datasets from TWSE and TAIFEX combined",
+    `Search and query across ${DATASET_COUNT} open datasets from TWSE and TAIFEX combined`,
   ],
   installSteps: [
     {
@@ -344,12 +357,14 @@ const EN: Page = {
   body: {
     problem: `
 <p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Stock MCP makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
-<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is 275 reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
+<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
 <p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language — Chinese or English.</p>`,
     ask: `
 <ul>
 <li>"What's TSMC trading at right now?" — intraday quotes, several tickers at once.</li>
 <li>"Where did 0050 close yesterday, and on what volume?" — the previous session's open, high, low, close and volume.</li>
+<li>"How fast is TSMC's revenue growing? What are its P/E and yield?" — a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
+<li>"Which stocks yield over 6% with a P/E under 10?" — filter and sort by the exchange's published figures, server-side.</li>
 <li>"What exactly is the ETF 0056?" — which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
 <li>"Where did the TAIEX futures settle yesterday?" — daily futures and options quotes, institutional flows, open interest.</li>
 <li>"Does the exchange publish data on …?" — finds the right one among two hundred-plus public reports.</li>
@@ -361,7 +376,7 @@ const EN: Page = {
 <ul>
 <li><strong>Listed stocks and ETFs</strong>: intraday quotes, previous-day prices and volume, profiles, regular-savings popularity, financial statements and governance disclosures.</li>
 <li><strong>Futures and options</strong>: daily quotes, institutional investor flows, large-trader open interest, margins, contract specifications.</li>
-<li><strong>Not provided</strong>: technical indicators, stock screening, investment advice, or any figure this service computes on its own.</li>
+<li><strong>Not provided</strong>: technical indicators, stock picks, investment advice, or any forecast this service computes on its own. Filtering and sorting by the exchange's published figures (P/E, yield) is supported; choosing what to buy is up to you.</li>
 </ul>`,
     caveats: `
 <ul>
@@ -707,8 +722,8 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 - Over-the-counter (TPEx) stocks have intraday quotes only; historical and statistical reports are unavailable because the Taipei Exchange open-data host refuses cloud-originated connections.
 - 上櫃（OTC）股票只有盤中即時報價；歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。
-- Taiwan Stock MCP does not provide technical indicators, stock screening or investment advice, and computes no forecasts of its own.
-- 台股 MCP 不提供技術指標、選股或投資建議，也不做任何自行計算的預測。
+- Taiwan Stock MCP does not provide technical indicators, stock picks or investment advice, and computes no forecasts of its own. It can filter and sort by figures the exchange publishes (P/E, dividend yield).
+- 台股 MCP 不提供技術指標、選股建議或投資建議，也不做任何自行計算的預測；可以依交易所公布的數字（本益比、殖利率）篩選與排序。
 
 ## Freshness / 資料新鮮度
 

@@ -33,6 +33,8 @@ Once installed, just ask in your own words, for example:
 
 - **"What's TSMC at right now?"** — Live prices, several tickers at once.
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
+- **"How fast is TSMC's revenue growing? What are its P/E and yield?"** — A one-page company snapshot: monthly revenue growth, P/E, dividend yield, upcoming ex-dividend dates, and whether it is under disposition.
+- **"Which stocks yield over 6% with a P/E under 10?"** — Filters and sorts by the exchange's published figures, so you do not page through them yourself.
 - **"What exactly is the ETF 0056?"** — Which index it tracks, how popular it is for regular savings plans, plus which figures you should not take at face value.
 - **"Where did the TAIEX futures settle yesterday?"** — Daily futures and options quotes, institutional-investor flows and open interest, as published by the futures exchange.
 - **"Does the exchange publish data on …?"** — Finds the right one among two hundred-plus public reports.
@@ -151,6 +153,21 @@ language works just as well.
 > is popular for regular savings plans (near the top of the rankings), and has a
 > **rough** market value of about **NT$710 billion** — while noting that this rough
 > figure is shares outstanding × closing price, which is **not the same as the fund's actual size**.
+>
+> *(Illustrative.)*
+
+> **You ask:** "How fast is TSMC's revenue growing? What's its P/E?"
+>
+> **The AI will answer something like:** TSMC's August revenue was about **NT$514.8 billion**,
+> up **53.3%** year on year; its P/E was **28.7** and dividend yield **0.89%** as of the
+> previous trading day. It is not currently flagged for attention or disposition.
+>
+> *(Illustrative.)*
+
+> **You ask:** "Which stocks yield at least 6% with a P/E under 10? Sort by yield."
+>
+> **The AI will answer something like:** 39 stocks qualify; the top five by yield are…
+> Another 288 had no numeric P/E or yield (loss-makers, for example) and could not be compared.
 >
 > *(Illustrative.)*
 

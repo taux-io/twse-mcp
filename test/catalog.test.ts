@@ -12,10 +12,11 @@ import {
   MIN_DATASETS_PER_SOURCE,
   REQUIRED,
 } from "../scripts/check-catalog.mjs";
-import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
-import { ALIASES, getDataset, periodNote, type Catalog } from "../src/core";
+import { DS_DAY, DS_FUND, DS_RANK, SNAPSHOT_DATASETS, TAIFEX_CSV_DATASETS } from "../src/twse";
+import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
+import pkg from "../package.json";
 
 const catalog = catalogJson as unknown as Catalog;
 
@@ -35,7 +36,7 @@ describe("catalog 健檢腳本", () => {
 
   // 健檢腳本是 .mjs、程式是 .ts，兩邊各有一份 id。這條斷言讓「只改一邊」變成紅燈。
   it("健檢腳本的必要清單與程式碼的常數一致", () => {
-    expect([...REQUIRED].sort()).toEqual([DS_FUND, DS_DAY, DS_RANK].sort());
+    expect([...REQUIRED].sort()).toEqual([...SNAPSHOT_DATASETS].sort());
   });
 });
 
@@ -164,6 +165,27 @@ describe("目錄與程式假設的一致性", () => {
     const targets = [...new Set(Object.values(ALIASES).flat())];
     const missing = targets.filter((id) => !catalog[id]);
     expect(missing).toEqual([]);
+  });
+
+  // 別名的鍵要是 normQuery 之後的形狀，否則永遠不會被查到——寫了等於沒寫。
+  it("ALIASES 的鍵都是正規化後的形狀（小寫、台）", () => {
+    for (const k of Object.keys(ALIASES)) {
+      expect(k, k).toBe(k.toLowerCase().replace(/臺/g, "台"));
+    }
+  });
+
+  // 對真實目錄跑的幾個代表性問法。每一條都是改版前搜不到、或排在預設 limit 之外的。
+  it.each([
+    ["三大法人 期貨", "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate"],
+    ["期貨 行情", "taifex/DailyMarketReportFut"],
+    ["台指期", "taifex/DailyMarketReportFut"],
+    ["營收", "opendata/t187ap05_L"],
+    ["當沖", "exchangeReport/TWTB4U"],
+    ["除息", "exchangeReport/TWT48U_ALL"],
+    ["本益比 殖利率", "exchangeReport/BWIBBU_ALL"],
+  ])("真實目錄：搜「%s」的前 10 名裡有 %s", (query, id) => {
+    const ids = searchDatasets(catalog, { query, limit: 10 }).results.map((r) => r.dataset_id);
+    expect(ids).toContain(id);
   });
 
   // ALIASES.etf 是同一組 id 的第四份字面複本，先前無人守。
@@ -311,5 +333,11 @@ describe("server.json — 對外端點不可被無聲改掉", () => {
     expect(serverJson.remotes).toHaveLength(1);
     expect(serverJson.remotes[0].url).toBe(MCP_ENDPOINT);
     expect(serverJson.remotes[0].type).toBe("streamable-http");
+  });
+
+  // serverInfo.version 讀 package.json；registry 讀 server.json。兩份各改各的，
+  // registry 上的版本就會與線上實際回報的不同，而沒有任何東西會提醒。
+  it("version 與 package.json 一致", () => {
+    expect(serverJson.version).toBe(pkg.version);
   });
 });
