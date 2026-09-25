@@ -177,18 +177,16 @@ export const ALIASES: Record<string, readonly string[]> = {
   "營收": ["opendata/t187ap05_L", "opendata/t187ap05_P"],
   "月營收": ["opendata/t187ap05_L", "opendata/t187ap05_P"],
   "除權息": ["exchangeReport/TWT48U_ALL"],
-  "除息": ["exchangeReport/TWT48U_ALL"],
-  "除權": ["exchangeReport/TWT48U_ALL"],
-  "處置股": ["announcement/punish"],
-  "注意股": ["announcement/notice", "announcement/notetrans"],
+  // 「集中市場當日公布注意股票」本來就搜得到；累計次數那張的表名裡沒有「注意股」。
+  "注意股": ["announcement/notetrans"],
   "當沖": ["exchangeReport/TWTB4U", "exchangeReport/TWTBAU1", "exchangeReport/TWTBAU2"],
   "質押": ["opendata/t187ap09_L"],
   "外資持股": ["fund/MI_QFIIS_cat", "fund/MI_QFIIS_sort_20"],
   "休市": ["holidaySchedule/holidaySchedule"],
   "開盤日": ["holidaySchedule/holidaySchedule"],
   "交易日": ["holidaySchedule/holidaySchedule"],
-  "匯率": ["taifex/DailyForeignExchangeRates"],
-  "大盤": ["exchangeReport/MI_INDEX", "exchangeReport/FMTQIK", "indicesReport/MI_5MINS_HIST"],
+  // MI_INDEX 的表名本來就有「大盤」；這裡補的是表名裡沒有這兩個字的成交統計與指數歷史。
+  "大盤": ["exchangeReport/FMTQIK", "indicesReport/MI_5MINS_HIST"],
   "加權指數": ["exchangeReport/MI_INDEX", "indicesReport/MI_5MINS_HIST"],
   "漲跌家數": ["opendata/twtazu_od"],
   "財報": [
@@ -254,14 +252,39 @@ export interface SearchResult {
 }
 
 /**
- * 搜尋用的正規化：小寫，並把「臺」統一成「台」。
+ * 搜尋用的正規化：全形轉半形（NFKC）、小寫，並把「臺」統一成「台」。
+ *
+ * 中文輸入法常打出全形英數（「ＥＴＦ」「台灣５０」），不轉的話別名與表名一個都對不上。
+ * twse_lookup 的名稱比對也走這一個，兩支工具對同一串輸入只有一種理解。
  *
  * 證交所與期交所的正式名稱寫「臺」（臺股期貨、臺灣 50 指數），使用者與模型多半
  * 打「台」。兩個字在字串上完全不同，於是「台股期貨」一筆都搜不到——而那不是查無，
  * 是寫法不同。
  */
 function normQuery(s: string): string {
-  return s.toLowerCase().replace(/臺/g, "台");
+  return s.normalize("NFKC").toLowerCase().replace(/臺/g, "台");
+}
+
+/**
+ * 每個資料集正規化後的比對字串。目錄在執行期是常數，每次搜尋都把整份目錄重新
+ * join＋正規化一遍（數百 KB）是白做工；以目錄物件為鍵快取，測試傳進來的小目錄各自一份。
+ */
+const HAYSTACKS = new WeakMap<Catalog, Map<string, { title: string; rest: string }>>();
+function haystackOf(catalog: Catalog): Map<string, { title: string; rest: string }> {
+  let m = HAYSTACKS.get(catalog);
+  if (!m) {
+    m = new Map();
+    for (const ds of Object.values(catalog)) {
+      m.set(ds.id, {
+        title: normQuery(`${ds.id} ${ds.summary}`),
+        rest: normQuery(
+          [ds.description, ...Object.keys(ds.fields), ...Object.values(ds.fields)].join(" "),
+        ),
+      });
+    }
+    HAYSTACKS.set(catalog, m);
+  }
+  return m;
 }
 
 /**
@@ -281,36 +304,27 @@ export function searchDatasets(
   const query = opts.query ?? "";
   const tag = opts.tag ?? "";
   const limit = opts.limit ?? 25;
-  const q = normQuery(query.trim());
-  const tokens = q.split(/[\s\u3000]+/).filter(Boolean);
+  // NFKC 在切詞之前：全形空白會在這一步變成半形空白，所以只需要按 \s 切。
+  const tokens = normQuery(query).split(/\s+/).filter(Boolean);
   // Object.hasOwn：純字面量物件的查找會走 prototype chain，query="constructor"
   // 之類的鍵會撈到 Object.prototype 的東西，不是我們定義的別名。
-  const aliasOf = (k: string) => new Set(Object.hasOwn(ALIASES, k) ? ALIASES[k] : []);
-  // 整串的別名（向下相容：多字別名如果將來出現，不該因為被切開而失效）＋逐詞的別名。
-  const whole = aliasOf(q);
-  const perToken = tokens.map(aliasOf);
+  const perToken = tokens.map((k) => new Set(Object.hasOwn(ALIASES, k) ? ALIASES[k] : []));
+  const hay = haystackOf(catalog);
   const scored: { r: SearchResult; score: number; i: number }[] = [];
 
   Object.values(catalog).forEach((ds, i) => {
     if (tag && !ds.tags.includes(tag)) return;
     let score = 0;
-    let aliased = whole.has(ds.id);
-    if (tokens.length && !aliased) {
-      const title = normQuery(`${ds.id} ${ds.summary}`);
-      const rest = normQuery(
-        [ds.description, ...Object.keys(ds.fields), ...Object.values(ds.fields)].join(" "),
-      );
-      for (let t = 0; t < tokens.length; t++) {
-        const tok = tokens[t];
-        if (perToken[t].has(ds.id)) {
-          aliased = true;
-          score += 3;
-        } else if (title.includes(tok)) score += 2;
-        else if (rest.includes(tok)) score += 1;
-        else return; // 有一個詞沒命中就不算
-      }
-    } else if (aliased) {
-      score = 3 * Math.max(1, tokens.length);
+    let aliased = false;
+    const { title, rest } = hay.get(ds.id)!;
+    for (let t = 0; t < tokens.length; t++) {
+      const tok = tokens[t];
+      if (perToken[t].has(ds.id)) {
+        aliased = true;
+        score += 3;
+      } else if (title.includes(tok)) score += 2;
+      else if (rest.includes(tok)) score += 1;
+      else return; // 有一個詞沒命中就不算
     }
     scored.push({
       r: {
@@ -822,20 +836,24 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
  * 民國日期轉西元。證交所多數報表用民國年：`1150924`（年月日）、`11508`（年月）。
  *
  * 模型對「115」這種年份的判讀不可靠，會當成西元 115 年或乾脆略過。快照是給人讀的
- * 摘要，所以在這裡轉好；認不出的格式原樣回傳，不猜。
+ * 摘要，所以在這裡轉好。同一張表也可能混用西元八碼（上市公司基本資料的成立日期
+ * `19501229`），一併轉成 ISO，讓同一份回應裡的日期只有一種寫法。
+ * 認不出的格式原樣回傳，不猜；只有空值回 null。
  */
 export function rocToIso(v: unknown): string | null {
   const s = String(v ?? "").trim();
   if (!s) return null;
+  const w = /^(19|20)(\d{2})(\d{2})(\d{2})$/.exec(s);
+  if (w) return `${w[1]}${w[2]}-${w[3]}-${w[4]}`;
   const m = /^(\d{2,3})(\d{2})(\d{2})?$/.exec(s);
   if (!m) return s;
   const year = Number(m[1]) + 1911;
   return m[3] ? `${year}-${m[2]}-${m[3]}` : `${year}-${m[2]}`;
 }
 
-/** 名稱比對用的正規化：全形轉半形（NFKC）、小寫、「臺」統一成「台」。 */
+/** 名稱比對用的正規化：與搜尋同一個 normQuery，外加去頭尾空白。 */
 function normName(v: unknown): string {
-  return normQuery(String(v ?? "").normalize("NFKC").trim());
+  return normQuery(String(v ?? "").trim());
 }
 
 /**
@@ -959,6 +977,25 @@ export interface StockSnapshotSources {
   notice: Row[];
   punish: Row[];
   errors?: SourceError[];
+  /**
+   * 台灣時間的今天（`YYYY-MM-DD`）。除權除息「近期」與處置「進行中」都是相對今天的判斷，
+   * 由呼叫端傳入，core 才能維持純函式、測試才不會隨執行日期變動。
+   */
+  today: string;
+}
+
+/**
+ * 處置期間 `115/09/18～115/09/30` 轉成 ISO 起訖。認不出就回 null，由呼叫端說「無法判斷」。
+ * 分隔符上游用全形「～」，半形「~」一併接受。
+ */
+export function parseRocPeriod(v: unknown): { start: string; end: string } | null {
+  const m = /^(\d{2,3})\/(\d{1,2})\/(\d{1,2})\s*[～~]\s*(\d{2,3})\/(\d{1,2})\/(\d{1,2})$/.exec(
+    String(v ?? "").trim(),
+  );
+  if (!m) return null;
+  const iso = (y: string, mo: string, d: string) =>
+    `${Number(y) + 1911}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  return { start: iso(m[1], m[2], m[3]), end: iso(m[4], m[5], m[6]) };
 }
 
 /** 百分比字串（上游給到小數點後十幾位）收成兩位小數。 */
@@ -1002,12 +1039,14 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
       "公司簡稱": co["公司簡稱"],
       "公司名稱": co["公司名稱"],
       "英文簡稱": co["英文簡稱"],
-      // 基本資料表的產業別是代碼（"24"）；中文名稱只出現在月營收表，有就用它。
-      "產業別": rev?.["產業別"] ?? co["產業別"],
+      // 基本資料表的產業別是代碼（"24"）；中文名稱只出現在月營收表。兩者放不同的鍵：
+      // 同一個鍵有時是名稱、有時是代碼，模型會把 "01" 當成產業名稱說出去。
+      "產業別": String(rev?.["產業別"] ?? "").trim() || null,
+      "產業別代碼": co["產業別"],
       "董事長": co["董事長"],
       "總經理": co["總經理"],
-      "成立日期": rocToIso(co["成立日期"]) ?? co["成立日期"],
-      "上市日期": rocToIso(co["上市日期"]) ?? co["上市日期"],
+      "成立日期": rocToIso(co["成立日期"]),
+      "上市日期": rocToIso(co["上市日期"]),
       "實收資本額_元": num(co["實收資本額"]),
       "已發行普通股數": num(co["已發行普通股數或TDR原股發行股數"]),
       "網址": co["網址"],
@@ -1082,7 +1121,13 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
 
   // --- 5. 除權除息預告 ---
   // 空陣列是一個有意義的答案（近期沒有預告），null 才是不知道。
-  const ex = all(src.exRights, "Code");
+  // 預告表會保留已經過去幾天的列；欄位叫 upcoming，就只留今天（含）以後的——
+  // 把三天前的除息日當成「即將除息」告訴想趕在除息前買進的人，是具體的錯誤建議。
+  // 日期認不出的列保留（寧可多給一筆讓人自己看日期，也不要安靜地丟掉）。
+  const ex = all(src.exRights, "Code").filter((r) => {
+    const d = rocToIso(r["Date"]);
+    return !d || !/^\d{4}-\d{2}-\d{2}$/.test(d) || d >= src.today;
+  });
   const exRights = failed(STOCK_SOURCE_LABELS.exRights)
     ? null
     : ex.map((r) => ({
@@ -1094,16 +1139,35 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
   if (exRights === null) absent(STOCK_SOURCE_LABELS.exRights);
 
   // --- 6. 注意股與處置股 ---
-  // 同樣是三態：true／false 是查過的答案，null 是抓失敗。當日沒有任何注意股時上游
-  // 會回一列 Code 為空的佔位資料，比對代號時自然不會命中，所以不必特別處理。
+  // 同樣是三態：true／false 是查過的答案，null 是抓失敗或無從判斷。當日沒有任何注意股時
+  // 上游會回一列 Code 為空的佔位資料，比對代號時自然不會命中，所以不必特別處理。
+  //
+  // 處置股要看期間，不是看有沒有公告：公告通常在處置開始前幾天就發布，而結束後也可能
+  // 還留在表裡。「已公告、下週一才開始」若報成「目前是處置股」，模型會告訴使用者現在
+  // 買賣要人工撮合、全額預收——那是錯的。
   const noticeRows = all(src.notice, "Code");
-  const punishRows = all(src.punish, "Code");
+  const punishes = all(src.punish, "Code").map((r) => {
+    const p = parseRocPeriod(r["DispositionPeriod"]);
+    const status = !p
+      ? "期間無法解析"
+      : src.today < p.start
+        ? "尚未開始"
+        : src.today > p.end
+          ? "已結束"
+          : "處置中";
+    return { r, status };
+  });
+  const punishFailed = failed(STOCK_SOURCE_LABELS.punish);
+  const inForce = punishes.some((x) => x.status === "處置中");
+  const unknownPeriod = punishes.some((x) => x.status === "期間無法解析");
   const alerts = {
     "注意股": failed(STOCK_SOURCE_LABELS.notice) ? null : noticeRows.length > 0,
-    "處置股": failed(STOCK_SOURCE_LABELS.punish) ? null : punishRows.length > 0,
-    ...(punishRows.length
+    // 有一筆在期間內就是 true；沒有但有期間認不出的，是「不知道」而不是「否」。
+    "處置股": punishFailed ? null : inForce ? true : unknownPeriod ? null : false,
+    ...(punishes.length
       ? {
-          "處置內容": punishRows.map((r) => ({
+          "處置內容": punishes.map(({ r, status }) => ({
+            "狀態": status,
             "處置期間": r["DispositionPeriod"],
             "處置原因": r["ReasonsOfDisposition"],
             "處置措施": r["DispositionMeasures"],
@@ -1115,13 +1179,21 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
       : {}),
   };
   if (alerts["注意股"] === null) absent(STOCK_SOURCE_LABELS.notice);
-  if (alerts["處置股"] === null) absent(STOCK_SOURCE_LABELS.punish);
+  if (punishFailed) absent(STOCK_SOURCE_LABELS.punish);
+  else if (alerts["處置股"] === null) {
+    caveats.push(`${code} 有處置公告，但處置期間的格式認不出來，無法判斷目前是否在處置中——請看「處置內容」的原文期間。`);
+  }
 
   // --- 7. 衍生指標 ---
   const derived: Record<string, unknown> = {};
   const shares = profile ? (profile["已發行普通股數"] as number | null) : null;
   const close = quote ? (quote["收盤"] as number | null) : null;
-  if (shares && close) {
+  // 存託憑證（產業別代碼 91）的股數欄位是「TDR 原股發行股數」——外國公司的原股數，
+  // 不是在台掛牌的憑證單位數，而收盤價是每單位憑證的台幣價格。兩者一乘，差的是轉換比率。
+  const isDr = co?.["產業別"] === "91";
+  if (isDr && shares && close) {
+    caveats.push("存託憑證（DR）不計算市值：基本資料的股數是原股數，不是在台掛牌的憑證單位數，乘上憑證價格會差一個轉換比率");
+  } else if (shares && close) {
     derived["市值_億元"] = Math.round((shares * close) / 1e8 * 100) / 100;
     caveats.push("市值 = 已發行普通股數 × 前一交易日收盤價，不含特別股，股數以基本資料的出表日期為準");
   }

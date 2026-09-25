@@ -364,7 +364,7 @@ export function createServer() {
         notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
         punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
       });
-      return json(buildStockSnapshot(code, { ...rows, errors }));
+      return json(buildStockSnapshot(code, { ...rows, errors, today: taipeiToday() }));
     },
   );
 
@@ -449,6 +449,15 @@ export function createServer() {
   );
 
   return server;
+}
+
+/**
+ * 台灣時間的今天（`YYYY-MM-DD`）。Worker 跑在 UTC，而交易所的日期是台灣日期——
+ * 台灣早上八點前用 UTC 算會差一天，剛好是盤前查處置與除息的時段。台灣沒有日光節約，
+ * 固定 +8 小時即可。
+ */
+function taipeiToday(): string {
+  return new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
 }
 
 /** prompt 的回傳形狀都一樣：一則使用者訊息。包起來免得三處各寫一次巢狀結構。 */

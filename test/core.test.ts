@@ -17,8 +17,11 @@ import {
   type Catalog,
   type Dataset,
   type Row,
+  buildStockSnapshot,
   lookupSecurities,
+  parseRocPeriod,
   rocToIso,
+  type StockSnapshotSources,
 } from "../src/core";
 
 // --- 迷你目錄 fixture（對應 Python 版的 FAKE_SWAGGER） ---
@@ -758,8 +761,9 @@ describe("rocToIso — 民國日期轉西元", () => {
     ["1150924", "2026-09-24"],
     ["11508", "2026-08"],
     ["990101", "2010-01-01"],
-    // 已經是西元八碼的，不猜、原樣回傳
-    ["19940905", "19940905"],
+    // 同一張表混用西元八碼：一併轉成 ISO，讓一份回應裡的日期只有一種寫法
+    ["19940905", "1994-09-05"],
+    ["19501229", "1950-12-29"],
     ["115/09/18", "115/09/18"],
   ])("%s -> %s", (input, out) => expect(rocToIso(input)).toBe(out));
   it("空值是 null", () => {
@@ -795,5 +799,84 @@ describe("lookupSecurities", () => {
   it("limit 夾在上限內，total_matched 照實回報", () => {
     const r = lookupSecurities("股", { companies, funds }, 999) as any;
     expect(r.total_matched).toBe(3);
+  });
+});
+
+describe("parseRocPeriod", () => {
+  it("民國起訖轉 ISO，全形與半形波浪號都接受", () => {
+    expect(parseRocPeriod("115/09/18～115/09/30")).toEqual({ start: "2026-09-18", end: "2026-09-30" });
+    expect(parseRocPeriod("115/9/8~115/10/2")).toEqual({ start: "2026-09-08", end: "2026-10-02" });
+  });
+  it("認不出回 null", () => expect(parseRocPeriod("另行公告")).toBeNull());
+});
+
+describe("buildStockSnapshot — 相對今天的判斷", () => {
+  const base = (over: Partial<StockSnapshotSources> = {}): StockSnapshotSources => ({
+    company: [{ 公司代號: "2330", 公司簡稱: "台積電", 產業別: "24" }],
+    days: [],
+    valuation: [],
+    revenue: [],
+    exRights: [],
+    notice: [],
+    punish: [],
+    today: "2026-09-26",
+    ...over,
+  });
+  const punish = (period: string) => [{ Code: "2330", DispositionPeriod: period }];
+
+  it("處置期間還沒開始：不是處置股，但內容標「尚未開始」", () => {
+    const r = buildStockSnapshot("2330", base({ punish: punish("115/09/29～115/10/05") })) as any;
+    expect(r.alerts.處置股).toBe(false);
+    expect(r.alerts.處置內容[0].狀態).toBe("尚未開始");
+  });
+  it("期間內是處置股；已結束的不算", () => {
+    expect((buildStockSnapshot("2330", base({ punish: punish("115/09/18～115/09/30") })) as any).alerts.處置股).toBe(true);
+    const ended = buildStockSnapshot("2330", base({ punish: punish("115/09/01～115/09/12") })) as any;
+    expect(ended.alerts.處置股).toBe(false);
+    expect(ended.alerts.處置內容[0].狀態).toBe("已結束");
+  });
+  it("起訖當天都算在期間內", () => {
+    expect((buildStockSnapshot("2330", base({ punish: punish("115/09/26～115/09/26") })) as any).alerts.處置股).toBe(true);
+  });
+  it("期間認不出：是「不知道」（null）而不是「否」，並說明原因", () => {
+    const r = buildStockSnapshot("2330", base({ punish: punish("另行公告") })) as any;
+    expect(r.alerts.處置股).toBeNull();
+    expect(r.caveats.join()).toContain("無法判斷目前是否在處置中");
+  });
+  it("除權除息只留今天（含）以後的", () => {
+    const r = buildStockSnapshot(
+      "2330",
+      base({
+        exRights: [
+          { Code: "2330", Date: "1150923", Exdividend: "息" },
+          { Code: "2330", Date: "1150926", Exdividend: "息" },
+          { Code: "2330", Date: "1151008", Exdividend: "權" },
+        ],
+      }),
+    ) as any;
+    expect(r.upcoming_ex_rights.map((x: any) => x.除權除息日)).toEqual(["2026-09-26", "2026-10-08"]);
+  });
+  it("存託憑證不算市值（股數是原股數，不是憑證單位數）", () => {
+    const r = buildStockSnapshot(
+      "9105",
+      base({
+        company: [{ 公司代號: "9105", 公司簡稱: "泰金寶-DR", 產業別: "91", 已發行普通股數或TDR原股發行股數: "10450002831" }],
+        days: [{ Code: "9105", ClosingPrice: "5.1", Change: "0" }],
+      }),
+    ) as any;
+    expect(r.derived).toBeNull();
+    expect(r.caveats.join()).toContain("存託憑證");
+  });
+  it("產業別名稱與代碼分開放：沒有月營收列時名稱是 null，不拿代碼頂替", () => {
+    const r = buildStockSnapshot("2330", base()) as any;
+    expect(r.profile.產業別).toBeNull();
+    expect(r.profile.產業別代碼).toBe("24");
+  });
+});
+
+describe("searchDatasets — 全形輸入", () => {
+  it("全形英數與全形空白都正規化", () => {
+    expect(searchDatasets(CATALOG, { query: "ＥＴＦ" }).total_matched).toBeGreaterThan(0);
+    expect(searchDatasets(CATALOG, { query: "日成交　收盤" }).total_matched).toBe(1);
   });
 });

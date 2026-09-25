@@ -103,7 +103,18 @@ beforeEach(() => {
 
 afterEach(() => {
   logSpy.mockRestore();
+  vi.useRealTimers();
 });
+
+/**
+ * 把「今天」釘在台灣時間 2026-09-26。個股快照的處置與除息是相對今天的判斷，
+ * fixture 的日期是寫死的，不釘住的話測試會隨執行日期悄悄變色。只假造 Date，
+ * 不動 setTimeout 等計時器——SDK 與 fetch mock 的非同步流程照常跑。
+ */
+function pinToday() {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-09-26T02:00:00Z"));
+}
 
 // --- 協定 era ---
 // era 判定是純 claim-based：params._meta 裡有沒有協定版本這個保留鍵。header 只做
@@ -427,12 +438,14 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   });
 
   it("twse_stock_snapshot：七表合併", async () => {
+    pinToday();
     const out = await callTool("twse_stock_snapshot", { code: "2330" });
     expect(out.is_listed_company).toBe(true);
     expect(out.name).toBe("台積電");
     // 產業別取月營收表的中文名稱，不是基本資料表的代碼
     expect(out.profile.產業別).toBe("半導體業");
-    expect(out.profile.上市日期).toBe("19940905");
+    expect(out.profile.產業別代碼).toBe("24");
+    expect(out.profile.上市日期).toBe("1994-09-05");
     expect(out.quote.收盤).toBe(1000);
     expect(out.valuation).toMatchObject({ 本益比: 28.69, "殖利率%": 0.89, 日期: "2026-09-24" });
     expect(out.monthly_revenue).toMatchObject({ 資料年月: "2026-08", 當月營收_千元: 514805337, "年增率%": 53.32 });
@@ -444,13 +457,14 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   });
 
   it("twse_stock_snapshot：處置股會標出來並附處置內容", async () => {
+    pinToday();
     overrideFetch(
       (u) => u.includes("t187ap03_L"),
       () => jsonResponse([...COMPANIES, { 公司代號: "2305", 公司簡稱: "全友" }]),
     );
     const out = await callTool("twse_stock_snapshot", { code: "2305" });
     expect(out.alerts.處置股).toBe(true);
-    expect(out.alerts.處置內容[0].處置期間).toBe("115/09/18～115/09/30");
+    expect(out.alerts.處置內容[0]).toMatchObject({ 狀態: "處置中", 處置期間: "115/09/18～115/09/30" });
   });
 
   it("twse_stock_snapshot：抓失敗的段落是「無法判斷」，不是否定陳述", async () => {

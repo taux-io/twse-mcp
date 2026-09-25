@@ -179,6 +179,11 @@ function tooLarge(label: string, bytes: number, partial = false): string {
  *
  * 值取 3：twse_etf_snapshot 本來就會同時抓三個資料集（DS_FUND/DS_DAY/DS_RANK），
  * 那是既有的正常行為，semaphore 不該把它拖慢，所以上限剛好容得下它。
+ *
+ * twse_stock_snapshot 要抓七個，**刻意不為它調高**：這個值乘上 MAX_BODY_BYTES 就是
+ * isolate 的最壞記憶體，7 × 48 MB 已超過 128 MB。代價是邊緣快取未命中時分三輪
+ * （3+3+1）抓完，期間同一個 isolate 的其他呼叫要排隊。這七個資料集最大約 1.3 MB，
+ * 每輪都短，而且邊緣快取命中時幾乎不花時間——延遲是有意識的取捨，記憶體上限不是。
  */
 const MAX_CONCURRENT_FETCHES = 3;
 let inFlight = 0;
