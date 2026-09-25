@@ -191,11 +191,16 @@ export function detectCodeField(row: Row): string | null {
   return null;
 }
 
-/** 取第一筆 field === code 的列（去頭尾空白比對）。 */
+/**
+ * 取第一筆 field === code 的列。用 norm（去空白＋轉小寫）比對，與 getDataset 的
+ * 證交所路徑（core.ts:327-328）及 matchTaifexCode 共用同一個正規化——否則同一個
+ * code 參數會有兩種意思：twse_get_dataset 查得到 00679b，走 firstRow 的
+ * twse_etf_snapshot 卻回 is_etf: false。影響所有帶英文字尾的上市 ETF。
+ */
 export function firstRow(rows: Row[], field: string, code: string): Row | null {
-  const c = code.trim();
+  const c = norm(code);
   for (const r of rows) {
-    if (String(r[field] ?? "").trim() === c) return r;
+    if (norm(r[field]) === c) return r;
   }
   return null;
 }
@@ -555,8 +560,15 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       "交易戶數": num(rk["ETFsNumberofTradingAccounts"]),
       "說明": "證交所定期定額交易戶數統計排行月報表",
     };
-  } else {
+  } else if (!failed(ETF_SOURCE_LABELS.ranks)) {
+    // 與日成交資訊（上面）同一個守衛：只有真的查過、真的不在榜上才這樣說。
+    // 一檔 ETF 真的不在榜上是常見且有意義的答案（該資料集只收前段班）。
     caveats.push(`${code} 不在定期定額排行榜上（該資料集只收錄前段班，不代表沒有人定期定額）`);
+  } else {
+    // 抓失敗時不做否定陳述。語氣比照基金基本資料那段的「無法判斷」。
+    caveats.push(
+      `因為上游取得失敗，無法判斷 ${code} 是否在定期定額排行榜上——這**不代表**它不在榜上。請稍後重試。`,
+    );
   }
 
   // --- 4. 衍生指標 ---

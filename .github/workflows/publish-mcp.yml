@@ -23,13 +23,26 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # 這個 environment 掛 required reviewer，是唯一同時蓋住 tag 路徑與
+    # `workflow_dispatch`-from-any-ref 路徑的閘門——它閘門化的是 OIDC 憑證的鑄造
+    # 本身，而不是某一條進入路徑。沒有它，單一個被盜的 write 權限帳號就能無聲地把
+    # `server.json` 的 `remotes[0].url` 改掉，所有 registry 安裝跟著改連線目標。
+    #
+    # ⚠️ 光有這一行不構成保護：GitHub 會在第一次執行時自動建出不帶任何規則的
+    # environment。必須在 repo Settings → Environments 裡替 `mcp-registry` 掛上
+    # required reviewer，這道閘門才真的存在。
+    environment: mcp-registry
     permissions:
       # OIDC 換憑證用。顯式寫出 contents: read，是為了不受未來組織層級預設值變動影響
       # ——與 test.yml 同樣的理由。
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      # 釘到 commit SHA 而不是 `@v7`：checkout 與 `id-token: write` 同一個 job，
+      # 它跑得到 `ACTIONS_ID_TOKEN_REQUEST_URL`，也就拿得到那張能改寫 registry 條目
+      # 的憑證。可變動的 tag 讓上游一次被盜就能靜默換掉這一步的內容。
+      # `test.yml` 用唯讀 token，不比照辦理。
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # server.json 的 version 要跟 tag 一致，否則 registry 上會出現一個與 tag
       # 對不起來的版本。以 tag 為準覆寫，而不是要求人記得先改檔案。

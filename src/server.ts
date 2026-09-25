@@ -444,8 +444,52 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
   "/og.png": { body: OG_PNG, type: "image/png", cache: "public, max-age=86400, s-maxage=604800" },
 };
 
+/**
+ * JSON-RPC 批次一次最多幾個元素。
+ *
+ * SDK 的 legacy lane 把頂層陣列的每個元素**同時**分派，沒有節流；每個 twse_get_dataset
+ * 元素各自向交易所抓一整份資料集。一個 275 元素的批次因此變成 275 份並行下載
+ * （稽核實測放大 5973 倍，足以 OOM 一個 128 MB isolate 並對上游發動並行下載）。
+ *
+ * 上限要在**進 SDK 之前**擋——進去之後每個元素就已經同時在跑了。留一個小值（8）
+ * 而非直接拒絕所有批次，是因為 MCP `2026-07-28` 雖已把批次移出規範，仍有 2025-era
+ * client 在送小批次。第二道守衛（fetchDataset 的並行上限）在出站層，見 src/twse.ts。
+ */
+const MAX_BATCH_ELEMENTS = 8;
+
+/**
+ * 批次元素數超標時擋下，回 JSON-RPC -32600。必須在 createMcpHandler 之前呼叫。
+ * 讀 body 用 clone，不動到交給 SDK 的那一份。非陣列、parse 不過都放行，交給 SDK
+ * 回它自己的錯誤。
+ */
+async function batchTooLarge(request: Request): Promise<Response | null> {
+  if (request.method !== "POST" || new URL(request.url).pathname !== MCP_ROUTE) return null;
+  const body = await request.clone().text();
+  if (!body.trimStart().startsWith("[")) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed) || parsed.length <= MAX_BATCH_ELEMENTS) return null;
+  return Response.json(
+    {
+      jsonrpc: "2.0",
+      id: null,
+      error: {
+        code: -32600,
+        message:
+          `批次一次最多 ${MAX_BATCH_ELEMENTS} 個請求（收到 ${parsed.length} 個）。` +
+          "每個元素都會各自向交易所抓一整份資料集，且全部並行。",
+      },
+    },
+    { status: 400 },
+  );
+}
+
 export default {
-  fetch(request, env, ctx) {
+  async fetch(request, env, ctx) {
     // 靜態頁面在探針之前處理：探針只認 POST /mcp，這裡不會污染它，但先回傳
     // 可以少建一次 MCP handler（那個建構是刻意每請求做的，見下方說明）。
     if (request.method === "GET" || request.method === "HEAD") {
@@ -462,6 +506,10 @@ export default {
     }
 
     logClientProbe(request);
+
+    // 扇出上限：進 SDK 前擋掉過大的批次，見 batchTooLarge / MAX_BATCH_ELEMENTS。
+    const tooLarge = await batchTooLarge(request);
+    if (tooLarge) return tooLarge;
     // 每個請求建一次，**不要**提到模組層級。曾經提上去過，理由寫的是「handler 沒有
     // 跨請求狀態」——那是錯的。SDK 的 handler 閉包持有一個 inflight Set，以及
     // subscriptions/listen 的 router（帶固定訂閱上限，滿了回 -32603）。提到模組層級

@@ -29,6 +29,20 @@ export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
+/**
+ * 必定有資料的資料集。回 0 筆一律當成上游故障，不當成「查無資料」。
+ *
+ * 為什麼需要這道：`fetchJson` 只在 body **無法** JSON.parse 時大聲失敗（擋 2xx+HTML）。
+ * 一個格式正確的空陣列 `[]` 通過所有檢查，於是 twse_etf_snapshot 對 0050 回
+ * `is_etf: false`——對台灣最大的 ETF 之一做出肯定的錯誤陳述，而 cf.cacheTtl 把它釘在
+ * 邊緣一小時。這與 2xx+HTML 是同一類問題，只差在 body 是合法 JSON。
+ *
+ * 為什麼**只**涵蓋這三個、不對整個目錄套用：目錄裡有可能合法回 0 筆的資料集
+ * （當日無事件的公告類）。這三個是 twse_etf_snapshot 依賴的、寫死的常數，而且
+ * 建置期的 refresh-catalog 已用 `min:100` 守著它們必定有資料——執行期補上對應的守衛。
+ */
+const ALWAYS_POPULATED: ReadonlySet<string> = new Set([DS_FUND, DS_DAY, DS_RANK]);
+
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 /**
@@ -132,18 +146,59 @@ function tooLarge(label: string, bytes: number, partial = false): string {
   );
 }
 
+/**
+ * 出站資料集抓取的並行上限。
+ *
+ * 這是真正釘住記憶體的那道守衛。`MAX_BODY_BYTES` 是**每次** fetch 的上限，擋不住
+ * 「同時有 N 次 fetch」——一個 JSON-RPC 批次會被 SDK 同時分派，275 個元素就是 275 份
+ * 並行的 body，而 isolate 只有 128 MB。有了這個閘門，最壞情況固定是
+ * MAX_CONCURRENT_FETCHES × MAX_BODY_BYTES，與請求形狀無關。批次大小另在 server.ts
+ * 進 SDK 前先擋一道，兩者合起來把扇出釘死。
+ *
+ * 值取 3：twse_etf_snapshot 本來就會同時抓三個資料集（DS_FUND/DS_DAY/DS_RANK），
+ * 那是既有的正常行為，semaphore 不該把它拖慢，所以上限剛好容得下它。
+ */
+const MAX_CONCURRENT_FETCHES = 3;
+let inFlight = 0;
+const waiting: (() => void)[] = [];
+
+async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (inFlight >= MAX_CONCURRENT_FETCHES) {
+    await new Promise<void>((resolve) => waiting.push(resolve));
+  }
+  inFlight++;
+  try {
+    return await fn();
+  } finally {
+    inFlight--;
+    waiting.shift()?.();
+  }
+}
+
 /** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */
 export async function fetchDataset(datasetId: string): Promise<Row[]> {
   const csv = TAIFEX_CSV_DATASETS[datasetId];
-  const data = await fetchJson(
-    datasetUrl(datasetId),
-    { Accept: "application/json" },
-    DATA_TTL_SECONDS,
-    // CSV 退路只給指名的那一個資料集。其餘一律維持「非 JSON = 上游出事」。
-    csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
-    datasetId,
+  const data = await withFetchSlot(() =>
+    fetchJson(
+      datasetUrl(datasetId),
+      { Accept: "application/json" },
+      DATA_TTL_SECONDS,
+      // CSV 退路只給指名的那一個資料集。其餘一律維持「非 JSON = 上游出事」。
+      csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
+      datasetId,
+    ),
   );
-  return Array.isArray(data) ? (data as Row[]) : [data as Row];
+  const rows = Array.isArray(data) ? (data as Row[]) : [data as Row];
+  // 必定有資料的資料集回 0 筆 = 上游故障。拋錯讓上層的 errors/failed 機制接手
+  // （twse_etf_snapshot 走第三態、twse_get_dataset 回錯誤），而不是把假的空結果
+  // 當成「查無」回傳並被邊緣快取釘住。訊息比照既有上游診斷：帶代號與 0 筆說明。
+  if (rows.length === 0 && ALWAYS_POPULATED.has(datasetId)) {
+    throw new Error(
+      `${datasetId} 上游回 0 筆（HTTP 200 但空陣列）。這個資料集必定有資料，` +
+        `0 筆代表上游異常而非查無——不當成有效結果，以免把假的空結果釘進邊緣快取。`,
+    );
+  }
+  return rows;
 }
 
 /**
