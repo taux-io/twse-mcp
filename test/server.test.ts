@@ -410,6 +410,12 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect((await callTool("twse_lookup", { query: "臺積電" })).results[0].code).toBe("2330");
   });
 
+  it("twse_lookup：只有空白的查詢被 schema 擋下", async () => {
+    const payload = await rpc("tools/call", { name: "twse_lookup", arguments: { query: "  " } });
+    const failed = payload.error !== undefined || payload.result?.isError === true;
+    expect(failed).toBe(true);
+  });
+
   it("twse_lookup：上游掛了時不說「查無」", async () => {
     overrideFetch((u) => u.includes("t187ap03_L"), () => new Response("down", { status: 502 }));
     const out = await callTool("twse_lookup", { query: "台積電" });

@@ -321,7 +321,8 @@ export function createServer() {
         "只收上市標的；上櫃公司的名稱對照取不到。",
       annotations: REMOTE_READ,
       inputSchema: {
-        query: z.string().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
+        // trim 在 min 之前：只有空白的查詢在 core 裡等同空查詢，只會回一句沒有意義的「找不到「」」。
+        query: z.string().trim().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
         limit: z
           .number()
           .int()
