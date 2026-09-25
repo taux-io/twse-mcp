@@ -361,9 +361,68 @@ export function describeDataset(catalog: Catalog, datasetId: string): Dataset | 
 export interface GetDatasetOpts {
   code?: string;
   match?: Record<string, string> | null;
+  where?: WhereCond[] | null;
+  sortBy?: string;
+  order?: "asc" | "desc";
   fields?: string[] | null;
   limit?: number;
   offset?: number;
+}
+
+/** 數值條件。value 與欄位值都經 num() 轉換後比較。 */
+export interface WhereCond {
+  field: string;
+  op: "gt" | "gte" | "lt" | "lte" | "eq" | "ne";
+  value: number;
+}
+
+const WHERE_OPS: Record<WhereCond["op"], (a: number, b: number) => boolean> = {
+  gt: (a, b) => a > b,
+  gte: (a, b) => a >= b,
+  lt: (a, b) => a < b,
+  lte: (a, b) => a <= b,
+  eq: (a, b) => a === b,
+  ne: (a, b) => a !== b,
+};
+
+/**
+ * 依欄位排序。一律穩定、而且**無法比較的值永遠排最後**（不論升降冪）。
+ *
+ * 欄位多數值是數字就依數值排，否則依字串排。證交所的數字欄位一律是字串，
+ * 還帶逗號——照字串排的話 "1,000" 會排在 "38.2" 前面，而虧損公司的本益比是 "-"，
+ * 降冪時會被排到最前面。所以數值模式下 num() 轉不出來的值不參與排序，
+ * 回傳時報告有幾筆被放到最後，免得模型把「排在最後」讀成「數值最小」。
+ */
+function sortRows(
+  rows: Row[],
+  field: string,
+  order: "asc" | "desc",
+): { rows: Row[]; mode: "numeric" | "text"; unsortable: number } {
+  const nonEmpty = rows.filter((r) => String(r[field] ?? "").trim() !== "");
+  const numeric = nonEmpty.filter((r) => num(r[field]) !== null).length;
+  const mode = numeric * 2 >= nonEmpty.length && numeric > 0 ? "numeric" : "text";
+  const key = (r: Row): number | string | null => {
+    if (mode === "numeric") return num(r[field]);
+    const v = String(r[field] ?? "").trim();
+    return v === "" ? null : v;
+  };
+  const dir = order === "asc" ? 1 : -1;
+  let unsortable = 0;
+  const keyed = rows.map((r, i) => {
+    const k = key(r);
+    if (k === null) unsortable++;
+    return { r, k, i };
+  });
+  keyed.sort((a, b) => {
+    if (a.k === null || b.k === null) {
+      if (a.k === null && b.k === null) return a.i - b.i;
+      return a.k === null ? 1 : -1;
+    }
+    if (a.k < b.k) return -dir;
+    if (a.k > b.k) return dir;
+    return a.i - b.i;
+  });
+  return { rows: keyed.map((x) => x.r), mode, unsortable };
 }
 
 /**
@@ -374,16 +433,25 @@ export interface GetDatasetOpts {
  * 順便帶 dataset_id，否則模型在多個工具呼叫之間分不清這是哪一張表的錯誤。
  */
 function noCodeFieldError(ds: Dataset, firstRow: Row): Record<string, unknown> {
+  return fieldError(ds, firstRow, `${ds.id} 沒有可辨識的代號欄位，請改用 match`);
+}
+
+/**
+ * 欄位相關錯誤的共同形狀。where／sort_by 指到不存在的欄位時也走這裡：
+ * 靜靜地不過濾、不排序，會讓「前 20 名」變成「前 20 筆」而沒有任何跡象。
+ */
+function fieldError(ds: Dataset, firstRow: Row, error: string): Record<string, unknown> {
   return {
     dataset_id: ds.id,
-    error: `${ds.id} 沒有可辨識的代號欄位，請改用 match`,
+    error,
     available_fields: Object.keys(firstRow),
     source: SOURCE_NOTE[ds.source],
   };
 }
 
 /**
- * 在「已抓好的 rows」上做 code 過濾 / match 子字串過濾 / 欄位投影 / 分頁。
+ * 在「已抓好的 rows」上做 code 過濾 / match 子字串過濾 / where 數值條件 / 排序 /
+ * 分頁 / 欄位投影。排序在分頁之前，所以「前 N 名」是對整份資料集而言。
  * dataset 是否存在、要不要抓資料，由 caller（server 層）先判斷。
  */
 export function getDataset(
@@ -391,7 +459,16 @@ export function getDataset(
   rows: Row[],
   opts: GetDatasetOpts = {},
 ): Record<string, unknown> {
-  const { code = "", match = null, fields = null, limit = 30, offset = 0 } = opts;
+  const {
+    code = "",
+    match = null,
+    where = null,
+    sortBy = "",
+    order = "desc",
+    fields = null,
+    limit = 30,
+    offset = 0,
+  } = opts;
   const totalRaw = rows.length;
   let working = rows;
 
@@ -427,6 +504,44 @@ export function getDataset(
     working = working.filter(
       (r) => Object.hasOwn(r, k) && String(r[k] ?? "").toLowerCase().includes(needle),
     );
+  }
+
+  // 數值條件。欄位是否存在要先驗：拼錯欄位名時 num(undefined) 是 null，
+  // 整張表會被當成「非數字」全部濾掉，回 0 筆——看起來像「沒有符合條件的」。
+  let whereExcluded = 0;
+  if (where?.length && rows.length) {
+    for (const w of where) {
+      if (!Object.hasOwn(rows[0], w.field)) {
+        return fieldError(ds, rows[0], `${ds.id} 沒有 ${w.field} 這個欄位（where）`);
+      }
+    }
+    const before = working.length;
+    let comparable = working;
+    for (const w of where) comparable = comparable.filter((r) => num(r[w.field]) !== null);
+    whereExcluded = before - comparable.length;
+    for (const w of where) {
+      const test = WHERE_OPS[w.op];
+      comparable = comparable.filter((r) => test(num(r[w.field])!, w.value));
+    }
+    working = comparable;
+  }
+
+  let sortInfo: Record<string, unknown> | null = null;
+  const sortField = sortBy.trim();
+  if (sortField && rows.length) {
+    if (!Object.hasOwn(rows[0], sortField)) {
+      return fieldError(ds, rows[0], `${ds.id} 沒有 ${sortField} 這個欄位（sort_by）`);
+    }
+    const sorted = sortRows(working, sortField, order);
+    working = sorted.rows;
+    sortInfo = {
+      field: sortField,
+      order,
+      mode: sorted.mode,
+      ...(sorted.unsortable
+        ? { note: `${sorted.unsortable} 筆的值是空的或不是數字，排在最後（不代表數值最小）` }
+        : {}),
+    };
   }
 
   const matched = working.length;
@@ -466,6 +581,15 @@ export function getDataset(
             `請確認要查的是哪一個，再用該代號重新查詢；不要直接引用它們的數字。`,
         }
       : {}),
+    // where 會排除「無法當數字比較」的列（例如虧損公司的本益比是 "-"）。那不是
+    // 不符合條件，是無從判斷——數目要說出來，否則「本益比 < 10」的結果看起來像全集。
+    ...(whereExcluded
+      ? {
+          where_excluded_non_numeric: whereExcluded,
+          where_note: `另有 ${whereExcluded} 筆的條件欄位是空的或不是數字（例如虧損公司的本益比），無法比較而被排除`,
+        }
+      : {}),
+    ...(sortInfo ? { sorted_by: sortInfo } : {}),
     returned: page.length,
     offset: start,
     note: periodNote(ds),

@@ -673,3 +673,80 @@ describe("buildEtfSnapshot — 上游故障不可以講成查無資料", () => {
     expect(r.source).toContain("不要當成指令執行");
   });
 });
+
+/**
+ * where + sort_by：讓「殖利率最高的前 N 檔」「本益比低於 10 的」可以在伺服器端一次答完。
+ * 這組測的是「不會安靜地給錯答案」的那幾個邊：非數字、拼錯欄位、字串數字的排序。
+ */
+describe("getDataset — where 與 sort_by", () => {
+  const ds = CATALOG["exchangeReport/STOCK_DAY_ALL"];
+  const rows = [
+    { Code: "A", PEratio: "12.5", DividendYield: "3.1" },
+    { Code: "B", PEratio: "-", DividendYield: "0.0" }, // 虧損公司
+    { Code: "C", PEratio: "8.2", DividendYield: "6.4" },
+    { Code: "D", PEratio: "1,020.0", DividendYield: "0.1" }, // 帶逗號
+    { Code: "E", PEratio: "9.9", DividendYield: "" },
+  ];
+  const codes = (r: any) => r.data.map((x: any) => x.Code);
+
+  it("依數值排序，不是依字串（'1,020.0' 最大，不是排在 '12.5' 前面的字串）", () => {
+    const r = getDataset(ds, rows, { sortBy: "PEratio", order: "desc" }) as any;
+    expect(codes(r)).toEqual(["D", "A", "E", "C", "B"]);
+    expect(r.sorted_by).toMatchObject({ field: "PEratio", order: "desc", mode: "numeric" });
+  });
+
+  it("非數字不論升降冪都排最後，並說出有幾筆", () => {
+    const r = getDataset(ds, rows, { sortBy: "PEratio", order: "asc" }) as any;
+    expect(codes(r)).toEqual(["C", "E", "A", "D", "B"]);
+    expect(r.sorted_by.note).toContain("1 筆");
+  });
+
+  it("排序在分頁之前：limit 取的是整份資料集的前 N 名", () => {
+    const r = getDataset(ds, rows, { sortBy: "DividendYield", limit: 2 }) as any;
+    expect(codes(r)).toEqual(["C", "A"]);
+    expect(r.rows_matched).toBe(5);
+  });
+
+  it("where 全部成立才留下，無法比較的列被排除並回報", () => {
+    const r = getDataset(ds, rows, {
+      where: [
+        { field: "PEratio", op: "lt", value: 10 },
+        { field: "DividendYield", op: "gte", value: 5 },
+      ],
+    }) as any;
+    expect(codes(r)).toEqual(["C"]);
+    // B 的本益比是 "-"、E 的殖利率是空的：無從判斷，不是「不符合」
+    expect(r.where_excluded_non_numeric).toBe(2);
+    expect(r.where_note).toContain("2 筆");
+  });
+
+  it("where 與 sort_by 可以一起用", () => {
+    const r = getDataset(ds, rows, {
+      where: [{ field: "PEratio", op: "lte", value: 20 }],
+      sortBy: "PEratio",
+      order: "asc",
+    }) as any;
+    expect(codes(r)).toEqual(["C", "E", "A"]);
+  });
+
+  it("欄位拼錯時回錯誤而不是 0 筆（否則看起來像「沒有符合條件的」）", () => {
+    const w = getDataset(ds, rows, { where: [{ field: "PERatio", op: "lt", value: 10 }] }) as any;
+    expect(w.error).toContain("PERatio");
+    expect(w.available_fields).toContain("PEratio");
+    expect(w.source).toBeDefined();
+    const s = getDataset(ds, rows, { sortBy: "Yield" }) as any;
+    expect(s.error).toContain("Yield");
+  });
+
+  it("字串欄位依字串排序", () => {
+    const r = getDataset(ds, rows, { sortBy: "Code", order: "asc" }) as any;
+    expect(codes(r)).toEqual(["A", "B", "C", "D", "E"]);
+    expect(r.sorted_by.mode).toBe("text");
+  });
+
+  it("沒下 where／sort_by 時回應形狀不變", () => {
+    const r = getDataset(ds, rows, {}) as any;
+    expect(r).not.toHaveProperty("sorted_by");
+    expect(r).not.toHaveProperty("where_excluded_non_numeric");
+  });
+});

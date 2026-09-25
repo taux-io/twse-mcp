@@ -181,7 +181,8 @@ export function createServer() {
     {
       description:
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
-        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/fields 縮小範圍。",
+        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/where/fields 縮小範圍。" +
+        "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
       annotations: REMOTE_READ,
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
@@ -208,17 +209,43 @@ export function createServer() {
           // 不會帶上這個上限，所以寫進 description，免得又是一個「說了卻沒守」
           // 或「守了卻沒說」的落差。fields 的 .max() 則會轉成 maxItems。
           .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。最多 20 個欄位。'),
+        // where 與 match 一樣，每個元素是整份資料集上的一輪 filter，所以一樣給上限。
+        where: z
+          .array(
+            z.object({
+              field: z.string(),
+              op: z.enum(["gt", "gte", "lt", "lte", "eq", "ne"]),
+              value: z.number(),
+            }),
+          )
+          .max(10)
+          .optional()
+          .describe(
+            '數值條件，全部都要成立。例如本益比低於 10、殖利率至少 5%：' +
+              '[{"field":"PEratio","op":"lt","value":10},{"field":"DividendYield","op":"gte","value":5}]。' +
+              "欄位值會去逗號轉數字；空值或非數字（例如虧損公司的本益比）無法比較，會被排除並回報筆數。",
+          ),
+        sort_by: z
+          .string()
+          .default("")
+          .describe(
+            "依這個欄位排序，在分頁之前做——要「前 N 名」就用它配 limit。" +
+              "多數值是數字就依數值排，否則依字串排；空值與非數字一律排最後。",
+          ),
+        order: z.enum(["desc", "asc"]).default("desc").describe('"desc"（大到小，預設）或 "asc"。'),
         fields: z.array(z.string()).max(100).optional().describe("只回傳這些欄位。"),
         limit: z.number().int().min(0).default(30).describe("回傳筆數上限（硬上限 200）。"),
         offset: z.number().int().min(0).default(0).describe("分頁位移。"),
       },
     },
-    async ({ dataset_id, code, match, fields, limit, offset }) => {
+    async ({ dataset_id, code, match, where, sort_by, order, fields, limit, offset }) => {
       const resolved = resolveDataset(catalog, dataset_id);
       if ("error" in resolved) return json(resolved);
       const { ds } = resolved;
       const rows = await fetchDataset(ds.id);
-      return json(getDataset(ds, rows, { code, match, fields, limit, offset }));
+      return json(
+        getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset }),
+      );
     },
   );
 

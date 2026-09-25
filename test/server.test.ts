@@ -352,6 +352,28 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.caveats.join()).not.toContain("取得失敗");
   });
 
+  it("twse_get_dataset：where 與 sort_by 從 schema 一路傳到 core", async () => {
+    const out = await callTool("twse_get_dataset", {
+      dataset_id: "exchangeReport/STOCK_DAY_ALL",
+      where: [{ field: "ClosingPrice", op: "gt", value: 100 }],
+      sort_by: "ClosingPrice",
+    });
+    expect(out.data.map((r: { Code: string }) => r.Code)).toEqual(["2330"]);
+    expect(out.sorted_by.field).toBe("ClosingPrice");
+  });
+
+  it("twse_get_dataset：where 的運算子不在清單內時被 schema 擋下", async () => {
+    const payload = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: {
+        dataset_id: "exchangeReport/STOCK_DAY_ALL",
+        where: [{ field: "ClosingPrice", op: "between", value: 1 }],
+      },
+    });
+    const failed = payload.error !== undefined || payload.result?.isError === true;
+    expect(failed).toBe(true);
+  });
+
   it("工具回應不縮排（整段進模型 context，排版空白是純成本）", async () => {
     const payload = await rpc("tools/call", { name: "twse_search_datasets", arguments: { query: "ETF" } });
     expect(payload.result.content[0].text).not.toContain("\n");
