@@ -162,6 +162,10 @@ export const MAX_CODE_CANDIDATES = 20;
 /**
  * 證交所命名不直覺，關鍵字對不上表名。例如 ETF 主檔叫「基金基本資料彙總表」，
  * 搜 "ETF" 是搜不到的。補一層別名。
+ *
+ * **只收子字串搜不到的說法。** 「融資」本來就命中「融資融券餘額」，加別名只是重複；
+ * 這裡要補的是口語與正式名稱之間的落差：大家說「當沖」，表名寫「當日沖銷」；
+ * 大家說「質押」，表名寫「質權設定」。鍵一律用 normQuery 之後的形狀（小寫、台）。
  */
 export const ALIASES: Record<string, readonly string[]> = {
   // 這三個與 twse.ts 的 DS_FUND/DS_DAY/DS_RANK 是同一組；test/catalog.test.ts 會斷言一致。
@@ -170,6 +174,37 @@ export const ALIASES: Record<string, readonly string[]> = {
   "成分股": ["opendata/t187ap47_L"],
   "股價": ["exchangeReport/STOCK_DAY_ALL", "exchangeReport/STOCK_DAY_AVG_ALL"],
   "配息": ["opendata/t187ap45_L"],
+  "營收": ["opendata/t187ap05_L", "opendata/t187ap05_P"],
+  "月營收": ["opendata/t187ap05_L", "opendata/t187ap05_P"],
+  "除權息": ["exchangeReport/TWT48U_ALL"],
+  "除息": ["exchangeReport/TWT48U_ALL"],
+  "除權": ["exchangeReport/TWT48U_ALL"],
+  "處置股": ["announcement/punish"],
+  "注意股": ["announcement/notice", "announcement/notetrans"],
+  "當沖": ["exchangeReport/TWTB4U", "exchangeReport/TWTBAU1", "exchangeReport/TWTBAU2"],
+  "質押": ["opendata/t187ap09_L"],
+  "外資持股": ["fund/MI_QFIIS_cat", "fund/MI_QFIIS_sort_20"],
+  "休市": ["holidaySchedule/holidaySchedule"],
+  "開盤日": ["holidaySchedule/holidaySchedule"],
+  "交易日": ["holidaySchedule/holidaySchedule"],
+  "匯率": ["taifex/DailyForeignExchangeRates"],
+  "大盤": ["exchangeReport/MI_INDEX", "exchangeReport/FMTQIK", "indicesReport/MI_5MINS_HIST"],
+  "加權指數": ["exchangeReport/MI_INDEX", "indicesReport/MI_5MINS_HIST"],
+  "漲跌家數": ["opendata/twtazu_od"],
+  "財報": [
+    "opendata/t187ap06_L_ci", "opendata/t187ap06_L_basi", "opendata/t187ap06_L_bd",
+    "opendata/t187ap06_L_fh", "opendata/t187ap06_L_ins", "opendata/t187ap06_L_mim",
+    "opendata/t187ap07_L_ci", "opendata/t187ap07_L_basi", "opendata/t187ap07_L_bd",
+    "opendata/t187ap07_L_fh", "opendata/t187ap07_L_ins", "opendata/t187ap07_L_mim",
+  ],
+  "新上市": ["company/newlisting", "company/applylistingLocal", "company/applylistingForeign"],
+  "ipo": ["company/newlisting", "company/applylistingLocal", "company/applylistingForeign"],
+  "下市": ["company/suspendListingCsvAndHtml"],
+  "pcr": ["taifex/PutCallRatio"],
+  // 期貨日行情的表名與欄位裡都沒有商品名（只有 TX、MTX 這類代號），口語問法全都落空。
+  "台指期": ["taifex/DailyMarketReportFut"],
+  "期貨行情": ["taifex/DailyMarketReportFut"],
+  "選擇權行情": ["taifex/DailyMarketReportOpt"],
 };
 
 /** 證交所的數字都是字串，還可能帶逗號、'--'、空白。轉不出來就回 null。 */
@@ -218,7 +253,27 @@ export interface SearchResult {
   note?: string;
 }
 
-/** 依關鍵字/分類搜尋目錄。比對 id、說明與欄位名；別名可命中命名對不上的表。 */
+/**
+ * 搜尋用的正規化：小寫，並把「臺」統一成「台」。
+ *
+ * 證交所與期交所的正式名稱寫「臺」（臺股期貨、臺灣 50 指數），使用者與模型多半
+ * 打「台」。兩個字在字串上完全不同，於是「台股期貨」一筆都搜不到——而那不是查無，
+ * 是寫法不同。
+ */
+function normQuery(s: string): string {
+  return s.toLowerCase().replace(/臺/g, "台");
+}
+
+/**
+ * 依關鍵字/分類搜尋目錄。比對 id、說明與欄位（名稱與中文說明）；別名可命中命名對不上的表。
+ *
+ * 多個關鍵字以空白（含全形空白）分隔，**每一個都要命中**。原本整串當成一個子字串，
+ * 於是「三大法人 期貨」一筆都沒有——沒有任何表名裡同時連著寫這兩段。
+ *
+ * 結果依命中位置排序：表名命中的排在只有欄位命中的前面。「營收」在幾十張財報的
+ * 欄位裡都出現過，真正的營收彙總表不該被排在第 30 名、落在預設 limit 之外。
+ * 同分時維持目錄順序（sort 是穩定的），沒有關鍵字時完全不排序。
+ */
 export function searchDatasets(
   catalog: Catalog,
   opts: { query?: string; tag?: string; limit?: number } = {},
@@ -226,27 +281,51 @@ export function searchDatasets(
   const query = opts.query ?? "";
   const tag = opts.tag ?? "";
   const limit = opts.limit ?? 25;
-  const q = query.toLowerCase().trim();
+  const q = normQuery(query.trim());
+  const tokens = q.split(/[\s\u3000]+/).filter(Boolean);
   // Object.hasOwn：純字面量物件的查找會走 prototype chain，query="constructor"
   // 之類的鍵會撈到 Object.prototype 的東西，不是我們定義的別名。
-  const aliased = new Set(Object.hasOwn(ALIASES, q) ? ALIASES[q] : []);
-  const out: SearchResult[] = [];
+  const aliasOf = (k: string) => new Set(Object.hasOwn(ALIASES, k) ? ALIASES[k] : []);
+  // 整串的別名（向下相容：多字別名如果將來出現，不該因為被切開而失效）＋逐詞的別名。
+  const whole = aliasOf(q);
+  const perToken = tokens.map(aliasOf);
+  const scored: { r: SearchResult; score: number; i: number }[] = [];
 
-  for (const ds of Object.values(catalog)) {
-    if (tag && !ds.tags.includes(tag)) continue;
-    if (q && !aliased.has(ds.id)) {
-      const hay = [ds.id, ds.summary, ds.description, ...Object.keys(ds.fields)]
-        .join(" ")
-        .toLowerCase();
-      if (!hay.includes(q)) continue;
+  Object.values(catalog).forEach((ds, i) => {
+    if (tag && !ds.tags.includes(tag)) return;
+    let score = 0;
+    let aliased = whole.has(ds.id);
+    if (tokens.length && !aliased) {
+      const title = normQuery(`${ds.id} ${ds.summary}`);
+      const rest = normQuery(
+        [ds.description, ...Object.keys(ds.fields), ...Object.values(ds.fields)].join(" "),
+      );
+      for (let t = 0; t < tokens.length; t++) {
+        const tok = tokens[t];
+        if (perToken[t].has(ds.id)) {
+          aliased = true;
+          score += 3;
+        } else if (title.includes(tok)) score += 2;
+        else if (rest.includes(tok)) score += 1;
+        else return; // 有一個詞沒命中就不算
+      }
+    } else if (aliased) {
+      score = 3 * Math.max(1, tokens.length);
     }
-    out.push({
-      dataset_id: ds.id,
-      summary: ds.summary,
-      tags: ds.tags,
-      ...(aliased.has(ds.id) ? { note: "別名命中" } : {}),
+    scored.push({
+      r: {
+        dataset_id: ds.id,
+        summary: ds.summary,
+        tags: ds.tags,
+        ...(aliased ? { note: "別名命中" } : {}),
+      },
+      score,
+      i,
     });
-  }
+  });
+
+  if (tokens.length) scored.sort((a, b) => b.score - a.score || a.i - b.i);
+  const out = scored.map((x) => x.r);
 
   // 和 getDataset 一樣，負的 limit 會讓 slice 從尾端往回算：slice(0, -1) 回的是
   // 「除了最後一筆以外全部」。這裡沒有 getDataset 那種「硬上限 200」的承諾可以繞，

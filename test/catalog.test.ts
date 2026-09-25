@@ -13,7 +13,7 @@ import {
   REQUIRED,
 } from "../scripts/check-catalog.mjs";
 import { DS_DAY, DS_FUND, DS_RANK, TAIFEX_CSV_DATASETS } from "../src/twse";
-import { ALIASES, getDataset, periodNote, type Catalog } from "../src/core";
+import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
 import pkg from "../package.json";
@@ -165,6 +165,27 @@ describe("目錄與程式假設的一致性", () => {
     const targets = [...new Set(Object.values(ALIASES).flat())];
     const missing = targets.filter((id) => !catalog[id]);
     expect(missing).toEqual([]);
+  });
+
+  // 別名的鍵要是 normQuery 之後的形狀，否則永遠不會被查到——寫了等於沒寫。
+  it("ALIASES 的鍵都是正規化後的形狀（小寫、台）", () => {
+    for (const k of Object.keys(ALIASES)) {
+      expect(k, k).toBe(k.toLowerCase().replace(/臺/g, "台"));
+    }
+  });
+
+  // 對真實目錄跑的幾個代表性問法。每一條都是改版前搜不到、或排在預設 limit 之外的。
+  it.each([
+    ["三大法人 期貨", "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate"],
+    ["期貨 行情", "taifex/DailyMarketReportFut"],
+    ["台指期", "taifex/DailyMarketReportFut"],
+    ["營收", "opendata/t187ap05_L"],
+    ["當沖", "exchangeReport/TWTB4U"],
+    ["除息", "exchangeReport/TWT48U_ALL"],
+    ["本益比 殖利率", "exchangeReport/BWIBBU_ALL"],
+  ])("真實目錄：搜「%s」的前 10 名裡有 %s", (query, id) => {
+    const ids = searchDatasets(catalog, { query, limit: 10 }).results.map((r) => r.dataset_id);
+    expect(ids).toContain(id);
   });
 
   // ALIASES.etf 是同一組 id 的第四份字面複本，先前無人守。

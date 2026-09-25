@@ -127,6 +127,33 @@ describe("searchDatasets", () => {
   it.each([1, 2, 3, 999999])("limit=%p 正常取用", (limit) => {
     expect(searchDatasets(CATALOG, { limit }).results).toHaveLength(Math.min(limit, 3));
   });
+  it("多個關鍵字以空白分隔，每一個都要命中", () => {
+    expect(searchDatasets(CATALOG, { query: "日成交 收盤" }).results.map((x) => x.dataset_id)).toEqual([
+      "exchangeReport/STOCK_DAY_ALL",
+    ]);
+    // 全形空白（中文輸入法）一樣是分隔
+    expect(searchDatasets(CATALOG, { query: "日成交\u3000收盤" }).total_matched).toBe(1);
+    // 其中一個詞沒命中就不算
+    expect(searchDatasets(CATALOG, { query: "日成交 期貨" }).total_matched).toBe(0);
+  });
+  it("欄位的中文說明也比對得到", () => {
+    expect(searchDatasets(CATALOG, { query: "證券名稱" }).results[0].dataset_id).toBe(
+      "exchangeReport/STOCK_DAY_ALL",
+    );
+  });
+  it("表名命中的排在只有欄位命中的前面", () => {
+    const cat: Catalog = {
+      a: { id: "a", source: "twse", summary: "綜合損益表", description: "", tags: [], fields: { 營業收入: "營業收入" } },
+      b: { id: "b", source: "twse", summary: "每月營業收入彙總表", description: "", tags: [], fields: {} },
+    };
+    expect(searchDatasets(cat, { query: "營業收入" }).results.map((x) => x.dataset_id)).toEqual(["b", "a"]);
+  });
+  it("「台」與「臺」視為同一個字", () => {
+    const cat: Catalog = {
+      f: { id: "f", source: "taifex", summary: "臺股期貨", description: "", tags: [], fields: {} },
+    };
+    expect(searchDatasets(cat, { query: "台股期貨" }).total_matched).toBe(1);
+  });
   it("prototype 上的鍵不會被當成別名", () => {
     // ALIASES["constructor"] 會撈到 Object.prototype.constructor，
     // new Set(Function) 會丟 TypeError，或更糟——靜默命中錯誤的資料集。

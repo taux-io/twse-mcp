@@ -147,11 +147,12 @@ export function createServer() {
     {
       description:
         "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
-        "會比對資料集代號、中文說明與欄位名稱。期交所的資料集代號一律以 taifex/ 開頭，" +
+        "會比對資料集代號、中文說明與欄位名稱；多個關鍵字用空白分隔（每個都要命中），" +
+        "結果依相關度排序。期交所的資料集代號一律以 taifex/ 開頭，" +
         '搜期貨與選擇權可用 tag="期貨與選擇權"。',
       annotations: LOCAL_READ,
       inputSchema: {
-        query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"本益比"。留空列出全部。'),
+        query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"三大法人 期貨"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
         // .min(0) 與 core 端的夾值是兩層獨立防守，跟 twse_get_dataset 對等：
         // schema 擋掉合法 client 的手誤，core 擋掉繞過 schema 的呼叫路徑。
