@@ -146,7 +146,9 @@ const ZH: Page = {
   features: [
     "台股上市股票與 ETF 的盤中即時報價",
     "前一交易日的開盤、最高、最低、收盤與成交量",
+    "單一上市公司的概況：本益比、殖利率、最新月營收年增率、除權息與處置狀態",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
+    "依本益比、殖利率等交易所公布的數字篩選與排序，以及用名稱查代號",
     "臺灣期貨交易所的每日行情、三大法人與大額交易人未沖銷部位",
     `臺灣證交所與期交所合計 ${DATASET_COUNT} 個公開資料集的搜尋與查詢`,
   ],
@@ -220,6 +222,8 @@ const ZH: Page = {
 <ul>
 <li>「台積電現在多少？」——盤中即時報價，一次問好幾檔也行。</li>
 <li>「0050 昨天收盤多少、量多大？」——前一交易日的開高低收與成交量。</li>
+<li>「台積電最近營收成長多少？本益比、殖利率呢？」——上市公司一頁式概況，含月營收年增率與是否被列為處置股。</li>
+<li>「殖利率 6% 以上、本益比低於 10 的有哪些？」——依交易所公布的數字篩選與排序，不用自己一頁頁翻。</li>
 <li>「0056 這檔 ETF 到底是什麼？」——追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
 <li>「台指期昨天收在哪？」——期貨與選擇權的每日行情、三大法人、未平倉。</li>
 <li>「交易所有沒有 ⋯⋯ 的資料？」——在兩百多張公開報表裡找到對的那一張。</li>
@@ -231,7 +235,7 @@ const ZH: Page = {
 <ul>
 <li><strong>上市股票與 ETF</strong>：即時報價、前一交易日價量、基本資料、定期定額熱度、財報與公司治理揭露。</li>
 <li><strong>期貨與選擇權</strong>：每日行情、三大法人、大額交易人未沖銷部位、保證金、契約規格。</li>
-<li><strong>不提供</strong>：技術指標、選股、投資建議，以及任何本服務自行計算的預測。</li>
+<li><strong>不提供</strong>：技術指標、選股建議、投資建議，以及任何本服務自行計算的預測。可以依交易所公布的數字（例如本益比、殖利率）篩選與排序，但挑哪一檔是你的判斷。</li>
 </ul>`,
     caveats: `
 <ul>
@@ -283,7 +287,9 @@ const EN: Page = {
   features: [
     "Intraday quotes for TWSE-listed stocks and ETFs",
     "Previous trading day's open, high, low, close and volume",
+    "Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, ex-dividend and disposition status",
     "Per-ETF profile, tracked index and regular-savings popularity",
+    "Filter and sort by published figures such as P/E and yield, and look up a ticker by company name",
     "TAIFEX daily futures and options quotes, institutional flows and large-trader open interest",
     `Search and query across ${DATASET_COUNT} open datasets from TWSE and TAIFEX combined`,
   ],
@@ -357,6 +363,8 @@ const EN: Page = {
 <ul>
 <li>"What's TSMC trading at right now?" — intraday quotes, several tickers at once.</li>
 <li>"Where did 0050 close yesterday, and on what volume?" — the previous session's open, high, low, close and volume.</li>
+<li>"How fast is TSMC's revenue growing? What are its P/E and yield?" — a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
+<li>"Which stocks yield over 6% with a P/E under 10?" — filter and sort by the exchange's published figures, server-side.</li>
 <li>"What exactly is the ETF 0056?" — which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
 <li>"Where did the TAIEX futures settle yesterday?" — daily futures and options quotes, institutional flows, open interest.</li>
 <li>"Does the exchange publish data on …?" — finds the right one among two hundred-plus public reports.</li>
@@ -368,7 +376,7 @@ const EN: Page = {
 <ul>
 <li><strong>Listed stocks and ETFs</strong>: intraday quotes, previous-day prices and volume, profiles, regular-savings popularity, financial statements and governance disclosures.</li>
 <li><strong>Futures and options</strong>: daily quotes, institutional investor flows, large-trader open interest, margins, contract specifications.</li>
-<li><strong>Not provided</strong>: technical indicators, stock screening, investment advice, or any figure this service computes on its own.</li>
+<li><strong>Not provided</strong>: technical indicators, stock picks, investment advice, or any forecast this service computes on its own. Filtering and sorting by the exchange's published figures (P/E, yield) is supported; choosing what to buy is up to you.</li>
 </ul>`,
     caveats: `
 <ul>
@@ -714,8 +722,8 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 - Over-the-counter (TPEx) stocks have intraday quotes only; historical and statistical reports are unavailable because the Taipei Exchange open-data host refuses cloud-originated connections.
 - 上櫃（OTC）股票只有盤中即時報價；歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。
-- Taiwan Stock MCP does not provide technical indicators, stock screening or investment advice, and computes no forecasts of its own.
-- 台股 MCP 不提供技術指標、選股或投資建議，也不做任何自行計算的預測。
+- Taiwan Stock MCP does not provide technical indicators, stock picks or investment advice, and computes no forecasts of its own. It can filter and sort by figures the exchange publishes (P/E, dividend yield).
+- 台股 MCP 不提供技術指標、選股建議或投資建議，也不做任何自行計算的預測；可以依交易所公布的數字（本益比、殖利率）篩選與排序。
 
 ## Freshness / 資料新鮮度
 
