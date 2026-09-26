@@ -9,7 +9,7 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
-import { DATA_TTL_SECONDS, type Row, type SourceError } from "./core";
+import { DATA_TTL_SECONDS, rocToIso, type Row, type SourceError } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 /** 期交所的 servers.url。裸 path（沒有 /v1）會被 302 導回 Swagger UI 首頁。 */
@@ -365,6 +365,8 @@ export interface Quote {
   low: string | undefined;
   prev_close: string | undefined;
   volume: string | undefined;
+  /** 報價所屬的交易日（ISO）。沒有它，非交易時段查到的「最後一筆」會被模型當成今天。 */
+  date: string | null;
   time: string | undefined;
 }
 
@@ -400,6 +402,7 @@ export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quot
     low: q.l,
     prev_close: q.y,
     volume: q.v,
+    date: rocToIso(q.d),
     time: q.t,
   }));
 }
