@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.9.0] - 2026-09-26
 
 - New **futures contract snapshot** (the 9th tool): one futures contract's open, high, low, close, settlement and
   open interest for each month (regular and after-hours sessions), plus institutional and large-trader positions and the
@@ -89,6 +89,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.9.0]: https://github.com/taux-io/twse-mcp/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/taux-io/twse-mcp/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/taux-io/twse-mcp/compare/v0.6.2...v0.7.0
 [0.6.2]: https://github.com/taux-io/twse-mcp/compare/v0.6.1...v0.6.2
