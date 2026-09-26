@@ -38,6 +38,7 @@ export const ALWAYS_POPULATED = [
   "exchangeReport/MI_INDEX",
   "exchangeReport/MI_MARGN",
   "SBL/TWT96U",
+  "taifex/DailyMarketReportFut",
 ];
 
 /**

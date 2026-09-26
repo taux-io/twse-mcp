@@ -10,6 +10,10 @@ your AI uses it on its next connection.
 
 ## Unnumbered (already live)
 
+- New **futures contract snapshot** (the 9th tool): one futures contract's open, high, low, close, settlement and
+  open interest for each month (regular and after-hours sessions), plus institutional and large-trader positions and the
+  final settlement price. Takes codes (TX, MTX, TMF, CDF) or everyday names (台指期, 小台, 微台, 台積電期貨); when a
+  name matches more than one contract it asks you to pick first.
 - New margin option on the stock snapshot: margin and short buying, selling, balances and daily change, utilisation,
   short-to-margin ratio, suspension or allocation flags, and today's shares available to borrow and sell short
   (the last one works for OTC stocks too).

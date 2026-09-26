@@ -96,7 +96,25 @@ const PCR = [
 const LARGE = [
   { Date: "20260924", Contract: "TX", ContractName: "臺股期貨(TX+MTX/4)", SettlementMonth: "202610", TypeOfTraders: "0", Top5Buy: "72171", Top5Sell: "51434", Top10Buy: "78199", Top10Sell: "70805", OIOfMarket: "108898" },
   { Date: "20260924", Contract: "TX", ContractName: "臺股期貨(TX+MTX/4)", SettlementMonth: "999912", TypeOfTraders: "0", Top5Buy: "72172", Top5Sell: "52547", Top10Buy: "78200", Top10Sell: "72259", OIOfMarket: "112848" },
+  { Date: "20260924", Contract: "TX", ContractName: "臺股期貨(TX+MTX/4)", SettlementMonth: "999912", TypeOfTraders: "1", Top5Buy: "70000", Top5Sell: "50000", Top10Buy: "76000", Top10Sell: "70000", OIOfMarket: "112848" },
+  { Date: "20260924", Contract: "CD", ContractName: "台積電期貨", SettlementMonth: "999912", TypeOfTraders: "0", Top5Buy: "900", Top5Sell: "1200", Top10Buy: "1300", Top10Sell: "1500", OIOfMarket: "3000" },
+  { Date: "20260924", Contract: "QF", ContractName: "小型台積電期貨", SettlementMonth: "999912", TypeOfTraders: "0", Top5Buy: "10", Top5Sell: "20", Top10Buy: "30", Top10Sell: "40", OIOfMarket: "50" },
 ];
+// 期貨每日行情：形狀照 2026-09-24 的真實上游（含盤後時段的 "-" 與價差列）。
+const futRow = (Contract: string, month: string, session: string, Last: string, Volume: string, OpenInterest: string, SettlementPrice = "-") => ({
+  Date: "20260924", Contract, "ContractMonth(Week)": month, Open: "47850", High: "48275", Low: "47797", Last, Change: "-189", "%": "-0.39%",
+  Volume, SettlementPrice, OpenInterest, BestBid: "48123", BestAsk: "48130", HistoricalHigh: "48946", HistoricalLow: "39852", TradingHalt: "", TradingSession: session,
+});
+const FUT_DAILY = [
+  futRow("TX", "202611", "一般", "48258", "889", "1608", "48260"),
+  futRow("TX", "202610", "盤後", "47909", "28947", "-"),
+  futRow("TX", "202610", "一般", "48123", "37196", "101311", "48125"),
+  futRow("TX", "202610/202611", "一般", "145", "730", "-"),
+  futRow("MTX", "202610", "一般", "48120", "166583", "50000", "48125"),
+  futRow("CDF", "202610", "一般", "1800", "5000", "20000", "1800"),
+  futRow("QFF", "202610", "一般", "1800", "28479", "9000", "1800"),
+];
+const FUT_SETTLE = [{ TheFinalSettlementDay: "20260923", Contract: "TX/TMF", ContractName: "臺股期貨/微型臺指期貨", ContractDeliveryMonth: "202609W4", TheFinalSettlementPrice: "48075" }];
 
 function jsonResponse(v: unknown) {
   return new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
@@ -155,6 +173,8 @@ beforeEach(() => {
       if (u.includes("DetailsOfFuturesContractsBytheDate")) return jsonResponse(INST_CONTRACTS);
       if (u.includes("PutCallRatio")) return jsonResponse(PCR);
       if (u.includes("OpenInterestOfLargeTradersFutures")) return jsonResponse(LARGE);
+      if (u.includes("DailyMarketReportFut")) return jsonResponse(FUT_DAILY);
+      if (u.includes("FinalSettlementPriceFutures")) return jsonResponse(FUT_SETTLE);
       if (u.includes("getStockInfo")) {
         // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
         const otc = u.includes("otc_");
@@ -328,12 +348,13 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     return JSON.parse(payload.result.content[0].text);
   }
 
-  it("tools/list 暴露 8 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
+  it("tools/list 暴露 9 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
       [
         "twse_etf_snapshot",
+        "twse_futures_snapshot",
         "twse_describe_dataset",
         "twse_get_dataset",
         "twse_lookup",
@@ -715,6 +736,56 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.caveats.join()).not.toContain("不在集中市場融資融券表中");
   });
 
+  it("twse_futures_snapshot：代號查詢回各月份行情、近月、法人、大額交易人與結算價", async () => {
+    const out = await callTool("twse_futures_snapshot", { contract: "tx" });
+    expect(out).toMatchObject({ contract: "TX", name: "臺股期貨(TX+MTX/4)", date: "2026-09-24" });
+    // 價差列不列入；依月份、時段排序；盤後的 "-" 是 null 不是 0
+    expect(out.quotes.map((q: any) => `${q.月份}/${q.時段}`)).toEqual(["202610/一般", "202610/盤後", "202611/一般"]);
+    expect(out.quotes[1]).toMatchObject({ 收盤: 47909, 結算價: null, 未平倉: null, "漲跌幅%": -0.39 });
+    expect(out.near_month).toMatchObject({ 月份: "202610", 時段: "一般", 收盤: 48123, 未平倉: 101311 });
+    expect(out.institutional).toEqual([{ 身份別: "外資及陸資", 交易淨口數: -909, 未平倉多方口數: null, 未平倉空方口數: null, 未平倉淨口數: -77031 }]);
+    expect(out.large_traders).toMatchObject({
+      全體交易人: { 前五大淨部位: 19625, 前十大淨部位: 5941 },
+      其中特定法人: { 前五大淨部位: 20000 },
+      全市場未沖銷部位: 112848,
+    });
+    expect(out.final_settlement).toEqual([{ 最後結算日: "2026-09-23", 契約月份: "202609W4", 最後結算價: 48075 }]);
+  });
+
+  it("twse_futures_snapshot：口語名稱與別名；小台沒有單獨的大額交易人", async () => {
+    for (const q of ["小台", "MXF", "mtx"]) {
+      const out = await callTool("twse_futures_snapshot", { contract: q });
+      expect(out.contract).toBe("MTX");
+      expect(out.name).toBe("小型臺指期貨");
+      expect(out.large_traders).toContain("併入台指期");
+    }
+    expect((await callTool("twse_futures_snapshot", { contract: "台指期" })).contract).toBe("TX");
+    // 個股期貨：行情表 CDF、大額表 CD，名稱從大額表來；三大法人沒有個股契約
+    const tsmc = await callTool("twse_futures_snapshot", { contract: "台積電期貨" });
+    expect(tsmc).toMatchObject({ contract: "CDF", name: "台積電期貨" });
+    expect(tsmc.large_traders.全體交易人.前五大淨部位).toBe(-300);
+    expect(typeof tsmc.institutional).toBe("string");
+  });
+
+  it("twse_futures_snapshot：名稱對到多個契約只回候選，不回數字", async () => {
+    const out = await callTool("twse_futures_snapshot", { contract: "台積電" });
+    expect(out.contract).toBeNull();
+    expect(out.candidates).toEqual([{ code: "CDF", name: "台積電期貨" }, { code: "QFF", name: "小型台積電期貨" }]);
+    expect(out).not.toHaveProperty("quotes");
+    expect(out.caveats.join()).toContain("候選不是答案");
+    const none = await callTool("twse_futures_snapshot", { contract: "TXO" });
+    expect(none.contract).toBeNull();
+    expect(none.caveats.join()).toContain("選擇權不在這支工具的範圍");
+  });
+
+  it("twse_futures_snapshot：行情抓失敗時不說找不到契約", async () => {
+    overrideFetch((u) => u.includes("DailyMarketReportFut"), () => new Response("down", { status: 502 }));
+    const out = await callTool("twse_futures_snapshot", { contract: "CDF" });
+    expect(out.contract).toBeNull();
+    expect(out.caveats.join()).toContain("不代表");
+    expect(out.caveats.join()).not.toContain("找不到");
+  });
+
   it("twse_market_overview：大盤、成交、漲跌家數（由日成交資訊計算）與成交量排行", async () => {
     const out = await callTool("twse_market_overview", { scope: "stock" });
     const m = out["證券市場"];
@@ -760,7 +831,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
       .map((t: { name: string }) => t.name)
       .sort();
     expect(withSchema).toEqual(
-      ["twse_etf_snapshot", "twse_lookup", "twse_market_overview", "twse_realtime_quote", "twse_stock_snapshot"].sort(),
+      ["twse_etf_snapshot", "twse_futures_snapshot", "twse_lookup", "twse_market_overview", "twse_realtime_quote", "twse_stock_snapshot"].sort(),
     );
     const stock = payload.result.tools.find((t: { name: string }) => t.name === "twse_stock_snapshot");
     expect(stock.outputSchema.type).toBe("object");
@@ -1193,7 +1264,7 @@ describe("官方首頁", () => {
   // 首頁不能吃掉 MCP 的路由。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
-    expect(payload.result.tools).toHaveLength(8);
+    expect(payload.result.tools).toHaveLength(9);
   });
 
   it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {
@@ -2073,7 +2144,7 @@ describe("協定 era", () => {
     );
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(8);
+    expect(payload.result.tools).toHaveLength(9);
   });
 
   // Codex（codex-mcp-client/0.155）收斂期間被擋的就是這個交握：先 initialize、沒有協定標頭。

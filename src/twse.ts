@@ -73,6 +73,10 @@ export const DS_INST_CONTRACTS = "taifex/MarketDataOfMajorInstitutionalTradersDe
 export const DS_PCR = "taifex/PutCallRatio";
 export const DS_LARGE_TRADERS = "taifex/OpenInterestOfLargeTradersFutures";
 
+// twse_futures_snapshot（另用上面的三大法人各契約與大額交易人）
+export const DS_FUT_DAILY = "taifex/DailyMarketReportFut"; // 期貨每日交易行情
+export const DS_FUT_SETTLE = "taifex/FinalSettlementPriceFutures"; // 最後結算價-期貨商品
+
 /**
  * 快照類工具寫死依賴的全部資料集。scripts/check-catalog.mjs 的 REQUIRED 必須與它
  * 一致（test/catalog.test.ts 斷言），目錄刷新時少了任何一個都會在建置期被擋下。
@@ -85,6 +89,7 @@ export const SNAPSHOT_DATASETS = [
   DS_MARGIN, DS_SBL,
   DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
+  DS_FUT_DAILY, DS_FUT_SETTLE,
 ];
 
 /**
@@ -111,6 +116,8 @@ export const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
   dsIncome("ci"), dsBalance("ci"), DS_CHAIRMAN, DS_INDICES,
   // 融資融券與可借券都是全體上市（借券另含上櫃）的清單，2026-09-26 實測各一千兩百多列。
   DS_MARGIN, DS_SBL,
+  // 期貨每日行情涵蓋三百多個契約（2026-09-24 實測 2,147 列）。
+  DS_FUT_DAILY,
 ]);
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";

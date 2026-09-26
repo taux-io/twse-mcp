@@ -421,6 +421,7 @@ describe("工具選擇測試題", () => {
   const TOOLS = [
     "twse_search_datasets", "twse_describe_dataset", "twse_get_dataset", "twse_lookup",
     "twse_stock_snapshot", "twse_market_overview", "twse_etf_snapshot", "twse_realtime_quote",
+    "twse_futures_snapshot",
   ];
   it("每一題期望的工具都真的存在，dataset_id 都在目錄裡", () => {
     for (const c of toolEval.cases) {
