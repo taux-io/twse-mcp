@@ -98,7 +98,7 @@ _Avoid_：協定版本、版號、version
 
 **lane**：
 同一個端點上分派給某一個 era 的處理路徑。同時開著 legacy 與 modern 兩條 lane 的
-server，規範稱為 dual-era。本服務自 2026-09-26 起只開 modern lane（見 ADR-0001 §三）。
+server，規範稱為 dual-era。本服務是 dual-era（2026-09-26 收斂過一次、同日重新開放，見 ADR-0001 §三）。
 _Avoid_：通道、路徑、分支、相容層
 
 **era 收斂**：

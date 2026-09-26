@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/taux-io/twse-mcp/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # 대만 주식 데이터 도우미 (TWSE MCP 서버)
@@ -71,7 +71,7 @@ PER·수익률 기준 종목 필터링, 시장 개황과 선물 포지션, ETF �
 | 항목 | 값 |
 |---|---|
 | URL | `https://twse-mcp.taux.io/mcp` |
-| 연결 방식 | Streamable HTTP(원격 MCP), MCP 프로토콜 `2026-07-28` |
+| 연결 방식 | Streamable HTTP(원격 MCP), 구버전과 신버전 MCP 프로토콜 모두 지원 |
 | 인증 | 필요 없음 |
 
 설정 항목 이름은 도구마다 다릅니다. **"Streamable HTTP"**를 고르세요.

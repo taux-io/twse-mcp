@@ -5,8 +5,9 @@ MCP 的 `2026-07-28` 修訂版是破壞性改版（取消 `initialize` 交握與
 原始碼裡看不出來的事：合規責任落在哪一層、`cacheScope: "public"` 的依據與失效條件、
 以及 legacy lane 為什麼開過、又為什麼在 2026-09-26 關掉。
 
-> **狀態（2026-09-26）**：已做 era 收斂，只服務 modern（`2026-07-28`）。第三節記錄依據。
-> 檔名與標題保留「dual-era」，因為第一、二節描述的機制與失效條件仍然成立。
+> **狀態（2026-09-26）**：dual-era。當天做過一次 era 收斂，上線約四小時後因 Codex 等只會
+> legacy 的用戶端被擋而重新開放，改以「一律拒絕 JSON-RPC 批次」處理 legacy 唯一的危險。
+> 第三節記錄兩次決定的依據。
 
 詞彙（協定 era／協定修訂版／lane／era 收斂）見 [`CONTEXT.md`](../../CONTEXT.md)。
 
@@ -53,10 +54,11 @@ SDK 的預設是 `ttlMs: 0` + `cacheScope: "private"`——合規，但等於告
 - **1 小時而非更長**：清單執行期永不改變，理論上可以設得更長；但工具描述是本專案最常
   微調的東西，把「線上說法與 repo 不一致」的窗口壓在 1 小時內，比多拿一點快取效益值得。
 
-### 收斂前的實際效益是零（2026-09-26 起生效）
+### 效益只及於 modern client
 
-> era 收斂後所有流量都在 modern lane，這組值從此對每個 client 生效。以下保留收斂前的
-> 紀錄，說明它為什麼曾經「設了卻沒作用」。
+> 2026-09-26 的線上資料顯示 Claude Code、claude.ai（`Claude-User`）、Claude Desktop 都已是
+> modern，所以這組值現在對主要 client 生效；仍走 legacy 的（Codex、舊版 SDK 腳本）拿不到。
+> 以下保留 8 月的紀錄，說明它為什麼曾經「設了卻沒作用」。
 
 **這組值只在 modern lane 生效，而當時已知的主要 client 在 legacy lane。**
 
@@ -164,15 +166,31 @@ client 看得出是版本問題而不是服務故障。
   整批拒絕；`test/server.test.ts` 以「275 元素批次零出站」斷言守著這件事。
   出站層的並行上限（`MAX_CONCURRENT_FETCHES`）保留，它管的是同一 isolate 裡的多個 modern 請求。
 
-### 若要回頭
+### 重新開放（同日，v0.7.0）
 
-把 `legacy: "reject"` 拿掉即恢復 dual-era（`agents` 預設是 `"stateless"`）。但要一併評估
-批次扇出：屆時必須把 `batchTooLarge` 之類的守衛加回來，否則 #70 修掉的 OOM 會回來。
+收斂上線約四小時後（01:10–05:11 UTC，issue #83 的期中查詢），被拒的 174 筆請求大多是監測 bot，
+但其中有 **`codex-mcp-client/0.155.0-alpha`（OpenAI Codex CLI）兩次連線全被拒**——它送的是不帶
+協定標頭的 legacy `initialize`。README 的附錄明寫了 Codex 的安裝指令，所以這是照文件操作卻連不上
+的真實使用者；同期被拒的還有舊版官方 Python SDK（`python-httpx2` 送 `2025-11-25`）的腳本。
+
+重新比較代價後改變決定。收斂當初換到的東西是三項：批次扇出守衛、探針、`cacheHints` 對半數流量
+無效。探針已完成任務、不會回來；`cacheHints` 只是效能好處，而主要 client 已是 modern；只剩批次。
+批次改成**一律拒絕**（`src/server.ts` 的 `rejectBatch`，進 SDK 前、回 `-32600`）：MCP 從
+`2025-06-18` 起就把批次移出規範，現存 client 都不送，全擋比 #70 的「最多 8 個」更簡單、
+最壞情況從 8 份並行下載降到 0。為了這三項把真實使用者擋在外面，不划算。
+
+實作：`legacy: "stateless"`（`agents` 的預設）＋ `rejectBatch`。
+
+### 若要再收斂
+
+改回 `legacy: "reject"` 即可，`rejectBatch` 留著無害。前提是 Codex 等仍只會 legacy 的主流
+client 已支援 `2026-07-28`——先用 Workers Observability 依 user agent 確認，不要只看比例：
+這次的教訓是「約半數是 bot」掩蓋了「有一個是依文件操作的真實 client」。
 
 ## Consequences
 
-- `agents` 釘死後不再自動拿到修補更新，需要人工升版；升版時主 seam 的測試是安全網，
-  其中「legacy 請求被拒」那組守的是收斂不會被預設值的變動悄悄撤銷。
+- `agents` 釘死後不再自動拿到修補更新，需要人工升版；升版時主 seam 的雙 era 測試是安全網，
+  其中「legacy 請求被服務」與「Codex 的 initialize 交握」守的是重新開放不會被預設值的變動悄悄撤銷。
 - 工具描述的修改最久要 1 小時才會反映到有快取的 client 上。
-- 探針已在 era 收斂時移除（見第三節）。
-- 收斂後，送 2025 修訂版的 client 一律被拒，直到它們更新。
+- 探針已在 era 收斂時移除（見第三節），重新開放時沒有加回。
+- JSON-RPC 批次一律被拒（`-32600`），不論哪個 era。
