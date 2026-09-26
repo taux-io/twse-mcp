@@ -225,6 +225,10 @@ const ZH: Page = {
 <li>「0050 昨天收盤多少、量多大？」——前一交易日的開高低收與成交量。</li>
 <li>「台積電最近營收成長多少？本益比、殖利率呢？」——上市公司一頁式概況，含月營收年增率與是否被列為處置股。</li>
 <li>「殖利率 6% 以上、本益比低於 10 的有哪些？」——依交易所公布的數字篩選與排序，不用自己一頁頁翻。</li>
+<li>「台積電上半年毛利率多少？負債比高嗎？」——最新一季財報摘要，自動找對業別的表，並提醒損益是年初累計數。</li>
+<li>「這家公司的董監有沒有大量質押股票？」——公司治理：董監質押、董事長兼任總經理、金管會裁罰紀錄。</li>
+<li>「昨天大盤怎麼樣？外資期貨是多還是空？」——加權指數、漲跌家數、成交量排行，以及三大法人期貨未平倉與 Put/Call 比。</li>
+<li>「隴華的股票代號是多少？」——只知道公司或 ETF 名稱時，先幫你查出代號。</li>
 <li>「0056 這檔 ETF 到底是什麼？」——追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
 <li>「台指期昨天收在哪？」——期貨與選擇權的每日行情、三大法人、未平倉。</li>
 <li>「交易所有沒有 ⋯⋯ 的資料？」——在兩百多張公開報表裡找到對的那一張。</li>
@@ -367,6 +371,10 @@ const EN: Page = {
 <li>"Where did 0050 close yesterday, and on what volume?" — the previous session's open, high, low, close and volume.</li>
 <li>"How fast is TSMC's revenue growing? What are its P/E and yield?" — a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
 <li>"Which stocks yield over 6% with a P/E under 10?" — filter and sort by the exchange's published figures, server-side.</li>
+<li>"What was TSMC's gross margin this half, and is its debt ratio high?" — the latest quarter's financials, from the right industry table, noting that income figures are year-to-date.</li>
+<li>"Have this company's directors pledged a lot of their shares?" — governance: director share pledges, chair/CEO duality, regulatory penalties.</li>
+<li>"How did the market do yesterday? Are foreign investors long or short on futures?" — TAIEX, advancers and decliners, most-traded stocks, institutional futures open interest and the put/call ratio.</li>
+<li>"What's the ticker for 隴華?" — looks up the code when you only know a company or ETF name.</li>
 <li>"What exactly is the ETF 0056?" — which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
 <li>"Where did the TAIEX futures settle yesterday?" — daily futures and options quotes, institutional flows, open interest.</li>
 <li>"Does the exchange publish data on …?" — finds the right one among two hundred-plus public reports.</li>
