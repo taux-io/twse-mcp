@@ -20,6 +20,8 @@ import {
   SNAPSHOT_DATASETS,
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
+import { matchCall, subsetMatch } from "../scripts/eval-tools.mjs";
+import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
   classify,
@@ -408,5 +410,45 @@ describe("上游健檢腳本", () => {
     expect(classifyAt("exchangeReport/MI_INDEX", ok([{ 日期: "1150605" }]), now)?.kind).toBe("stale");
     expect(classifyAt("taifex/PutCallRatio", ok([{ Date: "20260920" }]), now)).toBeNull();
     expect(classifyAt("taifex/PutCallRatio", ok([{ Date: "20260801" }]), now)?.detail).toContain("2026-08-01");
+  });
+});
+
+/**
+ * 工具選擇測試（evals/tool-selection.json）本身的正確性。題目寫錯的話，評出來的分數
+ * 就沒有意義——這裡不呼叫模型，只檢查題目與比對邏輯。
+ */
+describe("工具選擇測試題", () => {
+  const TOOLS = [
+    "twse_search_datasets", "twse_describe_dataset", "twse_get_dataset", "twse_lookup",
+    "twse_stock_snapshot", "twse_market_overview", "twse_etf_snapshot", "twse_realtime_quote",
+  ];
+  it("每一題期望的工具都真的存在，dataset_id 都在目錄裡", () => {
+    for (const c of toolEval.cases) {
+      for (const e of c.expect as { tool: string; args?: Record<string, unknown> }[]) {
+        expect(TOOLS, `${c.id}`).toContain(e.tool);
+        const id = e.args?.dataset_id as string | undefined;
+        if (id) expect(catalog[id], `${c.id}: ${id}`).toBeDefined();
+      }
+    }
+  });
+  it("題目 id 不重複", () => {
+    const ids = toolEval.cases.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+  it("部分比對：只檢查寫到的參數，陣列比對「包含」", () => {
+    expect(subsetMatch({ code: "2330", include_financials: true, x: 1 }, { code: "2330" })).toBe(true);
+    expect(subsetMatch({ codes: ["0050", "0056"] }, { codes: ["0056"] })).toBe(true);
+    expect(subsetMatch({ codes: ["0050"] }, { codes: ["0056"] })).toBe(false);
+    expect(
+      subsetMatch({ where: [{ field: "PEratio", op: "lt", value: 10 }] }, { where: [{ field: "PEratio", op: "lt" }] }),
+    ).toBe(true);
+    expect(subsetMatch({}, { include_financials: true })).toBe(false);
+  });
+  it("第一個工具呼叫符合任一選項才通過；沒有呼叫工具不通過", () => {
+    const expectA = [{ tool: "twse_lookup" }, { tool: "twse_stock_snapshot", args: { code: "2303" } }];
+    expect(matchCall({ name: "twse_lookup", input: { query: "聯電" } }, expectA)).toBe(true);
+    expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2303" } }, expectA)).toBe(true);
+    expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2330" } }, expectA)).toBe(false);
+    expect(matchCall(null, expectA)).toBe(false);
   });
 });
