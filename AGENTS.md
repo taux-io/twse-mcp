@@ -27,6 +27,8 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 
 ### Tool-selection eval
 
-改工具描述、`instructions` 或新增工具之前與之後，各跑一次 `npm run eval:tools`（需要 Anthropic API 憑證），
-比較通過題數。題目在 `evals/tool-selection.json`，只看第一個工具呼叫；工具定義從實際端點抓，
-測本機未部署的描述用 `EVAL_ENDPOINT=http://localhost:8787/mcp`。用法與成本見 `scripts/eval-tools.mjs` 開頭。
+改工具描述、`instructions` 或新增工具之前與之後，各跑一次 `npm run eval:tools`，比較通過題數。
+預設用本機的 Claude Code（`claude -p`，走訂閱額度，不產生 API 帳單）；至少再用 `EVAL_MODEL=sonnet` 跑一次——
+2026-09-26 的基準是 opus 24/24、sonnet 修正描述前 21/24，較小的模型才抓得到描述寫得不夠清楚的地方。
+題目在 `evals/tool-selection.json`，只看第一個工具呼叫；測本機未部署的描述用 `EVAL_ENDPOINT=http://localhost:8787/mcp`。
+用法見 `scripts/eval-tools.mjs` 開頭。

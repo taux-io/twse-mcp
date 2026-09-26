@@ -1,22 +1,30 @@
 /**
  * eval-tools.mjs — 工具選擇測試：常見問法丟給 Claude，看它的第一個工具呼叫對不對。
  *
- * 工具定義與 instructions 從**實際的 MCP 端點**抓（tools/list、server/discover），
- * 所以測的是 client 真正看到的描述，不是另一份副本。改了工具描述之後跑一次，
- * 就知道是改好還是改壞。
+ * 工具定義與 instructions 從**實際的 MCP 端點**抓，所以測的是 client 真正看到的描述，
+ * 不是另一份副本。改了工具描述之後跑一次，就知道是改好還是改壞。
  *
- *   ANTHROPIC_API_KEY=... npm run eval:tools
+ * 兩種跑法（EVAL_RUNNER）：
+ *
+ *   claude-code（預設）：用本機的 Claude Code 非互動模式（`claude -p`）連上 MCP 端點，
+ *     每題開一個 session。走的是登入的 Claude 訂閱額度，**不產生 API 帳單**；測的就是
+ *     Claude Code 這個真實 client 的行為（它是本服務最大的流量來源）。每題在空的暫存目錄
+ *     執行、只載入 project 層設定，使用者自己的外掛與 hook 不會影響結果；看到第一個工具
+ *     呼叫就結束行程，不讓它繼續用額度。
+ *   api：直接呼叫 Anthropic API（需要 ANTHROPIC_API_KEY，會計費，24 題約一兩美元）。
+ *     刻意**不**開 refusal fallback：評的是指定模型自己的選擇。
+ *
+ *   npm run eval:tools
  *   EVAL_ENDPOINT=http://localhost:8787/mcp   # 測本機 wrangler dev 上尚未部署的描述
- *   EVAL_MODEL=claude-sonnet-5                # 換模型（預設 claude-opus-5）
+ *   EVAL_MODEL=sonnet                         # 換模型（claude-code 吃別名；api 預設 claude-opus-5）
  *   EVAL_ONLY=stock-financials,market-today   # 只跑指定題目
+ *   EVAL_RUNNER=api                           # 改用 API
  *
- * 只看第一個工具呼叫，不實際執行工具：選錯第一步是最常見、也最便宜抓的錯。
- * 一題約 5k 輸入 token（工具定義與 instructions 走 prompt cache），24 題一次約一兩美元。
- *
- * 刻意**不**開 refusal fallback：評的是指定模型自己的選擇，被換成另一個模型回答
- * 會讓分數失真。被拒絕的題目直接記為失敗並標出來。
+ * 只看第一個工具呼叫：選錯第一步是最常見、也最便宜抓的錯。
  */
-import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -72,18 +80,100 @@ async function mcp(endpoint, method, params = {}) {
   return json.result;
 }
 
-async function main() {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const endpoint = process.env.EVAL_ENDPOINT ?? "https://twse-mcp.taux.io/mcp";
-  const model = process.env.EVAL_MODEL ?? "claude-opus-5";
-  const only = process.env.EVAL_ONLY?.split(",").map((s) => s.trim());
+/** Claude Code 的 MCP 工具名帶 `mcp__<server>__` 前綴，比對前拿掉。 */
+export function stripMcpPrefix(name) {
+  return name.replace(/^mcp__[^_]+(?:_[^_]+)*?__/, "");
+}
 
-  const { cases: all } = JSON.parse(await readFile(path.join(ROOT, "evals/tool-selection.json"), "utf-8"));
-  const cases = only ? all.filter((c) => only.includes(c.id)) : all;
+/**
+ * 用 `claude -p` 問一題，回傳第一個工具呼叫。工具權限一律不給（dontAsk），
+ * 所以它不會真的去查資料；看到第一個 tool_use 就結束行程。
+ */
+async function askClaudeCode(question, { endpoint, model, cwd }) {
+  const args = [
+    "-p", question,
+    "--output-format", "stream-json", "--verbose",
+    "--mcp-config", JSON.stringify({ mcpServers: { twse: { type: "http", url: endpoint } } }),
+    "--strict-mcp-config",
+    "--tools", "",
+    "--permission-mode", "dontAsk",
+    "--setting-sources", "project",
+    "--no-session-persistence",
+    ...(model ? ["--model", model] : []),
+  ];
+  return new Promise((resolve) => {
+    const child = spawn("claude", args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
+    let buf = "";
+    let done = false;
+    let usedModel = null;
+    let lastText = "";
+    const finish = (r) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      child.kill();
+      resolve({ model: usedModel, ...r });
+    };
+    const timer = setTimeout(() => finish({ call: null, note: "逾時（180 秒）" }), 180_000);
+    child.stdout.on("data", (chunk) => {
+      buf += chunk;
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl);
+        buf = buf.slice(nl + 1);
+        let ev;
+        try {
+          ev = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        if (ev.type === "system" && ev.subtype === "init") usedModel = ev.model;
+        if (ev.type === "assistant") {
+          const use = ev.message.content.find((b) => b.type === "tool_use");
+          if (use) return finish({ call: { name: stripMcpPrefix(use.name), input: use.input } });
+          const text = ev.message.content.find((b) => b.type === "text");
+          if (text) lastText = text.text;
+        }
+        // 沒呼叫工具時把它說了什麼帶出來：是反問使用者、直接憑記憶回答，還是別的，
+        // 判讀方式完全不同。
+        if (ev.type === "result") {
+          return finish({ call: null, note: `沒有呼叫工具：「${lastText.replace(/\s+/g, " ").slice(0, 120)}」` });
+        }
+      }
+    });
+    child.on("error", (e) => finish({ call: null, note: `無法啟動 claude：${e.message}`, fatal: true }));
+    child.on("close", () => finish({ call: null, note: "沒有呼叫工具" }));
+  });
+}
+
+async function runClaudeCode(cases, { endpoint, model }) {
+  // 空的暫存目錄：不讓 repo 的 CLAUDE.md／AGENTS.md 或任何 project 設定進到 session。
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "twse-eval-"));
+  try {
+    const results = [];
+    let next = 0;
+    let fatal = null;
+    await Promise.all(
+      Array.from({ length: 3 }, async () => {
+        while (next < cases.length && !fatal) {
+          const c = cases[next++];
+          const r = await askClaudeCode(c.question, { endpoint, model, cwd });
+          if (r.fatal) fatal = r.note;
+          results.push({ c, call: r.call, pass: matchCall(r.call, c.expect), note: r.note ?? "", model: r.model });
+        }
+      }),
+    );
+    if (fatal) throw new Error(fatal);
+    return results;
+  } finally {
+    await rm(cwd, { recursive: true, force: true });
+  }
+}
+
+async function runApi(cases, { endpoint, model }) {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const [{ tools }, discover] = await Promise.all([mcp(endpoint, "tools/list"), mcp(endpoint, "server/discover")]);
   const apiTools = tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.inputSchema }));
-  console.log(`${endpoint}：${tools.length} 支工具；模型 ${model}；${cases.length} 題\n`);
-
   const client = new Anthropic();
   const results = [];
   let next = 0;
@@ -109,16 +199,33 @@ async function main() {
             call,
             pass: matchCall(call, c.expect),
             note: response.stop_reason === "refusal" ? "refusal" : call ? "" : "沒有呼叫工具",
+            model,
           });
         } catch (e) {
           // 只有 API 回應的錯誤（逾時以外的 4xx/5xx）算這一題失敗。沒設憑證、網路斷了、
           // 認證失敗這類問題跟模型選不選得對無關，記成失敗只會讓分數失真——直接中止。
           if (!(e instanceof Anthropic.APIError) || e instanceof Anthropic.AuthenticationError) throw e;
-          results.push({ c, call: null, pass: false, note: `${e.constructor.name}: ${e.message}` });
+          results.push({ c, call: null, pass: false, note: `${e.constructor.name}: ${e.message}`, model });
         }
       }
     }),
   );
+  return results;
+}
+
+async function main() {
+  const endpoint = process.env.EVAL_ENDPOINT ?? "https://twse-mcp.taux.io/mcp";
+  const runner = process.env.EVAL_RUNNER ?? "claude-code";
+  const model = process.env.EVAL_MODEL ?? (runner === "api" ? "claude-opus-5" : undefined);
+  const only = process.env.EVAL_ONLY?.split(",").map((s) => s.trim());
+
+  const { cases: all } = JSON.parse(await readFile(path.join(ROOT, "evals/tool-selection.json"), "utf-8"));
+  const cases = only ? all.filter((c) => only.includes(c.id)) : all;
+  const { tools } = await mcp(endpoint, "tools/list");
+  console.log(`${endpoint}：${tools.length} 支工具；跑法 ${runner}；${cases.length} 題\n`);
+
+  const results =
+    runner === "api" ? await runApi(cases, { endpoint, model }) : await runClaudeCode(cases, { endpoint, model });
 
   results.sort((a, b) => cases.indexOf(a.c) - cases.indexOf(b.c));
   for (const r of results) {
@@ -127,7 +234,8 @@ async function main() {
     if (!r.pass) console.log(`   期望任一：${r.c.expect.map((e) => `${e.tool} ${JSON.stringify(e.args ?? {})}`).join(" ｜ ")}`);
   }
   const passed = results.filter((r) => r.pass).length;
-  console.log(`\n${passed}/${results.length} 通過`);
+  const models = [...new Set(results.map((r) => r.model).filter(Boolean))].join(", ");
+  console.log(`\n${passed}/${results.length} 通過（模型：${models || "未知"}）`);
   if (passed < results.length) process.exitCode = 1;
 }
 

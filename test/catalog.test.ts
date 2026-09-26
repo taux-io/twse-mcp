@@ -20,7 +20,7 @@ import {
   SNAPSHOT_DATASETS,
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
-import { matchCall, subsetMatch } from "../scripts/eval-tools.mjs";
+import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
@@ -443,6 +443,11 @@ describe("工具選擇測試題", () => {
       subsetMatch({ where: [{ field: "PEratio", op: "lt", value: 10 }] }, { where: [{ field: "PEratio", op: "lt" }] }),
     ).toBe(true);
     expect(subsetMatch({}, { include_financials: true })).toBe(false);
+  });
+  it("Claude Code 的 MCP 工具名前綴會被拿掉再比對", () => {
+    expect(stripMcpPrefix("mcp__twse__twse_lookup")).toBe("twse_lookup");
+    expect(stripMcpPrefix("mcp__my_server__twse_get_dataset")).toBe("twse_get_dataset");
+    expect(stripMcpPrefix("twse_lookup")).toBe("twse_lookup");
   });
   it("第一個工具呼叫符合任一選項才通過；沒有呼叫工具不通過", () => {
     const expectA = [{ tool: "twse_lookup" }, { tool: "twse_stock_snapshot", args: { code: "2303" } }];
