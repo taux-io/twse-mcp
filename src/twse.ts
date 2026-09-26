@@ -44,6 +44,7 @@ export const DS_VALUATION = "exchangeReport/BWIBBU_ALL"; // 上市個股日本�
 export const DS_REVENUE = "opendata/t187ap05_L"; // 上市公司每月營業收入彙總表
 export const DS_EX_RIGHTS = "exchangeReport/TWT48U_ALL"; // 上市股票除權除息預告表
 export const DS_DIVIDENDS = "opendata/t187ap45_L"; // 上市公司股利分派情形
+export const DS_AGM = "opendata/t187ap38_L"; // 股東會公告（twse_market_overview 的 scope="events"）
 export const DS_NOTICE = "announcement/notice"; // 集中市場當日公布注意股票
 export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股票
 
@@ -90,6 +91,7 @@ export const SNAPSHOT_DATASETS = [
   DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
   DS_FUT_DAILY, DS_FUT_SETTLE,
+  DS_AGM,
 ];
 
 /**

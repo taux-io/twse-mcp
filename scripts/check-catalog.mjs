@@ -51,6 +51,8 @@ export const REQUIRED = [
   "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
   "taifex/PutCallRatio",
   "taifex/OpenInterestOfLargeTradersFutures",
+  // twse_market_overview 的 scope="events"
+  "opendata/t187ap38_L",
   // twse_futures_snapshot
   "taifex/DailyMarketReportFut",
   "taifex/FinalSettlementPriceFutures",

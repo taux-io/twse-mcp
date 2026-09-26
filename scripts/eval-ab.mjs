@@ -35,7 +35,8 @@ const CONCURRENCY = 3;
 /** 起一個 wrangler dev，等到 Ready 才回傳。獨立 process group，結束時整組關掉（npx 底下還有子行程）。 */
 function startServer(cwd, port) {
   return new Promise((resolve, reject) => {
-    const child = spawn("npx", ["wrangler", "dev", "--port", String(port)], {
+    // 兩個 wrangler dev 同時起，預設都搶 9229 的除錯埠，後起的那個會直接結束。
+    const child = spawn("npx", ["wrangler", "dev", "--port", String(port), "--inspector-port", String(port + 1000)], {
       cwd, detached: true, stdio: ["ignore", "pipe", "pipe"],
     });
     let log = "";

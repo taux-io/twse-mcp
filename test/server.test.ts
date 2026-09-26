@@ -49,6 +49,7 @@ const MARGIN = [
   { 股票代號: "2303", 股票名稱: "聯電", 融資買進: "10", 融資賣出: "5", 融資現金償還: "", 融資前日餘額: "1000", 融資今日餘額: "1005", 融資限額: "2000", 融券買進: "", 融券賣出: "300", 融券現券償還: "", 融券前日餘額: "100", 融券今日餘額: "400", 融券限額: "2000", 資券互抵: "3", 註記: "OX!" },
 ];
 const SBL = [{ TWSECode: "2330", TWSEAvailableVolume: "6,193,578", GRETAICode: "6488", GRETAIAvailableVolume: "3,155,909" }];
+const AGM = [{ 公司代號: "2330", 公司名稱: "台積電", "股東常(臨時)會日期-常或臨時": "常會", "股東常(臨時)會日期-日期": "1150604" }];
 const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "5.0" }];
 // 當日沒有注意股時，上游回一列 Code 為空的佔位資料——照實模擬。
 const NOTICE = [{ Number: "0", Code: "", Name: "", NumberOfAnnouncement: "0", TradingInfoForAttention: "", Date: "", ClosingPrice: "0", PE: "0" }];
@@ -152,6 +153,7 @@ beforeEach(() => {
       if (u.includes("t187ap05_L")) return jsonResponse(REVENUE);
       if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
       if (u.includes("t187ap45_L")) return jsonResponse(DIVIDENDS);
+      if (u.includes("t187ap38_L")) return jsonResponse(AGM);
       if (u.includes("MI_MARGN")) return jsonResponse(MARGIN);
       if (u.includes("TWT96U")) return jsonResponse(SBL);
       if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
@@ -784,6 +786,18 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.contract).toBeNull();
     expect(out.caveats.join()).toContain("不代表");
     expect(out.caveats.join()).not.toContain("找不到");
+  });
+
+  it("twse_market_overview：scope=events 只抓事件相關的四張表，回事件行事曆", async () => {
+    const out = await callTool("twse_market_overview", { scope: "events" });
+    expect(Object.keys(out["事件行事曆"])).toEqual(["期間", "除權除息", "股東會", "今日注意股", "處置股"]);
+    expect(out).not.toHaveProperty("證券市場");
+    expect(out).not.toHaveProperty("期貨籌碼");
+    const urls = fetchedUrls();
+    expect(urls.some((u) => u.includes("t187ap38_L"))).toBe(true);
+    expect(urls.some((u) => u.includes("MI_INDEX") || u.includes("PutCallRatio"))).toBe(false);
+    // 預設的 all 不含事件，回應大小不變
+    expect(await callTool("twse_market_overview", {})).not.toHaveProperty("事件行事曆");
   });
 
   it("twse_market_overview：大盤、成交、漲跌家數（由日成交資訊計算）與成交量排行", async () => {
