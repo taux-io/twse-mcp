@@ -4,9 +4,9 @@
  * 斷言 MCP client 會看到的回應。這一層測工具註冊 + 參數傳遞 + core/twse 接線，
  * 內部模組怎麼重構都不影響。
  *
- * 這個 seam 跑兩遍，一遍一個協定 era（詞彙見 CONTEXT.md）。同一組工具斷言在
- * legacy 與 modern 下各跑一次，兩條 lane 才不會偷偷分岔——這是本檔存在的第二個理由，
- * 也是唯一擋得住「相依升級後協定行為無聲改變」的東西。
+ * 工具斷言走 modern lane（詞彙見 CONTEXT.md）。era 收斂後 legacy 一律被拒，
+ * 「協定 era」那組測試斷言這件事——那是唯一擋得住「相依升級後協定行為無聲改變」
+ * （例如 legacy 被悄悄重新服務）的東西。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
@@ -62,8 +62,7 @@ function misResponse(v: unknown) {
 }
 
 /**
- * 探針對每個請求輸出一行 JSON。全域 stub 掉，否則 46 條測試的 stdout 會被探針記錄淹沒，
- * 真正在查的失敗訊息全埋在裡面。探針那組測試直接讀這個 spy。
+ * 全域 stub 掉 console.log，讓測試輸出只剩真正在查的失敗訊息。
  */
 let logSpy: ReturnType<typeof vi.spyOn>;
 
@@ -124,7 +123,11 @@ const MODERN_REVISION = "2026-07-28";
 const PROTOCOL_VERSION_META_KEY = "io.modelcontextprotocol/protocolVersion";
 const CLIENT_CAPABILITIES_META_KEY = "io.modelcontextprotocol/clientCapabilities";
 
-const ERAS = ["legacy", "modern"] as const;
+/**
+ * 服務中的 era。2026-09-26 起做了 era 收斂（ADR-0001 §三），只剩 modern lane；
+ * legacy 請求一律被拒，由「協定 era」那組測試用 mcpRequest 直接建構並斷言。
+ */
+const ERAS = ["modern"] as const;
 type Era = (typeof ERAS)[number];
 
 /** 與 src/server.ts 的快取提示對齊。寫死而非 import，這樣值被改動時測試會紅。 */
@@ -144,9 +147,7 @@ function mcpRequest(body: unknown, extraHeaders: Record<string, string> = {}) {
 }
 
 /**
- * 依 era 建構請求。
- * - legacy：裸 JSON-RPC，什麼都不加。
- * - modern：params._meta 帶兩個必填保留鍵，並補上必填的 MCP-Protocol-Version 與
+ * 建構 modern 請求：params._meta 帶兩個必填保留鍵，並補上必填的 MCP-Protocol-Version 與
  *   Mcp-Method 標頭；**任何帶 params.name 的 method 都另需 Mcp-Name**。標頭與 body
  *   不一致會被判 -32020，所以這裡刻意從 body 推導標頭，而不是各寫一份。
  *
@@ -155,10 +156,7 @@ function mcpRequest(body: unknown, extraHeaders: Record<string, string> = {}) {
  *   header is absent`。改成看 params.name 在不在，才不會每加一個具名 method 就要
  *   回頭補一次。
  */
-function eraRequest(era: Era, method: string, params: Record<string, unknown>) {
-  if (era === "legacy") {
-    return mcpRequest({ jsonrpc: "2.0", id: 1, method, params });
-  }
+function eraRequest(_era: Era, method: string, params: Record<string, unknown>) {
   const body = {
     jsonrpc: "2.0",
     id: 1,
@@ -192,7 +190,7 @@ async function readPayload(res: Response) {
   return JSON.parse(text);
 }
 
-// 走真正的 export default，不是自己另建一個 handler——route、CORS 與探針都掛在
+// 走真正的 export default，不是自己另建一個 handler——route、CORS 與靜態頁面都掛在
 // 那一層，繞過去等於這些東西沒人守。
 // 轉型只是為了補上 Workers 執行期才會有的 cf 欄位；本檔沒有任何一條測試讀它。
 type IncomingRequest = Parameters<typeof worker.fetch>[0];
@@ -644,20 +642,18 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
 });
 
 /**
- * JSON-RPC 批次的扇出上限與並行上限。
+ * 扇出上限。
  *
- * SDK 的 legacy lane 會把頂層陣列的每個元素**同時**送進 handler，沒有節流；每個
- * twse_get_dataset 元素各自 fetchDataset 一次、把整份上游 body 讀進字串。稽核實測：
- * 一個 40.6 KB 的 275 元素批次 → 峰值並行 275 次 fetch → 抽 236.8 MB（放大 5973 倍），
- * 足以 OOM 一個 128 MB isolate，並對交易所發動並行下載。
+ * 稽核實測過 legacy lane 會把 JSON-RPC 批次的每個元素**同時**分派：275 元素的批次 →
+ * 275 次並行 fetch → 放大 5973 倍，足以 OOM 一個 128 MB isolate。era 收斂後批次
+ * （只存在於 legacy）在分派前就被整批拒絕，這組測試守的是那個「零出站」。
  *
- * 兩道守衛：批次大小在進 SDK 前擋（server.ts），fetchDataset 的並行在出站層擋（twse.ts）。
- * 兩個常數寫死在這裡而非 import——值被改動時測試會紅（與 TOOL_LIST_TTL_MS 同一招）。
+ * 另一道守衛是 fetchDataset 的並行上限（twse.ts），它管的是同一個 isolate 裡
+ * 同時在跑的多個 modern 請求。常數寫死在這裡而非 import——值被改動時測試會紅。
  */
-const MAX_BATCH_ELEMENTS = 8;
 const MAX_CONCURRENT_FETCHES = 3;
 
-/** 會計數並行度的 fetch stub：回傳 [peak 追蹤器, restore]。稽核 harness 的作法。 */
+/** 會計數並行度的 fetch stub。稽核 harness 的作法。 */
 function countingFetchStub(bodyFor: (url: string) => unknown = () => [{ Code: "0056" }]) {
   const state = { peak: 0, inflight: 0, calls: 0 };
   vi.stubGlobal(
@@ -674,7 +670,7 @@ function countingFetchStub(bodyFor: (url: string) => unknown = () => [{ Code: "0
   return state;
 }
 
-describe("批次扇出上限與並行上限", () => {
+describe("扇出上限與並行上限", () => {
   function batch(n: number) {
     const arr = Array.from({ length: n }, (_, i) => ({
       jsonrpc: "2.0",
@@ -689,21 +685,25 @@ describe("批次扇出上限與並行上限", () => {
     });
   }
 
-  it("超過上限的批次回 -32600，且完全不發出出站請求", async () => {
+  it.each([2, 275])("%i 元素的批次被整批拒絕，且完全不發出出站請求", async (n) => {
     const state = countingFetchStub();
-    const res = await send(batch(MAX_BATCH_ELEMENTS + 1));
-    const body = (await res.json()) as { error: { code: number } };
-    expect(body.error.code).toBe(-32600);
+    const res = await send(batch(n));
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    await res.text();
     expect(state.calls).toBe(0);
   });
 
-  it("上限以內的批次照常處理，且並行出站 fetch 數不超過上限", async () => {
+  it("同時進來的多個 modern 請求，並行出站 fetch 數不超過上限", async () => {
     const state = countingFetchStub();
-    const res = await send(batch(MAX_BATCH_ELEMENTS));
-    expect(res.status).toBe(200);
-    await res.text(); // 抽乾 SSE，確保 8 個工具呼叫都跑完再斷言
-    // 8 個元素都會觸發 fetchDataset，但同時在飛的不超過 semaphore 上限
-    expect(state.calls).toBe(MAX_BATCH_ELEMENTS);
+    const call = () =>
+      send(
+        eraRequest("modern", "tools/call", {
+          name: "twse_get_dataset",
+          arguments: { dataset_id: "exchangeReport/STOCK_DAY_AVG_ALL", limit: 1 },
+        }),
+      ).then((r) => r.text());
+    await Promise.all(Array.from({ length: 8 }, call));
+    expect(state.calls).toBe(8);
     expect(state.peak).toBeLessThanOrEqual(MAX_CONCURRENT_FETCHES);
   });
 
@@ -711,14 +711,9 @@ describe("批次扇出上限與並行上限", () => {
     const state = countingFetchStub((u) =>
       u.includes("t187ap47_L") ? FUNDS : u.includes("STOCK_DAY_ALL") ? DAY : u.includes("ETFRank") ? RANKS : [],
     );
-    const req = new Request("http://localhost/mcp", {
-      method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json, text/event-stream", host: "localhost" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "twse_etf_snapshot", arguments: { code: "0056" } } }),
-    });
-    const res = await send(req);
+    const res = await send(eraRequest("modern", "tools/call", { name: "twse_etf_snapshot", arguments: { code: "0056" } }));
     expect(res.status).toBe(200);
-    await res.text(); // 抽乾 SSE，確保三個出站抓取都跑完再斷言
+    await res.text();
     expect(state.peak).toBe(MAX_CONCURRENT_FETCHES); // 正好三個並行
   });
 });
@@ -848,17 +843,10 @@ describe("官方首頁", () => {
     expect(body).not.toContain("/mcp<");
   });
 
-  // 首頁不能吃掉 MCP 的路由，也不能污染探針資料。
+  // 首頁不能吃掉 MCP 的路由。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
-    const payload = await rpcFor("legacy")("tools/list", {});
+    const payload = await rpcFor("modern")("tools/list", {});
     expect(payload.result.tools).toHaveLength(7);
-  });
-
-  it("GET / 不寫探針記錄", async () => {
-    logSpy.mockClear();
-    await get("/");
-    const probes = logSpy.mock.calls.filter((c) => String(c[0]).includes("mcp-client-probe"));
-    expect(probes).toHaveLength(0);
   });
 
   it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {
@@ -1121,10 +1109,7 @@ describe("生成式引擎最佳化（GEO）", () => {
  * MCP 的 `prompts` 是零安裝的通道：跟著 server 走，使用者不必另外裝任何東西。
  * 在 Claude Code 裡會變成 `/mcp__twse__<name>` 斜線指令，Claude Desktop 在「+」選單。
  *
- * **兩條 lane 都要驗。** 目前已知的全部流量都在 legacy（見 issue #51 的實測），
- * 所以只在 modern 驗證等於沒有驗證。`agents` 的 legacy lane 沒有自己的 method 表
- * ——它把同一個 McpServer 接上另一個 transport——但那是讀相依原始碼得到的結論，
- * 而 ADR-0001 記過同一個教訓：合規性由測試守住，不由「讀過相依的原始碼」守住。
+ * 跟著 ERAS 跑；era 收斂後 ERAS 只剩 modern。
  */
 describe.each(ERAS)("prompts（%s）", (era) => {
   const rpc = rpcFor(era);
@@ -1203,12 +1188,6 @@ describe("prompts/list 的快取提示", () => {
     const payload = await rpcFor("modern")("prompts/list", {});
     expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
     expect(payload.result.cacheScope).toBe("public");
-  });
-
-  it("legacy 的編碼路徑沒有快取欄位（與 tools/list 一致）", async () => {
-    const payload = await rpcFor("legacy")("prompts/list", {});
-    expect(payload.result.ttlMs).toBeUndefined();
-    expect(payload.result.cacheScope).toBeUndefined();
   });
 
   // cacheScope: "public" 的前提是回應不隨請求者改變。tools/list 有這條絆線，
@@ -1581,9 +1560,7 @@ describe("期交所的 CSV 端點", () => {
 });
 
 /**
- * 協定 era 本身的行為。上面的 describe.each 驗的是「兩條 lane 的工具行為一致」，
- * 這裡驗的是「兩條 lane 確實是不同的 era」——否則 describe.each 可能只是把同一條
- * lane 跑了兩遍，什麼都沒守到。
+ * 協定 era 本身的行為：modern lane 的 wire 形狀，以及 era 收斂後 legacy 確實被拒。
  */
 describe("協定 era", () => {
   it("modern 的 tools/list 帶結果型別、快取欄位與 serverInfo", async () => {
@@ -1596,28 +1573,11 @@ describe("協定 era", () => {
     });
   });
 
-  /**
-   * 兩條 lane 的 wire 編碼要各自釘死。
-   *
-   * 先前這件事是被 rpc() 隱性守住的：舊版 helper 只會解 SSE，不是 SSE 就丟例外，
-   * 於是每一條測試都順帶釘住了 legacy 的編碼。改成雙 era 之後 readPayload 兩種都收，
-   * 那道隱性保護就沒了——`agents` 一升版把 legacy lane 換成 application/json，
-   * 46 條測試照樣全綠，而只解 SSE frame 的 legacy client 會完全讀不到回應。
-   */
-  it.each([
-    ["legacy", "text/event-stream"],
-    ["modern", "application/json"],
-  ] as const)("%s lane 的 tools/list 回 %s", async (era, contentType) => {
-    const res = await send(eraRequest(era, "tools/list", {}));
+  /** modern 的 wire 編碼要釘死：readPayload 兩種都收，所以沒有別的測試會發現它變了。 */
+  it("modern lane 的 tools/list 回 application/json", async () => {
+    const res = await send(eraRequest("modern", "tools/list", {}));
     expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toContain(contentType);
-  });
-
-  it("legacy 的 tools/list 不帶結果型別與快取欄位（2025 編碼路徑沒有蓋章邏輯）", async () => {
-    const payload = await rpcFor("legacy")("tools/list", {});
-    expect(payload.result.resultType).toBeUndefined();
-    expect(payload.result.ttlMs).toBeUndefined();
-    expect(payload.result.cacheScope).toBeUndefined();
+    expect(res.headers.get("content-type")).toContain("application/json");
   });
 
   /**
@@ -1725,139 +1685,41 @@ describe("協定 era", () => {
     expect(payload.error.code).toBe(-32602);
   });
 
-  // 沒有 claim、也沒有 modern 標頭 → 走 legacy lane，正常服務。這條守的是
-  // 「舊 client 還能用」，也就是本專案暫不做 era 收斂的前提。
-  it("既沒有 claim 也沒有標頭的裸請求，仍被 legacy lane 正常服務", async () => {
-    const res = await send(mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }));
-    expect(res.status).toBe(200);
-    const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(7);
-  });
-});
-
-/**
- * 臨時：量測探針（issue #36）。**探針移除時這整個 describe 一起刪掉。**
- *
- * 這是本檔唯一一組斷言 log 的測試，也就是唯一一組碰實作細節的測試——探針記的是
- * side channel，在 MCP 邊界上不可觀察。之所以破例：一支安靜失效的探針會產出空資料，
- * 而空資料會被讀成「沒有 legacy client」，直接導致錯誤的 era 收斂決定。本專案已經
- * 有過一次「測試全綠、線上壞掉」（mock 貼著我們希望的形狀而非上游真實形狀），
- * 不想再來一次。
- */
-describe("量測探針（臨時）", () => {
-  /** console.log 由檔案層級的 beforeEach 統一 stub，這裡只讀它。 */
-  function probeRecords() {
-    return logSpy.mock.calls
-      .map((c) => {
-        try {
-          return JSON.parse(String(c[0]));
-        } catch {
-          return null;
-        }
-      })
-      .filter((r) => r?.tag === "mcp-client-probe");
-  }
-
-  it("modern 請求記下協定版本與方法標頭", async () => {
-    await rpcFor("modern")("tools/list", {});
-    const records = probeRecords();
-    expect(records).toHaveLength(1);
-    expect(records[0]).toMatchObject({
-      protocolVersion: MODERN_REVISION,
-      mcpMethod: "tools/list",
-    });
-  });
-
-  // 什麼標頭都不送的 client：兩個欄位都是 null。
-  it("裸 legacy 請求的協定版本與方法標頭皆為 null", async () => {
-    await rpcFor("legacy")("tools/list", {});
-    const records = probeRecords();
-    expect(records).toHaveLength(1);
-    expect(records[0].protocolVersion).toBeNull();
-    expect(records[0].mcpMethod).toBeNull();
-  });
-
   /**
-   * 這一條守的是判讀規則，不是探針本身。
+   * era 收斂（ADR-0001 §三）：legacy 請求一律被拒，而且拒絕要說得出原因——
+   * 規範定義的 -32022 並附上支援的修訂版，client 才知道是版本問題而不是服務壞掉。
+   * 裸請求（沒有任何協定標頭）與送 2025 標頭的請求都要涵蓋：探針資料裡兩種都有。
    *
-   * 2025-era 的 streamable-HTTP client 依規範**必須**在每個請求送
-   * `MCP-Protocol-Version`。它是 legacy（沒有 envelope claim），但 protocolVersion
-   * 欄位不是 null。先前的註解與測試寫成「數 null 就等於數 legacy」，照那個規則判讀，
-   * 一整批合規的 2025 client 會被讀成「零 legacy 流量」，然後盲切——正是 ADR 說這支
-   * 探針存在就是要防的事。
+   * 這條也是收斂的絆線：`agents` 升版若改了預設、或有人拿掉 `legacy: "reject"`，
+   * 舊 client 會被悄悄地重新服務，而 ADR 記錄的決定就不再成立。
    */
-  it("送 2025 協定版本標頭的 legacy client，記到的是那個版本字串而非 null", async () => {
+  it.each([
+    ["裸請求（無協定標頭）", {}],
+    ["2025-11-25 標頭", { "MCP-Protocol-Version": "2025-11-25" }],
+    ["2025-06-18 標頭", { "MCP-Protocol-Version": "2025-06-18" }],
+  ] as const)("legacy 請求被拒：%s", async (_label, headers) => {
     const res = await send(
-      mcpRequest(
-        { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
-        { "MCP-Protocol-Version": "2025-06-18" },
-      ),
+      mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }, { ...headers }),
     );
-    // 走的是 legacy lane：正常服務，且回應不帶 modern 的蓋章欄位。
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(7);
-    expect(payload.result.resultType).toBeUndefined();
-
-    const [record] = probeRecords();
-    expect(record.protocolVersion).toBe("2025-06-18");
-    // 判讀規則：按值分類，等於 modern 修訂版的才算跟上，其餘（含 null）都沒有。
-    expect(record.protocolVersion).not.toBe(MODERN_REVISION);
+    expect(payload.error.code).toBe(-32022);
+    expect(payload.error.data.supported).toEqual([MODERN_REVISION]);
+    // 被拒的請求不該碰到任何出站路徑
+    expect(fetchedUrls()).toHaveLength(0);
   });
 
-  // 探針只記真正可能是 MCP 請求的流量。先前無條件記錄，於是掃描、preflight 與 GET
-  // 都會寫下一筆四欄皆 null 的記錄，和真正的 legacy 請求位元組相同，null 桶因此被
-  // 灌滿、收斂條件永遠達不成——而且每一筆都在計費。
-  it.each([
-    ["非 /mcp 路徑", new Request("http://localhost/favicon.ico", { method: "GET" })],
-    ["GET /mcp", new Request("http://localhost/mcp", { method: "GET" })],
-    ["OPTIONS 預檢", new Request("http://localhost/mcp", { method: "OPTIONS" })],
-  ])("%s 不寫探針記錄", async (_label, request) => {
-    await send(request);
-    expect(probeRecords()).toHaveLength(0);
-  });
-
-  /**
-   * content-type 不是 JSON 的 POST 會被 SDK 以 415 擋下，但它先前仍會寫下一筆四欄皆 null
-   * 的記錄——和真正的裸 legacy 請求位元組相同，正是這個 gate 想消除的污染。
-   * （403 那條不在此列：它的 origin 欄位有值，事後濾得掉。）
-   */
-  it.each([
-    ["text/plain", "text/plain"],
-    ["表單 enctype", "application/x-www-form-urlencoded"],
-    ["無 content-type", ""],
-  ])("POST /mcp 帶 %s 被擋下，不寫探針記錄", async (_label, contentType) => {
-    // host 要自己帶：vitest 的 Request 不會補，真實 HTTP client 一定會送，
-    // 少了它會先被 403「Missing Host header」擋掉，測不到 415 那條路徑。
-    const headers: Record<string, string> = {
-      accept: "application/json, text/event-stream",
-      host: "localhost",
-    };
-    if (contentType) headers["content-type"] = contentType;
+  it("legacy 的 initialize 交握也被拒（不會建立 session）", async () => {
     const res = await send(
-      new Request("http://localhost/mcp", { method: "POST", headers, body: "{}" }),
+      mcpRequest({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "t", version: "0" } },
+      }),
     );
-    expect(res.status).toBe(415);
-    expect(probeRecords()).toHaveLength(0);
-  });
-
-  // 帶參數與大小寫都要照收，否則會把合法的 client 漏掉——那是反方向的失真。
-  it.each(["application/json", "application/json; charset=utf-8", "APPLICATION/JSON"])(
-    "content-type %s 仍寫探針記錄",
-    async (contentType) => {
-      await send(
-        mcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }, { "content-type": contentType }),
-      );
-      expect(probeRecords()).toHaveLength(1);
-    },
-  );
-
-  it("記錄不含 era 值（era 會被分類理由污染，見 src/server.ts 的說明）", async () => {
-    await rpcFor("modern")("tools/list", {});
-    const [record] = probeRecords();
-    expect(record).not.toHaveProperty("era");
-    expect(Object.keys(record).sort()).toEqual(
-      ["mcpMethod", "origin", "protocolVersion", "tag", "userAgent"].sort(),
-    );
+    expect(res.status).toBe(400);
+    expect((await readPayload(res)).error.code).toBe(-32022);
   });
 });
+

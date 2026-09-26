@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # Taiwan Stock Data Helper (TWSE MCP)
@@ -109,6 +109,10 @@ open/high/low, yesterday's close and volume** — but nothing further back, no
 statistical reports, and no full ETF profile. See "What it can and cannot look
 up" below.
 
+**You see "Unsupported protocol version"**
+This service only speaks the current MCP protocol revision (`2026-07-28`).
+Update your AI tool to its latest version and try again.
+
 **There is no Connectors option in settings**
 On a **company or team account**, an administrator usually has to add the
 connector before members can switch it on. Personal accounts — including the
@@ -211,7 +215,7 @@ part of that quote.
 2. **"Live" quotes are best-effort.** They come from the exchange's web interface and can lag by seconds to minutes, occasionally fail, or differ slightly from what your broker shows.
 3. **For reference only, not investment advice.** Figures may be wrong or delayed. **Verify with the exchange or your broker before you trade** — your gains and losses are your own responsibility.
 4. **Everything except live quotes may be up to an hour old.** Reports are cached for an hour so the exchange is not hit on every request; intraday prices are never cached and are always fetched fresh.
-5. **No login, and your questions are not recorded.** They go through this service to fetch **public** data from the exchange. While we measure how many people still connect with the older protocol, the service logs which AI tool you use and which protocol version it speaks — **not what you ask** — and that logging will be removed once the measurement is done.
+5. **No login, and your questions are not recorded.** They go through this service to fetch **public** data from the exchange; the service does not log what you ask.
 
 ---
 
@@ -275,7 +279,7 @@ codex mcp add twse --url https://twse-mcp.taux.io/mcp
 | Field | Value |
 |---|---|
 | URL | `https://twse-mcp.taux.io/mcp` |
-| Transport | Streamable HTTP (remote MCP); both the older and newer MCP protocol revisions work |
+| Transport | Streamable HTTP (remote MCP), MCP protocol revision `2026-07-28` |
 | Authentication | None |
 
 Field names differ between tools — pick the "Streamable HTTP" option, not the
