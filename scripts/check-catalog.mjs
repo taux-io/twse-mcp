@@ -29,6 +29,7 @@ export const REQUIRED = [
   "exchangeReport/BWIBBU_ALL",
   "opendata/t187ap05_L",
   "exchangeReport/TWT48U_ALL",
+  "opendata/t187ap45_L",
   "announcement/notice",
   "announcement/punish",
   // include_financials：六種業別的損益表與資產負債表

@@ -42,6 +42,7 @@ const VALUATION = [{ Date: "1150924", Code: "2330", Name: "台積電", PEratio: 
 const REVENUE = [
   { 資料年月: "11508", 公司代號: "2330", 公司名稱: "台積電", 產業別: "半導體業", "營業收入-當月營收": "514805337", "營業收入-上月比較增減(%)": "10.099818994181083", "營業收入-去年同月增減(%)": "53.320053714712955" },
 ];
+const DIVIDENDS = [{ 公司代號: "2330", 股利年度: "115", "股利所屬年(季)度": "第2季", 股利所屬期間: "1150401~1150630", "決議（擬議）進度": "董事會決議", "董事會（擬議）股利分派日": "1150811", 股東會日期: "", "股東配發-盈餘分配之現金股利(元/股)": "7.00000000", "股東配發-法定盈餘公積發放之現金(元/股)": "0.0", "股東配發-資本公積發放之現金(元/股)": "0.0", "股東配發-盈餘轉增資配股(元/股)": "0.0", "股東配發-法定盈餘公積轉增資配股(元/股)": "0.0", "股東配發-資本公積轉增資配股(元/股)": "0.0" }];
 const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "5.0" }];
 // 當日沒有注意股時，上游回一列 Code 為空的佔位資料——照實模擬。
 const NOTICE = [{ Number: "0", Code: "", Name: "", NumberOfAnnouncement: "0", TradingInfoForAttention: "", Date: "", ClosingPrice: "0", PE: "0" }];
@@ -126,6 +127,7 @@ beforeEach(() => {
       if (u.includes("BWIBBU_ALL")) return jsonResponse(VALUATION);
       if (u.includes("t187ap05_L")) return jsonResponse(REVENUE);
       if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
+      if (u.includes("t187ap45_L")) return jsonResponse(DIVIDENDS);
       if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
       if (u.includes("announcement/punish")) return jsonResponse(PUNISH);
       if (u.includes("t187ap06_L_ci")) return jsonResponse(INCOME_CI);

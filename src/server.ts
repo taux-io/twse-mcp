@@ -51,6 +51,7 @@ import {
   DS_COMPANY,
   DS_DAY,
   DS_EX_RIGHTS,
+  DS_DIVIDENDS,
   DS_FUND,
   DS_NOTICE,
   DS_PUNISH,
@@ -106,6 +107,7 @@ const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
   valuation: section.nullable(),
   monthly_revenue: section.nullable(),
   upcoming_ex_rights: z.array(section).nullable(),
+  dividends: z.array(section).nullable(),
   alerts: section,
   derived: section.nullable(),
   financials: z.union([section, z.null(), notQueried]),
@@ -445,8 +447,8 @@ function createServer() {
     {
       description:
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
-        "最新月營收（含月增率與年增率）、近期除權除息預告、是否為注意股或處置股，以及市值。" +
-        "合併七個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
+        "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
         "要財報（損益、資產負債、毛利率等，會自動找對業別的表）帶 include_financials；" +
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
         "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
@@ -468,7 +470,7 @@ function createServer() {
       },
     },
     async ({ code, include_financials, include_governance }) => {
-      // 選配段落與七個主檔同時發出；三者各自的失敗都匯進同一份 errors。
+      // 選配段落與八個主檔同時發出；三者各自的失敗都匯進同一份 errors。
       const finTask = include_financials ? fetchFinancials(code, STOCK_SOURCE_LABELS.financials) : null;
       const govTask = include_governance
         ? fetchSources({
@@ -485,6 +487,7 @@ function createServer() {
         valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
         revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
         exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
+        dividends: { dataset: DS_DIVIDENDS, label: STOCK_SOURCE_LABELS.dividends },
         notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
         punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
       });

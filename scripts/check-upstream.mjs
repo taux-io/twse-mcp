@@ -31,6 +31,7 @@ export const ALWAYS_POPULATED = [
   "opendata/t187ap03_L",
   "exchangeReport/BWIBBU_ALL",
   "opendata/t187ap05_L",
+  "opendata/t187ap45_L",
   "opendata/t187ap06_L_ci",
   "opendata/t187ap07_L_ci",
   "opendata/t187ap33_L",
