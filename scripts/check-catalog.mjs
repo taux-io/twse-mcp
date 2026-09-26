@@ -31,6 +31,23 @@ export const REQUIRED = [
   "exchangeReport/TWT48U_ALL",
   "announcement/notice",
   "announcement/punish",
+  // include_financials：六種業別的損益表與資產負債表
+  ...["ci", "basi", "bd", "fh", "ins", "mim"].flatMap((t) => [`opendata/t187ap06_L_${t}`, `opendata/t187ap07_L_${t}`]),
+  // include_governance
+  "opendata/t187ap33_L",
+  "opendata/t187ap09_L",
+  "opendata/t187ap22_L",
+  "opendata/t187ap08_L",
+  "opendata/t187ap10_L",
+  // twse_market_overview
+  "exchangeReport/MI_INDEX",
+  "exchangeReport/FMTQIK",
+  "opendata/twtazu_od",
+  "exchangeReport/MI_INDEX20",
+  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
+  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
+  "taifex/PutCallRatio",
+  "taifex/OpenInterestOfLargeTradersFutures",
 ];
 
 /** 目錄少於這個數量，幾乎必然是上游出事而非真的縮編。 */

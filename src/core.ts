@@ -995,6 +995,12 @@ export const STOCK_SOURCE_LABELS = {
   exRights: "除權除息預告",
   notice: "注意股公告",
   punish: "處置股公告",
+  financials: "財報",
+  chairman: "董事長兼任總經理",
+  pledge: "董監質押",
+  penalties: "裁罰案件",
+  shortfall: "董監持股不足",
+  shortfallMonths: "董監持股連續不足",
 } as const;
 
 export interface StockSnapshotSources {
@@ -1006,6 +1012,9 @@ export interface StockSnapshotSources {
   notice: Row[];
   punish: Row[];
   errors?: SourceError[];
+  /** 選配段落。undefined 代表這次沒有要求，回應標「未查詢」，與 ETF 快照的 realtime 同一個約定。 */
+  financials?: FinancialsInput;
+  governance?: GovernanceSources;
   /**
    * 台灣時間的今天（`YYYY-MM-DD`）。除權除息「近期」與處置「進行中」都是相對今天的判斷，
    * 由呼叫端傳入，core 才能維持純函式、測試才不會隨執行日期變動。
@@ -1198,6 +1207,14 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     caveats.push("市值 = 已發行普通股數 × 前一交易日收盤價，不含特別股，股數以基本資料的出表日期為準");
   }
 
+  // --- 8. 選配：財報與公司治理 ---
+  const financials =
+    src.financials === undefined
+      ? "未查詢"
+      : buildFinancials(code, src.financials, failed(STOCK_SOURCE_LABELS.financials), caveats);
+  const governance =
+    src.governance === undefined ? "未查詢" : buildGovernance(code, src.governance, failed, absent, caveats);
+
   return {
     code,
     name: (profile?.["公司簡稱"] ?? d?.["Name"] ?? v?.["Name"]) ?? null,
@@ -1209,8 +1226,409 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     upcoming_ex_rights: exRights,
     alerts,
     derived: Object.keys(derived).length ? derived : null,
+    financials,
+    governance,
     caveats,
     note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 twse_realtime_quote）",
     source: SOURCE_NOTE.twse,
+  };
+}
+
+
+// ============================================================================
+// 財報（twse_stock_snapshot 的 include_financials）
+// ============================================================================
+
+/**
+ * 財報依公司業別分成六張表，而且欄位名稱在表與表之間不一致（「資產總計」對「資產總額」、
+ * 「稅前淨利（淨損）」對「繼續營業單位稅前損益」）。模型最常出錯的就是選錯表、或拿某一張的
+ * 欄位名去查另一張。這裡把六種業別收斂成一組固定的科目名，每個科目依序嘗試各業別的寫法。
+ *
+ * 刻意**不**把金控表的「淨收益」當營收：實測它的數值遠小於同表的「利息淨收益」，
+ * 與名稱對不上，無法確認語意。寧可缺一個科目，也不要算出錯的比率。
+ */
+export const FIN_TYPES: Record<string, string> = {
+  ci: "一般業",
+  basi: "金融業",
+  bd: "證券期貨業",
+  fh: "金控業",
+  ins: "保險業",
+  mim: "異業",
+};
+
+const INCOME_ITEMS: [string, string[]][] = [
+  ["營業收入", ["營業收入", "收益"]],
+  ["利息淨收益", ["利息淨收益"]],
+  ["營業毛利", ["營業毛利（毛損）淨額", "營業毛利（毛損）"]],
+  ["營業利益", ["營業利益（損失）", "營業利益"]],
+  ["稅前淨利", ["稅前淨利（淨損）", "繼續營業單位稅前淨利（淨損）", "繼續營業單位稅前損益", "繼續營業單位稅前純益（純損）"]],
+  ["本期淨利", ["本期淨利（淨損）", "本期稅後淨利（淨損）"]],
+  ["歸屬母公司淨利", ["淨利（淨損）歸屬於母公司業主", "淨利（損）歸屬於母公司業主"]],
+  ["基本每股盈餘_元", ["基本每股盈餘（元）"]],
+];
+
+const BALANCE_ITEMS: [string, string[]][] = [
+  ["資產總計", ["資產總計", "資產總額"]],
+  ["負債總計", ["負債總計", "負債總額"]],
+  ["權益總計", ["權益總計", "權益總額"]],
+  ["歸屬母公司權益", ["歸屬於母公司業主之權益合計", "歸屬於母公司業主權益合計", "歸屬於母公司業主之權益"]],
+  ["股本", ["股本"]],
+  ["每股參考淨值_元", ["每股參考淨值"]],
+];
+
+/** 找到的損益表／資產負債表列，以及它來自哪一種業別（FIN_TYPES 的鍵）。 */
+export interface FinancialsInput {
+  income: { type: string; row: Row } | null;
+  balance: { type: string; row: Row } | null;
+}
+
+function pickItems(row: Row, items: [string, string[]][]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [label, names] of items) {
+    for (const n of names) {
+      const v = num(row[n]);
+      if (v !== null) {
+        out[label] = v;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/** 民國「年度＋季別」轉成人讀得懂的期間。 */
+function finPeriod(row: Row): string | null {
+  const y = num(row["年度"]);
+  const q = num(row["季別"]);
+  return y && q ? `${y + 1911} 年第 ${q} 季` : null;
+}
+
+const pctOf = (a: number | undefined, b: number | undefined) =>
+  a !== undefined && b ? Math.round((a / b) * 10000) / 100 : undefined;
+
+function buildFinancials(
+  code: string,
+  f: FinancialsInput,
+  fetchFailed: boolean,
+  caveats: string[],
+): Record<string, unknown> | null {
+  if (!f.income && !f.balance) {
+    caveats.push(
+      fetchFailed
+        ? `因為上游取得失敗，無法判斷 ${code} 的財報——這**不代表**沒有。請稍後重試。`
+        : `${code} 不在六種業別的上市公司財報中（可能不是上市公司，或最新一季尚未公告）。`,
+    );
+    return null;
+  }
+  // 只拿到一半：缺的那張若是因為抓失敗，就不能讓 null 被讀成「沒有」。
+  if (fetchFailed && (!f.income || !f.balance)) {
+    const missing = !f.income ? "損益表" : "資產負債表";
+    caveats.push(`因為上游取得失敗，無法判斷 ${code} 的${missing}——這**不代表**沒有。請稍後重試。`);
+  }
+  const income = f.income ? pickItems(f.income.row, INCOME_ITEMS) : null;
+  // 上游一致性檢查。實測金控業表（2026-09-26）稅前 34 億、稅後 173 億——稅前小於稅後，
+  // 同表的「淨收益」也與名稱對不上，是欄位錯位的跡象。所得稅利益確實可能讓稅前略小於
+  // 稅後，但把一個疑似錯位的數字當成答案轉述，代價遠大於少一個科目。所以略去並說明。
+  if (income && income["稅前淨利"] > 0 && income["本期淨利"] > 0 && income["稅前淨利"] < income["本期淨利"]) {
+    caveats.push(
+      `上游的稅前淨利（${income["稅前淨利"]}）小於稅後淨利（${income["本期淨利"]}），疑似欄位錯位，已略去稅前淨利。` +
+        "其餘數字請以公開資訊觀測站的財報核對。",
+    );
+    delete income["稅前淨利"];
+  }
+  const balance = f.balance ? pickItems(f.balance.row, BALANCE_ITEMS) : null;
+  const ratios: Record<string, number> = {};
+  if (income) {
+    const r = {
+      "毛利率%": pctOf(income["營業毛利"], income["營業收入"]),
+      "營業利益率%": pctOf(income["營業利益"], income["營業收入"]),
+      "淨利率%": pctOf(income["本期淨利"], income["營業收入"]),
+    };
+    for (const [k, v] of Object.entries(r)) if (v !== undefined) ratios[k] = v;
+  }
+  if (balance) {
+    const debt = pctOf(balance["負債總計"], balance["資產總計"]);
+    if (debt !== undefined) ratios["負債比率%"] = debt;
+  }
+  caveats.push(
+    "財報金額單位為千元（每股數字為元）。損益表是年初至該季的**累計數**，不是單季——" +
+      "第 2 季的營收與每股盈餘是上半年合計；資產負債表是該季季底的時點數。比率由本服務依上游數字計算。",
+  );
+  const type = (f.income ?? f.balance)!.type;
+  return {
+    "業別": FIN_TYPES[type] ?? type,
+    "損益期間": f.income ? `${finPeriod(f.income.row)}（年初累計）` : null,
+    "資產負債日": f.balance ? `${finPeriod(f.balance.row)}季底` : null,
+    "損益": income,
+    "資產負債": balance,
+    "比率": Object.keys(ratios).length ? ratios : null,
+  };
+}
+
+// ============================================================================
+// 公司治理（twse_stock_snapshot 的 include_governance）
+// ============================================================================
+
+export interface GovernanceSources {
+  chairman: Row[];
+  pledge: Row[];
+  penalties: Row[];
+  shortfall: Row[];
+  shortfallMonths: Row[];
+}
+
+/**
+ * 董監質押表的格式很特別：一列是一個比率級距（「90 以上」「20 以下」），公司清單整包塞在
+ * 「公司名稱」欄位的文字裡，一行一家：`3040      遠見  99.36`。這裡把那段文字拆開找代號。
+ */
+export function findPledge(rows: Row[], code: string): { ratio: number; bucket: string; date: string | null } | null {
+  const c = norm(code);
+  for (const r of rows) {
+    for (const line of String(r["公司名稱"] ?? "").split(/\r?\n/)) {
+      const m = /^\s*(\S+)\s+.*?\s([\d.]+)\s*$/.exec(line);
+      if (m && norm(m[1]) === c) {
+        return { ratio: Number(m[2]), bucket: String(r["百分比"] ?? ""), date: rocToIso(r["出表日期"]) };
+      }
+    }
+  }
+  return null;
+}
+
+function buildGovernance(
+  code: string,
+  g: GovernanceSources,
+  failed: (label: string) => boolean,
+  absent: (label: string) => void,
+  caveats: string[],
+): Record<string, unknown> {
+  const L = STOCK_SOURCE_LABELS;
+  const unknown = (label: string) => (absent(label), null);
+
+  // 董事長是否兼任總經理：每家上市公司一列，查不到代表不在表上，不是「未兼任」。
+  const ch = firstRow(g.chairman, "公司代號", code);
+  const chairman = failed(L.chairman)
+    ? unknown(L.chairman)
+    : ch
+      ? { "董事長": ch["董事長"], "總經理": ch["總經理"], "董事長兼任總經理": ch["董事長是否兼任總經理"] }
+      : null;
+
+  // 質押：只收有申報質押的公司。不在表上 = 沒有列入，不等於查無此公司。
+  const p = findPledge(g.pledge, code);
+  const pledge = failed(L.pledge)
+    ? unknown(L.pledge)
+    : p
+      ? { "董監質押比率%": p.ratio, "級距": p.bucket, "資料日期": p.date }
+      : "未列入董監質押比率彙總表";
+
+  const pen = g.penalties.filter((r) => norm(r["股票代號"]) === norm(code));
+  const penalties = failed(L.penalties)
+    ? unknown(L.penalties)
+    : pen.map((r) => ({
+        "發函日期": rocToIso(r["發函日期"]),
+        "違規事由": r["違規事由"],
+        "裁處情形": r["裁處情形"],
+      }));
+
+  const sf = firstRow(g.shortfall, "公司代號", code);
+  // 連續不足月數表：每一欄是一個月數級距，欄位值是代號。
+  let months: string | null = null;
+  for (const r of g.shortfallMonths) {
+    for (const [k, v] of Object.entries(r)) {
+      if (k !== "出表日期" && norm(v) === norm(code)) months = k;
+    }
+  }
+  const shortfall =
+    failed(L.shortfall) || failed(L.shortfallMonths)
+      ? unknown(L.shortfall)
+      : sf || months
+        ? {
+            "全體董事不足股數": sf ? num(sf["全體董事不足股數"]) : null,
+            "全體監察人不足股數": sf ? num(sf["全體監察人不足股數"]) : null,
+            "連續不足": months,
+          }
+        : false;
+
+  caveats.push(
+    "公司治理資料多為月報或不定期公告，各段以資料中的日期為準；裁罰只列金管會證期局公告的案件，空陣列代表表上沒有。",
+  );
+  return {
+    "董事長與總經理": chairman,
+    "董監質押": pledge,
+    "裁罰案件": penalties,
+    "董監持股不足": shortfall,
+  };
+}
+
+// ============================================================================
+// 市場概況（twse_market_overview）
+// ============================================================================
+
+export const MARKET_SOURCE_LABELS = {
+  indices: "每日收盤指數",
+  turnover: "市場成交資訊",
+  breadth: "漲跌家數",
+  top: "成交量前二十名",
+  instTotal: "三大法人期貨總表",
+  instContracts: "三大法人各期貨契約",
+  pcr: "Put/Call 比",
+  largeTraders: "期貨大額交易人",
+} as const;
+
+export interface StockMarketSources {
+  indices: Row[];
+  turnover: Row[];
+  breadth: Row[];
+  top: Row[];
+}
+
+export interface FuturesMarketSources {
+  instTotal: Row[];
+  instContracts: Row[];
+  pcr: Row[];
+  largeTraders: Row[];
+}
+
+/** 取日期欄位最大的那一列。各表通常是由舊到新或由新到舊，不依賴順序。 */
+function latest(rows: Row[], field: string): Row | null {
+  let best: Row | null = null;
+  for (const r of rows) {
+    if (!best || String(r[field] ?? "") > String(best[field] ?? "")) best = r;
+  }
+  return best;
+}
+
+/** 證交所把漲跌方向與點數分成兩欄：「漲跌」是 +／-，「漲跌點數」是絕對值。 */
+function signed(dir: unknown, v: unknown): number | null {
+  const n = num(v);
+  if (n === null) return null;
+  return String(dir ?? "").trim() === "-" ? -Math.abs(n) : n;
+}
+
+export function buildStockMarket(src: StockMarketSources, errors: SourceError[], caveats: string[]) {
+  const failed = (l: string) => errors.some((e) => e.source === l);
+  const L = MARKET_SOURCE_LABELS;
+
+  const tx = src.indices.find((r) => r["指數"] === "發行量加權股價指數") ?? null;
+  const taiex = tx
+    ? {
+        "日期": rocToIso(tx["日期"]),
+        "收盤": num(tx["收盤指數"]),
+        "漲跌點數": signed(tx["漲跌"], tx["漲跌點數"]),
+        "漲跌幅%": num(tx["漲跌百分比"]),
+      }
+    : null;
+  if (!tx && !failed(L.indices)) caveats.push("每日收盤指數表裡找不到「發行量加權股價指數」。");
+
+  const t = latest(src.turnover, "Date");
+  const turnover = t
+    ? {
+        "日期": rocToIso(t["Date"]),
+        "成交金額_億元": (() => {
+          const v = num(t["TradeValue"]);
+          return v === null ? null : Math.round(v / 1e6) / 100;
+        })(),
+        "成交股數": num(t["TradeVolume"]),
+        "成交筆數": num(t["Transaction"]),
+      }
+    : null;
+
+  // 漲跌家數表更新很慢（實測落後數月），所以日期一定要跟著出去，並與大盤日期比對。
+  const whole = src.breadth.find((r) => r["類型"] === "整體市場") ?? null;
+  const stocks = src.breadth.find((r) => r["類型"] === "股票") ?? null;
+  const breadthDate = rocToIso((stocks ?? whole)?.["出表日期"]);
+  const pick = (r: Row | null) =>
+    r && {
+      "上漲": num(r["上漲"]), "漲停": num(r["漲停"]), "下跌": num(r["下跌"]),
+      "跌停": num(r["跌停"]), "持平": num(r["持平"]),
+    };
+  const breadth = whole || stocks ? { "資料日期": breadthDate, "股票": pick(stocks), "整體市場": pick(whole) } : null;
+  const marketDate = taiex?.["日期"] ?? turnover?.["日期"] ?? null;
+  if (breadth && breadthDate && marketDate && breadthDate !== marketDate) {
+    caveats.push(
+      `漲跌家數的資料日期是 ${breadthDate}，與大盤的 ${marketDate} 不同——上游這張表沒有每天更新，請不要把它當成當日的漲跌家數。`,
+    );
+  }
+
+  const top = src.top.slice(0, 10).map((r) => ({
+    "排名": num(r["Rank"]),
+    "代號": r["Code"],
+    "名稱": r["Name"],
+    "收盤": num(r["ClosingPrice"]),
+    "漲跌": signed(r["Dir"], r["Change"]),
+    "成交股數": num(r["TradeVolume"]),
+  }));
+
+  for (const [empty, label] of [
+    [!taiex, L.indices], [!turnover, L.turnover], [!breadth, L.breadth], [!top.length, L.top],
+  ] as const) {
+    if (empty && failed(label)) caveats.push(`因為上游取得失敗，無法取得${label}。`);
+  }
+
+  return {
+    "加權指數": taiex,
+    "成交": turnover,
+    "漲跌家數": breadth,
+    "成交量前十名": top.length ? top : null,
+  };
+}
+
+export function buildFuturesMarket(src: FuturesMarketSources, errors: SourceError[], caveats: string[]) {
+  const failed = (l: string) => errors.some((e) => e.source === l);
+  const L = MARKET_SOURCE_LABELS;
+
+  // 三大法人全部期貨合計（總表），以及台指期（臺股期貨）單一契約。未平倉淨口數是市場最常引用的「多空部位」。
+  const total = src.instTotal.map((r) => ({
+    "身份別": r["Item"],
+    "未平倉淨口數": num(r["OpenInterest(Net)"]),
+    "未平倉淨額_百萬元": num(r["ContractValueOfOpenInterest(Net)(Millions)"]),
+    "交易淨口數": num(r["TradingVolume(Net)"]),
+  }));
+  const txRows = src.instContracts.filter((r) => r["ContractCode"] === "臺股期貨");
+  const tx = txRows.map((r) => ({
+    "身份別": r["Item"],
+    "未平倉淨口數": num(r["OpenInterest(Net)"]),
+    "交易淨口數": num(r["TradingVolume(Net)"]),
+  }));
+
+  const p = latest(src.pcr, "Date");
+  const pcr = p
+    ? {
+        "日期": rocToIso(p["Date"]),
+        "成交量 Put/Call 比%": num(p["PutCallVolumeRatio%"]),
+        "未平倉 Put/Call 比%": num(p["PutCallOIRatio%"]),
+      }
+    : null;
+
+  // 大額交易人：取台指期「所有月份合計」（999912）與「全體交易人」（0）那一列。
+  const lt = src.largeTraders.find(
+    (r) => r["Contract"] === "TX" && r["SettlementMonth"] === "999912" && String(r["TypeOfTraders"]) === "0",
+  );
+  const large = lt
+    ? (() => {
+        const b5 = num(lt["Top5Buy"]), s5 = num(lt["Top5Sell"]), b10 = num(lt["Top10Buy"]), s10 = num(lt["Top10Sell"]);
+        return {
+          "日期": rocToIso(lt["Date"]),
+          "商品": lt["ContractName"],
+          "前五大淨部位": b5 !== null && s5 !== null ? b5 - s5 : null,
+          "前十大淨部位": b10 !== null && s10 !== null ? b10 - s10 : null,
+          "全市場未沖銷部位": num(lt["OIOfMarket"]),
+        };
+      })()
+    : null;
+
+  const date = rocToIso(src.instTotal[0]?.["Date"] ?? txRows[0]?.["Date"]);
+  for (const [empty, label] of [
+    [!total.length, L.instTotal], [!tx.length, L.instContracts], [!pcr, L.pcr], [!large, L.largeTraders],
+  ] as const) {
+    if (empty && failed(label)) caveats.push(`因為上游取得失敗，無法取得${label}。`);
+  }
+  caveats.push("期貨口數為契約口數；淨部位為多方減空方，正數偏多、負數偏空。大額交易人的台指期已含小台（MTX/4）。");
+
+  return {
+    "日期": date,
+    "三大法人期貨未平倉（全部期貨）": total.length ? total : null,
+    "三大法人台指期": tx.length ? tx : null,
+    "Put/Call 比": pcr,
+    "台指期大額交易人": large,
   };
 }
