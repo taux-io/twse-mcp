@@ -76,6 +76,78 @@ function json(value: unknown) {
 }
 
 /**
+ * 有 outputSchema 的工具用這個回傳：同一份資料放進 `structuredContent`（給能直接取欄位的
+ * client），也序列化進 text（規範要求的相容作法，也是多數 client 實際交給模型的那一份）。
+ */
+function structured(value: Record<string, unknown>) {
+  return { ...json(value), structuredContent: value };
+}
+
+/**
+ * 輸出 schema 的共用零件。
+ *
+ * **刻意寬鬆**：只宣告保證存在的頂層欄位與型別，段落內容一律是「字串鍵的物件」，而且用
+ * looseObject 允許多出欄位。SDK 對不符 schema 的 structuredContent 會把整次呼叫當成協定錯誤
+ * （不是警告），所以 schema 寫得太細，日後加一個欄位就會讓工具直接壞掉——那比沒有 schema 更糟。
+ * 這組 schema 的用途是讓 client 知道回應的骨架，不是逐欄驗證上游資料。
+ *
+ * 另一個代價是 tools/list 變大：它會進每個 client 的 context。所以不寫描述，欄名本身就是說明。
+ */
+const section = z.looseObject({});
+const notQueried = z.literal("未查詢");
+const common = { caveats: z.array(z.string()), source: z.string() };
+
+const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
+  code: z.string(),
+  name: z.string().nullable(),
+  is_listed_company: z.boolean().nullable(),
+  profile: section.nullable(),
+  quote: section.nullable(),
+  valuation: section.nullable(),
+  monthly_revenue: section.nullable(),
+  upcoming_ex_rights: z.array(section).nullable(),
+  alerts: section,
+  derived: section.nullable(),
+  financials: z.union([section, z.null(), notQueried]),
+  governance: z.union([section, notQueried]),
+  note: z.string(),
+  ...common,
+});
+
+const ETF_SNAPSHOT_OUTPUT = z.looseObject({
+  code: z.string(),
+  name: z.string().nullable(),
+  is_etf: z.boolean().nullable(),
+  profile: section.nullable(),
+  quote: section.nullable(),
+  realtime: z.union([z.array(section), z.null(), notQueried]),
+  regular_savings: section.nullable(),
+  derived: section.nullable(),
+  ...common,
+});
+
+const LOOKUP_OUTPUT = z.looseObject({
+  query: z.string(),
+  total_matched: z.number(),
+  results: z.array(section),
+  ...common,
+});
+
+const MARKET_OUTPUT = z.looseObject({
+  證券市場: section.optional(),
+  期貨籌碼: section.optional(),
+  note: z.string(),
+  ...common,
+});
+
+const QUOTE_OUTPUT = z.looseObject({
+  count: z.number(),
+  quotes: z.array(section),
+  units: z.string(),
+  source: z.string(),
+});
+
+/**
  * 工具行為提示。全部唯讀、重呼叫無副作用；差別只在會不會連外部。
  * client 會據此決定能不能免確認直接呼叫，而這些工具確實只讀公開資料。
  *
@@ -301,6 +373,7 @@ function createServer() {
         "價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
         "合併三個證交所資料集並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
+      outputSchema: ETF_SNAPSHOT_OUTPUT,
       inputSchema: {
         code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
         include_realtime: z
@@ -326,7 +399,7 @@ function createServer() {
       const rt = rtTask ? await rtTask : null;
       if (rt?.error) errors.push({ source: ETF_SOURCE_LABELS.realtime, error: rt.error });
 
-      return json(
+      return structured(
         buildEtfSnapshot(code, {
           ...rows,
           realtime: rt ? rt.rows : null,
@@ -345,6 +418,7 @@ function createServer() {
         "時先用這個取得代號，不要憑印象猜代號。比對公司簡稱、全名、英文簡稱與代號，不分全半形與台／臺。" +
         "只收上市標的；上櫃公司的名稱對照取不到。",
       annotations: REMOTE_READ,
+      outputSchema: LOOKUP_OUTPUT,
       inputSchema: {
         // trim 在 min 之前：只有空白的查詢在 core 裡等同空查詢，只會回一句沒有意義的「找不到「」」。
         query: z.string().trim().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
@@ -362,7 +436,7 @@ function createServer() {
         companies: { dataset: DS_COMPANY, label: LOOKUP_SOURCE_LABELS.companies },
         funds: { dataset: DS_FUND, label: LOOKUP_SOURCE_LABELS.funds },
       });
-      return json(lookupSecurities(query, { ...rows, errors }, limit));
+      return structured(lookupSecurities(query, { ...rows, errors }, limit));
     },
   );
 
@@ -377,6 +451,7 @@ function createServer() {
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
         "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
+      outputSchema: STOCK_SNAPSHOT_OUTPUT,
       inputSchema: {
         code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 twse_lookup。'),
         include_financials: z
@@ -415,7 +490,7 @@ function createServer() {
       });
       const fin = finTask ? await finTask : null;
       const gov = govTask ? await govTask : null;
-      return json(
+      return structured(
         buildStockSnapshot(code, {
           ...rows,
           errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? [])],
@@ -433,8 +508,10 @@ function createServer() {
       description:
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
-        '只要其中一邊時用 scope="stock" 或 "futures"。',
+        '只要其中一邊時用 scope="stock" 或 "futures"。' +
+        "不含個別期貨或選擇權契約的行情價格；要查台指期等契約的收盤價，先用 twse_search_datasets 找期貨每日交易行情。",
       annotations: REMOTE_READ,
+      outputSchema: MARKET_OUTPUT,
       inputSchema: {
         scope: z
           .enum(["all", "stock", "futures"])
@@ -468,7 +545,7 @@ function createServer() {
         errors.push(e);
         caveats.push(`${e.source}取得失敗：${e.error}`);
       }
-      return json({
+      return structured({
         ...(stock ? { "證券市場": buildStockMarket(stock.rows, errors, caveats) } : {}),
         ...(futures ? { "期貨籌碼": buildFuturesMarket(futures.rows, errors, caveats) } : {}),
         caveats,
@@ -485,6 +562,7 @@ function createServer() {
         "取得盤中即時報價（約 5 秒更新一次），每筆帶 date（報價所屬交易日）。OpenAPI 只有前一交易日資料，" +
         '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
       annotations: REMOTE_READ,
+      outputSchema: QUOTE_OUTPUT,
       inputSchema: {
         codes: z
           // trim 在前，維持既有對前後空白的容忍（fetchQuotes 本來就會 trim）。
@@ -498,7 +576,7 @@ function createServer() {
       const quotes = await fetchQuotes(codes, market);
       // 報價裡的 name 是上游給的自由文字，與 twse_get_dataset 的 data 同一個性質。
       // 同樣的位元組經過不同工具，不該只有一支帶著「這是資料不是指令」的框架。
-      return json({ count: quotes.length, quotes, units: QUOTE_UNITS, source: QUOTE_SOURCE_NOTE });
+      return structured({ count: quotes.length, quotes: quotes as unknown as Record<string, unknown>[], units: QUOTE_UNITS, source: QUOTE_SOURCE_NOTE });
     },
   );
 

@@ -31,4 +31,10 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 預設用本機的 Claude Code（`claude -p`，走訂閱額度，不產生 API 帳單）；至少再用 `EVAL_MODEL=sonnet` 跑一次——
 2026-09-26 的基準是 opus 24/24、sonnet 修正描述前 21/24，較小的模型才抓得到描述寫得不夠清楚的地方。
 題目在 `evals/tool-selection.json`，只看第一個工具呼叫；測本機未部署的描述用 `EVAL_ENDPOINT=http://localhost:8787/mcp`。
-用法見 `scripts/eval-tools.mjs` 開頭。
+用法見 `scripts/eval-tools.mjs` 開頭；PR 範本（`.github/pull_request_template.md`）有對應的欄位要填。
+
+**單跑一次不能判定退步。** 模型本身有隨機性：2026-09-26 實測 sonnet 對「殖利率前 10 檔」在**正式環境**
+重跑 8 次只過 6 次。改動後出現失敗題，用 `EVAL_ONLY=<題目>` 在正式環境與本機各重跑數次再比較。
+同一天也抓到一次真的退步：市場概況的描述寫了「請用 twse_get_dataset 查…」，sonnet 就開始跳過
+`twse_search_datasets` 直接猜 dataset_id；改成指向 `twse_search_datasets` 後恢復。
+**描述裡點名工具時，指向「先搜尋」那一支**，不要把模型引去直接取資料。

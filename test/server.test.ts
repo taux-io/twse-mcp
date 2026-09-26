@@ -699,6 +699,32 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out["證券市場"].加權指數.收盤).toBe(48024.6);
   });
 
+  // 固定形狀的五支工具宣告 outputSchema，並回傳 structuredContent。SDK 會拿 schema 驗每一次
+  // 回應，驗不過就讓整次呼叫失敗——所以本檔其餘測試（部分失敗、未查詢、null）全數通過，
+  // 本身就是 schema 涵蓋了所有實際回應形狀的證據。
+  it("固定形狀的工具宣告 outputSchema；查資料類的不宣告", async () => {
+    const payload = await rpc("tools/list", {});
+    const withSchema = payload.result.tools
+      .filter((t: { outputSchema?: unknown }) => t.outputSchema)
+      .map((t: { name: string }) => t.name)
+      .sort();
+    expect(withSchema).toEqual(
+      ["twse_etf_snapshot", "twse_lookup", "twse_market_overview", "twse_realtime_quote", "twse_stock_snapshot"].sort(),
+    );
+    const stock = payload.result.tools.find((t: { name: string }) => t.name === "twse_stock_snapshot");
+    expect(stock.outputSchema.type).toBe("object");
+    expect(stock.outputSchema.required).toEqual(expect.arrayContaining(["code", "financials", "caveats", "source"]));
+  });
+
+  it("structuredContent 與 text 是同一份資料", async () => {
+    const payload = await rpc("tools/call", {
+      name: "twse_stock_snapshot",
+      arguments: { code: "2330", include_financials: true },
+    });
+    expect(payload.result.structuredContent).toEqual(JSON.parse(payload.result.content[0].text));
+    expect(payload.result.structuredContent.financials.業別).toBe("一般業");
+  });
+
   it("工具回應不縮排（整段進模型 context，排版空白是純成本）", async () => {
     const payload = await rpc("tools/call", { name: "twse_search_datasets", arguments: { query: "ETF" } });
     expect(payload.result.content[0].text).not.toContain("\n");
