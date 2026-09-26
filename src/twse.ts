@@ -393,6 +393,12 @@ export interface Quote {
   low: string | undefined;
   prev_close: string | undefined;
   volume: string | undefined;
+  /** 最佳一檔委買價／委賣價。盤中 last 常是「-」（那 5 秒沒有成交），這時它們才是「現在大概多少」。 */
+  bid: string | null;
+  ask: string | null;
+  /** 當日漲停價／跌停價。 */
+  limit_up: string | undefined;
+  limit_down: string | undefined;
   /** 報價所屬的交易日（ISO）。沒有它，非交易時段查到的「最後一筆」會被模型當成今天。 */
   date: string | null;
   time: string | undefined;
@@ -430,9 +436,21 @@ export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quot
     low: q.l,
     prev_close: q.y,
     volume: q.v,
+    bid: bestLevel(q.b),
+    ask: bestLevel(q.a),
+    limit_up: q.u,
+    limit_down: q.w,
     date: rocToIso(q.d),
     time: q.t,
   }));
+}
+
+/**
+ * 五檔報價字串取第一檔：上游寫成 `"112.3500_112.3000_…_"`。沒有委託時是空字串或「-」，回 null。
+ */
+function bestLevel(v: string | undefined): string | null {
+  const first = (v ?? "").split("_")[0].trim();
+  return first && first !== "-" ? first : null;
 }
 
 /** fetch + JSON，附 Cloudflare 邊緣快取（cacheTtl 秒）。cacheTtl<=0 則不快取。 */
