@@ -58,7 +58,7 @@ ponytail 的預設立場是「越短越好」。這個 repo 有很多**看起來
   上游非 JSON 的診斷、空陣列當成上游故障、三態的 `is_etf`／`處置股`——每一個都對應一個
   真的發生過的「安靜地給錯答案」。它們屬於正確性，不在 ponytail 的範圍內。
 - **「重複」的常數多半有測試綁著。** 例如 `scripts/check-catalog.mjs` 的 `REQUIRED` 與
-  `src/twse.ts` 的 `SNAPSHOT_DATASETS`、`TAIFEX_CSV_DATASETS` 的表頭：刻意各寫一份，
+  `src/twse.ts` 的 `SNAPSHOT_DATASETS`、`scripts/check-upstream.mjs` 與 `src/twse.ts` 的 `ALWAYS_POPULATED`：刻意各寫一份，
   由 `test/catalog.test.ts` 斷言一致，因為從一邊推導另一邊的路曾被證明會失效。
 - **ADR 與註解裡寫明的取捨優先。** 與 `docs/adr/` 或程式碼註解明文記錄的決定衝突的建議，
   要先推翻那份理由，而不是直接刪。

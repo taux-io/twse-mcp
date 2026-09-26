@@ -10,7 +10,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
-import { fetchDataset, fetchQuotes, TAIFEX_CSV_DATASETS } from "../src/twse";
+import catalogJson from "../src/catalog.generated.json";
+import { fetchDataset, fetchQuotes } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
 
@@ -1665,8 +1666,9 @@ describe("上游回應的大小上限", () => {
 });
 
 /**
- * 期交所有幾個端點回 CSV 而不是 JSON（指名清單見 `TAIFEX_CSV_DATASETS`）。下面這組以
- * `/v1/DailyMarketReportOpt` 為代表測共用的解析與守衛；其餘各自的表頭另有一組測試。
+ * 期交所的端點會在 JSON 與 CSV 之間來回切換，CSV 退路對整個 `taifex/` 前綴開，
+ * 表頭對應規則見 src/csv-header.mjs。下面這組以 `/v1/DailyMarketReportOpt` 為代表測
+ * 共用的解析與守衛；實測過的真實表頭另有一組測試。
  *
  * 三件事讓這條路徑比看起來危險：
  *
@@ -1675,16 +1677,17 @@ describe("上游回應的大小上限", () => {
  * 2. **退路一旦對整個 `taifex/` 前綴打開，就等於刪掉「上游回非 JSON 要大聲失敗」
  *    這道守衛**（#29／#31 加的，證交所那邊還有測試鎖著）。上游維護時回一個空的
  *    200，parseCsv 會安靜地回 0 筆，而 `cf.cacheTtl` 把那個假的「查無資料」
- *    釘在邊緣一小時。所以退路只對**指名的那一個資料集**開。
+ *    釘在邊緣一小時。所以退路只在表頭對得上目錄時才成立，其餘照樣大聲失敗。
  * 3. **只比對欄位「數量」的守衛不是守衛。** 上游把 18 欄的順序調換，數量仍是 18，
  *    於是每一列的最高價變成最低價——正是 docblock 說要防的「安靜給錯答案」。
  *    所以連表頭的**內容**一起比對。
  */
 describe("期交所的 CSV 端點", () => {
-  // 從匯出的常數推導，不自帶一份表頭。守衛比對的就是這組值，測試若自帶副本，
-  // 常數改了測試不會紅——那守衛就沒有人守。
+  // 從目錄推導，不自帶一份表頭。守衛比對的就是目錄的欄位說明，測試若自帶副本，
+  // 目錄改了測試不會紅——那守衛就沒有人守。
   const CSV_ID = "taifex/DailyMarketReportOpt";
-  const SPEC = TAIFEX_CSV_DATASETS[CSV_ID];
+  const FIELDS = (catalogJson as Record<string, { fields: Record<string, string> }>)[CSV_ID].fields;
+  const SPEC = { header: Object.values(FIELDS), fields: Object.keys(FIELDS) };
   const H = SPEC.header.join(",");
   /** 依表頭欄位數造一列，第 i 欄放 v[i]，其餘補 "-"。 */
   const row = (...v: string[]) =>
@@ -1756,8 +1759,8 @@ describe("期交所的 CSV 端點", () => {
     expect(rows).toEqual([{ Date: "20260807", Contract: "TXO" }]);
   });
 
-  // 退路只對指名的資料集開。其餘 131 個期交所端點必須維持原本的大聲失敗。
-  it("其他期交所資料集回非 JSON 時，仍是錯誤而不是被當成 CSV", async () => {
+  // 表頭對不上這個資料集的目錄時不算 CSV：別張表的 CSV、錯誤頁都一樣大聲失敗。
+  it("期交所資料集回了對不上自己目錄的 CSV，仍是錯誤而不是被當成 CSV", async () => {
     respond(`${H}\r\n${row("20260807", "TXO")}\r\n`);
     await expect(fetchDataset("taifex/PutCallRatio")).rejects.toThrow(/上游回的不是 JSON/);
   });
@@ -1942,35 +1945,49 @@ describe("協定 era", () => {
 });
 
 /**
- * 2026-09-26 全面實測 132 個期交所端點時，另外兩個回的是帶 BOM 的 CSV（content-type
- * 是 application/octet-stream）。修正前查它們一律得到「上游回的不是 JSON」。
- * 這組用真實的回應形狀（含 BOM、CRLF）測每一個，確認欄位換成目錄宣告的英文 key。
+ * 2026-09-26 實測到切成 CSV 的端點，用**上游實際送出的表頭**（含 BOM、CRLF）測一遍。
+ * 這些表頭有的與目錄說明一字不差，有的多幾個字（「數量」「代號」），正是通用規則要涵蓋的。
  */
-describe("期交所 CSV 端點：各自的表頭", () => {
+describe("期交所 CSV 端點：實測過的真實表頭", () => {
   const BOM = "\uFEFF";
   it.each([
     [
+      "taifex/DailyMarketReportFut",
+      "日期,契約代號,到期月份(週別),開盤價,最高價,最低價,最後成交價,漲跌價,漲跌%,合計成交量,結算價,未沖銷契約數," +
+        "最後最佳買價,最後最佳賣價,歷史最高價,歷史最低價,是否因訊息面暫停交易,交易時段,價差對單式委託成交量",
+      "20260924,TX,202610,48000,48100,47900,48050,-10,-0.02,90000,48050,100000,48040,48060,49000,20000,,一般,10",
+      { Contract: "TX", Last: "48050", OpenInterest: "100000" },
+    ],
+    [
       "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
+      "日期,身份別,多方交易口數,多方交易契約金額(百萬元),空方交易口數,空方交易契約金額(百萬元),多空交易口數淨額," +
+        "多空交易契約金額淨額(百萬元),多方未平倉口數,多方未平倉契約金額(百萬元),空方未平倉口數," +
+        "空方未平倉契約金額(百萬元),多空未平倉口數淨額,多空未平倉契約金額淨額(百萬元)",
       "20260924,外資及陸資,512898,699755,528978,724025,-16080,-24270,216664,258841,699517,1211046,-482853,-952205",
       { Date: "20260924", Item: "外資及陸資", "OpenInterest(Net)": "-482853" },
     ],
     [
       "taifex/OpenInterestOfLargeTradersFutures",
+      "日期,契約,商品名稱(契約名稱),到期月份(週別),交易人類別,前五大交易人買方數量,前五大交易人賣方數量," +
+        "前十大交易人買方數量,前十大交易人賣方數量,全市場未沖銷部位數",
       "20260924,TX,臺股期貨(TX+MTX/4),999912,0,72172,52547,78200,72259,112848",
       { Contract: "TX", SettlementMonth: "999912", Top5Buy: "72172", OIOfMarket: "112848" },
     ],
     [
       "taifex/SSFAdjustedInfo",
+      "日期,商品代碼,標的證券代號,標的簡稱,標的類別,商品類別,約定標的物證券股數,約定標的物配發之現金股利," +
+        "約定標的物優先參與現金增資之相當價值,存續到期月份",
       "20260924,CDA,2330,台積電,上市普通股,股票選擇權,2000,14000,0,202610",
       { Contract: "CDA", StockCode: "2330", UnderlyingSecurityShares: "2000" },
     ],
     [
       "taifex/FinalSettlementPrice",
+      "最後結算日,契約月份,商品代號,商品名稱,最後結算價",
       "20251205,202512F1,TXO,臺指選擇權,27892",
       { TheFinalSettlementDay: "20251205", Contract: "TXO", TheFinalSettlementPrice: "27892" },
     ],
-  ] as const)("%s：帶 BOM 的 CSV 解析成英文欄位", async (id, line, expected) => {
-    const body = BOM + TAIFEX_CSV_DATASETS[id].header.join(",") + "\r\n" + line + "\r\n";
+  ] as const)("%s：帶 BOM 的 CSV 解析成英文欄位", async (id, header, line, expected) => {
+    const body = BOM + header + "\r\n" + line + "\r\n";
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(body, { status: 200, headers: { "content-type": "application/octet-stream" } })),

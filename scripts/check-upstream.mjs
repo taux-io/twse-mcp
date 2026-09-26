@@ -5,30 +5,23 @@
  * 逐一實測才發現期交所有兩個端點已經改回 CSV，查它們一律失敗，而且壞了多久沒人知道；
  * 同一天也發現漲跌家數表停在三個多月前。這支腳本把那次手動實測變成排程：
  *
- *   - format：回的不是 JSON，而且不在已知 CSV 清單裡 → 上游改格式了
+ *   - format：回的不是 JSON，而且不是程式讀得了的期交所 CSV（表頭對應規則見
+ *     src/csv-header.mjs，與執行期共用同一份）→ 上游改了格式，工具正在失敗
  *   - http：狀態碼不是 2xx，或連線失敗（重試後仍然）
  *   - empty：必定有資料的主檔回 0 筆
  *   - stale：每日更新的表，最新日期落後超過容許天數
  *
- * 已知 CSV 端點回 JSON 不算問題：期交所會來回切換，程式 JSON 優先，兩種都讀得了。
+ * 期交所端點在 JSON 與 CSV 之間切換不算問題：程式 JSON 優先、CSV 照規則讀，兩種都讀得了。
  *
- * 兩份清單與 src/twse.ts 各有一份，由 test/catalog.test.ts 斷言一致——腳本是 .mjs、
- * 程式是 .ts，這是 repo 既有的作法（見 check-catalog.mjs 的 REQUIRED）。
+ * ALWAYS_POPULATED 與 src/twse.ts 各有一份，由 test/catalog.test.ts 斷言一致——腳本是
+ * .mjs、程式是 .ts，這是 repo 既有的作法（見 check-catalog.mjs 的 REQUIRED）。
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { headerMatches } from "../src/csv-header.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-
-/** 與 src/twse.ts 的 TAIFEX_CSV_DATASETS 的鍵一致。 */
-export const KNOWN_CSV = [
-  "taifex/DailyMarketReportOpt",
-  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
-  "taifex/FinalSettlementPrice",
-  "taifex/OpenInterestOfLargeTradersFutures",
-  "taifex/SSFAdjustedInfo",
-];
 
 /** 與 src/twse.ts 的 ALWAYS_POPULATED 一致。 */
 export const ALWAYS_POPULATED = [
@@ -74,19 +67,27 @@ export function parseDate(v) {
   return null;
 }
 
+/** 期交所的 CSV 程式讀不讀得了：與執行期（src/twse.ts 的 csvSpecFor）同一個判準。 */
+function readableCsv(id, body, catalog) {
+  const fields = catalog[id]?.fields;
+  if (!id.startsWith("taifex/") || !fields) return false;
+  const header = body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].split(",");
+  return headerMatches(header, Object.values(fields));
+}
+
 /**
  * 純函式：依回應判定問題。回傳 null 代表健康，否則 { kind, detail }。
- * `now` 由呼叫端給，測試才不會隨執行日期改變。
+ * `now` 與 `catalog` 由呼叫端給，測試才不會隨執行日期或目錄內容改變。
  */
-export function classify(id, { status, body }, now = new Date()) {
+export function classify(id, { status, body }, now, catalog) {
   if (status < 200 || status >= 300) return { kind: "http", detail: `HTTP ${status}` };
   let data;
   try {
     data = JSON.parse(body);
   } catch {
-    if (KNOWN_CSV.includes(id)) return null;
-    const head = body.trim().slice(0, 60).replace(/\s+/g, " ");
-    return { kind: "format", detail: `回的不是 JSON，也不在已知 CSV 清單：「${head}」` };
+    if (readableCsv(id, body, catalog)) return null;
+    const head = body.trim().slice(0, 80).replace(/\s+/g, " ");
+    return { kind: "format", detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）：「${head}」` };
   }
   const rows = Array.isArray(data) ? data : [data];
   if (rows.length === 0 && ALWAYS_POPULATED.includes(id)) {
@@ -133,7 +134,8 @@ async function main() {
       while (next < ids.length) {
         const id = ids[next++];
         const r = await fetchBody(id);
-        const p = r.status === 0 ? { kind: "http", detail: `連線失敗：${r.body}` } : classify(id, r);
+        const p =
+          r.status === 0 ? { kind: "http", detail: `連線失敗：${r.body}` } : classify(id, r, new Date(), catalog);
         if (p) problems.push({ id, ...p });
       }
     }),

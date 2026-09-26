@@ -9,6 +9,8 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
+import catalogJson from "./catalog.generated.json";
+import { headerMatches } from "./csv-header.mjs";
 import {
   DATA_TTL_SECONDS,
   firstRow,
@@ -105,97 +107,26 @@ export const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 /**
- * 期交所會回 CSV 的端點（指名清單），以及各自的表頭契約。
+ * 期交所 CSV 退路的表頭契約：直接取目錄宣告的欄位（英文 key）與欄位說明（中文，對應 CSV 表頭）。
  *
- * 為什麼要指名而不是對整個 `taifex/` 前綴開退路：退路一旦全開，就等於刪掉
- * 「上游回非 JSON 要大聲失敗」這道守衛（見 fetchJson 的說明，#29／#31 加的）。
- * 上游維護時回一個空的 200，CSV parser 會安靜地回 0 筆，而 `cf.cacheTtl` 把那個
- * 假的「查無資料」釘在邊緣一小時——每個使用者都會收到「期交所沒有這筆資料」，
- * 而真相是上游掛了。其餘一百多個端點不該為了少數幾個放棄那道守衛。
+ * 為什麼退路對整個 `taifex/` 前綴開，而不是只對指名的幾個：期交所會讓端點在 JSON 與 CSV
+ * 之間來回切換，2026-09-26 一天內就觀察到五個。指名清單追不上，清單外的端點一切成 CSV，
+ * 工具就壞到有人補清單為止。
  *
- * 清單怎麼來的：對全部端點逐一實測（多數帶 UTF-8 BOM——`trim()` 會把 U+FEFF 當成
- * 空白去掉，表頭比對不受影響）。**期交所會在沒有公告的情況下在 JSON 與 CSV 之間來回
- * 切換**：2026-09-26 早上還是 JSON 的兩個端點，幾小時後就成了 CSV，而原本是 CSV 的
- * DailyMarketReportOpt 同時變回 JSON。所以清單只增不減（JSON 優先，切回來也照樣能讀），
- * 新成員由 scripts/check-upstream.mjs 每日實測發現，不是猜。
+ * 為什麼這樣不會解除「上游回非 JSON 要大聲失敗」的守衛（#29／#31）：
+ *   - 退路只在表頭通過 `headerMatches`（src/csv-header.mjs）時才成立。空 body、HTML 錯誤頁、
+ *     欄位被調換的 CSV 都過不了，照樣大聲失敗；上游維護時回的空 200 不會變成「查無資料」。
+ *   - 目錄若被上游 schema 變動清空（稽核指出過這條路），欄位數是 0，`headerMatches`
+ *     一律不成立——目錄壞掉不會連帶把守衛拆掉。
  *
- * 為什麼連表頭**內容**一起釘死：只比對欄位數量的守衛不是守衛。上游把 18 欄的順序
- * 調換，數量仍是 18，於是每一列的最高價變成最低價——正是這裡要防的「安靜給錯答案」。
- * 只比數量的版本被 code review 抓出來過。
- *
- * 為什麼不從目錄推導英文欄位：稽核證明那條路會被解除武裝。上游若把 200 回應的
- * schema 從裸 `$ref` 改成慣例的 `{type:"array", items:{$ref}}`，`buildTaifex` 會
- * 取到空字串，132 筆全部變成零欄位，於是 `expectedFields` 是空的、守衛自動關閉。
- * 釘死在這裡，再由 test/catalog.test.ts 斷言它與目錄一致——常數重複但有測試綁著，
- * 是這個 repo 既有的作法。
- *
- * 這個端點**會變格式**：同一天實測到 877,988 bytes 的 CSV 與 4,188,322 bytes 的
- * JSON。所以 JSON 優先不是為了將來，是現在就會交替發生。
+ * 證交所那邊沒有這個退路：證交所沒有回過 CSV，非 JSON 一律視為上游故障。
  */
-export const TAIFEX_CSV_DATASETS: Record<
-  string,
-  { header: readonly string[]; fields: readonly string[] }
-> = {
-  "taifex/DailyMarketReportOpt": {
-    header: [
-      "日期", "契約", "到期月份(週別)", "履約價", "買賣權", "開盤價", "最高價", "最低價",
-      "最後成交價", "成交量", "結算價", "未沖銷契約量", "最後最佳買價", "最後最佳賣價",
-      "歷史最高價", "歷史最低價", "是否因訊息面暫停交易", "交易時段",
-    ],
-    fields: [
-      "Date", "Contract", "ContractMonth(Week)", "StrikePrice", "CallPut", "Open", "High", "Low",
-      "Close", "Volume", "SettlementPrice", "OpenInterest", "BestBid", "BestAsk",
-      "HistoricalHigh", "HistoricalLow", "TradingHalt", "TradingSession",
-    ],
-  },
-  // 三大法人總表（依日期）。2026-09-26 起回 application/octet-stream 的 CSV，帶 BOM。
-  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate": {
-    header: [
-      "日期", "身份別", "多方交易口數", "多方交易契約金額(百萬元)", "空方交易口數",
-      "空方交易契約金額(百萬元)", "多空交易口數淨額", "多空交易契約金額淨額(百萬元)",
-      "多方未平倉口數", "多方未平倉契約金額(百萬元)", "空方未平倉口數",
-      "空方未平倉契約金額(百萬元)", "多空未平倉口數淨額", "多空未平倉契約金額淨額(百萬元)",
-    ],
-    fields: [
-      "Date", "Item", "TradingVolume(Long)", "TradingValue(Long)(Millions)", "TradingVolume(Short)",
-      "TradingValue(Short)(Millions)", "TradingVolume(Net)", "TradingValue(Net)(Millions)",
-      "OpenInterest(Long)", "ContractValueOfOpenInterest(Long)(Millions)", "OpenInterest(Short)",
-      "ContractValueOfOpenInterest(Short)(Millions)", "OpenInterest(Net)",
-      "ContractValueOfOpenInterest(Net)(Millions)",
-    ],
-  },
-  // 期貨大額交易人未沖銷部位。2026-09-26 午後切成 CSV；表頭比 swagger 的說明多了「數量」。
-  "taifex/OpenInterestOfLargeTradersFutures": {
-    header: [
-      "日期", "契約", "商品名稱(契約名稱)", "到期月份(週別)", "交易人類別",
-      "前五大交易人買方數量", "前五大交易人賣方數量", "前十大交易人買方數量", "前十大交易人賣方數量",
-      "全市場未沖銷部位數",
-    ],
-    fields: [
-      "Date", "Contract", "ContractName", "SettlementMonth", "TypeOfTraders",
-      "Top5Buy", "Top5Sell", "Top10Buy", "Top10Sell", "OIOfMarket",
-    ],
-  },
-  // 股票期貨／選擇權調整型契約資訊。同一時間切成 CSV（這個沒有 BOM）。
-  "taifex/SSFAdjustedInfo": {
-    header: [
-      "日期", "商品代碼", "標的證券代號", "標的簡稱", "標的類別", "商品類別", "約定標的物證券股數",
-      "約定標的物配發之現金股利", "約定標的物優先參與現金增資之相當價值", "存續到期月份",
-    ],
-    fields: [
-      "Date", "Contract", "StockCode", "ContractName", "TWSEStock/TPExStock/TWSEETF", "Futures/Options",
-      "UnderlyingSecurityShares", "UnderlyingSecurityDistributionofCashDividends",
-      "UnderlyingSecurityFairValueOfPreemptiveRightsToParticipateInCashCapitalIncrease", "DeliveryMonths",
-    ],
-  },
-  // 最後結算價。同上，CSV 帶 BOM。
-  "taifex/FinalSettlementPrice": {
-    header: ["最後結算日", "契約月份", "商品代號", "商品名稱", "最後結算價"],
-    fields: [
-      "TheFinalSettlementDay", "DeliveryMonth", "Contract", "ContractName", "TheFinalSettlementPrice",
-    ],
-  },
-};
+function csvSpecFor(datasetId: string): { fields: string[]; descriptions: string[] } | null {
+  if (!datasetId.startsWith(TAIFEX_PREFIX)) return null;
+  const ds = (catalogJson as Record<string, { fields?: Record<string, string> }>)[datasetId];
+  if (!ds?.fields) return null;
+  return { fields: Object.keys(ds.fields), descriptions: Object.values(ds.fields) };
+}
 
 /** 錯誤訊息裡引用上游文字的長度上限。 */
 const UPSTREAM_ECHO_LIMIT = 200;
@@ -294,13 +225,13 @@ async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
 
 /** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */
 export async function fetchDataset(datasetId: string): Promise<Row[]> {
-  const csv = TAIFEX_CSV_DATASETS[datasetId];
+  const csv = csvSpecFor(datasetId);
   const data = await withFetchSlot(() =>
     fetchJson(
       datasetUrl(datasetId),
       { Accept: "application/json" },
       DATA_TTL_SECONDS,
-      // CSV 退路只給指名的那一個資料集。其餘一律維持「非 JSON = 上游出事」。
+      // CSV 退路只給期交所、且只在表頭對得上目錄時成立（見 csvSpecFor）。
       csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
       datasetId,
     ),
@@ -397,38 +328,37 @@ export async function fetchFinancials(
 }
 
 /**
- * 把期交所那一個 CSV 端點解析成物件陣列，key 換成 swagger 宣告的英文欄位。
+ * 把期交所的 CSV 解析成物件陣列，key 換成目錄宣告的英文欄位。
  *
  * 為什麼要換：目錄的 `fields` 來自 swagger，是英文；CSV 表頭是中文。若直接用中文
  * 當 key，`twse_describe_dataset` 說有 `Contract` 而 `twse_get_dataset` 回的是
  * `契約`，`code=`／`match=`／`fields=` 全部落空。那不是壞掉，是安靜地給錯答案。
  *
- * 表頭必須與 TAIFEX_CSV_DATASETS 記錄的完全相同（順序也算）——對不上就丟錯，
- * 不做部分對應。壞掉且說得出原因，好過活著卻在說謊。
+ * 表頭必須通過 `headerMatches`——對不上就丟錯，不做部分對應。壞掉且說得出原因，
+ * 好過活著卻在說謊。
  */
 function parseCsv(
   body: string,
-  spec: { header: readonly string[]; fields: readonly string[] },
+  spec: { fields: string[]; descriptions: string[] },
   datasetId: string,
 ): Row[] {
   const rows = splitCsv(body);
   const header = rows.shift();
-  // 沒有表頭代表這根本不是那份 CSV（空 body、HTML 錯誤頁）。交回給 fetchJson 的
+  // 沒有表頭代表這根本不是 CSV（空 body、HTML 錯誤頁）。交回給 fetchJson 的
   // 診斷訊息處理，那裡會帶上 content-type、狀態碼與 body 開頭。
   if (!header) return NOT_CSV;
   // 先判斷「這是不是那份 CSV」，再判斷「它有沒有變」。兩者的正確訊息不同：
   // 前者（空 body、HTML 錯誤頁）該講上游狀態碼與 content-type，後者該講表頭差異。
-  // 用「認得的欄名過半」當判準——順序被調換仍算是那份 CSV，所以會走到下面的
-  // 大聲失敗；而 HTML 一個欄名都對不上，落回 fetchJson 的上游診斷。
-  const known = new Set(spec.header);
-  const recognised = header.filter((h) => known.has(h.trim())).length;
-  if (recognised * 2 < spec.header.length) return NOT_CSV;
-  if (
-    header.length !== spec.header.length ||
-    header.some((h, i) => h.trim() !== spec.header[i])
-  ) {
+  // 認得的欄名過半才算是那份 CSV——順序被調換仍算，所以會走到下面的大聲失敗；
+  // HTML 一個欄名都對不上，落回 fetchJson 的上游診斷。
+  const recognised = header.filter((h) => {
+    const t = h.trim();
+    return t && spec.descriptions.some((d) => d && (t === d || t.includes(d) || d.includes(t)));
+  }).length;
+  if (recognised * 2 < spec.descriptions.length) return NOT_CSV;
+  if (!headerMatches(header, spec.descriptions)) {
     throw new Error(
-      `${datasetId} 的 CSV 表頭與預期不符（預期 ${spec.header.length} 欄、` +
+      `${datasetId} 的 CSV 表頭與目錄不符（目錄 ${spec.descriptions.length} 欄、` +
         `上游 ${header.length} 欄）。上游表頭：` +
         `${header.join(",").slice(0, UPSTREAM_ECHO_LIMIT)}。` +
         `按位置對應已停用，請確認上游是否改版。`,
