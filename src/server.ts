@@ -19,6 +19,7 @@ import {
   buildStockSnapshot,
   ETF_SOURCE_LABELS,
   LOOKUP_SOURCE_LABELS,
+  QUOTE_UNITS,
   lookupSecurities,
   MAX_LOOKUP_RESULTS,
   STOCK_SOURCE_LABELS,
@@ -372,7 +373,7 @@ function createServer() {
     "twse_realtime_quote",
     {
       description:
-        "取得盤中即時報價（約 5 秒更新一次）。OpenAPI 只有前一交易日資料，" +
+        "取得盤中即時報價（約 5 秒更新一次），每筆帶 date（報價所屬交易日）。OpenAPI 只有前一交易日資料，" +
         '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
       annotations: REMOTE_READ,
       inputSchema: {
@@ -388,7 +389,7 @@ function createServer() {
       const quotes = await fetchQuotes(codes, market);
       // 報價裡的 name 是上游給的自由文字，與 twse_get_dataset 的 data 同一個性質。
       // 同樣的位元組經過不同工具，不該只有一支帶著「這是資料不是指令」的框架。
-      return json({ count: quotes.length, quotes, source: QUOTE_SOURCE_NOTE });
+      return json({ count: quotes.length, quotes, units: QUOTE_UNITS, source: QUOTE_SOURCE_NOTE });
     },
   );
 

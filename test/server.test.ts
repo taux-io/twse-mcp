@@ -86,13 +86,13 @@ beforeEach(() => {
         const otc = u.includes("otc_");
         if (otc) {
           return misResponse({
-            msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", h: "26.69", l: "26.56", v: "15501", t: "13:30:00" }],
+            msgArray: [{ c: "00679B", n: "元大美債20年", z: "26.68", y: "26.51", o: "26.57", h: "26.69", l: "26.56", v: "15501", d: "20260924", t: "13:30:00" }],
           });
         }
         // 依 ex_ch 裡實際帶了幾檔就回幾筆，多檔查詢才驗得到東西
         const codes = [...u.matchAll(/tse_([^.]+)\.tw/g)].map((m) => m[1]);
         return misResponse({
-          msgArray: codes.map((c) => ({ c, z: "38.45", t: "13:30:00" })),
+          msgArray: codes.map((c) => ({ c, z: "38.45", d: "20260924", t: "13:30:00" })),
         });
       }
       return jsonResponse([]);
@@ -518,6 +518,27 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(byName.twse_describe_dataset.openWorldHint).toBe(false);
     expect(byName.twse_get_dataset.openWorldHint).toBe(true);
     expect(byName.twse_realtime_quote.openWorldHint).toBe(true);
+  });
+
+  // 沒有 date 時，模型曾把週末查到的報價推估成錯的交易日（實際是 9/24，它猜 9/25）；
+  // 沒有單位時，它說 volume「慣例是張，但沒有標示」。兩件事都要在回應裡講清楚。
+  it("twse_realtime_quote：每筆帶交易日（ISO），回應說明單位", async () => {
+    const out = await callTool("twse_realtime_quote", { codes: ["0050"] });
+    expect(out.quotes[0].date).toBe("2026-09-24");
+    expect(out.units).toContain("張");
+    expect(out.units).toContain("date");
+  });
+
+  it("twse_realtime_quote：上游沒給日期時是 null，不猜", async () => {
+    overrideFetch((u) => u.includes("getStockInfo"), () => misResponse({ msgArray: [{ c: "0050", z: "1" }] }));
+    const out = await callTool("twse_realtime_quote", { codes: ["0050"] });
+    expect(out.quotes[0].date).toBeNull();
+  });
+
+  it("twse_etf_snapshot：附上即時報價時，單位說明寫進 caveats", async () => {
+    const out = await callTool("twse_etf_snapshot", { code: "0056", include_realtime: true });
+    expect(out.realtime[0].date).toBe("2026-09-24");
+    expect(out.caveats.join()).toContain("張");
   });
 
   it("twse_realtime_quote：回映射後的報價，且 market 帶進出站請求", async () => {

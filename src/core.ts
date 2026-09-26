@@ -703,6 +703,16 @@ function dailyQuote(d: Row): Record<string, unknown> {
   return quote;
 }
 
+/**
+ * 報價欄位的單位與判讀。報導站的回應不帶單位，模型會自己猜——實測過它把 volume 說成
+ * 「慣例是張，但沒有標示」，也曾把最近交易日推估錯一天（沒有 date 欄位的時候）。
+ * 價格與成交量都是上游字串原樣轉出，這裡只說明怎麼讀，不改寫數值。
+ */
+export const QUOTE_UNITS =
+  "價格單位為新台幣元；volume 為當日累計成交量，單位是「張」（1 張 = 1,000 股）；" +
+  "date 為報價所屬的交易日，非交易時段查到的是最近一個交易日的收盤資料；" +
+  "last 為「-」表示這一刻沒有成交價，不是 0";
+
 /** ETF 在證交所「基金類型」裡的兩種寫法：被動式「指數股票型」、主動式「交易所交易基金」。 */
 const ETF_TYPE_MARK = /指數股票型|交易所交易基金/;
 
@@ -818,6 +828,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       `即時報價站沒有回傳 ${code} 的資料（可能尚未開盤或非上市標的）。上櫃標的請${OTC_HINT}。`,
     );
   }
+
+  if (src.realtime?.length) caveats.push(`即時報價：${QUOTE_UNITS}`);
 
   // --- 4. 衍生指標 ---
   const derived: Record<string, unknown> = {};
