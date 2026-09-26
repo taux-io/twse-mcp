@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # 台股資料小幫手（TWSE MCP）
@@ -98,6 +98,9 @@ https://twse-mcp.taux.io/mcp
 但查不到更早的歷史行情、統計報表，也做不出 ETF 的完整概況。
 詳見下面「有些查得到、有些查不到」。
 
+**出現「Unsupported protocol version」**
+這個服務只支援新版的 MCP 協定（`2026-07-28`）。把你的 AI 工具更新到最新版再試一次。
+
 **找不到 Connectors 這個設定**
 如果你用的是**公司或團隊的帳號**，通常要管理員先加，成員才能開啟。
 個人帳號（含免費方案）則是自己就能加。
@@ -188,7 +191,7 @@ https://twse-mcp.taux.io/mcp
 2. **即時報價是「盡量即時」。** 它來自證交所的網頁介面，可能有幾秒到幾分鐘延遲、偶爾抓不到，或跟你券商看到的報價略有出入。
 3. **資料僅供參考，不是投資建議。** 數字可能有誤或延遲，**下單前請自己再向官方或券商確認**，投資盈虧請自行負責。
 4. **除了即時報價，其他資料最多可能慢一小時。** 為了不一直去打證交所，各類報表會快取一小時；盤中價格不快取，永遠是當下抓的。
-5. **不用登入，也不會知道你查了什麼。** 你查的內容會經過本服務去代理證交所的**公開**資料。目前為了統計還有多少人用舊版連線方式，會記錄你的 AI 工具種類與連線協定版本——**不含你問的問題**，統計完就會移除。
+5. **不用登入，也不會知道你查了什麼。** 你查的內容會經過本服務去代理證交所的**公開**資料，服務不記錄你問的問題。
 
 ---
 
@@ -246,7 +249,7 @@ codex mcp add twse --url https://twse-mcp.taux.io/mcp
 | 項目 | 值 |
 |---|---|
 | 網址 | `https://twse-mcp.taux.io/mcp` |
-| 連線方式 | Streamable HTTP（遠端 MCP），新舊版 MCP 協定都支援 |
+| 連線方式 | Streamable HTTP（遠端 MCP），MCP 協定 `2026-07-28` 版 |
 | 認證 | 不需要 |
 
 各家設定檔的欄位名稱不太一樣，請對應到「Streamable HTTP」那一種，不要選成舊的 SSE。

@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/taux-io/twse-mcp/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # 台股数据小助手（TWSE MCP 服务器）
@@ -68,7 +68,7 @@
 | 项目 | 值 |
 |---|---|
 | 网址 | `https://twse-mcp.taux.io/mcp` |
-| 连接方式 | Streamable HTTP（远程 MCP），新旧两代 MCP 协议都支持 |
+| 连接方式 | Streamable HTTP（远程 MCP），MCP 协议 `2026-07-28` 版 |
 | 认证 | 不需要 |
 
 各家配置文件的字段名不太一样，对应到 **"Streamable HTTP"** 那种，
@@ -84,8 +84,7 @@
    一小时；盘中价格不缓存，永远是当下抓的。
 4. **数据仅供参考，不是投资建议。** 数字可能有误或延迟，**下单前请自己再向交易所或券商
    确认**，盈亏自负。
-5. **不用登录，也不会知道你查了什么。** 只是替你去取公开数据而已。目前为了统计还有多少人
-   用旧版连接方式，会记录你的 AI 工具种类和协议版本——**不包含你问的问题**，统计完就移除。
+5. **不用登录，也不会知道你查了什么。** 只是替你去取公开数据而已，不记录你问的问题。
 
 ## 上市（TSE）和上柜（OTC）能查的范围不一样
 

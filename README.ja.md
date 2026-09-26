@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/taux-io/twse-mcp/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://github.com/taux-io/twse-mcp/blob/main/wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](https://github.com/taux-io/twse-mcp/blob/main/docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # 台湾株データアシスタント（TWSE MCP サーバー）
@@ -73,7 +73,7 @@ ETF の情報、先物・オプションの日次相場、両取引所が公開�
 | 項目 | 値 |
 |---|---|
 | URL | `https://twse-mcp.taux.io/mcp` |
-| 接続方式 | Streamable HTTP（リモート MCP）、新旧どちらの MCP プロトコルにも対応 |
+| 接続方式 | Streamable HTTP（リモート MCP）、MCP プロトコル `2026-07-28` |
 | 認証 | 不要 |
 
 設定項目の名称はツールによって異なります。**「Streamable HTTP」** を選んでください。
@@ -90,8 +90,6 @@ ETF の情報、先物・オプションの日次相場、両取引所が公開�
 4. **参考情報であり投資助言ではありません。** 数値に誤りや遅延がある可能性があります。
    **取引の前に取引所または証券会社で必ず確認してください。** 損益は自己責任です。
 5. **ログイン不要、質問内容は記録しません。** 公開データを取得して返すだけです。
-   現在、旧プロトコルでの接続数を計測するため、利用中の AI ツールの種類とプロトコル
-   バージョンのみを記録しています——**質問の内容は含みません**。計測が終わり次第削除します。
 
 ## 上場（TSE）と店頭（OTC）で扱える範囲が違います
 

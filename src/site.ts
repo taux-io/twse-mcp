@@ -200,7 +200,7 @@ const ZH: Page = {
     },
     {
       q: "我的問題內容會被記錄嗎？",
-      a: "不會。服務只是代你去取公開資料。目前為了統計還有多少人使用舊版連線協定，會記錄 AI 工具種類與協定版本，不含你問的內容，統計結束後即移除。",
+      a: "不會。服務只是代你去取公開資料，不記錄你問的內容。",
     },
   ],
   headings: {
@@ -341,7 +341,7 @@ const EN: Page = {
     },
     {
       q: "Are my questions logged?",
-      a: "No. The service only fetches public data on your behalf. It currently records which AI client and protocol version connect, so we can tell how many callers still use the older protocol — never the content of your questions — and that measurement will be removed once it is done.",
+      a: "No. The service only fetches public data on your behalf and does not log what you ask.",
     },
   ],
   headings: {
@@ -706,7 +706,7 @@ export const LLMS_TXT = `# Taiwan Stock MCP / 台股 MCP (twse-mcp)
 ## Connection / 連線方式
 
 - Endpoint / 端點：${MCP_ENDPOINT}
-- Transport / 傳輸：Streamable HTTP (remote MCP). Both the 2025 and 2026 protocol revisions are supported.
+- Transport / 傳輸：Streamable HTTP (remote MCP), MCP protocol revision 2026-07-28 only. Clients on 2025 revisions receive an "Unsupported protocol version" error and need updating.
 - Authentication / 認證：none required / 不需要
 - Cost / 費用：free; Claude's free plan can add it as a custom connector. 免費，Claude 免費方案即可加入。
 

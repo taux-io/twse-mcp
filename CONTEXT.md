@@ -97,8 +97,8 @@ modern era 沒有交握，client 每個請求自報修訂版，server 逐一接�
 _Avoid_：協定版本、版號、version
 
 **lane**：
-同一個端點上分派給某一個 era 的處理路徑。本服務的 `/mcp` 同時開著 legacy 與
-modern 兩條 lane，規範稱這種 server 為 dual-era。
+同一個端點上分派給某一個 era 的處理路徑。同時開著 legacy 與 modern 兩條 lane 的
+server，規範稱為 dual-era。本服務自 2026-09-26 起只開 modern lane（見 ADR-0001 §三）。
 _Avoid_：通道、路徑、分支、相容層
 
 **era 收斂**：
