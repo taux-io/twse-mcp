@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "make-og": "node scripts/make-og.mjs",
-    "eval:tools": "node scripts/eval-tools.mjs"
+    "eval:tools": "node scripts/eval-tools.mjs",
+    "eval:ab": "node scripts/eval-ab.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.0.0",
