@@ -121,3 +121,5 @@ PER·수익률 기준 종목 필터링, 시장 개황과 선물 포지션, ETF �
 MIT 라이선스. 소스 코드와 이슈는
 [github.com/taux-io/twse-mcp](https://github.com/taux-io/twse-mcp)에 있습니다.
 번역 수정도 환영합니다.
+
+버전별 변경 사항은 [변경 기록(영어)](CHANGELOG.en.md)을 참고하세요.

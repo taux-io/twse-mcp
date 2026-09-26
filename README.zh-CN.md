@@ -118,3 +118,5 @@
 MIT 许可证。源码和 issue 都在
 [github.com/taux-io/twse-mcp](https://github.com/taux-io/twse-mcp)。
 也欢迎帮忙修翻译。
+
+每个版本改了什么，见[更新记录（繁体中文）](CHANGELOG.md)。

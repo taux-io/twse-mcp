@@ -155,6 +155,8 @@ interface Page {
     disclaimer: string;
     footerLead: string;
     footerIssue: string;
+    changelog: string;
+    changelogFile: string;
     howToName: string;
     howToDesc: string;
     otherLangLabel: string;
@@ -300,6 +302,8 @@ const ZH: Page = {
     disclaimer: "本服務僅為代理與轉換，不對資料正確性負責；引用時請一併標示上述來源。",
     footerLead: "開源專案，程式碼與問題回報都在",
     footerIssue: "。用起來覺得怪、查不到想要的資料，都歡迎開一個 issue。",
+    changelog: "更新紀錄：每一版改了什麼",
+    changelogFile: "CHANGELOG.md",
     howToName: "如何在 Claude 裡安裝台股 MCP",
     howToDesc: "把台股 MCP 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
     otherLangLabel: "其他語言的完整說明",
@@ -453,6 +457,8 @@ const EN: Page = {
     footerLead: "Open source. Code and issue tracker are on",
     footerIssue:
       ". If something looks wrong, or you cannot find the data you need, please open an issue.",
+    changelog: "Changelog: what changed in each version",
+    changelogFile: "CHANGELOG.en.md",
     howToName: "How to install Taiwan Stock MCP in Claude",
     howToDesc:
       "Add Taiwan Stock MCP as a custom connector in Claude. It takes about a minute and needs no account or payment.",
@@ -740,6 +746,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 
 <footer>
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
+<p><a href="${REPO}/blob/main/${p.ui.changelogFile}">${esc(p.ui.changelog)}</a></p>
 <p>${esc(p.ui.otherLangLabel)}：</p>
 <ul class="langs">
 <li><a href="${REPO}/blob/main/README.md">繁體中文</a></li>
@@ -814,6 +821,7 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 - Source code and issue tracker / 原始碼與問題回報：${REPO}
 - Setup guide (Traditional Chinese)：${REPO}/blob/main/README.md
 - Setup guide (English)：${REPO}/blob/main/README.en.md
+- Changelog / 更新紀錄：${REPO}/blob/main/CHANGELOG.en.md ｜ ${REPO}/blob/main/CHANGELOG.md
 - Licence verification record / 授權查證紀錄：${REPO}/blob/main/docs/licensing-taifex.md
 `;
 

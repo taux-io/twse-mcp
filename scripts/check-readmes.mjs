@@ -98,6 +98,14 @@ async function main() {
     }
   }
 
+  // 6. 發版時忘了寫更新紀錄：package.json 的版本兩份 CHANGELOG 都要有一節。
+  const { version } = JSON.parse(await readFile(path.join(ROOT, "package.json"), "utf-8"));
+  for (const f of ["CHANGELOG.md", "CHANGELOG.en.md"]) {
+    if (!(await readFile(path.join(ROOT, f), "utf-8")).includes(`## [${version}]`)) {
+      problems.push(`${f} 沒有 ${version} 這一版的紀錄`);
+    }
+  }
+
   if (problems.length) {
     console.error("README 一致性檢查失敗：");
     for (const p of problems) console.error(`  - ${p}`);
