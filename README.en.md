@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](package.json)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](wrangler.jsonc)
-[![MCP](https://img.shields.io/badge/MCP-2026--07--28-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28%20%2B%202025-blueviolet)](docs/adr/0001-dual-era-and-cache-scope.md)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 
 # Taiwan Stock Data Helper (TWSE MCP)
@@ -110,10 +110,6 @@ That is a limitation, not a fault. OTC tickers (such as 6488 GlobalWafers or
 open/high/low, yesterday's close and volume** — but nothing further back, no
 statistical reports, and no full ETF profile. See "What it can and cannot look
 up" below.
-
-**You see "Unsupported protocol version"**
-This service only speaks the current MCP protocol revision (`2026-07-28`).
-Update your AI tool to its latest version and try again.
 
 **There is no Connectors option in settings**
 On a **company or team account**, an administrator usually has to add the
@@ -281,7 +277,7 @@ codex mcp add twse --url https://twse-mcp.taux.io/mcp
 | Field | Value |
 |---|---|
 | URL | `https://twse-mcp.taux.io/mcp` |
-| Transport | Streamable HTTP (remote MCP), MCP protocol revision `2026-07-28` |
+| Transport | Streamable HTTP (remote MCP); both the older and newer MCP protocol revisions work |
 | Authentication | None |
 
 Field names differ between tools — pick the "Streamable HTTP" option, not the

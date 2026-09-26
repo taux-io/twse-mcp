@@ -621,8 +621,37 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
   "/og.png": { body: OG_PNG, type: "image/png", cache: "public, max-age=86400, s-maxage=604800" },
 };
 
+/**
+ * JSON-RPC 批次一律拒絕，在進 SDK 之前。
+ *
+ * 為什麼要擋：legacy lane 會把頂層陣列的每個元素**同時**分派，沒有節流；稽核實測
+ * 275 元素的批次 → 275 次並行抓取 → 放大 5973 倍，足以 OOM 一個 128 MB isolate（#70）。
+ *
+ * 為什麼是全擋而不是設上限：MCP 從 `2025-06-18` 起就把批次移出規範，`2026-07-28` 也沒有，
+ * 現存的用戶端（Claude、Codex）都不送。#70 當時留了「最多 8 個」給舊用戶端，但沒有證據
+ * 顯示有人用；全擋更簡單，而且把最壞情況從 8 份並行下載降到 0。
+ *
+ * 讀 body 用 clone，不動到交給 SDK 的那一份；只看第一個非空白字元，不解析。
+ */
+async function rejectBatch(request: Request): Promise<Response | null> {
+  if (request.method !== "POST" || new URL(request.url).pathname !== MCP_ROUTE) return null;
+  const body = await request.clone().text();
+  if (!body.trimStart().startsWith("[")) return null;
+  return Response.json(
+    {
+      jsonrpc: "2.0",
+      id: null,
+      error: {
+        code: -32600,
+        message: "不支援 JSON-RPC 批次（MCP 2025-06-18 起已移出規範）。請一次送一個請求。",
+      },
+    },
+    { status: 400 },
+  );
+}
+
 export default {
-  fetch(request, env, ctx) {
+  async fetch(request, env, ctx) {
     // 靜態頁面先處理：先回傳可以少建一次 MCP handler（那個建構是刻意每請求做的，見下方說明）。
     if (request.method === "GET" || request.method === "HEAD") {
       const route = STATIC_ROUTES[new URL(request.url).pathname];
@@ -644,9 +673,11 @@ export default {
     // stream 把上限塞滿，之後落在同一個 isolate 的其他人一律被拒。每請求重建多一點
     // 成本，但它讓這些結構跟著請求一起消滅。
     //
-    // `legacy: "reject"`：只服務 modern（2026-07-28）。era 收斂的依據見 ADR-0001 §三。
-    // 副作用是 JSON-RPC 批次（只存在於 legacy）在分派前就被整批拒絕——先前擋批次扇出的
-    // 那道守衛因此不再需要，test/server.test.ts 有一條 275 元素批次零出站的斷言守著。
-    return createMcpHandler(createServer, { legacy: "reject" })(request, env, ctx);
+    // dual-era：modern（2026-07-28）與 legacy（2025 系列）都服務。收斂過一次又重新開放，
+    // 因為 Codex 等仍只會 legacy 的用戶端被擋在外面——依據見 ADR-0001 §三。
+    // legacy 唯一的危險是批次扇出，由 rejectBatch 在進 SDK 前擋掉。
+    const batch = await rejectBatch(request);
+    if (batch) return batch;
+    return createMcpHandler(createServer, { legacy: "stateless" })(request, env, ctx);
   },
 } satisfies ExportedHandler;

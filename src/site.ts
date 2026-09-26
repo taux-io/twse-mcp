@@ -708,7 +708,7 @@ export const LLMS_TXT = `# Taiwan Stock MCP / 台股 MCP (twse-mcp)
 ## Connection / 連線方式
 
 - Endpoint / 端點：${MCP_ENDPOINT}
-- Transport / 傳輸：Streamable HTTP (remote MCP), MCP protocol revision 2026-07-28 only. Clients on 2025 revisions receive an "Unsupported protocol version" error and need updating.
+- Transport / 傳輸：Streamable HTTP (remote MCP). Both the 2025 and 2026 protocol revisions are supported; JSON-RPC batches are not.
 - Authentication / 認證：none required / 不需要
 - Cost / 費用：free; Claude's free plan can add it as a custom connector. 免費，Claude 免費方案即可加入。
 
