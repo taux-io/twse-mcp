@@ -62,7 +62,6 @@ export const DS_SHORTFALL_MONTHS = "opendata/t187ap10_L"; // 董監持股連續�
 // twse_market_overview
 export const DS_INDICES = "exchangeReport/MI_INDEX"; // 每日收盤行情-大盤統計資訊
 export const DS_TURNOVER = "exchangeReport/FMTQIK"; // 集中市場每日市場成交資訊
-export const DS_BREADTH = "opendata/twtazu_od"; // 集中市場漲跌證券數統計表
 export const DS_TOP20 = "exchangeReport/MI_INDEX20"; // 成交量前二十名
 export const DS_INST_TOTAL = "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate";
 export const DS_INST_CONTRACTS = "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate";
@@ -78,7 +77,7 @@ export const SNAPSHOT_DATASETS = [
   DS_COMPANY, DS_VALUATION, DS_REVENUE, DS_EX_RIGHTS, DS_NOTICE, DS_PUNISH,
   ...FIN_TYPE_KEYS.map(dsIncome), ...FIN_TYPE_KEYS.map(dsBalance),
   DS_CHAIRMAN, DS_PLEDGE, DS_PENALTIES, DS_SHORTFALL, DS_SHORTFALL_MONTHS,
-  DS_INDICES, DS_TURNOVER, DS_BREADTH, DS_TOP20,
+  DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
 ];
 

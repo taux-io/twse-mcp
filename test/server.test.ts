@@ -72,11 +72,6 @@ const TURNOVER = [
   { Date: "1150923", TradeVolume: "10473893046", TradeValue: "894650683140", Transaction: "4407031" },
   { Date: "1150924", TradeVolume: "8626109510", TradeValue: "775591428171", Transaction: "3880761" },
 ];
-// 漲跌家數表實測停在 6 月——回應必須照實說出日期落差。
-const BREADTH = [
-  { 出表日期: "1150605", 類型: "整體市場", 上漲: "3144", 漲停: "43", 下跌: "9578", 跌停: "355", 持平: "459" },
-  { 出表日期: "1150605", 類型: "股票", 上漲: "342", 漲停: "19", 下跌: "671", 跌停: "10", 持平: "59" },
-];
 const TOP20 = [{ Rank: "1", Code: "2409", Name: "友達", ClosingPrice: "34.20", Dir: "-", Change: "0.50", TradeVolume: "542503236" }];
 const INST_TOTAL = [
   { Date: "20260924", Item: "外資及陸資", "OpenInterest(Net)": "-482853", "ContractValueOfOpenInterest(Net)(Millions)": "-952205", "TradingVolume(Net)": "-16080" },
@@ -144,7 +139,6 @@ beforeEach(() => {
       if (u.includes("MI_INDEX20")) return jsonResponse(TOP20);
       if (u.includes("MI_INDEX")) return jsonResponse(INDICES);
       if (u.includes("FMTQIK")) return jsonResponse(TURNOVER);
-      if (u.includes("twtazu_od")) return jsonResponse(BREADTH);
       if (u.includes("GeneralBytheDate")) return jsonResponse(INST_TOTAL);
       if (u.includes("DetailsOfFuturesContractsBytheDate")) return jsonResponse(INST_CONTRACTS);
       if (u.includes("PutCallRatio")) return jsonResponse(PCR);
@@ -637,13 +631,15 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(umc.governance.董監持股不足).toMatchObject({ 全體董事不足股數: 5869862, 連續不足: "連續不足達3個月" });
   });
 
-  it("twse_market_overview：大盤、成交、漲跌家數（附日期落差警告）與成交量排行", async () => {
+  it("twse_market_overview：大盤、成交、漲跌家數（由日成交資訊計算）與成交量排行", async () => {
     const out = await callTool("twse_market_overview", { scope: "stock" });
     const m = out["證券市場"];
     expect(m.加權指數).toEqual({ 日期: "2026-09-24", 收盤: 48024.6, 漲跌點數: -132.69, "漲跌幅%": -0.28 });
     expect(m.成交).toMatchObject({ 日期: "2026-09-24", 成交金額_億元: 7755.91 });
-    expect(m.漲跌家數.資料日期).toBe("2026-06-05");
-    expect(out.caveats.join()).toContain("2026-06-05");
+    // 只數四碼、不以 0 開頭的上市股票：2330 跌 5 元算下跌，0056（ETF）不列入
+    expect(m.漲跌家數).toMatchObject({ 日期: "2026-07-27", 上漲: 0, 下跌: 1, 持平: 0, 無收盤價: 0 });
+    // 不再使用停更的官方漲跌家數表
+    expect(fetchedUrls().some((u) => u.includes("twtazu_od"))).toBe(false);
     expect(m.成交量前十名[0]).toMatchObject({ 代號: "2409", 漲跌: -0.5 });
     expect(out).not.toHaveProperty("期貨籌碼");
   });
