@@ -304,7 +304,10 @@ function createServer() {
   server.registerTool(
     "twse_describe_dataset",
     {
-      description: "查看某個資料集的完整欄位定義，取資料前用來確認要過濾／投影哪些欄位。",
+      description:
+        "查看某個資料集的定義：代號、來源（證交所或期交所）、中文說明、分類標籤，以及每個欄位的鍵名與中文說明。" +
+        "twse_get_dataset 的 where、sort_by、fields、match 都要用這裡的鍵名（例如 PEratio），不是中文說明。" +
+        "只讀本機目錄、不抓上游，所以不含資料筆數或最新日期。代號不存在時回 error，請先用 twse_search_datasets 找。",
       annotations: LOCAL_READ,
       inputSchema: {
         dataset_id: z
@@ -320,7 +323,8 @@ function createServer() {
     {
       description:
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
-        "兩邊的每個資料集都是一次回整份（可能上萬筆），務必用 code/match/where/fields 縮小範圍。" +
+        "上游每個資料集都是整份回傳（可能上萬筆），這支工具預設只回前 30 筆（上限 200）；" +
+        "用 code/match/where/fields 縮小到需要的範圍。" +
         "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
       annotations: REMOTE_READ,
       inputSchema: {
