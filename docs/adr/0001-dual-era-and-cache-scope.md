@@ -131,6 +131,21 @@ Cloudflare Workers Observability，篩 `tag = "mcp-client-probe"`，2026-09-26 �
 - 有一部分是 liveness 監測 bot（1 小時內 `SentinelOracle` 30 筆、`mcpbeat` 16 筆）。
 - **`claude-code/*` 全部已是 modern**——8 月實測時它還送 `2025-11-25`，這是收斂前後最大的變化。
 
+**合併前的定點實測**（2026-09-26 約 09:01，GMT+8）：維護者從 claude.ai 網頁版連接器
+與 Claude Desktop 各發一次查詢，同時段 15 筆探針記錄中：
+
+| user agent | `protocolVersion` |
+|---|---|
+| `Claude-User`（claude.ai 網頁版連接器，README 的主要安裝路徑） | `2026-07-28` |
+| `claude-code/2.1.281 (claude-desktop, …)` | `2026-07-28` |
+| `claude-code/2.1.282 (cli)` | `2026-07-28` |
+| `python-httpx2/2.7.0` | `2025-11-25` |
+| `Python/3.11 aiohttp/3.14.3` | （無此欄位） |
+
+Anthropic 自家的三個 client 全部是 modern；同時段的 legacy 請求全部來自 Python 腳本。
+這把收斂的影響範圍從「約半數請求」縮小到「自己寫腳本、用舊版 SDK 的呼叫者」——
+他們收到 -32022 後升級 SDK 即可。
+
 ### 決定
 
 **原本寫下的收斂條件沒有成立**（「不再有非 modern 的請求，持續一段足以涵蓋低頻使用者的期間」）：
