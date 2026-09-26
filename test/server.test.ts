@@ -1469,7 +1469,8 @@ describe("上游回應的大小上限", () => {
 });
 
 /**
- * 期交所有**恰好一個**端點回 CSV 而不是 JSON：`/v1/DailyMarketReportOpt`。
+ * 期交所有幾個端點回 CSV 而不是 JSON（指名清單見 `TAIFEX_CSV_DATASETS`）。下面這組以
+ * `/v1/DailyMarketReportOpt` 為代表測共用的解析與守衛；其餘各自的表頭另有一組測試。
  *
  * 三件事讓這條路徑比看起來危險：
  *
@@ -1744,3 +1745,32 @@ describe("協定 era", () => {
   });
 });
 
+/**
+ * 2026-09-26 全面實測 132 個期交所端點時，另外兩個回的是帶 BOM 的 CSV（content-type
+ * 是 application/octet-stream）。修正前查它們一律得到「上游回的不是 JSON」。
+ * 這組用真實的回應形狀（含 BOM、CRLF）測每一個，確認欄位換成目錄宣告的英文 key。
+ */
+describe("期交所 CSV 端點：各自的表頭", () => {
+  const BOM = "\uFEFF";
+  it.each([
+    [
+      "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
+      "20260924,外資及陸資,512898,699755,528978,724025,-16080,-24270,216664,258841,699517,1211046,-482853,-952205",
+      { Date: "20260924", Item: "外資及陸資", "OpenInterest(Net)": "-482853" },
+    ],
+    [
+      "taifex/FinalSettlementPrice",
+      "20251205,202512F1,TXO,臺指選擇權,27892",
+      { TheFinalSettlementDay: "20251205", Contract: "TXO", TheFinalSettlementPrice: "27892" },
+    ],
+  ] as const)("%s：帶 BOM 的 CSV 解析成英文欄位", async (id, line, expected) => {
+    const body = BOM + TAIFEX_CSV_DATASETS[id].header.join(",") + "\r\n" + line + "\r\n";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(body, { status: 200, headers: { "content-type": "application/octet-stream" } })),
+    );
+    const rows = await fetchDataset(id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject(expected);
+  });
+});
