@@ -35,6 +35,8 @@ Once installed, just ask in your own words, for example:
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
 - **"How fast is TSMC's revenue growing? What are its P/E and yield?"** — A one-page company snapshot: monthly revenue growth, P/E, dividend yield, upcoming ex-dividend dates, and whether it is under disposition.
 - **"Which stocks yield over 6% with a P/E under 10?"** — Filters and sorts by the exchange's published figures, so you do not page through them yourself.
+- **"How much did TSMC earn this half? Gross margin? Are directors' shares pledged?"** — The latest quarter's financials (the right industry table is picked for you) plus governance: chair/CEO duality, director share pledges, regulatory penalties.
+- **"How did the market do? Where are foreign investors positioned in futures?"** — TAIEX, turnover, most-traded stocks, plus institutional futures open interest, the put/call ratio and large-trader positions.
 - **"What exactly is the ETF 0056?"** — Which index it tracks, how popular it is for regular savings plans, plus which figures you should not take at face value.
 - **"Where did the TAIEX futures settle yesterday?"** — Daily futures and options quotes, institutional-investor flows and open interest, as published by the futures exchange.
 - **"Does the exchange publish data on …?"** — Finds the right one among two hundred-plus public reports.

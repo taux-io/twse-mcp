@@ -44,6 +44,55 @@ const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividen
 const NOTICE = [{ Number: "0", Code: "", Name: "", NumberOfAnnouncement: "0", TradingInfoForAttention: "", Date: "", ClosingPrice: "0", PE: "0" }];
 const PUNISH = [{ Number: "1", Date: "1150917", Code: "2305", Name: "全友", DispositionPeriod: "115/09/18～115/09/30", ReasonsOfDisposition: "連續五次", DispositionMeasures: "第一次處置" }];
 
+// 財報、公司治理、市場概況的 fixture。形狀照 2026-09-26 的真實上游。
+const INCOME_CI = [
+  { 年度: "115", 季別: "2", 公司代號: "2330", 公司名稱: "台積電", 營業收入: "2404483690.00", "營業毛利（毛損）淨額": "1611606116.00", "營業利益（損失）": "1425568793.00", "稅前淨利（淨損）": "1550229773.00", "本期淨利（淨損）": "1279582227.00", "淨利（淨損）歸屬於母公司業主": "1279041690.00", "基本每股盈餘（元）": "49.33" },
+];
+const BALANCE_CI = [
+  { 年度: "115", 季別: "2", 公司代號: "2330", 資產總計: "9375654727.00", 負債總計: "2901183746.00", 權益總計: "6474470981.00", 歸屬於母公司業主之權益合計: "6432518334.00", 股本: "259323701.00", 每股參考淨值: "248.05" },
+];
+// 金控用另一張表，而且欄位名不同（資產總額、本期稅後淨利）——正是要被收斂的差異。
+// 繼續營業單位稅前損益照真實上游放：比稅後淨利小，是欄位錯位的跡象，要被擋下。
+const INCOME_FH = [{ 年度: "115", 季別: "2", 公司代號: "2880", 利息淨收益: "16030332.00", 繼續營業單位稅前損益: "3423689.00", "本期稅後淨利（淨損）": "17363174.00", "基本每股盈餘（元）": "1.24" }];
+const BALANCE_FH = [{ 年度: "115", 季別: "2", 公司代號: "2880", 資產總額: "4000000000.00", 負債總額: "3700000000.00", 權益總額: "300000000.00" }];
+const CHAIRMAN = [{ 公司代號: "2330", 公司名稱: "台積電", 董事長: "魏哲家", 總經理: "總裁: 魏哲家", 董事長是否兼任總經理: "未兼任" }];
+const PLEDGE = [
+  { 出表日期: "1150819", 百分比: "90 以上", 公司名稱: "3040      遠見  99.36\r\n2530      華建  92.69\r\n" },
+  { 出表日期: "1150819", 百分比: "20 以下", 公司名稱: "2303      聯電  3.10\r\n" },
+];
+const PENALTIES = [{ 發函日期: "1150902", 股票代號: "2303", 違規事由: "未依規定申報", 裁處情形: "罰鍰" }];
+const SHORTFALL = [{ 公司代號: "2303", 全體董事不足股數: "5869862", 全體監察人不足股數: "" }];
+const SHORTFALL_MONTHS = [{ 出表日期: "1150819", 連續不足達3個月: "2303", 連續不足達4個月: "" }];
+const INDICES = [
+  { 日期: "1150924", 指數: "寶島股價指數", 收盤指數: "53232.40", 漲跌: "-", 漲跌點數: "143.86", 漲跌百分比: "-0.27" },
+  { 日期: "1150924", 指數: "發行量加權股價指數", 收盤指數: "48024.60", 漲跌: "-", 漲跌點數: "132.69", 漲跌百分比: "-0.28" },
+];
+const TURNOVER = [
+  { Date: "1150923", TradeVolume: "10473893046", TradeValue: "894650683140", Transaction: "4407031" },
+  { Date: "1150924", TradeVolume: "8626109510", TradeValue: "775591428171", Transaction: "3880761" },
+];
+// 漲跌家數表實測停在 6 月——回應必須照實說出日期落差。
+const BREADTH = [
+  { 出表日期: "1150605", 類型: "整體市場", 上漲: "3144", 漲停: "43", 下跌: "9578", 跌停: "355", 持平: "459" },
+  { 出表日期: "1150605", 類型: "股票", 上漲: "342", 漲停: "19", 下跌: "671", 跌停: "10", 持平: "59" },
+];
+const TOP20 = [{ Rank: "1", Code: "2409", Name: "友達", ClosingPrice: "34.20", Dir: "-", Change: "0.50", TradeVolume: "542503236" }];
+const INST_TOTAL = [
+  { Date: "20260924", Item: "外資及陸資", "OpenInterest(Net)": "-482853", "ContractValueOfOpenInterest(Net)(Millions)": "-952205", "TradingVolume(Net)": "-16080" },
+];
+const INST_CONTRACTS = [
+  { Date: "20260924", ContractCode: "臺股期貨", Item: "外資及陸資", "OpenInterest(Net)": "-77031", "TradingVolume(Net)": "-909" },
+  { Date: "20260924", ContractCode: "電子期貨", Item: "外資及陸資", "OpenInterest(Net)": "-10", "TradingVolume(Net)": "1" },
+];
+const PCR = [
+  { Date: "20260923", "PutCallVolumeRatio%": "95.84", "PutCallOIRatio%": "79.83" },
+  { Date: "20260924", "PutCallVolumeRatio%": "121.11", "PutCallOIRatio%": "85.33" },
+];
+const LARGE = [
+  { Date: "20260924", Contract: "TX", ContractName: "臺股期貨(TX+MTX/4)", SettlementMonth: "202610", TypeOfTraders: "0", Top5Buy: "72171", Top5Sell: "51434", Top10Buy: "78199", Top10Sell: "70805", OIOfMarket: "108898" },
+  { Date: "20260924", Contract: "TX", ContractName: "臺股期貨(TX+MTX/4)", SettlementMonth: "999912", TypeOfTraders: "0", Top5Buy: "72172", Top5Sell: "52547", Top10Buy: "78200", Top10Sell: "72259", OIOfMarket: "112848" },
+];
+
 function jsonResponse(v: unknown) {
   return new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
 }
@@ -81,6 +130,24 @@ beforeEach(() => {
       if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
       if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
       if (u.includes("announcement/punish")) return jsonResponse(PUNISH);
+      if (u.includes("t187ap06_L_ci")) return jsonResponse(INCOME_CI);
+      if (u.includes("t187ap07_L_ci")) return jsonResponse(BALANCE_CI);
+      if (u.includes("t187ap06_L_fh")) return jsonResponse(INCOME_FH);
+      if (u.includes("t187ap07_L_fh")) return jsonResponse(BALANCE_FH);
+      if (u.includes("t187ap33_L")) return jsonResponse(CHAIRMAN);
+      if (u.includes("t187ap09_L")) return jsonResponse(PLEDGE);
+      if (u.includes("t187ap22_L")) return jsonResponse(PENALTIES);
+      if (u.includes("t187ap08_L")) return jsonResponse(SHORTFALL);
+      if (u.includes("t187ap10_L")) return jsonResponse(SHORTFALL_MONTHS);
+      // MI_INDEX20 要排在 MI_INDEX 前面：後者是前者的子字串。
+      if (u.includes("MI_INDEX20")) return jsonResponse(TOP20);
+      if (u.includes("MI_INDEX")) return jsonResponse(INDICES);
+      if (u.includes("FMTQIK")) return jsonResponse(TURNOVER);
+      if (u.includes("twtazu_od")) return jsonResponse(BREADTH);
+      if (u.includes("GeneralBytheDate")) return jsonResponse(INST_TOTAL);
+      if (u.includes("DetailsOfFuturesContractsBytheDate")) return jsonResponse(INST_CONTRACTS);
+      if (u.includes("PutCallRatio")) return jsonResponse(PCR);
+      if (u.includes("OpenInterestOfLargeTradersFutures")) return jsonResponse(LARGE);
       if (u.includes("getStockInfo")) {
         // 依 ex_ch 帶的市場別回不同標的，才能驗證 market 有真的傳到出站請求
         const otc = u.includes("otc_");
@@ -249,7 +316,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     return JSON.parse(payload.result.content[0].text);
   }
 
-  it("tools/list 暴露 7 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
+  it("tools/list 暴露 8 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
@@ -258,6 +325,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
         "twse_describe_dataset",
         "twse_get_dataset",
         "twse_lookup",
+        "twse_market_overview",
         "twse_realtime_quote",
         "twse_search_datasets",
         "twse_stock_snapshot",
@@ -499,6 +567,106 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(text).toContain("twse_lookup");
     // 價量段照常：0056 在日成交資訊裡
     expect(out.quote.收盤).toBe(38.2);
+  });
+
+  it("twse_stock_snapshot：沒要財報與公司治理時不外呼，回應標「未查詢」", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(out.financials).toBe("未查詢");
+    expect(out.governance).toBe("未查詢");
+    expect(fetchedUrls().some((u) => u.includes("t187ap06") || u.includes("t187ap33"))).toBe(false);
+  });
+
+  it("twse_stock_snapshot：include_financials 回一般業財報、比率，並說明是年初累計", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
+    expect(out.financials).toMatchObject({
+      業別: "一般業",
+      損益期間: "2026 年第 2 季（年初累計）",
+      損益: { 營業收入: 2404483690, 基本每股盈餘_元: 49.33 },
+      資產負債: { 資產總計: 9375654727, 每股參考淨值_元: 248.05 },
+      比率: { "毛利率%": 67.03, "負債比率%": 30.94 },
+    });
+    expect(out.caveats.join()).toContain("累計數");
+    // 一般業就找到了，不必翻其餘五種業別
+    expect(fetchedUrls().some((u) => u.includes("t187ap06_L_fh"))).toBe(false);
+  });
+
+  it("twse_stock_snapshot：不在一般業時自動找到對的業別，欄位名收斂成同一組", async () => {
+    overrideFetch(
+      (u) => u.includes("t187ap03_L"),
+      () => jsonResponse([...COMPANIES, { 公司代號: "2880", 公司簡稱: "華南金" }]),
+    );
+    const out = await callTool("twse_stock_snapshot", { code: "2880", include_financials: true });
+    expect(out.financials.業別).toBe("金控業");
+    // 金控表寫「資產總額」「本期稅後淨利」，輸出一律是同一組科目名
+    expect(out.financials.資產負債.資產總計).toBe(4000000000);
+    expect(out.financials.損益.本期淨利).toBe(17363174);
+    expect(out.financials.比率["負債比率%"]).toBe(92.5);
+    // 稅前小於稅後：疑似上游欄位錯位，不轉述那個數字
+    expect(out.financials.損益).not.toHaveProperty("稅前淨利");
+    expect(out.caveats.join()).toContain("疑似欄位錯位");
+  });
+
+  it("twse_stock_snapshot：一般業財報抓失敗時是「無法判斷」，不去翻其他業別", async () => {
+    overrideFetch((u) => /t187ap0[67]_L_ci/.test(u), () => new Response("down", { status: 502 }));
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
+    expect(out.financials).toBeNull();
+    expect(out.caveats.join()).toContain("無法判斷 2330 的財報");
+    expect(fetchedUrls().some((u) => u.includes("t187ap06_L_fh"))).toBe(false);
+  });
+
+  it("twse_stock_snapshot：只有損益表抓失敗時，資產負債照給，並說損益表無法判斷", async () => {
+    overrideFetch((u) => u.includes("t187ap06_L_ci"), () => new Response("down", { status: 502 }));
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
+    expect(out.financials.損益).toBeNull();
+    expect(out.financials.資產負債.資產總計).toBe(9375654727);
+    expect(out.caveats.join()).toContain("無法判斷 2330 的損益表");
+  });
+
+  it("twse_stock_snapshot：include_governance 回兼任、質押、裁罰與持股不足", async () => {
+    const tsmc = await callTool("twse_stock_snapshot", { code: "2330", include_governance: true });
+    expect(tsmc.governance).toMatchObject({
+      董事長與總經理: { 董事長兼任總經理: "未兼任" },
+      董監質押: "未列入董監質押比率彙總表",
+      裁罰案件: [],
+      董監持股不足: false,
+    });
+    const umc = await callTool("twse_stock_snapshot", { code: "2303", include_governance: true });
+    expect(umc.governance.董監質押).toMatchObject({ "董監質押比率%": 3.1, 級距: "20 以下", 資料日期: "2026-08-19" });
+    expect(umc.governance.裁罰案件[0]).toMatchObject({ 發函日期: "2026-09-02", 裁處情形: "罰鍰" });
+    expect(umc.governance.董監持股不足).toMatchObject({ 全體董事不足股數: 5869862, 連續不足: "連續不足達3個月" });
+  });
+
+  it("twse_market_overview：大盤、成交、漲跌家數（附日期落差警告）與成交量排行", async () => {
+    const out = await callTool("twse_market_overview", { scope: "stock" });
+    const m = out["證券市場"];
+    expect(m.加權指數).toEqual({ 日期: "2026-09-24", 收盤: 48024.6, 漲跌點數: -132.69, "漲跌幅%": -0.28 });
+    expect(m.成交).toMatchObject({ 日期: "2026-09-24", 成交金額_億元: 7755.91 });
+    expect(m.漲跌家數.資料日期).toBe("2026-06-05");
+    expect(out.caveats.join()).toContain("2026-06-05");
+    expect(m.成交量前十名[0]).toMatchObject({ 代號: "2409", 漲跌: -0.5 });
+    expect(out).not.toHaveProperty("期貨籌碼");
+  });
+
+  it("twse_market_overview：期貨籌碼（法人未平倉、台指期、P/C 比、大額交易人）", async () => {
+    const out = await callTool("twse_market_overview", { scope: "futures" });
+    const f = out["期貨籌碼"];
+    expect(f.日期).toBe("2026-09-24");
+    expect(f["三大法人期貨未平倉（全部期貨）"][0]).toMatchObject({ 身份別: "外資及陸資", 未平倉淨口數: -482853 });
+    // 只取臺股期貨，不混進電子期貨
+    expect(f.三大法人台指期).toEqual([{ 身份別: "外資及陸資", 未平倉淨口數: -77031, 交易淨口數: -909 }]);
+    // 取最新一天，不是陣列第一列
+    expect(f["Put/Call 比"]).toMatchObject({ 日期: "2026-09-24", "未平倉 Put/Call 比%": 85.33 });
+    // 所有月份合計那一列（999912），不是近月
+    expect(f.台指期大額交易人).toMatchObject({ 前五大淨部位: 19625, 前十大淨部位: 5941, 全市場未沖銷部位: 112848 });
+    expect(out).not.toHaveProperty("證券市場");
+  });
+
+  it("twse_market_overview：某一段抓失敗時只影響那一段", async () => {
+    overrideFetch((u) => u.includes("PutCallRatio"), () => new Response("down", { status: 503 }));
+    const out = await callTool("twse_market_overview", {});
+    expect(out["期貨籌碼"]["Put/Call 比"]).toBeNull();
+    expect(out.caveats.join()).toContain("Put/Call 比取得失敗");
+    expect(out["證券市場"].加權指數.收盤).toBe(48024.6);
   });
 
   it("工具回應不縮排（整段進模型 context，排版空白是純成本）", async () => {
@@ -895,7 +1063,7 @@ describe("官方首頁", () => {
   // 首頁不能吃掉 MCP 的路由。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
-    expect(payload.result.tools).toHaveLength(7);
+    expect(payload.result.tools).toHaveLength(8);
   });
 
   it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {

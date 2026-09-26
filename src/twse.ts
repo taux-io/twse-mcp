@@ -9,7 +9,14 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
-import { DATA_TTL_SECONDS, rocToIso, type Row, type SourceError } from "./core";
+import {
+  DATA_TTL_SECONDS,
+  firstRow,
+  rocToIso,
+  type FinancialsInput,
+  type Row,
+  type SourceError,
+} from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 /** 期交所的 servers.url。裸 path（沒有 /v1）會被 302 導回 Swagger UI 首頁。 */
@@ -37,6 +44,29 @@ export const DS_EX_RIGHTS = "exchangeReport/TWT48U_ALL"; // 上市股票除權�
 export const DS_NOTICE = "announcement/notice"; // 集中市場當日公布注意股票
 export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股票
 
+// twse_stock_snapshot 的 include_financials：六種業別各一張損益表與資產負債表。
+// 一般業（ci）涵蓋絕大多數公司，所以先查它；查不到才查其餘五種（都很小）。
+export const FIN_TYPE_KEYS = ["ci", "basi", "bd", "fh", "ins", "mim"] as const;
+export const dsIncome = (t: string) => `opendata/t187ap06_L_${t}`;
+export const dsBalance = (t: string) => `opendata/t187ap07_L_${t}`;
+
+// twse_stock_snapshot 的 include_governance
+export const DS_CHAIRMAN = "opendata/t187ap33_L"; // 董事長是否兼任總經理
+export const DS_PLEDGE = "opendata/t187ap09_L"; // 董監質權設定占持股比例
+export const DS_PENALTIES = "opendata/t187ap22_L"; // 金管會證期局裁罰案件
+export const DS_SHORTFALL = "opendata/t187ap08_L"; // 董監持股不足法定成數
+export const DS_SHORTFALL_MONTHS = "opendata/t187ap10_L"; // 董監持股連續不足 3 個月以上
+
+// twse_market_overview
+export const DS_INDICES = "exchangeReport/MI_INDEX"; // 每日收盤行情-大盤統計資訊
+export const DS_TURNOVER = "exchangeReport/FMTQIK"; // 集中市場每日市場成交資訊
+export const DS_BREADTH = "opendata/twtazu_od"; // 集中市場漲跌證券數統計表
+export const DS_TOP20 = "exchangeReport/MI_INDEX20"; // 成交量前二十名
+export const DS_INST_TOTAL = "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate";
+export const DS_INST_CONTRACTS = "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate";
+export const DS_PCR = "taifex/PutCallRatio";
+export const DS_LARGE_TRADERS = "taifex/OpenInterestOfLargeTradersFutures";
+
 /**
  * 快照類工具寫死依賴的全部資料集。scripts/check-catalog.mjs 的 REQUIRED 必須與它
  * 一致（test/catalog.test.ts 斷言），目錄刷新時少了任何一個都會在建置期被擋下。
@@ -44,7 +74,11 @@ export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股�
 export const SNAPSHOT_DATASETS = [
   DS_FUND, DS_DAY, DS_RANK,
   DS_COMPANY, DS_VALUATION, DS_REVENUE, DS_EX_RIGHTS, DS_NOTICE, DS_PUNISH,
-] as const;
+  ...FIN_TYPE_KEYS.map(dsIncome), ...FIN_TYPE_KEYS.map(dsBalance),
+  DS_CHAIRMAN, DS_PLEDGE, DS_PENALTIES, DS_SHORTFALL, DS_SHORTFALL_MONTHS,
+  DS_INDICES, DS_TURNOVER, DS_BREADTH, DS_TOP20,
+  DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
+];
 
 /**
  * 必定有資料的資料集。回 0 筆一律當成上游故障，不當成「查無資料」。
@@ -63,6 +97,9 @@ const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
   // 個股快照與代號查詢的三個主檔：上千家上市公司，任何一天都不可能是 0 筆。
   // 除權除息預告、注意股、處置股**不在此列**——它們合法地會是空的（當天沒有事件）。
   DS_COMPANY, DS_VALUATION, DS_REVENUE,
+  // 一般業財報涵蓋上千家公司；董事長兼任表每家一列；收盤指數表兩百多列。都不可能合法地是 0 筆。
+  // 其餘新依賴（質押、裁罰、持股不足、當月成交資訊、期交所各表）都可能合法地為空，不列入。
+  dsIncome("ci"), dsBalance("ci"), DS_CHAIRMAN, DS_INDICES,
 ]);
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
@@ -290,6 +327,48 @@ export async function fetchSources<K extends string>(
     }
   });
   return { rows, errors };
+}
+
+/**
+ * 找一家公司的損益表與資產負債表列。
+ *
+ * 六種業別各一對表，而一家公司只會出現在其中一種。一般業（ci）涵蓋絕大多數公司，
+ * 先只查它；查不到才查其餘五種（每張都只有十幾列）。第一階段抓失敗就停在那裡：
+ * 那時無從判斷公司在不在一般業，再去翻其他業別找不到，也不能說「沒有財報」。
+ */
+export async function fetchFinancials(
+  code: string,
+  label: string,
+): Promise<{ input: FinancialsInput; errors: SourceError[] }> {
+  const find = (rows: Row[], type: string) => {
+    const row = firstRow(rows, "公司代號", code);
+    return row ? { type, row } : null;
+  };
+  const first = await fetchSources({
+    income: { dataset: dsIncome("ci"), label },
+    balance: { dataset: dsBalance("ci"), label },
+  });
+  const input: FinancialsInput = {
+    income: find(first.rows.income, "ci"),
+    balance: find(first.rows.balance, "ci"),
+  };
+  if (input.income || input.balance || first.errors.length) return { input, errors: first.errors };
+
+  const others = FIN_TYPE_KEYS.filter((t) => t !== "ci");
+  const rest = await fetchSources(
+    Object.fromEntries(
+      others.flatMap((t) => [
+        [`income_${t}`, { dataset: dsIncome(t), label }],
+        [`balance_${t}`, { dataset: dsBalance(t), label }],
+      ]),
+    ) as Record<string, { dataset: string; label: string }>,
+  );
+  for (const t of others) {
+    input.income ??= find(rest.rows[`income_${t}`], t);
+    input.balance ??= find(rest.rows[`balance_${t}`], t);
+  }
+  // 十張小表同一個標籤，失敗時只回報第一筆，免得 caveats 裡同一句話重複十次。
+  return { input, errors: rest.errors.slice(0, 1) };
 }
 
 /**
