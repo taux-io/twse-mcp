@@ -529,6 +529,34 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.units).toContain("date");
   });
 
+  // 盤中 last 常是「-」（那 5 秒沒有成交）。這時唯一能回答「現在大概多少」的是最佳一檔買賣價。
+  it("twse_realtime_quote：盤中沒有成交價時，帶出最佳一檔買賣價與漲跌停價", async () => {
+    overrideFetch(
+      (u) => u.includes("getStockInfo"),
+      () =>
+        misResponse({
+          msgArray: [
+            {
+              c: "0050", z: "-", d: "20260924", t: "10:15:05",
+              b: "112.3500_112.3000_112.2500_", a: "112.4000_112.4500_", u: "123.6500", w: "101.2500",
+            },
+          ],
+        }),
+    );
+    const out = await callTool("twse_realtime_quote", { codes: ["0050"] });
+    expect(out.quotes[0]).toMatchObject({
+      last: "-", bid: "112.3500", ask: "112.4000", limit_up: "123.6500", limit_down: "101.2500",
+    });
+    expect(out.units).toContain("bid");
+  });
+
+  it("twse_realtime_quote：沒有委託時 bid／ask 是 null", async () => {
+    overrideFetch((u) => u.includes("getStockInfo"), () => misResponse({ msgArray: [{ c: "0050", b: "-", a: "" }] }));
+    const out = await callTool("twse_realtime_quote", { codes: ["0050"] });
+    expect(out.quotes[0].bid).toBeNull();
+    expect(out.quotes[0].ask).toBeNull();
+  });
+
   it("twse_realtime_quote：上游沒給日期時是 null，不猜", async () => {
     overrideFetch((u) => u.includes("getStockInfo"), () => misResponse({ msgArray: [{ c: "0050", z: "1" }] }));
     const out = await callTool("twse_realtime_quote", { codes: ["0050"] });

@@ -711,7 +711,8 @@ function dailyQuote(d: Row): Record<string, unknown> {
 export const QUOTE_UNITS =
   "價格單位為新台幣元；volume 為當日累計成交量，單位是「張」（1 張 = 1,000 股）；" +
   "date 為報價所屬的交易日，非交易時段查到的是最近一個交易日的收盤資料；" +
-  "last 為「-」表示這一刻沒有成交價，不是 0";
+  "last 為「-」表示這一刻沒有成交價，不是 0——這時用 bid／ask（最佳一檔委買／委賣價）估「現在大概多少」；" +
+  "limit_up／limit_down 為當日漲停／跌停價";
 
 /** ETF 在證交所「基金類型」裡的兩種寫法：被動式「指數股票型」、主動式「交易所交易基金」。 */
 const ETF_TYPE_MARK = /指數股票型|交易所交易基金/;
