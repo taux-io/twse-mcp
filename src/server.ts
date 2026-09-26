@@ -62,7 +62,7 @@ import {
   fetchQuotes,
   fetchSources,
 } from "./twse";
-import { DATASET_COUNT, LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
 const catalog = catalogJson as unknown as Catalog;
@@ -659,9 +659,9 @@ const MCP_ROUTE = "/mcp";
 /**
  * 首頁的安全標頭。
  *
- * 這一頁沒有任何會被執行的腳本（見 src/site.ts），所以 CSP 不是在收緊一個寬鬆的
- * 預設，而是把「本來就沒有」寫成規則——日後有人加了 script，是瀏覽器擋下來，
- * 不是 review 漏看。`default-src 'none'` 意味著連字型、圖片、XHR 都不允許外連；
+ * 這一頁只有一段會被執行的腳本（一鍵複製，見 src/site.ts 的 COPY_SCRIPT），CSP 只放行
+ * 它內容的 SHA-256。所以這不是在收緊一個寬鬆的預設，而是把「只有這一段」寫成規則——
+ * 日後有人加了別的 script、inline 事件處理器或外部腳本，是瀏覽器擋下來，不是 review 漏看。`default-src 'none'` 意味著連字型、圖片、XHR 都不允許外連；
  * 頁面確實一個外部資源都沒有（favicon 是 data: URI，所以要放行 img-src data:）。
  *
  * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。那在沒有腳本
@@ -671,7 +671,7 @@ const MCP_ROUTE = "/mcp";
 const SITE_HEADERS: Record<string, string> = {
   "content-security-policy":
     "default-src 'none'; style-src 'unsafe-inline'; img-src data:; " +
-    "base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'none'",
+    `base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'sha256-${COPY_SCRIPT_HASH}'`,
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   // 靜態內容，改動只隨部署發生。邊緣快取久一點、瀏覽器短一點，

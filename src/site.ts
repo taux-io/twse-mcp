@@ -5,10 +5,15 @@
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，而不是
  * 一句 `Not Found`。另開 Pages 專案只會多一條部署管線與一個會漂移的副本。
  *
- * ## 零 JavaScript 是安全決定，不是風格偏好
+ * ## 只有一段腳本，而且被雜湊鎖死——這是安全決定，不是風格偏好
  *
- * 沒有腳本就沒有 XSS 的落點，於是 CSP 可以直接鎖成 `script-src 'none'`，而不必
- * 去論證某段 inline script 為什麼安全。`<details>` 取代摺疊用的 JS，
+ * 原本是零 JavaScript，CSP 鎖成 `script-src 'none'`。後來為了「一鍵複製」加了唯一一段
+ * 腳本（COPY_SCRIPT），CSP 只放行**這段腳本內容的 SHA-256**（啟動時從腳本本身算出，
+ * 不是手抄的值）：任何被注入的其他腳本、外部腳本、inline 事件處理器都照樣被瀏覽器擋下，
+ * 不需要 'unsafe-inline'。沒有腳本時複製按鈕保持隱藏，程式碼區塊點一下就會全選
+ * （CSS `user-select: all`），手動複製照樣可行。
+ *
+ * 其餘仍維持無腳本：`<details>` 取代摺疊用的 JS，
  * `prefers-color-scheme` 取代主題切換的 JS。唯一的 `<script>` 是 JSON-LD，
  * 而依 HTML 規範它是 data block、永遠不會被執行（prepare-the-script 在型別檢查
  * 那一步就中止），所以它既不是 JavaScript 也不受 script-src 管轄。
@@ -24,6 +29,7 @@
  * 英文版原樣附上並加一句說明為什麼——五份 README 也是這樣處理的。
  */
 
+import { createHash } from "node:crypto";
 import catalog from "./catalog.generated.json";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
 
@@ -32,6 +38,23 @@ import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
  * 而首頁、llms.txt 與 MCP 的 instructions 講的應該是同一個數。
  */
 export const DATASET_COUNT = Object.keys(catalog).length;
+
+/**
+ * 一鍵複製。頁面上唯一會執行的腳本，CSP 以它的 SHA-256 放行（見 COPY_SCRIPT_HASH）。
+ *
+ * 按鈕預設 `hidden`，由這段腳本打開：沒有腳本就不會出現一顆按了沒反應的按鈕。
+ * 按鈕文字與「已複製」由頁面依語系寫在 data 屬性裡，腳本本身不含任何語系文字——
+ * 兩個語系共用同一段腳本、同一個雜湊。複製失敗（例如非安全連線）就什麼都不做，
+ * 讀者仍可點程式碼區塊全選後手動複製。
+ */
+export const COPY_SCRIPT =
+  'for(const b of document.querySelectorAll("button.copy")){b.hidden=false;' +
+  'b.addEventListener("click",async()=>{const t=b.parentElement.querySelector("code").textContent;' +
+  "try{await navigator.clipboard.writeText(t);const o=b.textContent;b.textContent=b.dataset.done;" +
+  "setTimeout(()=>{b.textContent=o},1500)}catch{}})}";
+
+/** COPY_SCRIPT 的 SHA-256（base64），給 CSP 的 script-src 用。從腳本本身算，改了腳本不會忘記改雜湊。 */
+export const COPY_SCRIPT_HASH = createHash("sha256").update(COPY_SCRIPT).digest("base64");
 
 /** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
 const SITE_ORIGIN = "https://twse-mcp.taux.io";
@@ -118,6 +141,8 @@ interface Page {
     shortcutCols: [string, string, string];
     installPrimary: string;
     otherTools: string;
+    copy: string;
+    copied: string;
     transportNote: string;
     verify: string;
     shortcutIntro: string;
@@ -258,6 +283,8 @@ const ZH: Page = {
     shortcutCols: ["指令", "做什麼", "帶什麼"],
     installPrimary: "Claude（網頁版或桌面版）",
     otherTools: "Claude Code、Codex 或其他支援遠端 MCP 的工具",
+    copy: "複製",
+    copied: "已複製",
     transportNote:
       "其他工具請選 <strong>Streamable HTTP</strong>（遠端 MCP），不要選舊的 SSE；不需要認證。",
     verify: "免費方案就能用。裝好後問一句「0050 現在多少？」，回得出具體價格就成功了。",
@@ -404,6 +431,8 @@ const EN: Page = {
     shortcutCols: ["Command", "What it does", "What to pass"],
     installPrimary: "Claude (web or desktop)",
     otherTools: "Claude Code, Codex, or any other tool that supports remote MCP",
+    copy: "Copy",
+    copied: "Copied",
     transportNote:
       "For any other tool, choose <strong>Streamable HTTP</strong> (remote MCP) rather than the older SSE transport. No authentication is needed.",
     verify:
@@ -487,7 +516,12 @@ pre{
   background:var(--code);border:1px solid var(--line);border-radius:8px;
   padding:.9rem 1rem;overflow-x:auto;margin:.75rem 0;
 }
-pre code{background:none;padding:0;font-size:.95rem}
+pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user-select:all}
+.copyable{position:relative}
+.copyable pre{padding-right:5.5rem}
+.copy{position:absolute;top:50%;right:.6rem;transform:translateY(-50%);font:inherit;font-size:.85rem;padding:.3em .8em;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;cursor:pointer}
+.copy:hover{border-color:var(--accent)}
+.copy[hidden]{display:none}
 .endpoint{border-color:var(--accent);background:var(--soft)}
 table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.95rem;display:block;overflow-x:auto}
 th,td{border-bottom:1px solid var(--line);padding:.55rem .6rem;text-align:left;vertical-align:top}
@@ -563,6 +597,14 @@ function ldFaq(p: Page) {
   };
 }
 
+/** 可一鍵複製的程式碼區塊。按鈕由 COPY_SCRIPT 顯示；沒有腳本時點區塊即全選。 */
+function copyable(p: Page, code: string, cls = ""): string {
+  return (
+    `<div class="copyable"><pre${cls ? ` class="${cls}"` : ""}><code>${code}</code></pre>` +
+    `<button type="button" class="copy" data-done="${esc(p.ui.copied)}" hidden>${esc(p.ui.copy)}</button></div>`
+  );
+}
+
 function installHtml(p: Page): string {
   return `
 <h3>${esc(p.ui.installPrimary)}</h3>
@@ -572,8 +614,8 @@ ${p.installSteps.map((st) => `<li>${esc(st.text)}</li>`).join("\n")}
 <p>${esc(p.ui.verify)}</p>
 
 <h3>${esc(p.ui.otherTools)}</h3>
-<pre><code>claude mcp add twse --transport http ${MCP_ENDPOINT}</code></pre>
-<pre><code>codex mcp add twse --url ${MCP_ENDPOINT}</code></pre>
+${copyable(p, `claude mcp add twse --transport http ${MCP_ENDPOINT}`)}
+${copyable(p, `codex mcp add twse --url ${MCP_ENDPOINT}`)}
 <p>${p.ui.transportNote}</p>`;
 }
 
@@ -676,7 +718,7 @@ ${alternates}
 <header>
 <h1>${esc(p.h1)}</h1>
 <p class="lede">${p.lede}</p>
-<pre class="endpoint"><code>${MCP_ENDPOINT}</code></pre>
+${copyable(p, MCP_ENDPOINT, "endpoint")}
 </header>
 
 ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
@@ -694,6 +736,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 </footer>
 
 </div>
+<script>${COPY_SCRIPT}</script>
 </body>
 </html>
 `;
