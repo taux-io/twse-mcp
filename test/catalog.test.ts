@@ -12,7 +12,21 @@ import {
   MIN_DATASETS_PER_SOURCE,
   REQUIRED,
 } from "../scripts/check-catalog.mjs";
-import { DS_DAY, DS_FUND, DS_RANK, SNAPSHOT_DATASETS, TAIFEX_CSV_DATASETS } from "../src/twse";
+import {
+  ALWAYS_POPULATED as TWSE_ALWAYS_POPULATED,
+  DS_DAY,
+  DS_FUND,
+  DS_RANK,
+  SNAPSHOT_DATASETS,
+  TAIFEX_CSV_DATASETS,
+} from "../src/twse";
+import {
+  ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
+  classify,
+  FRESHNESS,
+  KNOWN_CSV,
+  MAX_AGE_DAYS,
+} from "../scripts/check-upstream.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
@@ -339,5 +353,47 @@ describe("server.json — 對外端點不可被無聲改掉", () => {
   // registry 上的版本就會與線上實際回報的不同，而沒有任何東西會提醒。
   it("version 與 package.json 一致", () => {
     expect(serverJson.version).toBe(pkg.version);
+  });
+});
+
+/**
+ * 每日上游健檢（scripts/check-upstream.mjs）。腳本是 .mjs、程式是 .ts，兩份清單各寫一份，
+ * 這裡斷言一致——改了一邊沒改另一邊，健檢就會拿錯的標準去判斷。
+ */
+describe("上游健檢腳本", () => {
+  it("已知 CSV 清單與 TAIFEX_CSV_DATASETS 一致", () => {
+    expect([...KNOWN_CSV].sort()).toEqual(Object.keys(TAIFEX_CSV_DATASETS).sort());
+  });
+  it("必定有資料的清單與 twse.ts 一致", () => {
+    expect([...SCRIPT_ALWAYS_POPULATED].sort()).toEqual([...TWSE_ALWAYS_POPULATED].sort());
+  });
+  it("新鮮度清單的資料集都在目錄裡，而且日期欄位存在", () => {
+    for (const f of FRESHNESS) {
+      expect(catalog[f.id], f.id).toBeDefined();
+      expect(Object.keys(catalog[f.id].fields), f.id).toContain(f.field);
+    }
+  });
+
+  const now = new Date("2026-09-26T02:00:00Z");
+  const ok = (body: unknown) => ({ status: 200, body: JSON.stringify(body) });
+  it("健康的回應回 null", () => {
+    expect(classify("exchangeReport/STOCK_DAY_ALL", ok([{ Date: "1150924" }]), now)).toBeNull();
+  });
+  it("非 2xx 是 http", () => {
+    expect(classify("x", { status: 503, body: "" }, now)?.kind).toBe("http");
+  });
+  it("不在已知清單的 CSV 是 format；已知的 CSV 與改回 JSON 都不算問題", () => {
+    expect(classify("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2" }, now)?.kind).toBe("format");
+    expect(classify("taifex/FinalSettlementPrice", { status: 200, body: "最後結算日\r\n1" }, now)).toBeNull();
+    expect(classify("taifex/FinalSettlementPrice", ok([{ a: 1 }]), now)).toBeNull();
+  });
+  it("必定有資料的主檔回 0 筆是 empty；其他表 0 筆不算", () => {
+    expect(classify("opendata/t187ap03_L", ok([]), now)?.kind).toBe("empty");
+    expect(classify("announcement/notice", ok([]), now)).toBeNull();
+  });
+  it(`每日表的最新日期落後超過 ${MAX_AGE_DAYS} 天是 stale（民國與西元日期都認得）`, () => {
+    expect(classify("exchangeReport/MI_INDEX", ok([{ 日期: "1150605" }]), now)?.kind).toBe("stale");
+    expect(classify("taifex/PutCallRatio", ok([{ Date: "20260920" }]), now)).toBeNull();
+    expect(classify("taifex/PutCallRatio", ok([{ Date: "20260801" }]), now)?.detail).toContain("2026-08-01");
   });
 });

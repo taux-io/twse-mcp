@@ -1,0 +1,70 @@
+name: upstream health
+
+# 每天實際抓一次每個資料集（scripts/check-upstream.mjs）。目錄刷新只比對 swagger，
+# 從不抓資料，所以上游悄悄改格式、主檔回空、每日表停止更新，都只有這裡看得到。
+# 2026-09-26 同一天內就觀察到期交所兩個端點從 JSON 切成 CSV——週期要短，才不會讓
+# 某支工具壞上好幾天沒人知道。
+
+on:
+  schedule:
+    - cron: "37 1 * * *" # 每天 01:37 UTC（台北時間 09:37），前一交易日的資料此時都已發布
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-health
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      # 腳本只用 Node 內建模組，不裝任何相依——這個 job 拿的是 issues write token。
+      - name: 實測每個資料集
+        id: check
+        run: node scripts/check-upstream.mjs
+
+      # 與 refresh-catalog 同一套作法：標籤先確保存在；查找綁作者與標籤，
+      # 否則外人開一個同名 issue 就能把告警接走。
+      - name: 有問題就開 issue（已存在就補一則留言）
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "upstream: 上游資料集異常"
+          LABEL: upstream-health
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
+          REPORT=$(cat upstream-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
+          BODY=$(printf '%s\n' \
+            "每日上游健檢發現問題：" \
+            "" \
+            "$REPORT" \
+            "" \
+            "**怎麼處理**" \
+            "- \`format\`：期交所端點切成 CSV。對照目錄欄位，把表頭加進 \`src/twse.ts\` 的 \`TAIFEX_CSV_DATASETS\` 與 \`scripts/check-upstream.mjs\` 的 \`KNOWN_CSV\`（測試會斷言兩邊一致）。" \
+            "- \`empty\`：必定有資料的主檔回 0 筆，通常是上游暫時故障；工具已會回「無法判斷」。持續兩天以上再追。" \
+            "- \`stale\`：每日表停止更新。確認是否連假；不是的話，工具回應要附上日期落差（比照漲跌家數的作法）。" \
+            "- \`http\`：連線或狀態碼問題，多半是暫時的；持續出現再追。" \
+            "" \
+            "[查看這次 run](${RUN_URL})" \
+            "" \
+            "_由 \`${GITHUB_WORKFLOW}\` 自動產生（run #${GITHUB_RUN_NUMBER}）_")
+          gh label create "$LABEL" \
+            --description "Daily upstream dataset health check" --color D93F0B --force
+          EXISTING=$(gh issue list --state open \
+            --author app/github-actions \
+            --label "$LABEL" \
+            --search "$TITLE in:title" \
+            --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
+          fi

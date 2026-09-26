@@ -13,3 +13,4 @@ dist/
 # --- 私有工作區（安全性 spec／票，不進公開版控）---
 .scratch/
 docs/spec-security-run7.md
+upstream-report.md
