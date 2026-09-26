@@ -68,13 +68,18 @@ const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 /**
- * 期交所**唯一**會回 CSV 的端點，以及它的表頭契約。
+ * 期交所會回 CSV 的端點（指名清單），以及各自的表頭契約。
  *
  * 為什麼要指名而不是對整個 `taifex/` 前綴開退路：退路一旦全開，就等於刪掉
  * 「上游回非 JSON 要大聲失敗」這道守衛（見 fetchJson 的說明，#29／#31 加的）。
  * 上游維護時回一個空的 200，CSV parser 會安靜地回 0 筆，而 `cf.cacheTtl` 把那個
  * 假的「查無資料」釘在邊緣一小時——每個使用者都會收到「期交所沒有這筆資料」，
- * 而真相是上游掛了。131 個端點不該為了 1 個端點放棄那道守衛。
+ * 而真相是上游掛了。其餘一百多個端點不該為了少數幾個放棄那道守衛。
+ *
+ * 清單怎麼來的：2026-09-26 對全部 132 個端點逐一實測，回非 JSON 的只有這裡列的
+ * 三個（其中兩個帶 UTF-8 BOM——`trim()` 會把 U+FEFF 當成空白去掉，表頭比對不受影響）。
+ * 期交所會在沒有公告的情況下把端點改成 CSV，所以新增項目的方法是同樣的全面實測，
+ * 不是猜。
  *
  * 為什麼連表頭**內容**一起釘死：只比對欄位數量的守衛不是守衛。上游把 18 欄的順序
  * 調換，數量仍是 18，於是每一列的最高價變成最低價——正是這裡要防的「安靜給錯答案」。
@@ -103,6 +108,29 @@ export const TAIFEX_CSV_DATASETS: Record<
       "Date", "Contract", "ContractMonth(Week)", "StrikePrice", "CallPut", "Open", "High", "Low",
       "Close", "Volume", "SettlementPrice", "OpenInterest", "BestBid", "BestAsk",
       "HistoricalHigh", "HistoricalLow", "TradingHalt", "TradingSession",
+    ],
+  },
+  // 三大法人總表（依日期）。2026-09-26 起回 application/octet-stream 的 CSV，帶 BOM。
+  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate": {
+    header: [
+      "日期", "身份別", "多方交易口數", "多方交易契約金額(百萬元)", "空方交易口數",
+      "空方交易契約金額(百萬元)", "多空交易口數淨額", "多空交易契約金額淨額(百萬元)",
+      "多方未平倉口數", "多方未平倉契約金額(百萬元)", "空方未平倉口數",
+      "空方未平倉契約金額(百萬元)", "多空未平倉口數淨額", "多空未平倉契約金額淨額(百萬元)",
+    ],
+    fields: [
+      "Date", "Item", "TradingVolume(Long)", "TradingValue(Long)(Millions)", "TradingVolume(Short)",
+      "TradingValue(Short)(Millions)", "TradingVolume(Net)", "TradingValue(Net)(Millions)",
+      "OpenInterest(Long)", "ContractValueOfOpenInterest(Long)(Millions)", "OpenInterest(Short)",
+      "ContractValueOfOpenInterest(Short)(Millions)", "OpenInterest(Net)",
+      "ContractValueOfOpenInterest(Net)(Millions)",
+    ],
+  },
+  // 最後結算價。同上，CSV 帶 BOM。
+  "taifex/FinalSettlementPrice": {
+    header: ["最後結算日", "契約月份", "商品代號", "商品名稱", "最後結算價"],
+    fields: [
+      "TheFinalSettlementDay", "DeliveryMonth", "Contract", "ContractName", "TheFinalSettlementPrice",
     ],
   },
 };
