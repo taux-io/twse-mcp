@@ -42,7 +42,6 @@ export const REQUIRED = [
   // twse_market_overview
   "exchangeReport/MI_INDEX",
   "exchangeReport/FMTQIK",
-  "opendata/twtazu_od",
   "exchangeReport/MI_INDEX20",
   "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
   "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",

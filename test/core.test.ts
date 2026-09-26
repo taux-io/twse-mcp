@@ -17,6 +17,7 @@ import {
   type Catalog,
   type Dataset,
   type Row,
+  buildStockMarket,
   buildStockSnapshot,
   lookupSecurities,
   parseRocPeriod,
@@ -878,5 +879,28 @@ describe("searchDatasets — 全形輸入", () => {
   it("全形英數與全形空白都正規化", () => {
     expect(searchDatasets(CATALOG, { query: "ＥＴＦ" }).total_matched).toBeGreaterThan(0);
     expect(searchDatasets(CATALOG, { query: "日成交　收盤" }).total_matched).toBe(1);
+  });
+});
+
+describe("buildStockMarket — 漲跌家數由日成交資訊計算", () => {
+  it("上漲／下跌／持平／無收盤價分開數，ETF 與非四碼代號不列入", () => {
+    const days = [
+      { Date: "1150924", Code: "2330", ClosingPrice: "1,000", Change: "-5.0000" },
+      { Date: "1150924", Code: "2317", ClosingPrice: "200", Change: "1.5000" },
+      { Date: "1150924", Code: "1101", ClosingPrice: "30", Change: "0.0000" },
+      // 當日沒有收盤價：上游 Change 仍給 0.0000，不能算成持平
+      { Date: "1150924", Code: "1538", ClosingPrice: "", Change: "0.0000" },
+      { Date: "1150924", Code: "0050", ClosingPrice: "112", Change: "1" },
+      { Date: "1150924", Code: "00403A", ClosingPrice: "10", Change: "1" },
+    ];
+    const r = buildStockMarket({ indices: [], turnover: [], breadth: days, top: [] }, [], []) as any;
+    expect(r.漲跌家數).toEqual({
+      日期: "2026-09-24",
+      範圍: "上市股票（四碼代號，不含 ETF）",
+      上漲: 1,
+      下跌: 1,
+      持平: 1,
+      無收盤價: 1,
+    });
   });
 });

@@ -1466,7 +1466,7 @@ function buildGovernance(
 export const MARKET_SOURCE_LABELS = {
   indices: "每日收盤指數",
   turnover: "市場成交資訊",
-  breadth: "漲跌家數",
+  breadth: ETF_SOURCE_LABELS.days,
   top: "成交量前二十名",
   instTotal: "三大法人期貨總表",
   instContracts: "三大法人各期貨契約",
@@ -1532,22 +1532,29 @@ export function buildStockMarket(src: StockMarketSources, errors: SourceError[],
       }
     : null;
 
-  // 漲跌家數表更新很慢（實測落後數月），所以日期一定要跟著出去，並與大盤日期比對。
-  const whole = src.breadth.find((r) => r["類型"] === "整體市場") ?? null;
-  const stocks = src.breadth.find((r) => r["類型"] === "股票") ?? null;
-  const breadthDate = rocToIso((stocks ?? whole)?.["出表日期"]);
-  const pick = (r: Row | null) =>
-    r && {
-      "上漲": num(r["上漲"]), "漲停": num(r["漲停"]), "下跌": num(r["下跌"]),
-      "跌停": num(r["跌停"]), "持平": num(r["持平"]),
-    };
-  const breadth = whole || stocks ? { "資料日期": breadthDate, "股票": pick(stocks), "整體市場": pick(whole) } : null;
-  const marketDate = taiex?.["日期"] ?? turnover?.["日期"] ?? null;
-  if (breadth && breadthDate && marketDate && breadthDate !== marketDate) {
-    caveats.push(
-      `漲跌家數的資料日期是 ${breadthDate}，與大盤的 ${marketDate} 不同——上游這張表沒有每天更新，請不要把它當成當日的漲跌家數。`,
-    );
+  // 漲跌家數由上市個股日成交資訊自己數，不用官方的漲跌證券數統計表——那張表實測停在
+  // 2026-06-05，三個多月沒更新。日成交資訊每天都有，每一檔都帶有號的漲跌價。
+  // 範圍限四碼、不以 0 開頭的代號：上市股票（含少數存託憑證），不含 ETF（00 開頭）。
+  // 沒有收盤價的（當日無成交或僅零星成交）另計，不混進持平。
+  const listed = src.breadth.filter((r) => /^[1-9]\d{3}$/.test(String(r["Code"] ?? "").trim()));
+  let up = 0, down = 0, flat = 0, noClose = 0;
+  for (const r of listed) {
+    const c = num(r["Change"]);
+    if (num(r["ClosingPrice"]) === null || c === null) noClose++;
+    else if (c > 0) up++;
+    else if (c < 0) down++;
+    else flat++;
   }
+  const breadth = listed.length
+    ? {
+        "日期": rocToIso(latest(src.breadth, "Date")?.["Date"]),
+        "範圍": "上市股票（四碼代號，不含 ETF）",
+        "上漲": up,
+        "下跌": down,
+        "持平": flat,
+        "無收盤價": noClose,
+      }
+    : null;
 
   const top = src.top.slice(0, 10).map((r) => ({
     "排名": num(r["Rank"]),

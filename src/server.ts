@@ -35,7 +35,6 @@ import {
   type Row,
 } from "./core";
 import {
-  DS_BREADTH,
   DS_CHAIRMAN,
   DS_INDICES,
   DS_INST_CONTRACTS,
@@ -427,7 +426,7 @@ function createServer() {
     "twse_market_overview",
     {
       description:
-        "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、漲跌家數、成交量前十名；" +
+        "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。',
       annotations: REMOTE_READ,
@@ -448,7 +447,7 @@ function createServer() {
           : fetchSources({
               indices: { dataset: DS_INDICES, label: L.indices },
               turnover: { dataset: DS_TURNOVER, label: L.turnover },
-              breadth: { dataset: DS_BREADTH, label: L.breadth },
+              breadth: { dataset: DS_DAY, label: L.breadth },
               top: { dataset: DS_TOP20, label: L.top },
             }),
         scope === "stock"
