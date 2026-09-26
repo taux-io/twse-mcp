@@ -34,7 +34,7 @@ import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./og-image";
 export const DATASET_COUNT = Object.keys(catalog).length;
 
 /** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
-export const SITE_ORIGIN = "https://twse-mcp.taux.io";
+const SITE_ORIGIN = "https://twse-mcp.taux.io";
 /** 使用者唯一需要複製的東西。 */
 export const MCP_ENDPOINT = `${SITE_ORIGIN}/mcp`;
 const REPO = "https://github.com/taux-io/twse-mcp";

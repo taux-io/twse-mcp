@@ -32,7 +32,7 @@ export interface SourceError {
 }
 
 /** 硬上限，保護 client 的 context window。 */
-export const MAX_ROWS = 200;
+const MAX_ROWS = 200;
 
 /**
  * data 區塊是證交所回應的原文轉載，我們不改寫也不驗證。目錄裡證交所的 143 個資料集
@@ -83,7 +83,7 @@ export const CODE_FIELDS = [
  *
  * 順序是「越可靠越前面」，但真正的策略不是靠順序猜——見 matchTaifexCode。
  */
-export const TAIFEX_CODE_FIELDS = [
+const TAIFEX_CODE_FIELDS = [
   "ProductCode", "TickerSymbol", "Contract", "ContractCode", "Contact",
   "StockCode", "StockId", "UnderlyingSecurityCode", "CodeOfUnderlyingStock",
   // 稽核發現漏了這兩個：AcceptableCollateralGovernmentBonds 的欄位就叫 Code，
@@ -118,7 +118,7 @@ export const TAIFEX_CODE_FIELDS = [
  *   - `field` 為 null：沒有精確命中。`rows` 必為空，`candidates` 可能有東西
  *   - 整個回 null：這張表沒有任何識別欄位，上層要誠實說做不到
  */
-export function matchTaifexCode(
+function matchTaifexCode(
   rows: Row[],
   code: string,
 ): { field: string | null; rows: Row[]; fieldsTried: string[]; candidates: string[] } | null {
@@ -157,7 +157,7 @@ function norm(v: unknown): string {
 }
 
 /** 候選代號的數量上限。它是提示不是資料，多到要分頁就沒有意義了。 */
-export const MAX_CODE_CANDIDATES = 20;
+const MAX_CODE_CANDIDATES = 20;
 
 /**
  * 證交所命名不直覺，關鍵字對不上表名。例如 ETF 主檔叫「基金基本資料彙總表」，
@@ -657,6 +657,52 @@ export function periodNote(ds: Dataset): string {
  */
 const OTC_HINT = '改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價';
 
+/**
+ * 快照類工具的共同守衛：先把每段抓取失敗寫進 caveats，再提供「沒找到時該說什麼」。
+ *
+ * 「上游掛了」與「查無此標的」是兩個不同的事實。合併成同一個答案的後果，稽核
+ * 重現過：只讓基金彙總表回 2xx + HTML，查 0056 就得到 `is_etf: false` 加上
+ * 「也可能單純是代號有誤」——對台灣最大的 ETF 之一做出肯定的錯誤陳述，而且會被
+ * 邊緣快取釘住一小時。之後同一類錯誤又在定期定額那段出現一次（#68），原因是三個
+ * 分支裡有一個少了守衛，而那件事用讀的看不出來。所以每一段都走這一個 absent()。
+ *
+ * absent(label, negative, subject)：抓失敗就說「無法判斷」；否則才說出否定的事實。
+ * 沒給 negative 的段落（空結果本身就是答案，例如近期沒有除權息）則不說話。
+ */
+function sectionGuards(code: string, errors: SourceError[] | undefined, caveats: string[]) {
+  const errs = errors ?? [];
+  for (const e of errs) caveats.push(`${e.source}取得失敗：${e.error}`);
+  const failed = (label: string) => errs.some((e) => e.source === label);
+  const absent = (label: string, negative?: string, subject: string = label) => {
+    if (failed(label)) {
+      caveats.push(`因為上游取得失敗，無法判斷 ${code} 的${subject}——這**不代表**沒有。請稍後重試。`);
+    } else if (negative) {
+      caveats.push(negative);
+    }
+  };
+  return { failed, absent };
+}
+
+/** 日成交資訊的一列轉成前一交易日價量。兩支快照共用，欄位與日期格式只有一種。 */
+function dailyQuote(d: Row): Record<string, unknown> {
+  const close = num(d["ClosingPrice"]);
+  const change = num(d["Change"]);
+  const quote: Record<string, unknown> = {
+    "日期": rocToIso(d["Date"]),
+    "開盤": num(d["OpeningPrice"]),
+    "最高": num(d["HighestPrice"]),
+    "最低": num(d["LowestPrice"]),
+    "收盤": close,
+    "漲跌": change,
+    "成交股數": num(d["TradeVolume"]),
+    "成交金額": num(d["TradeValue"]),
+    "成交筆數": num(d["Transaction"]),
+  };
+  const prev = close !== null && change !== null ? close - change : null;
+  if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
+  return quote;
+}
+
 /** ETF 在證交所「基金類型」裡的兩種寫法：被動式「指數股票型」、主動式「交易所交易基金」。 */
 const ETF_TYPE_MARK = /指數股票型|交易所交易基金/;
 
@@ -689,14 +735,7 @@ export interface EtfSnapshotSources {
 export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<string, unknown> {
   code = code.trim();
   const caveats: string[] = [];
-  for (const e of src.errors ?? []) {
-    caveats.push(`${e.source}取得失敗：${e.error}`);
-  }
-  // 「上游掛了」與「查無此標的」是兩個不同的事實。合併成同一個答案的後果，稽核
-  // 重現過：只讓基金彙總表回 2xx + HTML，查 0056 就得到 `is_etf: false` 加上
-  // 「也可能單純是代號有誤，或該標的不是基金」——對台灣最大的 ETF 之一做出肯定的
-  // 錯誤陳述，而且會被邊緣快取釘住一小時。資料本來就在 src.errors 裡，只是沒被用。
-  const failed = (label: string) => (src.errors ?? []).some((e) => e.source === label);
+  const { failed, absent } = sectionGuards(code, src.errors, caveats);
   const fundsFailed = failed(ETF_SOURCE_LABELS.funds);
 
   // --- 1. 基本資料 ---
@@ -717,16 +756,13 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       "保管機構": f["保管機構"],
       "資料日期": f["出表日期"],
     };
-  } else if (fundsFailed) {
-    caveats.push(
-      `因為上游取得失敗，無法判斷 ${code} 的類別（是否為基金／ETF）—— ` +
-        "這**不代表**查無此標的，也不代表它不屬於這個類別。請稍後重試。",
-    );
   } else {
-    caveats.push(
+    absent(
+      ETF_SOURCE_LABELS.funds,
       `${code} 不在證交所基金基本資料彙總表中 —— 該資料集只收上市基金。` +
         `若這是上櫃標的，${OTC_HINT}` +
         "（上櫃的歷史與統計資料則無法取得）。也可能單純是代號有誤，或該標的不是基金。",
+      "類別（是否為基金／ETF）",
     );
   }
 
@@ -736,12 +772,8 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
   // 兩種字面都不含 "ETF"，"ETF" 字樣只是保險。早期只認「指數股票型」，於是主動式
   // ETF 全被判成 is_etf: false，還附一句「不是 ETF」——「交易所交易基金」正是 ETF
   // 的中文全稱，等於照著字面把 ETF 說成不是 ETF。
-  //
-  // 白名單漏掉新類別時會沉默地回答 false 而不是「不知道」，證交所下次再造新詞
-  // 一樣會中招。要根治得讓 is_etf 具備第三種狀態，那會改到回應型別，另案處理。
   const fundType = f ? String(f["基金類型"] ?? "") : "";
-  // 第三種狀態：抓不到基本資料時是「不知道」，不是「不是」。原本的註解說這要另案
-  // 處理，稽核把代價量化出來後就不值得再等了——false 會被當成肯定的答案引用。
+  // 第三種狀態：抓不到基本資料時是「不知道」，不是「不是」——false 會被當成肯定的答案引用。
   const isEtf: boolean | null = fundsFailed && !f
     ? null
     : !!f && (ETF_TYPE_MARK.test(fundType) || fundType.toUpperCase().includes("ETF"));
@@ -751,26 +783,10 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
 
   // --- 2. 當日（前一交易日）價量 ---
   const d = firstRow(src.days, "Code", code);
-  let quote: Record<string, unknown> | null = null;
-  if (d) {
-    const close = num(d["ClosingPrice"]);
-    const change = num(d["Change"]);
-    quote = {
-      "日期": d["Date"],
-      "開盤": num(d["OpeningPrice"]),
-      "最高": num(d["HighestPrice"]),
-      "最低": num(d["LowestPrice"]),
-      "收盤": close,
-      "漲跌": change,
-      "成交股數": num(d["TradeVolume"]),
-      "成交金額": num(d["TradeValue"]),
-      "成交筆數": num(d["Transaction"]),
-    };
-    let prev: number | null = null;
-    if (close !== null && change !== null) prev = close - change;
-    if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
-  } else if (!failed(ETF_SOURCE_LABELS.days)) {
-    caveats.push(
+  const quote = d ? dailyQuote(d) : null;
+  if (!d) {
+    absent(
+      ETF_SOURCE_LABELS.days,
       `${code} 不在上市日成交資訊中（可能是上櫃標的，或當日無成交）。上櫃標的請${OTC_HINT}。`,
     );
   }
@@ -784,23 +800,23 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
       "交易戶數": num(rk["ETFsNumberofTradingAccounts"]),
       "說明": "證交所定期定額交易戶數統計排行月報表",
     };
-  } else if (!failed(ETF_SOURCE_LABELS.ranks)) {
-    // 與日成交資訊（上面）同一個守衛：只有真的查過、真的不在榜上才這樣說。
-    // 一檔 ETF 真的不在榜上是常見且有意義的答案（該資料集只收前段班）。
-    caveats.push(`${code} 不在定期定額排行榜上（該資料集只收錄前段班，不代表沒有人定期定額）`);
   } else {
-    // 抓失敗時不做否定陳述。語氣比照基金基本資料那段的「無法判斷」。
-    caveats.push(
-      `因為上游取得失敗，無法判斷 ${code} 是否在定期定額排行榜上——這**不代表**它不在榜上。請稍後重試。`,
+    // 一檔 ETF 真的不在榜上是常見且有意義的答案（該資料集只收前段班）。
+    absent(
+      ETF_SOURCE_LABELS.ranks,
+      `${code} 不在定期定額排行榜上（該資料集只收錄前段班，不代表沒有人定期定額）`,
+      "定期定額排行名次",
     );
   }
 
   // --- 3.5 即時報價 ---
-  // 與上面三段同一個原則：抓失敗的那段由 errors 迴圈補上「取得失敗」，這裡不再
-  // 說別的；只有真的查到、真的沒有，才說沒有。先前失敗會被吞成 []，於是回
-  // `realtime: null` 而 caveats 一句話都沒有——使用者要了即時價，卻不知道為什麼沒拿到。
-  if (src.includeRealtime && !src.realtime?.length && !failed(ETF_SOURCE_LABELS.realtime)) {
-    caveats.push(`即時報價站沒有回傳 ${code} 的資料（可能尚未開盤或非上市標的）。上櫃標的請${OTC_HINT}。`);
+  // 先前失敗會被吞成 []，於是回 `realtime: null` 而 caveats 一句話都沒有——
+  // 使用者要了即時價，卻不知道為什麼沒拿到。
+  if (src.includeRealtime && !src.realtime?.length) {
+    absent(
+      ETF_SOURCE_LABELS.realtime,
+      `即時報價站沒有回傳 ${code} 的資料（可能尚未開盤或非上市標的）。上櫃標的請${OTC_HINT}。`,
+    );
   }
 
   // --- 4. 衍生指標 ---
@@ -1014,20 +1030,7 @@ function pct(v: unknown): number | null {
 export function buildStockSnapshot(code: string, src: StockSnapshotSources): Record<string, unknown> {
   code = code.trim();
   const caveats: string[] = [];
-  const errors = src.errors ?? [];
-  for (const e of errors) caveats.push(`${e.source}取得失敗：${e.error}`);
-  const failed = (label: string) => errors.some((e) => e.source === label);
-  /**
-   * 沒找到時該說什麼。抓失敗就說「無法判斷」；否則才說出否定的事實——
-   * 沒給 negative 的段落（空結果本身就是答案，例如近期沒有除權息）則不說話。
-   */
-  const absent = (label: string, negative?: string) => {
-    if (failed(label)) {
-      caveats.push(`因為上游取得失敗，無法判斷 ${code} 的${label}——這**不代表**沒有。請稍後重試。`);
-    } else if (negative) {
-      caveats.push(negative);
-    }
-  };
+  const { failed, absent } = sectionGuards(code, src.errors, caveats);
   const all = (rows: Row[], field: string) => rows.filter((r) => norm(r[field]) === norm(code));
 
   // --- 1. 基本資料 ---
@@ -1064,24 +1067,8 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
 
   // --- 2. 前一交易日價量 ---
   const d = firstRow(src.days, "Code", code);
-  let quote: Record<string, unknown> | null = null;
-  if (d) {
-    const close = num(d["ClosingPrice"]);
-    const change = num(d["Change"]);
-    quote = {
-      "日期": rocToIso(d["Date"]),
-      "開盤": num(d["OpeningPrice"]),
-      "最高": num(d["HighestPrice"]),
-      "最低": num(d["LowestPrice"]),
-      "收盤": close,
-      "漲跌": change,
-      "成交股數": num(d["TradeVolume"]),
-      "成交金額": num(d["TradeValue"]),
-      "成交筆數": num(d["Transaction"]),
-    };
-    const prev = close !== null && change !== null ? close - change : null;
-    if (prev) quote["漲跌幅%"] = Math.round((change! / prev) * 100 * 100) / 100;
-  } else {
+  const quote = d ? dailyQuote(d) : null;
+  if (!d) {
     absent(STOCK_SOURCE_LABELS.days, `${code} 不在上市日成交資訊中（可能是上櫃標的，或前一交易日無成交）。`);
   }
 
