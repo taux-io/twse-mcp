@@ -159,7 +159,7 @@ const ZH: Page = {
     },
     {
       name: "新增自訂連接器",
-      text: `按「+ Add custom connector」，名稱隨你取，網址填 ${MCP_ENDPOINT}，然後按 Add。`,
+      text: `按「+ Add custom connector」，名稱隨你取，網址填 ${MCP_ENDPOINT}，驗證方式維持預設的 No sign-in（不需要 API key），然後按 Add。`,
     },
     {
       name: "在對話中打開它",
@@ -300,7 +300,7 @@ const EN: Page = {
     },
     {
       name: "Add a custom connector",
-      text: `Click "+ Add custom connector". Name it anything you like, set the URL to ${MCP_ENDPOINT}, then click Add.`,
+      text: `Click "+ Add custom connector". Name it anything you like, set the URL to ${MCP_ENDPOINT}, leave Authentication on the default No sign-in (no API key needed), then click Add.`,
     },
     {
       name: "Switch it on in a chat",

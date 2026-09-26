@@ -70,6 +70,11 @@ its top-right corner:
 https://twse-mcp.taux.io/mcp
 ```
 
+Under **Authentication**, choose **No sign-in** — it is usually preselected and
+marked "Detected". A yellow note warns that anyone with the URL can use the
+connector; this service is public by design, so that is expected. **Leave
+Request headers empty** — there is no API key.
+
 Click **Add** and you are done. **No account, no password, no payment.**
 
 ### Step 3: Switch it on in the chat
