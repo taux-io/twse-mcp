@@ -89,7 +89,7 @@ export function stripMcpPrefix(name) {
  * 用 `claude -p` 問一題，回傳第一個工具呼叫。工具權限一律不給（dontAsk），
  * 所以它不會真的去查資料；看到第一個 tool_use 就結束行程。
  */
-async function askClaudeCode(question, { endpoint, model, cwd }) {
+export async function askClaudeCode(question, { endpoint, model, cwd }) {
   const args = [
     "-p", question,
     "--output-format", "stream-json", "--verbose",

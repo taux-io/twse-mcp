@@ -40,7 +40,7 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 用法見 `scripts/eval-tools.mjs` 開頭；PR 範本（`.github/pull_request_template.md`）有對應的欄位要填。
 
 **單跑一次不能判定退步。** 模型本身有隨機性：2026-09-26 實測 sonnet 對「殖利率前 10 檔」
-重跑 8 次只過 6 次。改動後出現失敗題，用 `EVAL_ONLY=<題目>` 在兩個本機伺服器上**交錯**各重跑數次再比較
+重跑 8 次只過 6 次。改動後出現失敗題，用 `EVAL_ONLY=<題目> EVAL_REPEAT=10 npm run eval:ab` 在兩個本機伺服器上**交錯**重跑再比較
 （做法見「要比就在同一段時間、同一種環境比」那段），不要拿正式環境對本機比。
 
 描述裡點名其他工具時，指向 `twse_search_datasets`，不要指向 `twse_get_dataset`：
@@ -49,6 +49,7 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 **要比就在同一段時間、同一種環境比。** 2026-09-26 加股利時，「殖利率前 10 檔」先是正式環境 10/11、本機 6/11，
 像是退步；但本機換回與正式環境逐字相同的工具清單也只有 5/8。最後用 `git worktree` 在 8788 起一個改動前的
 `wrangler dev`，與改動後的 8787 **交錯**各跑 10 次，得到 9/10 對 8/10——落差來自時段，不是改動。
-所以改動前後的基準也一樣用這個做法：`git worktree add --detach <dir> main`、把 `node_modules` symlink 過去，再在該目錄 `npx wrangler dev --port 8788`，
-改動前打 `EVAL_ENDPOINT=http://localhost:8788/mcp`、改動後打 8787。另一個理由是正式環境跑在 Workers 免費方案，
+所以改動前後的比較一律用 `npm run eval:ab`：它把 main（或 `EVAL_BASE`）放進暫時的 worktree 起在 8788、
+工作目錄起在 8787，每題兩邊交錯問，輸出每題的對照，結束時自動清掉。懷疑某題退步時用
+`EVAL_ONLY=<題目> EVAL_REPEAT=10 npm run eval:ab`。另一個理由是正式環境跑在 Workers 免費方案，
 eval 的大量請求會吃掉每個請求 10ms CPU 的寬容額度（#104）。
