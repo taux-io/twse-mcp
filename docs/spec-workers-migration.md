@@ -117,6 +117,22 @@
   - **唯一可行的解法**：架設台灣落地 proxy。Workers 無法指定出口地區，而 proxy 會引入機器與維運成本，與本專案「零維運」的前提相衝，故暫不採用。
   - **但上櫃不是全滅**：被擋的只有櫃買中心的 OpenAPI（`www.tpex.org.tw`）。`mis.twse.com.tw` 沒被擋，而它支援 `market="otc"`，所以**上櫃標的的盤中即時報價仍可正常取得**——已於線上驗證：`twse_realtime_quote(["00679B","6488"], market="otc")` 正確回傳元大美債20年與環球晶的報價。缺的是上櫃的**歷史／彙總類資料集**，不是上櫃本身。
 - **成本**：Workers 與 Cache API 免費額度對此用量綽綽有餘，預期 $0。
+  ⚠️ 2026-09-26 的效能實測（見下一條）量到單次請求最高 319 ms CPU；Workers 免費方案的每請求 CPU 上限
+  遠低於此（據理解是 10 ms）。請求全數成功，推測帳戶在付費方案，但尚未確認——若在免費方案，重的快照
+  可能被以 1102（exceeded resource limits）拒絕。
+- **效能實測（2026-09-26，v0.6.1 線上）：延遲不是問題，不加記憶體快取。**
+  - **方法**：從台灣對正式端點依序呼叫每種重的組態各三次，同時從 Workers Observability 讀伺服器端的
+    wall／CPU time（`$workers.wallTimeMs`、`$workers.cpuTimeMs`）。
+  - **結果**（伺服器端）：`twse_stock_snapshot` 開財報與公司治理（最多 14 張表）wall 236–436 ms、
+    CPU 158–319 ms；只開基本段 127–214 ms；`twse_market_overview` wall 58–93 ms；`twse_lookup` 約 95 ms；
+    `twse_get_dataset`（where＋sort）29–46 ms。從台灣量到的端對端延遲全部 < 0.5 秒，沒有失敗或逾時。
+  - **判讀**：wall 幾乎等於 CPU——上游資料幾乎都命中邊緣快取，網路等待可忽略；成本在**解析約 4 MB 的
+    JSON**（公司主檔、一般業財報、月營收）。同時抓取上限 3 沒有造成可見的排隊延遲。
+  - **結論**：先前延後的「isolate 記憶體快取」不做。若流量成長到 CPU 成本值得處理，第一個槓桿是在
+    isolate 內快取**解析後**的公司主檔與財報列（省 CPU，不是省網路）。
+  - **收斂後的真實流量**（01:10–05:11 UTC，POST /mcp 820 筆）：200 共 495、400 共 174（舊版協定被拒，
+    絕大多數是監測 bot）、canceled 105（全是 Claude 用戶端主動結束的 `subscriptions/listen` 長連線，屬正常）。
+    同期真實的工具呼叫很少，全數在 0.2 秒內。
 - **散佈轉變：已完成**。價值主張從「安裝一個本機二進位」變成「指向一個 URL」。README 已據此重寫（PR #4、#19），
   並提供 GUI 連接器步驟與 `claude mcp add --transport http` 等範例；另有英文版 `README.en.md`（PR #15）。
 - **catalog 漂移監控：已實作**。因 `catalog.json` 簽入，證交所端資料集增刪／欄位變更會以 git diff 形式浮現。
