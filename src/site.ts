@@ -43,15 +43,17 @@ export const DATASET_COUNT = Object.keys(catalog).length;
  * 一鍵複製。頁面上唯一會執行的腳本，CSP 以它的 SHA-256 放行（見 COPY_SCRIPT_HASH）。
  *
  * 按鈕預設 `hidden`，由這段腳本打開：沒有腳本就不會出現一顆按了沒反應的按鈕。
- * 按鈕文字與「已複製」由頁面依語系寫在 data 屬性裡，腳本本身不含任何語系文字——
+ * 按鈕是右上角的圖示（複製 → 打勾），語系文字只放在 aria-label／title 與 data 屬性裡，
+ * 腳本本身不含任何語系文字——
  * 兩個語系共用同一段腳本、同一個雜湊。複製失敗（例如非安全連線）就什麼都不做，
  * 讀者仍可點程式碼區塊全選後手動複製。
  */
 export const COPY_SCRIPT =
   'for(const b of document.querySelectorAll("button.copy")){b.hidden=false;' +
   'b.addEventListener("click",async()=>{const t=b.parentElement.querySelector("code").textContent;' +
-  "try{await navigator.clipboard.writeText(t);const o=b.textContent;b.textContent=b.dataset.done;" +
-  "setTimeout(()=>{b.textContent=o},1500)}catch{}})}";
+  'try{await navigator.clipboard.writeText(t);const o=b.getAttribute("aria-label");' +
+  'b.classList.add("done");b.setAttribute("aria-label",b.dataset.done);b.title=b.dataset.done;' +
+  'setTimeout(()=>{b.classList.remove("done");b.setAttribute("aria-label",o);b.title=o},1500)}catch{}})}';
 
 /** COPY_SCRIPT 的 SHA-256（base64），給 CSP 的 script-src 用。從腳本本身算，改了腳本不會忘記改雜湊。 */
 export const COPY_SCRIPT_HASH = createHash("sha256").update(COPY_SCRIPT).digest("base64");
@@ -518,9 +520,11 @@ pre{
 }
 pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user-select:all}
 .copyable{position:relative}
-.copyable pre{padding-right:5.5rem}
-.copy{position:absolute;top:50%;right:.6rem;transform:translateY(-50%);font:inherit;font-size:.85rem;padding:.3em .8em;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;cursor:pointer}
-.copy:hover{border-color:var(--accent)}
+.copyable pre{padding-right:2.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.copy{position:absolute;top:.4rem;right:.4rem;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.copy:hover,.copy:focus-visible{border-color:var(--line);background:var(--surface);color:var(--accent)}
+.copy .i-done,.copy.done .i-copy{display:none}
+.copy.done .i-done{display:block;color:var(--accent)}
 .copy[hidden]{display:none}
 .endpoint{border-color:var(--accent);background:var(--soft)}
 table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.95rem;display:block;overflow-x:auto}
@@ -597,11 +601,22 @@ function ldFaq(p: Page) {
   };
 }
 
-/** 可一鍵複製的程式碼區塊。按鈕由 COPY_SCRIPT 顯示；沒有腳本時點區塊即全選。 */
+/** 複製與完成的圖示。inline SVG 不是外部資源，不受 CSP 的 img-src 限制；顏色跟著文字色走。 */
+const ICON_COPY =
+  '<svg class="i-copy" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+const ICON_DONE =
+  '<svg class="i-done" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+/**
+ * 可一鍵複製的程式碼區塊：右上角一個圖示按鈕。內容右側留出圖示的寬度、長指令自動換行，
+ * 所以文字永遠不會被按鈕蓋住。按鈕由 COPY_SCRIPT 顯示；沒有腳本時點區塊即全選。
+ */
 function copyable(p: Page, code: string, cls = ""): string {
+  const label = esc(p.ui.copy);
   return (
     `<div class="copyable"><pre${cls ? ` class="${cls}"` : ""}><code>${code}</code></pre>` +
-    `<button type="button" class="copy" data-done="${esc(p.ui.copied)}" hidden>${esc(p.ui.copy)}</button></div>`
+    `<button type="button" class="copy" aria-label="${label}" title="${label}" data-done="${esc(p.ui.copied)}" hidden>` +
+    `${ICON_COPY}${ICON_DONE}</button></div>`
   );
 }
 
