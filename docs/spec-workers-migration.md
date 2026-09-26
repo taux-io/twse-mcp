@@ -52,7 +52,7 @@
 - 語言：**TypeScript**。Python 邏輯近乎 1:1 直譯（`async/await`、`fetch` ≈ `httpx`）。
 
 **MCP 傳輸與 handler**
-- 用 **`createMcpHandler()`（stateless）**，端點 `/mcp`，**不使用 Durable Objects**。理由：5 個工具全為唯讀、無跨呼叫 session 狀態。
+- 用 **`createMcpHandler()`（stateless）**，端點 `/mcp`，**不使用 Durable Objects**。理由：工具全為唯讀、無跨呼叫 session 狀態（v1 時 5 個；2026-09 擴充到 8 個後仍全為唯讀）。
 - v1 **公開、不認證**（代理的是公開唯讀資料）。認證（Cloudflare Access / OAuth）為日後選項。
 - 對外契約不變：工具集合維持 `twse_search_datasets` / `twse_describe_dataset` / `twse_get_dataset` / `etf_snapshot`（後更名為 `twse_etf_snapshot`，見 PR #17），回應為 JSON 字串，語意與現行 Python 版對齊。
 
