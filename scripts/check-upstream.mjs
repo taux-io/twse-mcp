@@ -36,6 +36,8 @@ export const ALWAYS_POPULATED = [
   "opendata/t187ap07_L_ci",
   "opendata/t187ap33_L",
   "exchangeReport/MI_INDEX",
+  "exchangeReport/MI_MARGN",
+  "SBL/TWT96U",
 ];
 
 /**

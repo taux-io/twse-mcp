@@ -23,6 +23,13 @@
         { "tool": "twse_lookup" },
         { "tool": "twse_stock_snapshot", "args": { "code": "2412" } }
       ] },
+    { "id": "stock-margin", "question": "2330 的融資餘額最近是增加還是減少？券資比多少？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330", "include_margin": true } }] },
+    { "id": "stock-sbl-by-name", "question": "長榮今天還可以借券賣出多少股？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_stock_snapshot", "args": { "code": "2603", "include_margin": true } }
+      ] },
     { "id": "stock-disposition", "question": "2330 現在有沒有被列為處置股或注意股？",
       "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
     { "id": "etf-profile", "question": "0056 這檔 ETF 在追蹤什麼指數？有多少人定期定額？",

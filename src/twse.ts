@@ -53,6 +53,10 @@ export const FIN_TYPE_KEYS = ["ci", "basi", "bd", "fh", "ins", "mim"] as const;
 export const dsIncome = (t: string) => `opendata/t187ap06_L_${t}`;
 export const dsBalance = (t: string) => `opendata/t187ap07_L_${t}`;
 
+// twse_stock_snapshot 的 include_margin
+export const DS_MARGIN = "exchangeReport/MI_MARGN"; // 集中市場融資融券餘額
+export const DS_SBL = "SBL/TWT96U"; // 上市上櫃股票當日可借券賣出股數
+
 // twse_stock_snapshot 的 include_governance
 export const DS_CHAIRMAN = "opendata/t187ap33_L"; // 董事長是否兼任總經理
 export const DS_PLEDGE = "opendata/t187ap09_L"; // 董監質權設定占持股比例
@@ -78,6 +82,7 @@ export const SNAPSHOT_DATASETS = [
   DS_COMPANY, DS_VALUATION, DS_REVENUE, DS_EX_RIGHTS, DS_DIVIDENDS, DS_NOTICE, DS_PUNISH,
   ...FIN_TYPE_KEYS.map(dsIncome), ...FIN_TYPE_KEYS.map(dsBalance),
   DS_CHAIRMAN, DS_PLEDGE, DS_PENALTIES, DS_SHORTFALL, DS_SHORTFALL_MONTHS,
+  DS_MARGIN, DS_SBL,
   DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
 ];
@@ -104,6 +109,8 @@ export const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
   // 一般業財報涵蓋上千家公司；董事長兼任表每家一列；收盤指數表兩百多列。都不可能合法地是 0 筆。
   // 其餘新依賴（質押、裁罰、持股不足、當月成交資訊、期交所各表）都可能合法地為空，不列入。
   dsIncome("ci"), dsBalance("ci"), DS_CHAIRMAN, DS_INDICES,
+  // 融資融券與可借券都是全體上市（借券另含上櫃）的清單，2026-09-26 實測各一千兩百多列。
+  DS_MARGIN, DS_SBL,
 ]);
 
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";

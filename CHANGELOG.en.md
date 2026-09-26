@@ -10,6 +10,9 @@ your AI uses it on its next connection.
 
 ## Unnumbered (already live)
 
+- New margin option on the stock snapshot: margin and short buying, selling, balances and daily change, utilisation,
+  short-to-margin ratio, suspension or allocation flags, and today's shares available to borrow and sell short
+  (the last one works for OTC stocks too).
 - The stock snapshot now includes **dividends for each period over the past year**: cash and stock dividend per share,
   and whether the board or the shareholders' meeting has approved it, with dates.
 - The homepage has a copy icon next to the endpoint and install commands; one click copies them.
