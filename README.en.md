@@ -178,6 +178,31 @@ language works just as well.
 >
 > *(Illustrative.)*
 
+> **You ask:** "What was TSMC's gross margin in the first half, and is its debt ratio high?"
+>
+> **The AI will answer something like:** For the first half of 2026 (cumulative through Q2), TSMC's
+> revenue was about **NT$2.40 trillion**, with a gross margin of **67.0%**, an operating margin of
+> **59.3%** and EPS of **NT$49.33**; its debt ratio at the end of Q2 was **30.9%**. It also notes that
+> the income statement is year-to-date, not a single quarter.
+>
+> *(Illustrative.)*
+
+> **You ask:** "Have the directors of 遠見 (3040) pledged a lot of their shares?"
+>
+> **The AI will answer something like:** About **99.4%** of the directors' holdings are pledged, in the
+> "90% and above" bracket, as of 19 August 2026. The chair does not also serve as CEO, and there are no
+> recent regulatory penalties.
+>
+> *(Illustrative.)*
+
+> **You ask:** "How did the market do yesterday? Are foreign investors long or short on futures?"
+>
+> **The AI will answer something like:** On 24 September the TAIEX closed at **48,024.60**, down 132.69
+> points (-0.28%), on turnover of about **NT$775.6 billion**; 387 listed stocks rose and 548 fell. In
+> futures, foreign investors held a net **short of about 77,000 TAIEX futures contracts**.
+>
+> *(Illustrative.)*
+
 > **You ask:** "Does the exchange publish data on regular savings plan account numbers?"
 >
 > **The AI will answer something like:** Yes — the exchange publishes a monthly

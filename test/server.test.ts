@@ -606,6 +606,34 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.caveats.join()).toContain("疑似欄位錯位");
   });
 
+  // 所得稅利益讓稅前合法地小於稅後（一般業 115Q2 有 39 家）。有所得稅欄位就驗算，
+  // 驗算成立的稅前淨利要保留——先前只看大小的版本會把它當成錯位丟掉。
+  it("twse_stock_snapshot：有所得稅利益時稅前小於稅後，驗算成立就保留稅前淨利", async () => {
+    overrideFetch(
+      (u) => u.includes("t187ap06_L_ci"),
+      () =>
+        jsonResponse([
+          { 年度: "115", 季別: "2", 公司代號: "2330", 營業收入: "1000000", "稅前淨利（淨損）": "198690", "所得稅費用（利益）": "-45373", "繼續營業單位本期淨利（淨損）": "244063", "本期淨利（淨損）": "244063" },
+        ]),
+    );
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
+    expect(out.financials.損益.稅前淨利).toBe(198690);
+    expect(out.caveats.join()).not.toContain("疑似欄位錯位");
+  });
+
+  it("twse_stock_snapshot：有所得稅欄位但驗算不成立時，略去稅前淨利", async () => {
+    overrideFetch(
+      (u) => u.includes("t187ap06_L_ci"),
+      () =>
+        jsonResponse([
+          { 年度: "115", 季別: "2", 公司代號: "2330", 營業收入: "1000000", "稅前淨利（淨損）": "500000", "所得稅費用（利益）": "100000", "繼續營業單位本期淨利（淨損）": "300000", "本期淨利（淨損）": "300000" },
+        ]),
+    );
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
+    expect(out.financials.損益).not.toHaveProperty("稅前淨利");
+    expect(out.caveats.join()).toContain("疑似欄位錯位");
+  });
+
   it("twse_stock_snapshot：一般業財報抓失敗時是「無法判斷」，不去翻其他業別", async () => {
     overrideFetch((u) => /t187ap0[67]_L_ci/.test(u), () => new Response("down", { status: 502 }));
     const out = await callTool("twse_stock_snapshot", { code: "2330", include_financials: true });
