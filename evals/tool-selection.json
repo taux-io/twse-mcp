@@ -3,7 +3,7 @@
   "cases": [
     { "id": "realtime-etf", "question": "0050 現在多少？",
       "expect": [{ "tool": "twse_realtime_quote", "args": { "codes": ["0050"] } }] },
-    { "id": "lookup-name", "question": "台積電的股票代號是多少？",
+    { "id": "lookup-name", "question": "隴華的股票代號是多少？",
       "expect": [{ "tool": "twse_lookup" }] },
     { "id": "stock-valuation", "question": "幫我看 2330 的本益比、殖利率和最近月營收",
       "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
@@ -28,11 +28,13 @@
     { "id": "screen-top-yield", "question": "上市股票裡殖利率最高的前 10 檔是哪些？",
       "expect": [
         { "tool": "twse_search_datasets" },
+        { "tool": "twse_describe_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL" } },
         { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL", "sort_by": "DividendYield" } }
       ] },
     { "id": "screen-where", "question": "本益比低於 10 而且殖利率 6% 以上的股票有哪些？",
       "expect": [
         { "tool": "twse_search_datasets" },
+        { "tool": "twse_describe_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL" } },
         { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL", "where": [{ "field": "PEratio", "op": "lt" }] } }
       ] },
     { "id": "screen-revenue-growth", "question": "上個月營收年增率最高的上市公司是哪幾家？",

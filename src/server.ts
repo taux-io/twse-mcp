@@ -189,6 +189,8 @@ function createServer() {
     {
       description:
         "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
+        "範圍比股票廣：還有公司治理、ESG、財報、權證、券商、期貨與選擇權，以及期交所的每日外幣參考匯率——" +
+        "覺得「交易所大概沒有這種資料」時，先搜再下結論。" +
         "會比對資料集代號、中文說明與欄位名稱；多個關鍵字用空白分隔（每個都要命中），" +
         "結果依相關度排序。期交所的資料集代號一律以 taifex/ 開頭，" +
         '搜期貨與選擇權可用 tag="期貨與選擇權"。',
@@ -380,7 +382,10 @@ function createServer() {
         include_financials: z
           .boolean()
           .default(false)
-          .describe("附上最新一季財報摘要（多一到兩次外呼）。預設 false。"),
+          .describe(
+            "附上最新一季財報摘要：營收、毛利率、營業利益率、淨利率、每股盈餘、每股參考淨值、" +
+              "資產負債與負債比率（多一到兩次外呼）。預設 false。",
+          ),
         include_governance: z
           .boolean()
           .default(false)
