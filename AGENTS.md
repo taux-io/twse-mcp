@@ -19,3 +19,8 @@ Issues 存放在 GitHub（`taux-io/twse-mcp`），以 `gh` CLI 操作。見 `doc
 ### Domain docs
 
 Single-context：根目錄一份 `CONTEXT.md`，ADR 放 `docs/adr/`。見 `docs/agents/domain.md`。
+
+### Ponytail checkpoints
+
+commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 過度工程檢查。
+時機、標記慣例，以及這個 repo 的防禦性守衛為什麼不算冗餘，見 `docs/agents/ponytail.md`。
