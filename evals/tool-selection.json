@@ -16,6 +16,13 @@
         { "tool": "twse_lookup" },
         { "tool": "twse_stock_snapshot", "args": { "code": "2303", "include_financials": true } }
       ] },
+    { "id": "stock-dividend", "question": "2330 最近一次配多少現金股利？什麼時候除息？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
+    { "id": "stock-dividend-by-name", "question": "中華電今年配多少股利？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_stock_snapshot", "args": { "code": "2412" } }
+      ] },
     { "id": "stock-disposition", "question": "2330 現在有沒有被列為處置股或注意股？",
       "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
     { "id": "etf-profile", "question": "0056 這檔 ETF 在追蹤什麼指數？有多少人定期定額？",

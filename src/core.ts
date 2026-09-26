@@ -984,7 +984,7 @@ export function lookupSecurities(
 }
 
 /**
- * 個股快照七個來源的標籤。用途與 ETF_SOURCE_LABELS 相同。
+ * 個股快照八個來源的標籤。用途與 ETF_SOURCE_LABELS 相同。
  * 「日成交資訊」與 ETF 快照是同一個資料集，所以沿用同一個字串。
  */
 export const STOCK_SOURCE_LABELS = {
@@ -993,6 +993,7 @@ export const STOCK_SOURCE_LABELS = {
   valuation: "本益比與殖利率",
   revenue: "月營收",
   exRights: "除權除息預告",
+  dividends: "股利分派",
   notice: "注意股公告",
   punish: "處置股公告",
   financials: "財報",
@@ -1009,6 +1010,7 @@ export interface StockSnapshotSources {
   valuation: Row[];
   revenue: Row[];
   exRights: Row[];
+  dividends: Row[];
   notice: Row[];
   punish: Row[];
   errors?: SourceError[];
@@ -1043,7 +1045,7 @@ function pct(v: unknown): number | null {
 }
 
 /**
- * 合併七個證交所資料集成單一上市公司概況。與 buildEtfSnapshot 同一套原則：
+ * 合併八個證交所資料集成單一上市公司概況。與 buildEtfSnapshot 同一套原則：
  * 任何一段缺就標 null + 記 caveat，**抓失敗的那段不做否定陳述**。
  *
  * 否定陳述只有在「真的查過、真的沒有」時才說。每一段都走同一個 absent() ——
@@ -1147,6 +1149,37 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
       }));
   if (exRights === null) absent(STOCK_SOURCE_LABELS.exRights);
 
+  // --- 5b. 股利分派 ---
+  // 表裡是近一年各期的決議（季配的公司一年四列），新的在前。現金與配股各有三個來源欄位
+  // （盈餘、法定盈餘公積、資本公積），使用者問的是「每股配多少」，所以各自加總成一個數。
+  // 「董事會擬議」的金額還要股東會通過，可能變動，要說出來。
+  const perShare = (r: Row, from: string[]) => {
+    const ns = from.map((f) => num(r[`股東配發-${f}`]));
+    return ns.every((n) => n === null) ? null : Math.round(ns.reduce((a: number, n) => a + (n ?? 0), 0) * 1e4) / 1e4;
+  };
+  const divRows = all(src.dividends, "公司代號");
+  const dividends = failed(STOCK_SOURCE_LABELS.dividends)
+    ? null
+    : divRows
+        .map((r) => {
+          const [start, end] = String(r["股利所屬期間"] ?? "").split("~").map((s) => rocToIso(s.trim()));
+          return {
+            "股利所屬": `${r["股利年度"]} 年${r["股利所屬年(季)度"] === "年度" ? "度" : ` ${r["股利所屬年(季)度"]}`}`.trim(),
+            "所屬期間": start && end ? `${start}～${end}` : null,
+            "決議進度": String(r["決議（擬議）進度"] ?? "").replace(/<br\s*\/?>/g, "") || null,
+            "董事會日期": rocToIso(r["董事會（擬議）股利分派日"]),
+            "股東會日期": rocToIso(r["股東會日期"]),
+            "現金股利_元每股": perShare(r, ["盈餘分配之現金股利(元/股)", "法定盈餘公積發放之現金(元/股)", "資本公積發放之現金(元/股)"]),
+            "股票股利_元每股": perShare(r, ["盈餘轉增資配股(元/股)", "法定盈餘公積轉增資配股(元/股)", "資本公積轉增資配股(元/股)"]),
+          };
+        })
+        .sort((a, b) => String(b["所屬期間"] ?? "").localeCompare(String(a["所屬期間"] ?? "")));
+  if (dividends === null) absent(STOCK_SOURCE_LABELS.dividends);
+  else if (!dividends.length) caveats.push(`${code} 不在股利分派資料中（該表收錄近一年董事會或股東會通過的股利分派）。`);
+  else if (dividends.some((x) => String(x["決議進度"]).includes("擬議"))) {
+    caveats.push("決議進度為「擬議」的股利尚待股東會通過，金額可能變動");
+  }
+
   // --- 6. 注意股與處置股 ---
   // 同樣是三態：true／false 是查過的答案，null 是抓失敗或無從判斷。當日沒有任何注意股時
   // 上游會回一列 Code 為空的佔位資料，比對代號時自然不會命中，所以不必特別處理。
@@ -1224,6 +1257,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     valuation,
     monthly_revenue: revenue,
     upcoming_ex_rights: exRights,
+    dividends,
     alerts,
     derived: Object.keys(derived).length ? derived : null,
     financials,

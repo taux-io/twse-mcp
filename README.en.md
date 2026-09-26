@@ -33,7 +33,7 @@ Once installed, just ask in your own words, for example:
 
 - **"What's TSMC at right now?"** — Live prices, several tickers at once.
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
-- **"How fast is TSMC's revenue growing? What are its P/E and yield?"** — A one-page company snapshot: monthly revenue growth, P/E, dividend yield, upcoming ex-dividend dates, and whether it is under disposition.
+- **"How fast is TSMC's revenue growing? What are its P/E and yield?"** — A one-page company snapshot: monthly revenue growth, P/E, dividend yield, the dividend paid for each period over the past year, upcoming ex-dividend dates, and whether it is under disposition.
 - **"Which stocks yield over 6% with a P/E under 10?"** — Filters and sorts by the exchange's published figures, so you do not page through them yourself.
 - **"How much did TSMC earn this half? Gross margin? Are directors' shares pledged?"** — The latest quarter's financials (the right industry table is picked for you) plus governance: chair/CEO duality, director share pledges, regulatory penalties.
 - **"How did the market do? Where are foreign investors positioned in futures?"** — TAIEX, turnover, most-traded stocks, plus institutional futures open interest, the put/call ratio and large-trader positions.

@@ -10,6 +10,8 @@ your AI uses it on its next connection.
 
 ## Unnumbered (already live)
 
+- The stock snapshot now includes **dividends for each period over the past year**: cash and stock dividend per share,
+  and whether the board or the shareholders' meeting has approved it, with dates.
 - The homepage has a copy icon next to the endpoint and install commands; one click copies them.
   Long commands wrap instead of hiding under the icon.
 - Homepage examples now cover financials, governance, the market overview and looking up a code by name.

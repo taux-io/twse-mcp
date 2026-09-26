@@ -818,6 +818,7 @@ describe("buildStockSnapshot — 相對今天的判斷", () => {
     valuation: [],
     revenue: [],
     exRights: [],
+    dividends: [],
     notice: [],
     punish: [],
     today: "2026-09-26",
@@ -856,6 +857,45 @@ describe("buildStockSnapshot — 相對今天的判斷", () => {
       }),
     ) as any;
     expect(r.upcoming_ex_rights.map((x: any) => x.除權除息日)).toEqual(["2026-09-26", "2026-10-08"]);
+  });
+  it("股利：各期新的在前，三個來源加總成每股現金／股票股利，<br> 清掉", () => {
+    const row = (period: string, span: string, progress: string, cash: string, stock = "0.0") => ({
+      公司代號: "2330", 股利年度: "115", "股利所屬年(季)度": period, 股利所屬期間: span,
+      "決議（擬議）進度": progress, "董事會（擬議）股利分派日": "1150811", 股東會日期: "",
+      "股東配發-盈餘分配之現金股利(元/股)": cash, "股東配發-法定盈餘公積發放之現金(元/股)": "0.0",
+      "股東配發-資本公積發放之現金(元/股)": "0.5", "股東配發-盈餘轉增資配股(元/股)": stock,
+      "股東配發-法定盈餘公積轉增資配股(元/股)": "0.0", "股東配發-資本公積轉增資配股(元/股)": "0.0",
+    });
+    const r = buildStockSnapshot(
+      "2330",
+      base({
+        dividends: [
+          row("第1季", "1150101~1150331", "董事會決議", "7.00000137"),
+          row("第2季", "1150401~1150630", "現金股利經董事會決議、<br>增資配股經董事會擬議", "7.0", "1.0"),
+          { 公司代號: "2317", "股東配發-盈餘分配之現金股利(元/股)": "9" },
+        ],
+      }),
+    ) as any;
+    expect(r.dividends.map((x: any) => x.股利所屬)).toEqual(["115 年 第2季", "115 年 第1季"]);
+    expect(r.dividends[0]).toMatchObject({
+      所屬期間: "2026-04-01～2026-06-30",
+      決議進度: "現金股利經董事會決議、增資配股經董事會擬議",
+      董事會日期: "2026-08-11",
+      股東會日期: null,
+      現金股利_元每股: 7.5,
+      股票股利_元每股: 1,
+    });
+    expect(r.dividends[1].現金股利_元每股).toBe(7.5);
+    expect(r.caveats.join()).toContain("尚待股東會通過");
+  });
+  it("股利：查過沒有是空陣列加說明；抓失敗是 null，不說沒有", () => {
+    const none = buildStockSnapshot("2330", base()) as any;
+    expect(none.dividends).toEqual([]);
+    expect(none.caveats.join()).toContain("不在股利分派資料中");
+    const failed = buildStockSnapshot("2330", base({ errors: [{ source: "股利分派", error: "timeout" }] })) as any;
+    expect(failed.dividends).toBeNull();
+    expect(failed.caveats.join()).toContain("不代表");
+    expect(failed.caveats.join()).not.toContain("不在股利分派資料中");
   });
   it("存託憑證不算市值（股數是原股數，不是憑證單位數）", () => {
     const r = buildStockSnapshot(
