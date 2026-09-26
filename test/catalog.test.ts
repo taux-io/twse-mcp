@@ -18,13 +18,12 @@ import {
   DS_FUND,
   DS_RANK,
   SNAPSHOT_DATASETS,
-  TAIFEX_CSV_DATASETS,
 } from "../src/twse";
+import { headerMatches } from "../src/csv-header.mjs";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
   classify,
   FRESHNESS,
-  KNOWN_CSV,
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
@@ -161,16 +160,29 @@ describe("catalog 健檢腳本 — 守衛自己的破口", () => {
 });
 
 /**
- * CSV 表頭契約釘死在 src/twse.ts，英文欄位名則同時存在於目錄。兩份字面值必須一致，
- * 否則守衛比對的是一組跟實際回應對不上的名字。這條斷言就是把「常數重複」變成安全的。
+ * 期交所 CSV 表頭的對應規則（src/csv-header.mjs）。執行期與每日健檢共用它，
+ * 所以這裡直接測規則本身：放行上游常見的多字寫法，擋下欄位錯位與目錄被清空。
  */
-describe("CSV 表頭契約與目錄一致", () => {
-  it("釘死的英文欄位名與目錄宣告的完全相同（含順序）", () => {
-    for (const [id, spec] of Object.entries(TAIFEX_CSV_DATASETS)) {
-      expect(catalog[id], id).toBeDefined();
-      expect(Object.keys(catalog[id].fields), id).toEqual([...spec.fields]);
-      expect(spec.header.length, id).toBe(spec.fields.length);
-    }
+describe("CSV 表頭對應規則", () => {
+  const opt = Object.values(catalog["taifex/DailyMarketReportOpt"].fields);
+  it("一字不差與互相包含（上游多幾個字）都放行", () => {
+    expect(headerMatches(opt, opt)).toBe(true);
+    expect(headerMatches(["日期", "契約代號"], ["日期", "契約"])).toBe(true);
+    expect(headerMatches(["前五大交易人買方數量"], ["前五大交易人買方"])).toBe(true);
+  });
+  it("「最高價」與「歷史最高價」對調會被擋下（包含關係不能掩蓋錯位）", () => {
+    const swapped = [...opt];
+    const a = swapped.indexOf("最高價");
+    const b = swapped.indexOf("歷史最高價");
+    [swapped[a], swapped[b]] = [swapped[b], swapped[a]];
+    expect(headerMatches(swapped, opt)).toBe(false);
+  });
+  it("欄數不同、或目錄是空的，一律不成立", () => {
+    expect(headerMatches(opt.slice(1), opt)).toBe(false);
+    expect(headerMatches([], [])).toBe(false);
+  });
+  it("完全不相干的欄位不成立", () => {
+    expect(headerMatches(["<html>"], ["日期"])).toBe(false);
   });
 });
 
@@ -361,9 +373,6 @@ describe("server.json — 對外端點不可被無聲改掉", () => {
  * 這裡斷言一致——改了一邊沒改另一邊，健檢就會拿錯的標準去判斷。
  */
 describe("上游健檢腳本", () => {
-  it("已知 CSV 清單與 TAIFEX_CSV_DATASETS 一致", () => {
-    expect([...KNOWN_CSV].sort()).toEqual(Object.keys(TAIFEX_CSV_DATASETS).sort());
-  });
   it("必定有資料的清單與 twse.ts 一致", () => {
     expect([...SCRIPT_ALWAYS_POPULATED].sort()).toEqual([...TWSE_ALWAYS_POPULATED].sort());
   });
@@ -375,25 +384,29 @@ describe("上游健檢腳本", () => {
   });
 
   const now = new Date("2026-09-26T02:00:00Z");
+  const classifyAt = (id: string, r: { status: number; body: string }, at: Date) => classify(id, r, at, catalog);
   const ok = (body: unknown) => ({ status: 200, body: JSON.stringify(body) });
   it("健康的回應回 null", () => {
-    expect(classify("exchangeReport/STOCK_DAY_ALL", ok([{ Date: "1150924" }]), now)).toBeNull();
+    expect(classifyAt("exchangeReport/STOCK_DAY_ALL", ok([{ Date: "1150924" }]), now)).toBeNull();
   });
   it("非 2xx 是 http", () => {
-    expect(classify("x", { status: 503, body: "" }, now)?.kind).toBe("http");
+    expect(classifyAt("x", { status: 503, body: "" }, now)?.kind).toBe("http");
   });
-  it("不在已知清單的 CSV 是 format；已知的 CSV 與改回 JSON 都不算問題", () => {
-    expect(classify("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2" }, now)?.kind).toBe("format");
-    expect(classify("taifex/FinalSettlementPrice", { status: 200, body: "最後結算日\r\n1" }, now)).toBeNull();
-    expect(classify("taifex/FinalSettlementPrice", ok([{ a: 1 }]), now)).toBeNull();
+  it("讀不了的 CSV 是 format；讀得了的期交所 CSV 與改回 JSON 都不算問題", () => {
+    expect(classifyAt("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2" }, now)?.kind).toBe("format");
+    const fsp = "\uFEFF最後結算日,契約月份,商品代號,商品名稱,最後結算價\r\n20251205,202512F1,TXO,臺指選擇權,27892";
+    expect(classifyAt("taifex/FinalSettlementPrice", { status: 200, body: fsp }, now)).toBeNull();
+    expect(classifyAt("taifex/FinalSettlementPrice", ok([{ a: 1 }]), now)).toBeNull();
+    // 證交所沒有 CSV 退路：同樣的 CSV 在證交所端點就是格式錯誤
+    expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: fsp }, now)?.kind).toBe("format");
   });
   it("必定有資料的主檔回 0 筆是 empty；其他表 0 筆不算", () => {
-    expect(classify("opendata/t187ap03_L", ok([]), now)?.kind).toBe("empty");
-    expect(classify("announcement/notice", ok([]), now)).toBeNull();
+    expect(classifyAt("opendata/t187ap03_L", ok([]), now)?.kind).toBe("empty");
+    expect(classifyAt("announcement/notice", ok([]), now)).toBeNull();
   });
   it(`每日表的最新日期落後超過 ${MAX_AGE_DAYS} 天是 stale（民國與西元日期都認得）`, () => {
-    expect(classify("exchangeReport/MI_INDEX", ok([{ 日期: "1150605" }]), now)?.kind).toBe("stale");
-    expect(classify("taifex/PutCallRatio", ok([{ Date: "20260920" }]), now)).toBeNull();
-    expect(classify("taifex/PutCallRatio", ok([{ Date: "20260801" }]), now)?.detail).toContain("2026-08-01");
+    expect(classifyAt("exchangeReport/MI_INDEX", ok([{ 日期: "1150605" }]), now)?.kind).toBe("stale");
+    expect(classifyAt("taifex/PutCallRatio", ok([{ Date: "20260920" }]), now)).toBeNull();
+    expect(classifyAt("taifex/PutCallRatio", ok([{ Date: "20260801" }]), now)?.detail).toContain("2026-08-01");
   });
 });
