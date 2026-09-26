@@ -1326,12 +1326,25 @@ function buildFinancials(
     caveats.push(`因為上游取得失敗，無法判斷 ${code} 的${missing}——這**不代表**沒有。請稍後重試。`);
   }
   const income = f.income ? pickItems(f.income.row, INCOME_ITEMS) : null;
-  // 上游一致性檢查。實測金控業表（2026-09-26）稅前 34 億、稅後 173 億——稅前小於稅後，
-  // 同表的「淨收益」也與名稱對不上，是欄位錯位的跡象。所得稅利益確實可能讓稅前略小於
-  // 稅後，但把一個疑似錯位的數字當成答案轉述，代價遠大於少一個科目。所以略去並說明。
-  if (income && income["稅前淨利"] > 0 && income["本期淨利"] > 0 && income["稅前淨利"] < income["本期淨利"]) {
+  // 上游一致性檢查：稅前淨利要經得起「稅前 − 所得稅 ＝ 繼續營業單位淨利」的驗算。
+  //
+  // 金控業表的 OpenAPI 欄名錯位一格（原始 CSV 正確；見 docs/upstream-reports/2026-09-26-twse.md）：
+  // 標成「繼續營業單位稅前損益」的其實是所得稅，所以稅前（34 億）會小於稅後（173 億）。
+  // 那張表沒有所得稅欄位可以驗算，只能用「稅前小於稅後」當訊號。
+  //
+  // 有所得稅欄位的表一律驗算，不用「稅前小於稅後」：所得稅**利益**會讓稅前合法地小於稅後
+  // （一般業 115Q2 有 39 家，例如味全稅前 198,690、所得稅 −45,373、稅後 244,063），
+  // 先前只看大小的版本會把這些正確的數字當成錯位丟掉。
+  const row = f.income?.row;
+  const tax = row ? num(row["所得稅費用（利益）"]) : null;
+  const cont = row ? num(row["繼續營業單位本期淨利（淨損）"] ?? row["繼續營業單位本期純益（純損）"]) : null;
+  const verifiable = tax !== null && cont !== null && income?.["稅前淨利"] !== undefined;
+  const suspect = verifiable
+    ? Math.abs(income!["稅前淨利"] - tax! - cont!) > 1
+    : !!income && income["稅前淨利"] > 0 && income["本期淨利"] > 0 && income["稅前淨利"] < income["本期淨利"];
+  if (income && suspect) {
     caveats.push(
-      `上游的稅前淨利（${income["稅前淨利"]}）小於稅後淨利（${income["本期淨利"]}），疑似欄位錯位，已略去稅前淨利。` +
+      `上游的稅前淨利（${income["稅前淨利"]}）與所得稅、稅後淨利（${income["本期淨利"]}）對不起來，疑似欄位錯位，已略去稅前淨利。` +
         "其餘數字請以公開資訊觀測站的財報核對。",
     );
     delete income["稅前淨利"];
