@@ -43,6 +43,12 @@ const REVENUE = [
   { 資料年月: "11508", 公司代號: "2330", 公司名稱: "台積電", 產業別: "半導體業", "營業收入-當月營收": "514805337", "營業收入-上月比較增減(%)": "10.099818994181083", "營業收入-去年同月增減(%)": "53.320053714712955" },
 ];
 const DIVIDENDS = [{ 公司代號: "2330", 股利年度: "115", "股利所屬年(季)度": "第2季", 股利所屬期間: "1150401~1150630", "決議（擬議）進度": "董事會決議", "董事會（擬議）股利分派日": "1150811", 股東會日期: "", "股東配發-盈餘分配之現金股利(元/股)": "7.00000000", "股東配發-法定盈餘公積發放之現金(元/股)": "0.0", "股東配發-資本公積發放之現金(元/股)": "0.0", "股東配發-盈餘轉增資配股(元/股)": "0.0", "股東配發-法定盈餘公積轉增資配股(元/股)": "0.0", "股東配發-資本公積轉增資配股(元/股)": "0.0" }];
+// 融資融券與借券：形狀照 2026-09-24 的真實上游（空字串代表 0，借券表上市與上櫃並排）。
+const MARGIN = [
+  { 股票代號: "2330", 股票名稱: "台積電", 融資買進: "1139", 融資賣出: "215", 融資現金償還: "50", 融資前日餘額: "28833", 融資今日餘額: "29707", 融資限額: "6483092", 融券買進: "2", 融券賣出: "", 融券現券償還: "", 融券前日餘額: "18", 融券今日餘額: "16", 融券限額: "6483092", 資券互抵: "", 註記: " " },
+  { 股票代號: "2303", 股票名稱: "聯電", 融資買進: "10", 融資賣出: "5", 融資現金償還: "", 融資前日餘額: "1000", 融資今日餘額: "1005", 融資限額: "2000", 融券買進: "", 融券賣出: "300", 融券現券償還: "", 融券前日餘額: "100", 融券今日餘額: "400", 融券限額: "2000", 資券互抵: "3", 註記: "OX!" },
+];
+const SBL = [{ TWSECode: "2330", TWSEAvailableVolume: "6,193,578", GRETAICode: "6488", GRETAIAvailableVolume: "3,155,909" }];
 const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "5.0" }];
 // 當日沒有注意股時，上游回一列 Code 為空的佔位資料——照實模擬。
 const NOTICE = [{ Number: "0", Code: "", Name: "", NumberOfAnnouncement: "0", TradingInfoForAttention: "", Date: "", ClosingPrice: "0", PE: "0" }];
@@ -128,6 +134,8 @@ beforeEach(() => {
       if (u.includes("t187ap05_L")) return jsonResponse(REVENUE);
       if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
       if (u.includes("t187ap45_L")) return jsonResponse(DIVIDENDS);
+      if (u.includes("MI_MARGN")) return jsonResponse(MARGIN);
+      if (u.includes("TWT96U")) return jsonResponse(SBL);
       if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
       if (u.includes("announcement/punish")) return jsonResponse(PUNISH);
       if (u.includes("t187ap06_L_ci")) return jsonResponse(INCOME_CI);
@@ -666,6 +674,45 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(umc.governance.董監質押).toMatchObject({ "董監質押比率%": 3.1, 級距: "20 以下", 資料日期: "2026-08-19" });
     expect(umc.governance.裁罰案件[0]).toMatchObject({ 發函日期: "2026-09-02", 裁處情形: "罰鍰" });
     expect(umc.governance.董監持股不足).toMatchObject({ 全體董事不足股數: 5869862, 連續不足: "連續不足達3個月" });
+  });
+
+  it("twse_stock_snapshot：include_margin 回融資融券、券資比、註記與可借券股數", async () => {
+    const tsmc = await callTool("twse_stock_snapshot", { code: "2330", include_margin: true });
+    expect(tsmc.margin.融資融券).toMatchObject({
+      融資: { 買進: 1139, 賣出: 215, 現金償還: 50, 前日餘額: 28833, 今日餘額: 29707, 增減: 874, "使用率%": 0.46 },
+      融券: { 買進: 2, 賣出: 0, 現券償還: 0, 今日餘額: 16, 增減: -2 },
+      資券互抵: 0,
+      "券資比%": 0.05,
+      次一營業日狀態: null,
+    });
+    expect(tsmc.margin.可借券賣出股數).toBe(6193578);
+    expect(tsmc.caveats.join()).toContain("單位為張");
+
+    const umc = await callTool("twse_stock_snapshot", { code: "2303", include_margin: true });
+    expect(umc.margin.融資融券.次一營業日狀態).toEqual(["停止融資", "停止融券", "停止買賣"]);
+    expect(umc.margin.融資融券["券資比%"]).toBe(39.8);
+    // 2303 不在借券表：查過沒有是 null 加說明
+    expect(umc.margin.可借券賣出股數).toBeNull();
+    expect(umc.caveats.join()).toContain("不在當日可借券賣出股數表中");
+
+    // 上櫃代號從並排的第二組欄位找，不會拿到同一列上市那檔的數字
+    const otc = await callTool("twse_stock_snapshot", { code: "6488", include_margin: true });
+    expect(otc.margin.可借券賣出股數).toBe(3155909);
+    expect(otc.margin.融資融券).toBeNull();
+
+    const plain = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(plain.margin).toBe("未查詢");
+    // 三次帶 include_margin 的呼叫各抓一次；沒帶的那次不抓
+    expect(fetchedUrls().filter((u) => u.includes("MI_MARGN"))).toHaveLength(3);
+  });
+
+  it("twse_stock_snapshot：融資融券抓失敗是「無法判斷」，不說不在表中", async () => {
+    overrideFetch((u) => u.includes("MI_MARGN"), () => new Response("down", { status: 502 }));
+    const out = await callTool("twse_stock_snapshot", { code: "2330", include_margin: true });
+    expect(out.margin.融資融券).toBeNull();
+    expect(out.margin.可借券賣出股數).toBe(6193578);
+    expect(out.caveats.join()).toContain("無法判斷 2330 的融資融券");
+    expect(out.caveats.join()).not.toContain("不在集中市場融資融券表中");
   });
 
   it("twse_market_overview：大盤、成交、漲跌家數（由日成交資訊計算）與成交量排行", async () => {

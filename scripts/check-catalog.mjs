@@ -40,6 +40,9 @@ export const REQUIRED = [
   "opendata/t187ap22_L",
   "opendata/t187ap08_L",
   "opendata/t187ap10_L",
+  // include_margin
+  "exchangeReport/MI_MARGN",
+  "SBL/TWT96U",
   // twse_market_overview
   "exchangeReport/MI_INDEX",
   "exchangeReport/FMTQIK",

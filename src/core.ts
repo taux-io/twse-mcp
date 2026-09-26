@@ -1002,6 +1002,8 @@ export const STOCK_SOURCE_LABELS = {
   penalties: "裁罰案件",
   shortfall: "董監持股不足",
   shortfallMonths: "董監持股連續不足",
+  margin: "融資融券",
+  sbl: "可借券賣出股數",
 } as const;
 
 export interface StockSnapshotSources {
@@ -1017,6 +1019,7 @@ export interface StockSnapshotSources {
   /** 選配段落。undefined 代表這次沒有要求，回應標「未查詢」，與 ETF 快照的 realtime 同一個約定。 */
   financials?: FinancialsInput;
   governance?: GovernanceSources;
+  margin?: MarginSources;
   /**
    * 台灣時間的今天（`YYYY-MM-DD`）。除權除息「近期」與處置「進行中」都是相對今天的判斷，
    * 由呼叫端傳入，core 才能維持純函式、測試才不會隨執行日期變動。
@@ -1247,6 +1250,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
       : buildFinancials(code, src.financials, failed(STOCK_SOURCE_LABELS.financials), caveats);
   const governance =
     src.governance === undefined ? "未查詢" : buildGovernance(code, src.governance, failed, absent, caveats);
+  const margin = src.margin === undefined ? "未查詢" : buildMargin(code, src.margin, failed, absent, caveats);
 
   return {
     code,
@@ -1262,6 +1266,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     derived: Object.keys(derived).length ? derived : null,
     financials,
     governance,
+    margin,
     caveats,
     note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 twse_realtime_quote）",
     source: SOURCE_NOTE.twse,
@@ -1503,6 +1508,84 @@ function buildGovernance(
     "董監質押": pledge,
     "裁罰案件": penalties,
     "董監持股不足": shortfall,
+  };
+}
+
+// ============================================================================
+// 融資融券與借券（twse_stock_snapshot 的 include_margin）
+// ============================================================================
+
+export interface MarginSources {
+  margin: Row[];
+  sbl: Row[];
+}
+
+/** 融資融券表「註記」的符號，照證交所網站 MI_MARGN 頁的「符號說明」。 */
+const MARGIN_MARKS: Record<string, string> = {
+  O: "停止融資",
+  X: "停止融券",
+  "@": "融資分配",
+  "%": "融券分配",
+  "!": "停止買賣",
+};
+
+function buildMargin(
+  code: string,
+  m: MarginSources,
+  failed: (label: string) => boolean,
+  absent: (label: string, negative?: string) => void,
+  caveats: string[],
+): Record<string, unknown> {
+  const L = STOCK_SOURCE_LABELS;
+  const c = norm(code);
+  const ratio = (a: number | null, b: number | null) => (a !== null && b ? Math.round((a / b) * 10000) / 100 : null);
+
+  const r = m.margin.find((x) => norm(x["股票代號"]) === c);
+  let margin: Record<string, unknown> | null = null;
+  if (r) {
+    const side = (kind: "融資" | "融券", repay: string) => {
+      const prev = num(r[`${kind}前日餘額`]);
+      const today = num(r[`${kind}今日餘額`]);
+      const limit = num(r[`${kind}限額`]);
+      return {
+        // 上游空字串是 0（當日沒有這類交易），不是缺值：前日與今日餘額相減對得起來。
+        "買進": num(r[`${kind}買進`]) ?? 0,
+        "賣出": num(r[`${kind}賣出`]) ?? 0,
+        [repay]: num(r[`${kind}${repay}`]) ?? 0,
+        "前日餘額": prev,
+        "今日餘額": today,
+        "增減": prev !== null && today !== null ? today - prev : null,
+        "使用率%": ratio(today, limit),
+      };
+    };
+    const fin = side("融資", "現金償還");
+    const short = side("融券", "現券償還");
+    const marks = [...String(r["註記"] ?? "").trim()].map((ch) => MARGIN_MARKS[ch] ?? ch);
+    margin = {
+      "融資": fin,
+      "融券": short,
+      "資券互抵": num(r["資券互抵"]) ?? 0,
+      "券資比%": ratio(short["今日餘額"] as number | null, fin["今日餘額"] as number | null),
+      "次一營業日狀態": marks.length ? marks : null,
+    };
+    caveats.push(
+      "融資融券單位為張；使用率 = 今日餘額 ÷ 次一營業日限額；融資融券表上游沒有日期欄位，" +
+        "通常與前一交易日價量同一天，但兩表更新時間不同，盤後幾小時內可能差一天",
+    );
+  } else {
+    absent(L.margin, `${code} 不在集中市場融資融券表中（該表只收上市且可信用交易的證券）。`);
+  }
+
+  // 可借券表把上市與上櫃並排成兩組獨立的欄位，同一列的兩個代號彼此無關。
+  const listed = m.sbl.find((x) => norm(x["TWSECode"]) === c);
+  const otc = listed ? undefined : m.sbl.find((x) => norm(x["GRETAICode"]) === c);
+  const sbl = listed ? num(listed["TWSEAvailableVolume"]) : otc ? num(otc["GRETAIAvailableVolume"]) : null;
+  if (sbl !== null) caveats.push("可借券賣出股數單位為股，是當日可借券賣出的上限，不是已借券賣出的量");
+  else absent(L.sbl, `${code} 不在當日可借券賣出股數表中。`);
+
+  return {
+    "融資融券": failed(L.margin) ? null : margin,
+    "可借券賣出股數": failed(L.sbl) ? null : sbl,
   };
 }
 

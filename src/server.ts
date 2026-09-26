@@ -52,6 +52,8 @@ import {
   DS_DAY,
   DS_EX_RIGHTS,
   DS_DIVIDENDS,
+  DS_MARGIN,
+  DS_SBL,
   DS_FUND,
   DS_NOTICE,
   DS_PUNISH,
@@ -112,6 +114,7 @@ const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
   derived: section.nullable(),
   financials: z.union([section, z.null(), notQueried]),
   governance: z.union([section, notQueried]),
+  margin: z.union([section, notQueried]),
   note: z.string(),
   ...common,
 });
@@ -451,6 +454,7 @@ function createServer() {
         "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
         "要財報（損益、資產負債、毛利率等，會自動找對業別的表）帶 include_financials；" +
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
+        "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
@@ -467,10 +471,14 @@ function createServer() {
           .boolean()
           .default(false)
           .describe("附上公司治理摘要（多五次外呼）。預設 false。"),
+        include_margin: z
+          .boolean()
+          .default(false)
+          .describe("附上融資融券（買賣、餘額、增減、使用率、券資比、停止或分配註記）與當日可借券賣出股數（多兩次外呼）。預設 false。"),
       },
     },
-    async ({ code, include_financials, include_governance }) => {
-      // 選配段落與八個主檔同時發出；三者各自的失敗都匯進同一份 errors。
+    async ({ code, include_financials, include_governance, include_margin }) => {
+      // 選配段落與八個主檔同時發出；各自的失敗都匯進同一份 errors。
       const finTask = include_financials ? fetchFinancials(code, STOCK_SOURCE_LABELS.financials) : null;
       const govTask = include_governance
         ? fetchSources({
@@ -479,6 +487,12 @@ function createServer() {
             penalties: { dataset: DS_PENALTIES, label: STOCK_SOURCE_LABELS.penalties },
             shortfall: { dataset: DS_SHORTFALL, label: STOCK_SOURCE_LABELS.shortfall },
             shortfallMonths: { dataset: DS_SHORTFALL_MONTHS, label: STOCK_SOURCE_LABELS.shortfallMonths },
+          })
+        : null;
+      const marginTask = include_margin
+        ? fetchSources({
+            margin: { dataset: DS_MARGIN, label: STOCK_SOURCE_LABELS.margin },
+            sbl: { dataset: DS_SBL, label: STOCK_SOURCE_LABELS.sbl },
           })
         : null;
       const { rows, errors } = await fetchSources({
@@ -493,12 +507,14 @@ function createServer() {
       });
       const fin = finTask ? await finTask : null;
       const gov = govTask ? await govTask : null;
+      const mar = marginTask ? await marginTask : null;
       return structured(
         buildStockSnapshot(code, {
           ...rows,
-          errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? [])],
+          errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? []), ...(mar?.errors ?? [])],
           financials: fin?.input,
           governance: gov?.rows,
+          margin: mar?.rows,
           today: taipeiToday(),
         }),
       );
