@@ -29,6 +29,12 @@
 （例如「超過 N 筆時改用索引」而現在已超過），就開 issue 處理；
 標 `no-trigger` 的，補上升級條件或直接處理。
 
+**已自動化**：每週一 09:00（台北時間）由 Claude Code 雲端 routine「twse-mcp weekly ponytail-debt」
+執行（`trig_01UXVNqEewXndUNLvDLYnGch`，管理頁 https://claude.ai/code/routines ）。
+它只讀不改：沒有標記就什麼都不做；有 `no-trigger` 或條件已成立的項目才開 issue
+（標 `needs-triage`，標題以 `ponytail debt:` 開頭，不重複開）。手動跑 `/ponytail:ponytail-debt` 仍然可以，
+例如在打版本 tag 前。
+
 ### 標記慣例
 
 刻意選了簡單但有上限的做法時，在程式碼旁寫一行：
