@@ -59,7 +59,7 @@
     { "id": "market-today", "question": "今天台股大盤表現怎麼樣？成交量大嗎？",
       "expect": [{ "tool": "twse_market_overview" }] },
     { "id": "market-futures", "question": "外資在台指期現在是偏多還是偏空？",
-      "expect": [{ "tool": "twse_market_overview" }] },
+      "expect": [{ "tool": "twse_market_overview" }, { "tool": "twse_futures_snapshot" }] },
     { "id": "market-pcr", "question": "最近的台指選擇權 Put/Call ratio 是多少？",
       "expect": [
         { "tool": "twse_market_overview" },
@@ -82,14 +82,22 @@
       ] },
     { "id": "futures-quote", "question": "台指期昨天收在哪裡？",
       "expect": [
+        { "tool": "twse_futures_snapshot" },
         { "tool": "twse_search_datasets" },
         { "tool": "twse_get_dataset", "args": { "dataset_id": "taifex/DailyMarketReportFut" } }
       ] },
     { "id": "futures-code", "question": "小型臺指期貨（MXF）最近的成交量是多少？",
       "expect": [
+        { "tool": "twse_futures_snapshot" },
         { "tool": "twse_search_datasets" },
         { "tool": "twse_get_dataset", "args": { "code": "MXF" } }
       ] },
+    { "id": "futures-mini", "question": "小台近月昨天結算價多少？未平倉有多少口？",
+      "expect": [{ "tool": "twse_futures_snapshot" }] },
+    { "id": "futures-stock-large", "question": "台積電期貨的大額交易人偏多還是偏空？",
+      "expect": [{ "tool": "twse_futures_snapshot" }] },
+    { "id": "options-not-futures", "question": "台指選擇權 10 月份 48000 買權昨天收多少？",
+      "expect": [{ "tool": "twse_search_datasets" }] },
     { "id": "otc-by-name", "question": "環球晶現在股價多少？",
       "expect": [
         { "tool": "twse_lookup" },

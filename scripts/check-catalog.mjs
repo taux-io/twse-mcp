@@ -51,6 +51,9 @@ export const REQUIRED = [
   "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
   "taifex/PutCallRatio",
   "taifex/OpenInterestOfLargeTradersFutures",
+  // twse_futures_snapshot
+  "taifex/DailyMarketReportFut",
+  "taifex/FinalSettlementPriceFutures",
 ];
 
 /** 目錄少於這個數量，幾乎必然是上游出事而非真的縮編。 */

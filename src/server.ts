@@ -17,6 +17,8 @@ import pkg from "../package.json";
 import {
   buildEtfSnapshot,
   buildFuturesMarket,
+  buildFuturesSnapshot,
+  FUTURES_SOURCE_LABELS,
   buildStockMarket,
   buildStockSnapshot,
   MARKET_SOURCE_LABELS,
@@ -40,6 +42,8 @@ import {
   DS_INST_CONTRACTS,
   DS_INST_TOTAL,
   DS_LARGE_TRADERS,
+  DS_FUT_DAILY,
+  DS_FUT_SETTLE,
   DS_PCR,
   DS_PENALTIES,
   DS_PLEDGE,
@@ -142,6 +146,20 @@ const MARKET_OUTPUT = z.looseObject({
   證券市場: section.optional(),
   期貨籌碼: section.optional(),
   note: z.string(),
+  ...common,
+});
+
+const FUTURES_OUTPUT = z.looseObject({
+  query: z.string(),
+  contract: z.string().nullable(),
+  name: z.string().nullable(),
+  candidates: z.array(section).optional(),
+  date: z.string().nullable().optional(),
+  near_month: section.nullable().optional(),
+  quotes: z.array(section).optional(),
+  institutional: z.union([z.array(section), z.string(), z.null()]).optional(),
+  large_traders: z.union([section, z.string(), z.null()]).optional(),
+  final_settlement: z.array(section).nullable().optional(),
   ...common,
 });
 
@@ -528,7 +546,7 @@ function createServer() {
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。' +
-        "不含個別期貨或選擇權契約的行情價格；要查台指期等契約的收盤價，先用 twse_search_datasets 找期貨每日交易行情。",
+        "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 twse_futures_snapshot。",
       annotations: REMOTE_READ,
       outputSchema: MARKET_OUTPUT,
       inputSchema: {
@@ -571,6 +589,32 @@ function createServer() {
         note: "皆為前一交易日（或各表最新一期）的收盤後資料，不是盤中即時；各段以資料中的日期為準",
         source: MARKET_SOURCE_NOTE,
       });
+    },
+  );
+
+  server.registerTool(
+    "twse_futures_snapshot",
+    {
+      description:
+        "一個期貨契約（最新一個交易日）的完整概況：各月份的開高低收、漲跌、成交量、結算價、未平倉（一般與盤後時段）、" +
+        "近月摘要、三大法人部位（指數類期貨）、大額交易人部位與最後結算價。" +
+        '可用代號（"TX"、"MTX"、"TMF"、"CDF"）或名稱（"台指期"、"小台"、"台積電期貨"）；名稱對到多個契約時只回 candidates，' +
+        "請向使用者確認再用代號重查。只含期貨；選擇權與整體期貨籌碼請用 twse_search_datasets 或 twse_market_overview。",
+      annotations: REMOTE_READ,
+      outputSchema: FUTURES_OUTPUT,
+      inputSchema: {
+        contract: z.string().describe('期貨契約代號或名稱，例如 "TX"、"小台"、"台積電期貨"。'),
+      },
+    },
+    async ({ contract }) => {
+      const L = FUTURES_SOURCE_LABELS;
+      const { rows, errors } = await fetchSources({
+        daily: { dataset: DS_FUT_DAILY, label: L.daily },
+        inst: { dataset: DS_INST_CONTRACTS, label: L.inst },
+        largeTraders: { dataset: DS_LARGE_TRADERS, label: L.largeTraders },
+        settlement: { dataset: DS_FUT_SETTLE, label: L.settlement },
+      });
+      return structured(buildFuturesSnapshot(contract, { ...rows, errors }));
     },
   );
 
@@ -645,7 +689,8 @@ function createServer() {
       },
     },
     ({ contract }) => textPrompt(
-      `請查 ${contract} 的期貨／選擇權每日行情。先用 twse_search_datasets 配合 ` +
+      `請查 ${contract} 的期貨／選擇權每日行情。期貨契約直接用 twse_futures_snapshot 帶 contract="${contract}"；` +
+        "若它回 candidates，請先讓我確認要哪一個。選擇權則先用 twse_search_datasets 配合 " +
         'tag="期貨與選擇權" 找到對的資料集（期貨日行情與選擇權日行情是不同的兩張表），' +
         `再用 twse_get_dataset 帶 code="${contract}" 取資料。` +
         "注意：同一個商品在不同報表的代號長度不同（日行情用 TX，你手上可能是 TXF）。" +

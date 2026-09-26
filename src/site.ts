@@ -179,7 +179,7 @@ const ZH: Page = {
     "大盤概況與期貨籌碼：加權指數、成交量排行、三大法人期貨未平倉、Put/Call 比",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
     "依本益比、殖利率等交易所公布的數字篩選與排序，以及用名稱查代號",
-    "臺灣期貨交易所的每日行情、三大法人與大額交易人未沖銷部位",
+    "單一期貨契約（台指期、小台、個股期貨等）的各月份行情、三大法人與大額交易人部位，以及期交所其他每日報表",
     `臺灣證交所與期交所合計 ${DATASET_COUNT} 個公開資料集的搜尋與查詢`,
   ],
   installSteps: [
@@ -329,7 +329,7 @@ const EN: Page = {
     "Market overview and futures positioning: TAIEX, most-traded stocks, institutional futures open interest, put/call ratio",
     "Per-ETF profile, tracked index and regular-savings popularity",
     "Filter and sort by published figures such as P/E and yield, and look up a ticker by company name",
-    "TAIFEX daily futures and options quotes, institutional flows and large-trader open interest",
+    "Per-contract futures snapshot (TAIEX, mini-TAIEX, single-stock futures): quotes by month, institutional and large-trader positions, plus other TAIFEX daily reports",
     `Search and query across ${DATASET_COUNT} open datasets from TWSE and TAIFEX combined`,
   ],
   installSteps: [

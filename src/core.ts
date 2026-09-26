@@ -1769,3 +1769,196 @@ export function buildFuturesMarket(src: FuturesMarketSources, errors: SourceErro
     "台指期大額交易人": large,
   };
 }
+
+// ============================================================================
+// 期貨契約快照（twse_futures_snapshot）
+// ============================================================================
+
+export const FUTURES_SOURCE_LABELS = {
+  daily: "期貨每日交易行情",
+  inst: MARKET_SOURCE_LABELS.instContracts,
+  largeTraders: MARKET_SOURCE_LABELS.largeTraders,
+  settlement: "期貨最後結算價",
+} as const;
+
+export interface FuturesSnapshotSources {
+  daily: Row[];
+  inst: Row[];
+  largeTraders: Row[];
+  settlement: Row[];
+  errors?: SourceError[];
+}
+
+/**
+ * 契約中文名稱只出現在大額交易人表，而且代號少一碼（行情表 CDF、大額表 CD）。
+ * 大額表把小台、微台併進台指期（「TX+MTX/4」），小型電子與小型金融也不在表上，
+ * 這四個熱門契約的名稱只能寫死；名稱與三大法人表的寫法相同，兩邊才對得起來。
+ */
+const FUTURES_NAMES: Record<string, string> = {
+  MTX: "小型臺指期貨",
+  TMF: "微型臺指期貨",
+  ZEF: "小型電子期貨",
+  ZFF: "小型金融期貨",
+};
+
+/** 口語與其他系統的代號。MXF 是期交所其他報表裡小台的代號，行情表寫 MTX。 */
+const FUTURES_ALIASES: Record<string, string> = {
+  "台指期": "TX", "大台": "TX", "台股期貨": "TX", TXF: "TX",
+  "小台": "MTX", "小台指": "MTX", "小型台指": "MTX", MXF: "MTX",
+  "微台": "TMF", "微台指": "TMF", "微型台指": "TMF",
+};
+
+/** 行情表的月份欄：`202610`、週契約 `202610W1`、價差 `202610/202611`。價差不是單一契約的價格。 */
+const isSpread = (month: unknown) => String(month ?? "").includes("/");
+
+/** 行情表的 "-" 是「不適用」（盤後沒有結算價與未平倉），不是 0。 */
+const dash = (v: unknown) => (String(v ?? "").trim() === "-" ? null : num(v));
+
+/**
+ * 一個期貨契約的每日行情、三大法人、大額交易人與最後結算價。
+ *
+ * 契約解析順序：別名 → 行情表代號精確比對 → 名稱包含查詢字。名稱命中不只一個
+ * （「台積電」同時是 CDF 台積電期貨與 QFF 小型台積電期貨）就只回候選、不回數字，
+ * 與 code_candidates 同一個原則：候選不是答案。
+ */
+export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources): Record<string, unknown> {
+  const caveats: string[] = [];
+  const errs = src.errors ?? [];
+  for (const e of errs) caveats.push(`${e.source}取得失敗：${e.error}`);
+  const failed = (l: string) => errs.some((e) => e.source === l);
+  const L = FUTURES_SOURCE_LABELS;
+
+  const largeNames = new Map<string, string>();
+  for (const r of src.largeTraders) largeNames.set(String(r["Contract"] ?? ""), String(r["ContractName"] ?? ""));
+  const codes = [...new Set(src.daily.map((r) => String(r["Contract"] ?? "")))].filter(Boolean);
+  const nameOf = (c: string) =>
+    FUTURES_NAMES[c] ?? largeNames.get(c) ?? (c.endsWith("F") ? largeNames.get(c.slice(0, -1)) : undefined) ?? null;
+
+  const q = normQuery(query.trim()).replace(/\s+/g, "");
+  const upper = query.trim().toUpperCase();
+  const alias = FUTURES_ALIASES[q] ?? FUTURES_ALIASES[upper];
+  let code: string | null = alias ?? (codes.includes(upper) ? upper : null);
+  let candidates: { code: string; name: string | null }[] = [];
+  if (!code && q) {
+    const hits = codes.filter((c) => {
+      const n = nameOf(c);
+      return n !== null && normQuery(n).includes(q);
+    });
+    const exact = hits.filter((c) => normQuery(nameOf(c)!).replace(/\(.*\)$/, "") === q);
+    if (exact.length === 1) code = exact[0];
+    else if (hits.length === 1) code = hits[0];
+    else candidates = hits.slice(0, MAX_CODE_CANDIDATES).map((c) => ({ code: c, name: nameOf(c) }));
+  }
+
+  const base = { query, source: SOURCE_NOTE.taifex };
+  if (!code) {
+    if (failed(L.daily)) {
+      caveats.push(`因為上游取得失敗，無法判斷「${query}」對應哪一個期貨契約——這**不代表**沒有這個契約。請稍後重試。`);
+    } else if (candidates.length) {
+      caveats.push("查詢字對到不只一個契約。candidates 是候選不是答案：請向使用者確認要哪一個，再用它的代號重查。");
+    } else {
+      caveats.push(
+        `找不到「${query}」對應的期貨契約。可用代號（例如 TX、MTX、TMF、CDF）或名稱（例如「台積電期貨」）查；` +
+          "選擇權不在這支工具的範圍，請用 twse_search_datasets 找選擇權每日交易行情。",
+      );
+    }
+    return { ...base, contract: null, name: null, candidates, caveats };
+  }
+
+  const name = nameOf(code);
+  const rows = src.daily.filter((r) => r["Contract"] === code && !isSpread(r["ContractMonth(Week)"]));
+  const quotes = rows
+    .map((r) => ({
+      "月份": String(r["ContractMonth(Week)"] ?? "").trim(),
+      "時段": r["TradingSession"],
+      "開盤": dash(r["Open"]),
+      "最高": dash(r["High"]),
+      "最低": dash(r["Low"]),
+      "收盤": dash(r["Last"]),
+      "漲跌": dash(r["Change"]),
+      "漲跌幅%": dash(String(r["%"] ?? "").replace("%", "")),
+      "成交量": dash(r["Volume"]),
+      "結算價": dash(r["SettlementPrice"]),
+      "未平倉": dash(r["OpenInterest"]),
+    }))
+    .sort((a, b) => a["月份"].localeCompare(b["月份"]) || String(a["時段"]).localeCompare(String(b["時段"])));
+  // 近月：一般時段、月契約（不含週契約）裡最早到期的那個。
+  const near = quotes.find((x) => x["時段"] === "一般" && /^\d{6}$/.test(x["月份"])) ?? null;
+  if (!quotes.length) {
+    if (failed(L.daily)) caveats.push(`因為上游取得失敗，無法取得 ${code} 的行情——這**不代表**沒有交易。`);
+    else caveats.push(`${code} 在最新一期的期貨每日交易行情中沒有資料。`);
+  }
+
+  // 三大法人只公布指數類期貨各契約與「股票期貨」合計，名稱要與行情契約的中文名完全相同。
+  const plain = name?.replace(/\(.*\)$/, "") ?? null;
+  const instRows = plain ? src.inst.filter((r) => normQuery(String(r["ContractCode"] ?? "")) === normQuery(plain)) : [];
+  const institutional = failed(L.inst)
+    ? null
+    : instRows.length
+      ? instRows.map((r) => ({
+          "身份別": r["Item"],
+          "交易淨口數": num(r["TradingVolume(Net)"]),
+          "未平倉多方口數": num(r["OpenInterest(Long)"]),
+          "未平倉空方口數": num(r["OpenInterest(Short)"]),
+          "未平倉淨口數": num(r["OpenInterest(Net)"]),
+        }))
+      : "三大法人資料只公布指數類期貨各契約（個股期貨只有合計），這個契約沒有單獨公布";
+  if (failed(L.inst)) caveats.push(`因為上游取得失敗，無法取得 ${code} 的三大法人部位。`);
+
+  // 大額交易人：所有月份合計（999912），全體交易人（0）與其中的特定法人（1）。
+  const largeCode = largeNames.has(code) ? code : code.replace(/F$/, "");
+  const lt = (type: string) =>
+    src.largeTraders.find(
+      (r) => r["Contract"] === largeCode && r["SettlementMonth"] === "999912" && String(r["TypeOfTraders"]) === type,
+    );
+  const largeRow = (r: Row | undefined) => {
+    if (!r) return null;
+    const b5 = num(r["Top5Buy"]), s5 = num(r["Top5Sell"]), b10 = num(r["Top10Buy"]), s10 = num(r["Top10Sell"]);
+    return {
+      "前五大買方": b5, "前五大賣方": s5, "前五大淨部位": b5 !== null && s5 !== null ? b5 - s5 : null,
+      "前十大買方": b10, "前十大賣方": s10, "前十大淨部位": b10 !== null && s10 !== null ? b10 - s10 : null,
+    };
+  };
+  const all = lt("0");
+  const large = failed(L.largeTraders)
+    ? null
+    : all
+      ? {
+          "日期": rocToIso(all["Date"]),
+          "全體交易人": largeRow(all),
+          "其中特定法人": largeRow(lt("1")),
+          "全市場未沖銷部位": num(all["OIOfMarket"]),
+        }
+      : code === "MTX"
+        ? "大額交易人表把小台併入台指期（TX，按 MTX/4 折算），沒有單獨公布"
+        : "這個契約沒有單獨的大額交易人資料";
+  if (failed(L.largeTraders)) caveats.push(`因為上游取得失敗，無法取得 ${code} 的大額交易人部位。`);
+  if (all && code === "TX") caveats.push("大額交易人的台指期已含小台（按 MTX/4 折算）");
+
+  const settlement = failed(L.settlement)
+    ? null
+    : src.settlement
+        .filter((r) => String(r["Contract"] ?? "").split("/").includes(code))
+        .map((r) => ({
+          "最後結算日": rocToIso(r["TheFinalSettlementDay"]),
+          "契約月份": r["ContractDeliveryMonth"],
+          "最後結算價": num(r["TheFinalSettlementPrice"]),
+        }));
+
+  caveats.push(
+    "單位為口；行情為最新一個交易日，分「一般」與「盤後」兩個時段，盤後沒有結算價與未平倉（null）；" +
+      "價差委託的月份組合（例如 202610/202611）不列入。淨部位為多方減空方，正數偏多、負數偏空。",
+  );
+  return {
+    ...base,
+    contract: code,
+    name,
+    date: rocToIso(rows[0]?.["Date"] ?? null),
+    near_month: near,
+    quotes,
+    institutional,
+    large_traders: large,
+    final_settlement: settlement,
+    caveats,
+  };
+}
