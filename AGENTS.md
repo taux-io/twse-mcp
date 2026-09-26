@@ -24,3 +24,9 @@ Single-context：根目錄一份 `CONTEXT.md`，ADR 放 `docs/adr/`。見 `docs/
 
 commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 過度工程檢查。
 時機、標記慣例，以及這個 repo 的防禦性守衛為什麼不算冗餘，見 `docs/agents/ponytail.md`。
+
+### Tool-selection eval
+
+改工具描述、`instructions` 或新增工具之前與之後，各跑一次 `npm run eval:tools`（需要 Anthropic API 憑證），
+比較通過題數。題目在 `evals/tool-selection.json`，只看第一個工具呼叫；工具定義從實際端點抓，
+測本機未部署的描述用 `EVAL_ENDPOINT=http://localhost:8787/mcp`。用法與成本見 `scripts/eval-tools.mjs` 開頭。

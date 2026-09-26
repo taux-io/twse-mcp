@@ -1,0 +1,91 @@
+{
+  "description": "常見問法 → 第一個工具呼叫應該是什麼。每題的 expect 是可接受的選項（任一符合即通過）；args 是部分比對，只寫必須出現的參數。",
+  "cases": [
+    { "id": "realtime-etf", "question": "0050 現在多少？",
+      "expect": [{ "tool": "twse_realtime_quote", "args": { "codes": ["0050"] } }] },
+    { "id": "lookup-name", "question": "台積電的股票代號是多少？",
+      "expect": [{ "tool": "twse_lookup" }] },
+    { "id": "stock-valuation", "question": "幫我看 2330 的本益比、殖利率和最近月營收",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
+    { "id": "stock-financials", "question": "2330 今年上半年的毛利率和每股盈餘是多少？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330", "include_financials": true } }] },
+    { "id": "stock-governance", "question": "2317 的董事長有沒有兼任總經理？董監有沒有質押股票？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2317", "include_governance": true } }] },
+    { "id": "stock-by-name-financials", "question": "聯電最新一季的每股淨值是多少？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_stock_snapshot", "args": { "code": "2303", "include_financials": true } }
+      ] },
+    { "id": "stock-disposition", "question": "2330 現在有沒有被列為處置股或注意股？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2330" } }] },
+    { "id": "etf-profile", "question": "0056 這檔 ETF 在追蹤什麼指數？有多少人定期定額？",
+      "expect": [{ "tool": "twse_etf_snapshot", "args": { "code": "0056" } }] },
+    { "id": "etf-by-name", "question": "元大高股息現在多少錢？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_realtime_quote", "args": { "codes": ["0056"] } }
+      ] },
+    { "id": "screen-top-yield", "question": "上市股票裡殖利率最高的前 10 檔是哪些？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL", "sort_by": "DividendYield" } }
+      ] },
+    { "id": "screen-where", "question": "本益比低於 10 而且殖利率 6% 以上的股票有哪些？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL", "where": [{ "field": "PEratio", "op": "lt" }] } }
+      ] },
+    { "id": "screen-revenue-growth", "question": "上個月營收年增率最高的上市公司是哪幾家？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "opendata/t187ap05_L" } }
+      ] },
+    { "id": "market-today", "question": "今天台股大盤表現怎麼樣？成交量大嗎？",
+      "expect": [{ "tool": "twse_market_overview" }] },
+    { "id": "market-futures", "question": "外資在台指期現在是偏多還是偏空？",
+      "expect": [{ "tool": "twse_market_overview" }] },
+    { "id": "market-pcr", "question": "最近的台指選擇權 Put/Call ratio 是多少？",
+      "expect": [
+        { "tool": "twse_market_overview" },
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "taifex/PutCallRatio" } }
+      ] },
+    { "id": "discover-margin", "question": "證交所有沒有融資融券餘額的資料？",
+      "expect": [{ "tool": "twse_search_datasets" }] },
+    { "id": "discover-esg", "question": "我想看台積電的溫室氣體排放 ESG 揭露資料",
+      "expect": [{ "tool": "twse_search_datasets" }] },
+    { "id": "discover-exdividend", "question": "這週有哪些上市股票要除息？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/TWT48U_ALL" } }
+      ] },
+    { "id": "discover-fx", "question": "美元兌台幣的參考匯率是多少？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "taifex/DailyForeignExchangeRates" } }
+      ] },
+    { "id": "futures-quote", "question": "台指期昨天收在哪裡？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "taifex/DailyMarketReportFut" } }
+      ] },
+    { "id": "futures-code", "question": "小型臺指期貨（MXF）最近的成交量是多少？",
+      "expect": [
+        { "tool": "twse_search_datasets" },
+        { "tool": "twse_get_dataset", "args": { "code": "MXF" } }
+      ] },
+    { "id": "otc-by-name", "question": "環球晶現在股價多少？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_realtime_quote", "args": { "market": "otc" } }
+      ] },
+    { "id": "otc-by-code", "question": "上櫃的 6488 現在多少？",
+      "expect": [{ "tool": "twse_realtime_quote", "args": { "codes": ["6488"], "market": "otc" } }] },
+    { "id": "yesterday-close", "question": "0050 昨天的收盤價和成交量？",
+      "expect": [
+        { "tool": "twse_etf_snapshot", "args": { "code": "0050" } },
+        { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/STOCK_DAY_ALL", "code": "0050" } },
+        { "tool": "twse_realtime_quote", "args": { "codes": ["0050"] } }
+      ] }
+  ]
+}
