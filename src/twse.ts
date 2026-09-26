@@ -92,7 +92,7 @@ export const SNAPSHOT_DATASETS = [
  * （當日無事件的公告類）。這些是快照類工具依賴的、寫死的常數，每一個都是涵蓋
  * 全體上市標的的主檔——執行期補上與建置期 refresh-catalog `min:100` 對應的守衛。
  */
-const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
+export const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
   DS_FUND, DS_DAY, DS_RANK,
   // 個股快照與代號查詢的三個主檔：上千家上市公司，任何一天都不可能是 0 筆。
   // 除權除息預告、注意股、處置股**不在此列**——它們合法地會是空的（當天沒有事件）。
@@ -113,10 +113,11 @@ const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
  * 假的「查無資料」釘在邊緣一小時——每個使用者都會收到「期交所沒有這筆資料」，
  * 而真相是上游掛了。其餘一百多個端點不該為了少數幾個放棄那道守衛。
  *
- * 清單怎麼來的：2026-09-26 對全部 132 個端點逐一實測，回非 JSON 的只有這裡列的
- * 三個（其中兩個帶 UTF-8 BOM——`trim()` 會把 U+FEFF 當成空白去掉，表頭比對不受影響）。
- * 期交所會在沒有公告的情況下把端點改成 CSV，所以新增項目的方法是同樣的全面實測，
- * 不是猜。
+ * 清單怎麼來的：對全部端點逐一實測（多數帶 UTF-8 BOM——`trim()` 會把 U+FEFF 當成
+ * 空白去掉，表頭比對不受影響）。**期交所會在沒有公告的情況下在 JSON 與 CSV 之間來回
+ * 切換**：2026-09-26 早上還是 JSON 的兩個端點，幾小時後就成了 CSV，而原本是 CSV 的
+ * DailyMarketReportOpt 同時變回 JSON。所以清單只增不減（JSON 優先，切回來也照樣能讀），
+ * 新成員由 scripts/check-upstream.mjs 每日實測發現，不是猜。
  *
  * 為什麼連表頭**內容**一起釘死：只比對欄位數量的守衛不是守衛。上游把 18 欄的順序
  * 調換，數量仍是 18，於是每一列的最高價變成最低價——正是這裡要防的「安靜給錯答案」。
@@ -161,6 +162,30 @@ export const TAIFEX_CSV_DATASETS: Record<
       "OpenInterest(Long)", "ContractValueOfOpenInterest(Long)(Millions)", "OpenInterest(Short)",
       "ContractValueOfOpenInterest(Short)(Millions)", "OpenInterest(Net)",
       "ContractValueOfOpenInterest(Net)(Millions)",
+    ],
+  },
+  // 期貨大額交易人未沖銷部位。2026-09-26 午後切成 CSV；表頭比 swagger 的說明多了「數量」。
+  "taifex/OpenInterestOfLargeTradersFutures": {
+    header: [
+      "日期", "契約", "商品名稱(契約名稱)", "到期月份(週別)", "交易人類別",
+      "前五大交易人買方數量", "前五大交易人賣方數量", "前十大交易人買方數量", "前十大交易人賣方數量",
+      "全市場未沖銷部位數",
+    ],
+    fields: [
+      "Date", "Contract", "ContractName", "SettlementMonth", "TypeOfTraders",
+      "Top5Buy", "Top5Sell", "Top10Buy", "Top10Sell", "OIOfMarket",
+    ],
+  },
+  // 股票期貨／選擇權調整型契約資訊。同一時間切成 CSV（這個沒有 BOM）。
+  "taifex/SSFAdjustedInfo": {
+    header: [
+      "日期", "商品代碼", "標的證券代號", "標的簡稱", "標的類別", "商品類別", "約定標的物證券股數",
+      "約定標的物配發之現金股利", "約定標的物優先參與現金增資之相當價值", "存續到期月份",
+    ],
+    fields: [
+      "Date", "Contract", "StockCode", "ContractName", "TWSEStock/TPExStock/TWSEETF", "Futures/Options",
+      "UnderlyingSecurityShares", "UnderlyingSecurityDistributionofCashDividends",
+      "UnderlyingSecurityFairValueOfPreemptiveRightsToParticipateInCashCapitalIncrease", "DeliveryMonths",
     ],
   },
   // 最後結算價。同上，CSV 帶 BOM。

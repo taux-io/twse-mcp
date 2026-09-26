@@ -1955,6 +1955,16 @@ describe("期交所 CSV 端點：各自的表頭", () => {
       { Date: "20260924", Item: "外資及陸資", "OpenInterest(Net)": "-482853" },
     ],
     [
+      "taifex/OpenInterestOfLargeTradersFutures",
+      "20260924,TX,臺股期貨(TX+MTX/4),999912,0,72172,52547,78200,72259,112848",
+      { Contract: "TX", SettlementMonth: "999912", Top5Buy: "72172", OIOfMarket: "112848" },
+    ],
+    [
+      "taifex/SSFAdjustedInfo",
+      "20260924,CDA,2330,台積電,上市普通股,股票選擇權,2000,14000,0,202610",
+      { Contract: "CDA", StockCode: "2330", UnderlyingSecurityShares: "2000" },
+    ],
+    [
       "taifex/FinalSettlementPrice",
       "20251205,202512F1,TXO,臺指選擇權,27892",
       { TheFinalSettlementDay: "20251205", Contract: "TXO", TheFinalSettlementPrice: "27892" },
