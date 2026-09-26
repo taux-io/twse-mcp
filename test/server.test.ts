@@ -353,6 +353,8 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.is_etf).toBe(true);
     expect(out.profile.追蹤指數).toBe("臺灣高股息指數");
     expect(out.quote.收盤).toBe(38.2);
+    // 與個股快照共用 dailyQuote：日期一律 ISO
+    expect(out.quote.日期).toBe("2026-07-27");
     expect(out.regular_savings.交易戶數).toBe(380000);
     expect(out.realtime).toBe("未查詢");
     // 未帶 include_realtime 時不應打即時報價站

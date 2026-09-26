@@ -13,7 +13,7 @@ import { DATA_TTL_SECONDS, type Row, type SourceError } from "./core";
 
 export const BASE = "https://openapi.twse.com.tw/v1";
 /** 期交所的 servers.url。裸 path（沒有 /v1）會被 302 導回 Swagger UI 首頁。 */
-export const TAIFEX_BASE = "https://openapi.taifex.com.tw/v1";
+const TAIFEX_BASE = "https://openapi.taifex.com.tw/v1";
 /** 目錄裡期交所 id 的前綴。只有本服務認得，上游不認得。 */
 const TAIFEX_PREFIX = "taifex/";
 
