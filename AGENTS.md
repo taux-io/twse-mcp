@@ -8,7 +8,7 @@
 
 ## 更新紀錄
 
-使用者看得到的改動，合併時寫進 `CHANGELOG.md` 與 `CHANGELOG.en.md` 的「尚未編號」一節；
+使用者看得到的改動，合併時寫進 `CHANGELOG.md` 與 `CHANGELOG.en.md` 的「尚未編號」一節（沒有就在最新版本上面新增）；
 升版時把那一節改成版本號與日期。只寫對使用者的影響，不寫內部重構。
 `npm run check-readmes` 會擋下 `package.json` 版本在兩份 CHANGELOG 裡沒有對應一節的情況。
 
