@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taiwan Stock MCP | TWSE and TAIFEX data for AI</title>
+<meta name="description" content="Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and options, and 275 TWSE/TAIFEX open datasets. No install, no signup.">
+<link rel="canonical" href="https://twse-mcp.taux.io/en">
+<link rel="alternate" hreflang="zh-Hant" href="https://twse-mcp.taux.io/">
+<link rel="alternate" hreflang="en" href="https://twse-mcp.taux.io/en">
+<link rel="alternate" hreflang="x-default" href="https://twse-mcp.taux.io/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Taiwan Stock MCP | TWSE and TAIFEX data for AI">
+<meta property="og:description" content="Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and options, and 275 TWSE/TAIFEX open datasets. No install, no signup.">
+<meta property="og:url" content="https://twse-mcp.taux.io/en">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://twse-mcp.taux.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://twse-mcp.taux.io/og.png">
+<meta name="twitter:title" content="Taiwan Stock MCP | TWSE and TAIFEX data for AI">
+<meta name="twitter:description" content="Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and options, and 275 TWSE/TAIFEX open datasets. No install, no signup.">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E">
+<link rel="alternate" type="text/markdown" href="https://twse-mcp.taux.io/llms.txt" title="Plain-text summary for AI">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Taiwan Stock MCP (twse-mcp)","alternateName":["twse-mcp","台股 MCP","Taiwan Stock MCP"],"applicationCategory":"DeveloperApplication","applicationSubCategory":"Model Context Protocol Server","operatingSystem":"Any","url":"https://twse-mcp.taux.io/en","description":"Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and options, and 275 TWSE/TAIFEX open datasets. No install, no signup.","offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/taux-io/twse-mcp","sameAs":["https://github.com/taux-io/twse-mcp"],"inLanguage":"en","featureList":["Intraday quotes for TWSE-listed stocks and ETFs","Previous trading day's open, high, low, close and volume","Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, ex-dividend and disposition status, plus optional financials and governance","Market overview and futures positioning: TAIEX, most-traded stocks, institutional futures open interest, put/call ratio","Per-ETF profile, tracked index and regular-savings popularity","Filter and sort by published figures such as P/E and yield, and look up a ticker by company name","TAIFEX daily futures and options quotes, institutional flows and large-trader open interest","Search and query across 275 open datasets from TWSE and TAIFEX combined"],"mentions":[{"@type":"Organization","name":"臺灣證券交易所","alternateName":"TWSE","sameAs":["https://www.twse.com.tw/","https://zh.wikipedia.org/wiki/臺灣證券交易所"]},{"@type":"Organization","name":"臺灣期貨交易所","alternateName":"TAIFEX","sameAs":["https://www.taifex.com.tw/","https://zh.wikipedia.org/wiki/臺灣期貨交易所"]},{"@type":"Organization","name":"政府資料開放平臺","alternateName":"data.gov.tw","sameAs":["https://data.gov.tw/"]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to install Taiwan Stock MCP in Claude","description":"Add Taiwan Stock MCP as a custom connector in Claude. It takes about a minute and needs no account or payment.","totalTime":"PT1M","tool":[{"@type":"HowToTool","name":"Claude (web or desktop)"}],"step":[{"@type":"HowToStep","position":1,"name":"Open connector settings","text":"In Claude on the web or desktop, click your name in the bottom-left corner, choose Settings, then Connectors in the left-hand menu.","url":"https://twse-mcp.taux.io/en#install"},{"@type":"HowToStep","position":2,"name":"Add a custom connector","text":"Click \"+ Add custom connector\". Name it anything you like, set the URL to https://twse-mcp.taux.io/mcp, leave Authentication on the default No sign-in (no API key needed), then click Add.","url":"https://twse-mcp.taux.io/en#install"},{"@type":"HowToStep","position":3,"name":"Switch it on in a chat","text":"Go back to the chat, start a new conversation, click the \"+\" next to the message box, choose Connectors, and switch on the one you just added.","url":"https://twse-mcp.taux.io/en#install"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is it free? Do I need an account or an API key?","acceptedAnswer":{"@type":"Answer","text":"None of those. The service is public and free, no account is required, and Claude's free plan can add it. The data comes from Taiwan's government open-data platform; this service only reshapes it into something an AI can query."}},{"@type":"Question","name":"Can it look up over-the-counter (TPEx) stocks?","acceptedAnswer":{"@type":"Answer","text":"Intraday quotes only — pass the market as \"otc\". Historical and statistical reports for OTC listings are not available: the Taipei Exchange open-data host refuses connections originating from cloud providers. That is a known limitation, not an oversight."}},{"@type":"Question","name":"Is the data real-time?","acceptedAnswer":{"@type":"Answer","text":"Intraday quotes refresh roughly every 5 seconds and come from the exchange's market-information site on a best-effort basis. Everything else is current to the previous trading day and is cached for an hour so the exchange is not hammered."}},{"@type":"Question","name":"Does it cover futures and options?","acceptedAnswer":{"@type":"Answer","text":"Yes. All 132 TAIFEX datasets are included: daily quotes, institutional investor flows, large-trader open interest, margin requirements and contract specifications."}},{"@type":"Question","name":"Is this investment advice?","acceptedAnswer":{"@type":"Answer","text":"No. Figures may be wrong, delayed, or changed upstream. Verify with the exchange or your broker before trading; you carry the risk."}},{"@type":"Question","name":"Are my questions logged?","acceptedAnswer":{"@type":"Answer","text":"No. The service only fetches public data on your behalf and does not log what you ask."}}]}</script>
+<style>:root{
+  --bg:#fcfcfb; --surface:#fff; --text:#17181a; --muted:#5f6570;
+  --line:#e4e6e8; --accent:#2f5d8a; --soft:#eef3f8; --code:#f4f5f6;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#121416; --surface:#181b1e; --text:#e8eaec; --muted:#9aa1aa;
+    --line:#282c31; --accent:#8ab6e2; --soft:#1a2430; --code:#1e2226;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.75 system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  word-break:break-word;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:2rem 1.25rem 5rem}
+.switch{display:flex;justify-content:flex-end;margin:0 0 1.5rem;font-size:.85rem}
+.switch a{
+  display:inline-flex;align-items:center;gap:.4rem;
+  border:1px solid var(--line);border-radius:999px;padding:.25rem .8rem;
+  text-decoration:none;color:var(--muted);background:var(--surface);
+}
+.switch a:hover{border-color:var(--accent);color:var(--accent)}
+header{margin-bottom:3rem}
+h1{font-size:1.9rem;line-height:1.35;margin:0 0 .6rem;letter-spacing:-.01em;text-wrap:balance}
+.lede{font-size:1.1rem;color:var(--muted);margin:0 0 1.75rem}
+h2{font-size:1.2rem;margin:3rem 0 .9rem;letter-spacing:-.005em}
+h3{font-size:1rem;margin:1.75rem 0 .4rem}
+p,li{margin:.6rem 0}
+ul{padding-left:1.2rem}
+a{color:var(--accent)}
+a:hover{text-decoration-thickness:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+code{background:var(--code);padding:.12em .38em;border-radius:4px;font-size:.9em}
+pre{
+  background:var(--code);border:1px solid var(--line);border-radius:8px;
+  padding:.9rem 1rem;overflow-x:auto;margin:.75rem 0;
+}
+pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user-select:all}
+.copyable{position:relative}
+.copyable pre{padding-right:5.5rem}
+.copy{position:absolute;top:50%;right:.6rem;transform:translateY(-50%);font:inherit;font-size:.85rem;padding:.3em .8em;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;cursor:pointer}
+.copy:hover{border-color:var(--accent)}
+.copy[hidden]{display:none}
+.endpoint{border-color:var(--accent);background:var(--soft)}
+table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.95rem;display:block;overflow-x:auto}
+th,td{border-bottom:1px solid var(--line);padding:.55rem .6rem;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.02em}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps>li{counter-increment:s;position:relative;padding-left:2.2rem;margin:1.1rem 0}
+.steps>li::before{
+  content:counter(s);position:absolute;left:0;top:.15rem;
+  width:1.55rem;height:1.55rem;border-radius:50%;
+  background:var(--soft);color:var(--accent);border:1px solid var(--line);
+  font-size:.85rem;font-weight:600;display:grid;place-items:center;
+}
+.note{border-left:3px solid var(--accent);background:var(--soft);padding:.1rem 1rem;margin:1.25rem 0;border-radius:0 6px 6px 0}
+details{border-bottom:1px solid var(--line);padding:.35rem 0}
+summary{cursor:pointer;padding:.6rem 0;font-weight:500}
+summary::marker{color:var(--muted)}
+details p{margin:.2rem 0 .9rem;color:var(--muted)}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+.langs{display:flex;gap:.9rem;flex-wrap:wrap;margin:.5rem 0 0;padding:0;list-style:none}
+.attr{font-size:.85rem;line-height:1.7}
+@media (max-width:32rem){ .wrap{padding:1.5rem 1rem 3.5rem} h1{font-size:1.55rem} }</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="switch"><a href="https://twse-mcp.taux.io/" hreflang="zh-Hant">中A　繁體中文</a></nav>
+
+<header>
+<h1>Give your AI real Taiwan market data</h1>
+<p class="lede"><strong>Taiwan Stock MCP</strong> is a free remote MCP server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). No install, no signup, no API key — just paste one URL.</p>
+<div class="copyable"><pre class="endpoint"><code>https://twse-mcp.taux.io/mcp</code></pre><button type="button" class="copy" data-done="Copied">Copy</button></div>
+</header>
+
+<h2 id="problem">What it solves</h2>
+<p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Stock MCP makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
+<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is 275 reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
+<p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language — Chinese or English.</p>
+<h2 id="install">Set up in a minute</h2>
+<h3>Claude (web or desktop)</h3>
+<ol class="steps">
+<li>In Claude on the web or desktop, click your name in the bottom-left corner, choose Settings, then Connectors in the left-hand menu.</li>
+<li>Click "+ Add custom connector". Name it anything you like, set the URL to https://twse-mcp.taux.io/mcp, leave Authentication on the default No sign-in (no API key needed), then click Add.</li>
+<li>Go back to the chat, start a new conversation, click the "+" next to the message box, choose Connectors, and switch on the one you just added.</li>
+</ol>
+<p>The free plan is enough. Once it is on, ask "what is 0050 trading at?" — a concrete price means it worked.</p>
+
+<h3>Claude Code, Codex, or any other tool that supports remote MCP</h3>
+<div class="copyable"><pre><code>claude mcp add twse --transport http https://twse-mcp.taux.io/mcp</code></pre><button type="button" class="copy" data-done="Copied">Copy</button></div>
+<div class="copyable"><pre><code>codex mcp add twse --url https://twse-mcp.taux.io/mcp</code></pre><button type="button" class="copy" data-done="Copied">Copy</button></div>
+<p>For any other tool, choose <strong>Streamable HTTP</strong> (remote MCP) rather than the older SSE transport. No authentication is needed.</p>
+<h2 id="shortcuts">Three ready-made shortcuts</h2>
+<p>They appear automatically with the connector; nothing extra to install. In Claude Desktop they are in the "+" menu; in Claude Code, type <code>/</code> to list them.</p>
+<table>
+<thead><tr><th>Command</th><th>What it does</th><th>What to pass</th></tr></thead>
+<tbody>
+<tr><td><code>find_dataset</code></td><td>Finds the right dataset when you do not know which one to use</td><td>A keyword, e.g. "institutional investors"</td></tr>
+<tr><td><code>etf_overview</code></td><td>Profile, previous trading day's prices and regular-savings popularity for one listed ETF</td><td>An ETF code, e.g. 0056</td></tr>
+<tr><td><code>futures_quote</code></td><td>Daily futures or options quotes</td><td>A contract code, e.g. TX</td></tr>
+</tbody>
+</table>
+<p>You do not have to use them — they only pre-write common phrasings. Asking in plain language works just as well.</p>
+<h2 id="ask">What you can ask</h2>
+<ul>
+<li>"What's TSMC trading at right now?" — intraday quotes, several tickers at once.</li>
+<li>"Where did 0050 close yesterday, and on what volume?" — the previous session's open, high, low, close and volume.</li>
+<li>"How fast is TSMC's revenue growing? What are its P/E and yield?" — a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
+<li>"Which stocks yield over 6% with a P/E under 10?" — filter and sort by the exchange's published figures, server-side.</li>
+<li>"What was TSMC's gross margin this half, and is its debt ratio high?" — the latest quarter's financials, from the right industry table, noting that income figures are year-to-date.</li>
+<li>"Have this company's directors pledged a lot of their shares?" — governance: director share pledges, chair/CEO duality, regulatory penalties.</li>
+<li>"How did the market do yesterday? Are foreign investors long or short on futures?" — TAIEX, advancers and decliners, most-traded stocks, institutional futures open interest and the put/call ratio.</li>
+<li>"What's the ticker for 隴華?" — looks up the code when you only know a company or ETF name.</li>
+<li>"What exactly is the ETF 0056?" — which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
+<li>"Where did the TAIEX futures settle yesterday?" — daily futures and options quotes, institutional flows, open interest.</li>
+<li>"Does the exchange publish data on …?" — finds the right one among two hundred-plus public reports.</li>
+</ul>
+<h2 id="scope">What it covers, and what it does not</h2>
+<div class="note">
+<p><strong>OTC (TPEx) stocks currently have intraday quotes only.</strong> Historical and statistical reports are unavailable because the Taipei Exchange open-data host refuses cloud-originated connections. Stated here so you do not assume you phrased the query wrong.</p>
+</div>
+<ul>
+<li><strong>Listed stocks and ETFs</strong>: intraday quotes, previous-day prices and volume, profiles, regular-savings popularity, financial statements and governance disclosures.</li>
+<li><strong>Futures and options</strong>: daily quotes, institutional investor flows, large-trader open interest, margins, contract specifications.</li>
+<li><strong>Not provided</strong>: technical indicators, stock picks, investment advice, or any forecast this service computes on its own. Filtering and sorting by the exchange's published figures (P/E, yield) is supported; choosing what to buy is up to you.</li>
+</ul>
+<h2 id="caveats">Before you rely on it</h2>
+<ul>
+<li><strong>This is a free personal project.</strong> It is kept running as much as possible, but expect occasional rate limits, brief maintenance, or a future change of address.</li>
+<li><strong>"Real-time" quotes are best-effort.</strong> They come from the exchange's web interface and may lag by seconds to minutes, or differ slightly from your broker's screen.</li>
+<li><strong>Everything else can be up to an hour stale</strong> (cached) and is current only to the previous trading day.</li>
+<li><strong>Reference only, not investment advice.</strong> Verify with the exchange or your broker before trading; you carry the risk.</li>
+</ul>
+<h2 id="faq">Frequently asked questions</h2><details><summary>Is it free? Do I need an account or an API key?</summary><p>None of those. The service is public and free, no account is required, and Claude's free plan can add it. The data comes from Taiwan's government open-data platform; this service only reshapes it into something an AI can query.</p></details>
+<details><summary>Can it look up over-the-counter (TPEx) stocks?</summary><p>Intraday quotes only — pass the market as "otc". Historical and statistical reports for OTC listings are not available: the Taipei Exchange open-data host refuses connections originating from cloud providers. That is a known limitation, not an oversight.</p></details>
+<details><summary>Is the data real-time?</summary><p>Intraday quotes refresh roughly every 5 seconds and come from the exchange's market-information site on a best-effort basis. Everything else is current to the previous trading day and is cached for an hour so the exchange is not hammered.</p></details>
+<details><summary>Does it cover futures and options?</summary><p>Yes. All 132 TAIFEX datasets are included: daily quotes, institutional investor flows, large-trader open interest, margin requirements and contract specifications.</p></details>
+<details><summary>Is this investment advice?</summary><p>No. Figures may be wrong, delayed, or changed upstream. Verify with the exchange or your broker before trading; you carry the risk.</p></details>
+<details><summary>Are my questions logged?</summary><p>No. The service only fetches public data on your behalf and does not log what you ask.</p></details>
+<h2 id="license">Data source and licence</h2>
+<p class="attr">
+臺灣證券交易所 2026 臺灣證券交易所 OpenAPI<br>
+金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS<br>
+此開放資料依政府資料開放授權條款 (Open Government Data License) 進行公眾釋出，使用者於遵守本條款各項規定之前提下，得利用之。<br>
+Open Government Data License：<a href="https://data.gov.tw/license">https://data.gov.tw/license</a>
+</p>
+<p class="attr">The attribution above is reproduced in its original Chinese wording. The Open Government Data License requires that exact form of notice, so translating it would not satisfy the obligation.</p>
+<p class="attr"><strong>One exception</strong>: intraday quotes come from the exchange's market-information site (<code>mis.twse.com.tw</code>), which is not registered on the government open-data platform and therefore falls outside the licence above.</p>
+<p class="attr">This service only proxies and reshapes the data; it makes no warranty as to accuracy. Please carry the attribution above when you cite it.</p>
+
+<footer>
+<p>Open source. Code and issue tracker are on <a href="https://github.com/taux-io/twse-mcp">GitHub</a>. If something looks wrong, or you cannot find the data you need, please open an issue.</p>
+<p>Full documentation in other languages：</p>
+<ul class="langs">
+<li><a href="https://github.com/taux-io/twse-mcp/blob/main/README.md">繁體中文</a></li>
+<li><a href="https://github.com/taux-io/twse-mcp/blob/main/README.en.md">English</a></li>
+<li><a href="https://github.com/taux-io/twse-mcp/blob/main/README.ja.md">日本語</a></li>
+<li><a href="https://github.com/taux-io/twse-mcp/blob/main/README.ko.md">한국어</a></li>
+<li><a href="https://github.com/taux-io/twse-mcp/blob/main/README.zh-CN.md">简体中文</a></li>
+</ul>
+</footer>
+
+</div>
+<script>for(const b of document.querySelectorAll("button.copy")){b.hidden=false;b.addEventListener("click",async()=>{const t=b.parentElement.querySelector("code").textContent;try{await navigator.clipboard.writeText(t);const o=b.textContent;b.textContent=b.dataset.done;setTimeout(()=>{b.textContent=o},1500)}catch{}})}</script>
+
+
+</body></html>

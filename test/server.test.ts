@@ -10,7 +10,9 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
+import { createHash } from "node:crypto";
 import catalogJson from "../src/catalog.generated.json";
+import { COPY_SCRIPT } from "../src/site";
 import { fetchDataset, fetchQuotes } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -1034,30 +1036,48 @@ describe("官方首頁", () => {
     expect(html).toContain("https://data.gov.tw/license");
   });
 
-  // 「零 JavaScript」的精確定義：沒有任何**會被執行**的腳本。
-  // `<script type="application/ld+json">` 依 HTML 規範是 data block，永遠不執行
-  // （prepare-the-script 在型別檢查那一步就中止），所以它不算 JavaScript，
-  // 也不會被 CSP 的 script-src 攔——而它是結構化資料唯一被爬蟲讀取的載體。
-  it("沒有任何會被執行的腳本", async () => {
-    const html = await (await get("/")).text();
-    const scripts = [...html.matchAll(/<script\b([^>]*)>/gi)].map((m) => m[1]);
-    for (const attrs of scripts) {
-      expect(attrs, attrs).toContain('type="application/ld+json"');
-      expect(attrs, attrs).not.toContain("src=");
-    }
+  // 會被執行的腳本只有一段（一鍵複製），而且 CSP 只放行它的雜湊。
+  // `<script type="application/ld+json">` 依 HTML 規範是 data block，永遠不執行，不受 script-src 管轄。
+  it.each(["/", "/en"])("%s：唯一會執行的腳本就是 COPY_SCRIPT，沒有外部腳本與 inline 事件", async (path) => {
+    const html = await (await get(path)).text();
+    const executable = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(
+      (m) => !m[1].includes('type="application/ld+json"'),
+    );
+    expect(executable).toHaveLength(1);
+    expect(executable[0][1].trim()).toBe("");
+    expect(executable[0][2]).toBe(COPY_SCRIPT);
+    expect(html).not.toMatch(/<script\b[^>]*\ssrc=/i);
     expect(html).not.toMatch(/\son(click|load|error|mouse[a-z]+|focus|blur)\s*=/i);
     expect(html).not.toContain("javascript:");
   });
 
-  it("安全標頭：CSP 禁掉腳本與內嵌、禁止被 iframe", async () => {
+  it("安全標頭：CSP 只放行複製腳本的雜湊，不開 unsafe-inline、禁止被 iframe", async () => {
     const res = await get("/");
     const csp = res.headers.get("content-security-policy") ?? "";
+    // 雜湊要真的對應頁面上那段腳本——這裡獨立重算一次，不信任 site.ts 匯出的值
+    const expected = createHash("sha256").update(COPY_SCRIPT).digest("base64");
+    expect(csp).toContain(`script-src 'sha256-${expected}'`);
     expect(csp).toContain("default-src 'none'");
-    expect(csp).toContain("script-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
     expect(csp).not.toContain("unsafe-eval");
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("referrer-policy")).toBeTruthy();
+  });
+
+  it.each([
+    ["/", "複製", "已複製"],
+    ["/en", "Copy", "Copied"],
+  ])("%s：端點與兩行安裝指令都有複製按鈕（預設隱藏、語系文字）", async (path, label, done) => {
+    const html = await (await get(path)).text();
+    const buttons = [...html.matchAll(/<button type="button" class="copy" data-done="([^"]+)" hidden>([^<]+)<\/button>/g)];
+    expect(buttons).toHaveLength(3);
+    for (const b of buttons) {
+      expect(b[1]).toBe(done);
+      expect(b[2]).toBe(label);
+    }
+    // 沒有腳本時的退路：點程式碼區塊就全選
+    expect(html).toContain("user-select:all");
   });
 
   it("SEO：標題、描述、canonical、OG 與結構化資料都在", async () => {
@@ -1210,13 +1230,12 @@ describe("英文版首頁", () => {
     expect(ld.find((o) => o["@type"] === "SoftwareApplication").inLanguage).toBe("en");
   });
 
-  it("英文版也是零可執行腳本、同一組安全標頭", async () => {
-    const res = await get("/en");
-    expect(res.headers.get("content-security-policy")).toContain("script-src 'none'");
-    const html = await res.text();
-    for (const m of html.matchAll(/<script\b([^>]*)>/gi)) {
-      expect(m[1]).toContain('type="application/ld+json"');
-    }
+  it("英文版與中文版是同一組安全標頭（同一段複製腳本、同一個雜湊）", async () => {
+    const [zh, en] = await Promise.all([get("/"), get("/en")]);
+    expect(en.headers.get("content-security-policy")).toBe(zh.headers.get("content-security-policy"));
+    expect(en.headers.get("content-security-policy")).toContain(
+      `script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT).digest("base64")}'`,
+    );
   });
 
   // 搜尋結果片段有硬性長度：title 約 60 字元、description 約 155 就截斷。
