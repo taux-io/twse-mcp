@@ -270,6 +270,8 @@ you need, or if you wish it could do one more thing, just
 [open an issue](https://github.com/taux-io/twse-mcp/issues). Pull requests are
 equally welcome if you write code.
 
+What changed in each version: see the [changelog](CHANGELOG.en.md).
+
 **The one thing most needed right now: making OTC data available.**
 The OTC data source (the Taipei Exchange) blocks connections from cloud servers.
 We tested this: it is reachable from an ordinary Taiwanese connection but blocked

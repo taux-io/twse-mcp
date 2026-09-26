@@ -124,3 +124,5 @@ ETF の情報、先物・オプションの日次相場、両取引所が公開�
 MIT ライセンス。ソースコードと Issue は
 [github.com/taux-io/twse-mcp](https://github.com/taux-io/twse-mcp) にあります。
 翻訳の修正も歓迎します。
+
+バージョンごとの変更点は[更新履歴（英語）](CHANGELOG.en.md)をご覧ください。
