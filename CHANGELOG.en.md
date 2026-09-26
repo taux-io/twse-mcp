@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- New **events calendar** in the market overview: ask "which stocks go ex-dividend this week" or "who is under disposition" and get ex-dividend dates and shareholders' meetings in the next two weeks, today's attention-stock notices, and stocks under or about to enter disposition (listed companies only).
+
 ## [0.9.0] - 2026-09-26
 
 - New **futures contract snapshot** (the 9th tool): one futures contract's open, high, low, close, settlement and

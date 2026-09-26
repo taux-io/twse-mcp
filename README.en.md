@@ -38,6 +38,7 @@ Once installed, just ask in your own words, for example:
 - **"Which stocks yield over 6% with a P/E under 10?"** — Filters and sorts by the exchange's published figures, so you do not page through them yourself.
 - **"How much did TSMC earn this half? Gross margin? Are directors' shares pledged?"** — The latest quarter's financials (the right industry table is picked for you) plus governance: chair/CEO duality, director share pledges, regulatory penalties.
 - **"How did the market do? Where are foreign investors positioned in futures?"** — TAIEX, turnover, most-traded stocks, plus institutional futures open interest, the put/call ratio and large-trader positions.
+- **"Which stocks go ex-dividend this week? Who is under disposition?"** — An events calendar: ex-dividend dates and shareholders' meetings in the next two weeks, today's attention-stock notices, and stocks under or about to enter disposition.
 - **"What exactly is the ETF 0056?"** — Which index it tracks, how popular it is for regular savings plans, plus which figures you should not take at face value.
 - **"Where did the TAIEX futures settle yesterday? What about mini-TAIEX or TSMC futures?"** — A one-page snapshot of a single futures contract: open, high, low, close, settlement and open interest for each month, plus institutional and large-trader positions. It understands names like 小台 (mini), 微台 (micro) and 台積電期貨 as well as codes. Daily options quotes are available too.
 - **"Does the exchange publish data on …?"** — Finds the right one among two hundred-plus public reports.

@@ -1602,6 +1602,10 @@ export const MARKET_SOURCE_LABELS = {
   instContracts: "三大法人各期貨契約",
   pcr: "Put/Call 比",
   largeTraders: "期貨大額交易人",
+  exRights: STOCK_SOURCE_LABELS.exRights,
+  agm: "股東會公告",
+  notice: STOCK_SOURCE_LABELS.notice,
+  punish: STOCK_SOURCE_LABELS.punish,
 } as const;
 
 export interface StockMarketSources {
@@ -1767,6 +1771,124 @@ export function buildFuturesMarket(src: FuturesMarketSources, errors: SourceErro
     "三大法人台指期": tx.length ? tx : null,
     "Put/Call 比": pcr,
     "台指期大額交易人": large,
+  };
+}
+
+// ============================================================================
+// 事件行事曆（twse_market_overview 的 scope="events"）
+// ============================================================================
+
+export interface MarketEventsSources {
+  exRights: Row[];
+  agm: Row[];
+  notice: Row[];
+  punish: Row[];
+}
+
+/** 行事曆看多遠。除權息預告表本身大約只排到兩週後，股東會也用同一個窗口，兩邊的「近期」才一致。 */
+const EVENT_WINDOW_DAYS = 14;
+/** 每一類最多列幾筆。五、六月股東會旺季一天就上百家，整份倒給模型沒有意義。 */
+const MAX_EVENTS = 50;
+
+/**
+ * 全市場（上市）近期事件：除權除息、股東會、今天公布的注意股、處置中與即將處置的股票。
+ *
+ * 與個股快照同一套原則：抓失敗的那一類標 null 並說明，**不說「沒有」**；
+ * 查過真的沒有就是空陣列。注意股表是「當日公布」，所以列出的就是今天新增的，
+ * 但沒有歷史資料，做不出「比昨天多了哪些」。
+ */
+export function buildMarketEvents(src: MarketEventsSources, today: string, errors: SourceError[], caveats: string[]) {
+  const failed = (l: string) => errors.some((e) => e.source === l);
+  const L = MARKET_SOURCE_LABELS;
+  const end = new Date(Date.parse(today) + EVENT_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const inWindow = (d: string | null) => d !== null && d >= today && d <= end;
+  const cap = <T>(label: string, rows: T[]) => {
+    if (rows.length > MAX_EVENTS) caveats.push(`${label}共 ${rows.length} 筆，只列日期最近的 ${MAX_EVENTS} 筆`);
+    return rows.slice(0, MAX_EVENTS);
+  };
+  const byDate = (k: string) => (a: Record<string, unknown>, b: Record<string, unknown>) =>
+    String(a[k]).localeCompare(String(b[k]));
+
+  const exRights = failed(L.exRights)
+    ? null
+    : cap(
+        "除權除息",
+        src.exRights
+          .map((r) => ({
+            "除權除息日": rocToIso(r["Date"]),
+            "代號": r["Code"],
+            "名稱": r["Name"],
+            "權息": r["Exdividend"],
+            "現金股利": num(r["CashDividend"]),
+            "無償配股率": num(r["StockDividendRatio"]),
+          }))
+          .filter((x) => inWindow(x["除權除息日"]))
+          .sort(byDate("除權除息日")),
+      );
+
+  const agm = failed(L.agm)
+    ? null
+    : cap(
+        "股東會",
+        src.agm
+          .map((r) => ({
+            "股東會日期": rocToIso(r["股東常(臨時)會日期-日期"]),
+            "常會或臨時會": r["股東常(臨時)會日期-常或臨時"],
+            "代號": r["公司代號"],
+            "名稱": r["公司名稱"],
+            "停止過戶": [rocToIso(r["停止過戶起訖日期-起"]), rocToIso(r["停止過戶起訖日期-訖"])].every(Boolean)
+              ? `${rocToIso(r["停止過戶起訖日期-起"])}～${rocToIso(r["停止過戶起訖日期-訖"])}`
+              : null,
+          }))
+          .filter((x) => inWindow(x["股東會日期"]))
+          .sort(byDate("股東會日期")),
+      );
+
+  // 當日沒有注意股時上游回一列 Code 為空的佔位資料。
+  const notice = failed(L.notice)
+    ? null
+    : src.notice
+        .filter((r) => String(r["Code"] ?? "").trim())
+        .map((r) => ({
+          "代號": r["Code"],
+          "名稱": r["Name"],
+          "累計次數": num(r["NumberOfAnnouncement"]),
+          "注意原因": r["TradingInfoForAttention"],
+          "公布日期": rocToIso(r["Date"]),
+        }));
+
+  // 已結束的處置不列；「尚未開始」要列，而且要標清楚，理由同個股快照。
+  const punish = failed(L.punish)
+    ? null
+    : src.punish
+        .map((r) => {
+          const p = parseRocPeriod(r["DispositionPeriod"]);
+          const status = !p ? "期間無法解析" : today < p.start ? "尚未開始" : today > p.end ? "已結束" : "處置中";
+          return {
+            "狀態": status,
+            "代號": r["Code"],
+            "名稱": r["Name"],
+            "處置期間": r["DispositionPeriod"],
+            "處置原因": r["ReasonsOfDisposition"],
+            "處置措施": r["DispositionMeasures"],
+          };
+        })
+        .filter((x) => x["狀態"] !== "已結束");
+
+  for (const [v, label] of [[exRights, L.exRights], [agm, L.agm], [notice, L.notice], [punish, L.punish]] as const) {
+    if (v === null) caveats.push(`因為上游取得失敗，無法取得${label}——這**不代表**沒有。`);
+  }
+  caveats.push(
+    `除權除息與股東會列今天（${today}）起 ${EVENT_WINDOW_DAYS} 天內；股東會集中在五、六月，其他月份多半只有臨時會。` +
+      "注意股是今天公布的名單；處置股列處置中與已公告但尚未開始的。皆只含上市。",
+  );
+
+  return {
+    "期間": `${today}～${end}`,
+    "除權除息": exRights,
+    "股東會": agm,
+    "今日注意股": notice,
+    "處置股": punish,
   };
 }
 

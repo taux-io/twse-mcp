@@ -17,6 +17,7 @@ import pkg from "../package.json";
 import {
   buildEtfSnapshot,
   buildFuturesMarket,
+  buildMarketEvents,
   buildFuturesSnapshot,
   FUTURES_SOURCE_LABELS,
   buildStockMarket,
@@ -56,6 +57,7 @@ import {
   DS_DAY,
   DS_EX_RIGHTS,
   DS_DIVIDENDS,
+  DS_AGM,
   DS_MARGIN,
   DS_SBL,
   DS_FUND,
@@ -145,6 +147,7 @@ const LOOKUP_OUTPUT = z.looseObject({
 const MARKET_OUTPUT = z.looseObject({
   證券市場: section.optional(),
   期貨籌碼: section.optional(),
+  事件行事曆: section.optional(),
   note: z.string(),
   ...common,
 });
@@ -550,22 +553,24 @@ function createServer() {
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。' +
+        'scope="events" 另外列出全市場的近期事件：兩週內的除權除息與股東會、今天公布的注意股、處置中與即將處置的股票（皆為上市）；' +
+        "只問某一檔股票的除息、注意或處置狀態時，用 twse_stock_snapshot。" +
         "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 twse_futures_snapshot。",
       annotations: REMOTE_READ,
       outputSchema: MARKET_OUTPUT,
       inputSchema: {
         scope: z
-          .enum(["all", "stock", "futures"])
+          .enum(["all", "stock", "futures", "events"])
           .default("all")
-          .describe('"all"（預設）、"stock"（證券市場）或 "futures"（期貨籌碼）。'),
+          .describe('"all"（預設，證券市場加期貨籌碼）、"stock"、"futures"，或 "events"（近期事件行事曆）。'),
       },
     },
     async ({ scope }) => {
       const caveats: string[] = [];
       const errors: SourceError[] = [];
       const L = MARKET_SOURCE_LABELS;
-      const [stock, futures] = await Promise.all([
-        scope === "futures"
+      const [stock, futures, events] = await Promise.all([
+        scope === "futures" || scope === "events"
           ? null
           : fetchSources({
               indices: { dataset: DS_INDICES, label: L.indices },
@@ -573,7 +578,7 @@ function createServer() {
               breadth: { dataset: DS_DAY, label: L.breadth },
               top: { dataset: DS_TOP20, label: L.top },
             }),
-        scope === "stock"
+        scope === "stock" || scope === "events"
           ? null
           : fetchSources({
               instTotal: { dataset: DS_INST_TOTAL, label: L.instTotal },
@@ -581,14 +586,23 @@ function createServer() {
               pcr: { dataset: DS_PCR, label: L.pcr },
               largeTraders: { dataset: DS_LARGE_TRADERS, label: L.largeTraders },
             }),
+        scope !== "events"
+          ? null
+          : fetchSources({
+              exRights: { dataset: DS_EX_RIGHTS, label: L.exRights },
+              agm: { dataset: DS_AGM, label: L.agm },
+              notice: { dataset: DS_NOTICE, label: L.notice },
+              punish: { dataset: DS_PUNISH, label: L.punish },
+            }),
       ]);
-      for (const e of [...(stock?.errors ?? []), ...(futures?.errors ?? [])]) {
+      for (const e of [...(stock?.errors ?? []), ...(futures?.errors ?? []), ...(events?.errors ?? [])]) {
         errors.push(e);
         caveats.push(`${e.source}取得失敗：${e.error}`);
       }
       return structured({
         ...(stock ? { "證券市場": buildStockMarket(stock.rows, errors, caveats) } : {}),
         ...(futures ? { "期貨籌碼": buildFuturesMarket(futures.rows, errors, caveats) } : {}),
+        ...(events ? { "事件行事曆": buildMarketEvents(events.rows, taipeiToday(), errors, caveats) } : {}),
         caveats,
         note: "皆為前一交易日（或各表最新一期）的收盤後資料，不是盤中即時；各段以資料中的日期為準",
         source: MARKET_SOURCE_NOTE,

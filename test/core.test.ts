@@ -23,6 +23,7 @@ import {
   parseRocPeriod,
   rocToIso,
   type StockSnapshotSources,
+  buildMarketEvents,
 } from "../src/core";
 
 // --- 迷你目錄 fixture（對應 Python 版的 FAKE_SWAGGER） ---
@@ -942,5 +943,55 @@ describe("buildStockMarket — 漲跌家數由日成交資訊計算", () => {
       持平: 1,
       無收盤價: 1,
     });
+  });
+});
+
+describe("buildMarketEvents", () => {
+  const today = "2026-09-26";
+  const src = {
+    exRights: [
+      { Date: "1151008", Code: "00400A", Name: "主動國泰動能高息", Exdividend: "息", CashDividend: "0.2" },
+      { Date: "1150930", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "7" },
+      { Date: "1150925", Code: "1101", Name: "台泥", Exdividend: "息" }, // 昨天，已過
+      { Date: "1151020", Code: "2317", Name: "鴻海", Exdividend: "息" }, // 超過兩週
+    ],
+    agm: [
+      { 公司代號: "2330", 公司名稱: "台積電", "股東常(臨時)會日期-常或臨時": "常會", "股東常(臨時)會日期-日期": "1150604" },
+      { 公司代號: "9999", 公司名稱: "測試", "股東常(臨時)會日期-常或臨時": "臨時會", "股東常(臨時)會日期-日期": "1151001", "停止過戶起訖日期-起": "1150902", "停止過戶起訖日期-訖": "1151001" },
+    ],
+    notice: [{ Code: "", Name: "", TradingInfoForAttention: "" }],
+    punish: [
+      { Code: "2305", Name: "全友", DispositionPeriod: "115/09/18～115/09/30" },
+      { Code: "1234", Name: "已結束", DispositionPeriod: "115/09/01～115/09/12" },
+      { Code: "5678", Name: "下週", DispositionPeriod: "115/09/29～115/10/12" },
+    ],
+  };
+
+  it("只列今天起兩週內，依日期排序；處置股去掉已結束的；注意股的佔位列不算", () => {
+    const caveats: string[] = [];
+    const r = buildMarketEvents(src, today, [], caveats) as any;
+    expect(r.期間).toBe("2026-09-26～2026-10-10");
+    expect(r.除權除息.map((x: any) => x.代號)).toEqual(["2330", "00400A"]);
+    expect(r.股東會).toEqual([
+      { 股東會日期: "2026-10-01", 常會或臨時會: "臨時會", 代號: "9999", 名稱: "測試", 停止過戶: "2026-09-02～2026-10-01" },
+    ]);
+    expect(r.今日注意股).toEqual([]);
+    expect(r.處置股.map((x: any) => `${x.代號}:${x.狀態}`)).toEqual(["2305:處置中", "5678:尚未開始"]);
+  });
+
+  it("超過上限只列最近的幾筆並說明", () => {
+    const many = Array.from({ length: 60 }, (_, i) => ({ Date: "1150930", Code: String(1000 + i), Name: "x", Exdividend: "息" }));
+    const caveats: string[] = [];
+    const r = buildMarketEvents({ ...src, exRights: many }, today, [], caveats) as any;
+    expect(r.除權除息).toHaveLength(50);
+    expect(caveats.join()).toContain("共 60 筆");
+  });
+
+  it("抓失敗的那一類是 null 並說明，不當成沒有", () => {
+    const caveats: string[] = [];
+    const r = buildMarketEvents(src, today, [{ source: "股東會公告", error: "timeout" }], caveats) as any;
+    expect(r.股東會).toBeNull();
+    expect(r.除權除息).not.toBeNull();
+    expect(caveats.join()).toContain("無法取得股東會公告");
   });
 });

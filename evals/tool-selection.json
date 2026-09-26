@@ -72,8 +72,24 @@
       "expect": [{ "tool": "twse_search_datasets" }] },
     { "id": "discover-exdividend", "question": "這週有哪些上市股票要除息？",
       "expect": [
+        { "tool": "twse_market_overview", "args": { "scope": "events" } },
         { "tool": "twse_search_datasets" },
         { "tool": "twse_get_dataset", "args": { "dataset_id": "exchangeReport/TWT48U_ALL" } }
+      ] },
+    { "id": "events-agm", "question": "接下來兩週有哪些上市公司要開股東會？",
+      "expect": [
+        { "tool": "twse_market_overview", "args": { "scope": "events" } },
+        { "tool": "twse_search_datasets" }
+      ] },
+    { "id": "events-disposition", "question": "現在有哪些股票被列為處置股？",
+      "expect": [
+        { "tool": "twse_market_overview", "args": { "scope": "events" } },
+        { "tool": "twse_search_datasets" }
+      ] },
+    { "id": "events-notice", "question": "今天證交所公布了哪些注意股？",
+      "expect": [
+        { "tool": "twse_market_overview", "args": { "scope": "events" } },
+        { "tool": "twse_search_datasets" }
       ] },
     { "id": "discover-fx", "question": "美元兌台幣的參考匯率是多少？",
       "expect": [
