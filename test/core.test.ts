@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  dataGapNote,
+  isStaleDataDate,
   buildEtfSnapshot,
   describeDataset,
   detectCodeField,
@@ -993,5 +995,34 @@ describe("buildMarketEvents", () => {
     expect(r.股東會).toBeNull();
     expect(r.除權除息).not.toBeNull();
     expect(caveats.join()).toContain("無法取得股東會公告");
+  });
+});
+
+describe("資料日期落後的說明（休市日表）", () => {
+  const holidays = [
+    { Name: "中秋節", Date: "1150925", Weekday: "五" },
+    { Name: "孔子誕辰紀念日/ 教師節", Date: "1150928", Weekday: "一" },
+    { Name: "國曆新年開始交易日", Date: "1150929", Weekday: "二" }, // 假資料：開始交易日當天有交易
+  ];
+  it("只有比今天之前的最後一個平日還舊才算落後；週一看到週五的資料是正常的", () => {
+    expect(isStaleDataDate("2026-09-25", "2026-09-28")).toBe(false); // 週一 vs 週五
+    expect(isStaleDataDate("2026-09-24", "2026-09-27")).toBe(true); // 週日，週五沒資料
+    expect(isStaleDataDate("2026-09-24", "2026-09-25")).toBe(false); // 週五盤前看週四
+    expect(isStaleDataDate("不是日期", "2026-09-28")).toBe(false);
+  });
+  it("落後的平日在休市日表上：列出日期與名稱；今天也休市就一起列", () => {
+    const note = dataGapNote("2026-09-24", "2026-09-28", holidays);
+    expect(note).toContain("2026-09-25（五）中秋節");
+    expect(note).toContain("2026-09-28（一）孔子誕辰紀念日/ 教師節");
+    expect(note).toContain("不是資料缺漏");
+    expect(note).not.toContain("可能是上游");
+  });
+  it("開始交易日不是休市；不在表上的過去平日說可能是上游沒更新；今天不算缺漏", () => {
+    const note = dataGapNote("2026-09-24", "2026-09-30", holidays);
+    expect(note).toContain("2026-09-29（二）不在證交所休市日表上");
+    expect(note).not.toContain("2026-09-30");
+  });
+  it("休市日表取得失敗：說無法確認，不說沒有休市", () => {
+    expect(dataGapNote("2026-09-24", "2026-09-28", null)).toContain("無法確認中間是否休市");
   });
 });

@@ -296,6 +296,22 @@ export const CASES = [
     },
   },
   {
+    id: "latest-close-gap",
+    question: "台積電最新的收盤價是哪一天的？",
+    // 連假或颱風假後，資料日期會比前一個工作日舊。工具的 caveats 會說明中間是休市，
+    // 答案要把這件事講出來，不能讓使用者以為是資料缺漏。平常日沒有落後，這題標「沒驗到」。
+    check(run) {
+      const gap = run.calls
+        // 快照與即時報價放在 caveats，dataset.get 放在 note
+        .flatMap((c) => (c.result && typeof c.result === "object" ? [...(c.result.caveats ?? []), c.result.note ?? ""] : []))
+        .find((x) => String(x).includes("證交所休市（休市日表）"));
+      if (!gap) return skip("工具回應裡沒有休市說明（資料沒有跨休市日）");
+      return /休市|休假|放假|沒有開盤|未開盤|沒開盤|非交易日|不是交易日|沒有交易/.test(run.answer)
+        ? pass()
+        : fail("工具說明了中間休市，答案沒有提到");
+    },
+  },
+  {
     id: "holiday-close",
     question: "2026 年 9 月 25 日台積電的收盤價是多少？",
     // 2026-09-25 是中秋節，證交所休市（休市日表 holidaySchedule 有 1150925）。答案要說那天沒開盤，

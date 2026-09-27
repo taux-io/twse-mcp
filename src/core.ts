@@ -626,12 +626,13 @@ const DAILY_TAGS = ["證券交易", "指數", "權證"];
 const DAILY_MARK = /日/;
 const PERIODIC_MARK = /月|季|年|彙總|排行/;
 
+/** 依 summary 與分類猜這張表是不是日報。期交所的猜法不可靠，見 periodNote 的說明。 */
+export function isDailyDataset(ds: Dataset): boolean {
+  return DAILY_MARK.test(ds.summary) ? true : PERIODIC_MARK.test(ds.summary) ? false : ds.tags.some((t) => DAILY_TAGS.includes(t));
+}
+
 export function periodNote(ds: Dataset): string {
-  const daily = DAILY_MARK.test(ds.summary)
-    ? true
-    : PERIODIC_MARK.test(ds.summary)
-      ? false
-      : ds.tags.some((t) => DAILY_TAGS.includes(t));
+  const daily = isDailyDataset(ds);
 
   // 期交所走另一套措辭，理由有兩個，都與「不要說出做不到或不知道的事」有關：
   //
@@ -878,6 +879,47 @@ export function rocToIso(v: unknown): string | null {
   if (!m) return s;
   const year = Number(m[1]) + 1911;
   return m[3] ? `${year}-${m[2]}-${m[3]}` : `${year}-${m[2]}`;
+}
+
+const addDays = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+const weekdayOf = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
+const isWeekday = (iso: string) => weekdayOf(iso) % 6 !== 0;
+
+/**
+ * 資料日期比「今天之前的最後一個平日」還舊，才需要說明為什麼。週末與平常日的盤前都不算：
+ * 週一早上看到週五的資料是正常的。只有這時才去抓休市日表，平常不多一次外呼。
+ */
+export function isStaleDataDate(dataDate: string, today: string): boolean {
+  let prev = addDays(today, -1);
+  while (!isWeekday(prev)) prev = addDays(prev, -1);
+  return /^\d{4}-\d{2}-\d{2}$/.test(dataDate) && dataDate < prev;
+}
+
+/**
+ * 說明資料日期與今天之間的平日為什麼沒有資料。休市日表（holidaySchedule）也列了「開始交易日」
+ * 「最後交易日」，那兩種當天有交易，要排除。今天不算缺漏：當天的資料本來就還沒出來。
+ * holidays 為 null 表示休市日表取得失敗——說無法確認，不說「沒有休市」。
+ */
+export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
+  if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
+  const closed = new Map<string, string>();
+  for (const r of holidays) {
+    const d = rocToIso(r["Date"]);
+    const name = String(r["Name"] ?? "").trim();
+    if (d && !/開始交易|最後交易/.test(name)) closed.set(d, name);
+  }
+  const label = (d: string) => `${d}（${"日一二三四五六"[weekdayOf(d)]}）`;
+  const closedDays: string[] = [];
+  const unexplained: string[] = [];
+  for (let d = addDays(dataDate, 1); d <= today; d = addDays(d, 1)) {
+    if (!isWeekday(d)) continue;
+    if (closed.has(d)) closedDays.push(`${label(d)}${closed.get(d)}`);
+    else if (d < today) unexplained.push(label(d));
+  }
+  const parts = [`資料日期是 ${dataDate}`];
+  if (closedDays.length) parts.push(`之後的 ${closedDays.join("、")}，證交所休市（休市日表），這幾天沒有交易，不是資料缺漏`);
+  if (unexplained.length) parts.push(`${unexplained.join("、")}不在證交所休市日表上，可能是上游還沒更新`);
+  return parts.join("；");
 }
 
 /** 名稱比對用的正規化：與搜尋同一個 normQuery，外加去頭尾空白。 */

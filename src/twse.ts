@@ -105,6 +105,7 @@ export const DS_LARGE_TRADERS = "taifex/OpenInterestOfLargeTradersFutures";
 // snapshot.futures（另用上面的三大法人各契約與大額交易人）
 export const DS_FUT_DAILY = "taifex/DailyMarketReportFut"; // 期貨每日交易行情
 export const DS_FUT_SETTLE = "taifex/FinalSettlementPriceFutures"; // 最後結算價-期貨商品
+export const DS_HOLIDAYS = "holidaySchedule/holidaySchedule"; // 有價證券集中交易市場開（休）市日期
 
 /**
  * 快照類工具寫死依賴的全部資料集。scripts/check-catalog.mjs 的 REQUIRED 必須與它
@@ -120,6 +121,7 @@ export const SNAPSHOT_DATASETS = [
   DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
   DS_FUT_DAILY, DS_FUT_SETTLE,
+  DS_HOLIDAYS,
   DS_AGM,
 ];
 
