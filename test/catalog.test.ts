@@ -21,7 +21,7 @@ import {
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
-import { CLAIMS_NONE, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
+import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
@@ -470,6 +470,20 @@ describe("端到端答案檢查的比對規則", () => {
     ]);
     expect(toNum("36.36%")).toBe(36.36);
     expect(toNum("N/A")).toBeNull();
+  });
+  it("期貨近月：收盤要是一般時段近月的、要說日期；報成盤後的價格或漏掉日期都算錯", () => {
+    const c = CASES.find((x) => x.id === "futures-near-month")!;
+    const run = (answer: string) => ({
+      answer,
+      calls: [{ name: "twse_futures_snapshot", input: {}, result: { date: "2026-09-24", near_month: { 收盤: 2496 } } }],
+    });
+    expect(c.check(run("9/24 近月收在 2,496")).status).toBe("pass");
+    expect(c.check(run("近月收在 2,496")).status).toBe("fail");
+    expect(c.check(run("9/24 盤後收在 2,492")).status).toBe("fail");
+  });
+  it("日期：9/26、9月26日、2026-09-26 都算，19/26 不算", () => {
+    for (const t of ["收在 9/26 的價格", "9 月 26 日收盤", "資料日期 2026-09-26", "2026/9/26"]) expect(mentionsDate(t, "2026-09-26"), t).toBe(true);
+    for (const t of ["19/26", "9/260", "今天"]) expect(mentionsDate(t, "2026-09-26"), t).toBe(false);
   });
   it("「說它沒有」只抓錯誤的主張，不抓「沒有揭露」「無法確認是否沒有發生」", () => {
     for (const bad of ["台積電去年沒有發生資訊外洩", "資訊外洩事件為 0 件", "無外洩事件", "未發生資安事件"]) {
