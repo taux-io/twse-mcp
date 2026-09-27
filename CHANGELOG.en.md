@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.10.0] - 2026-09-27
 
 - New **ESG disclosures** in the stock snapshot: 21 topics such as greenhouse gases, energy, water, waste, the board, workforce and information security, up to 6 per call. Figures are annual filings (currently the 114 / 2025 report year); about half the topics are industry-specific; a company missing from a topic, or an N/A value, is reported as such, never as zero.
 - New **events calendar** in the market overview: ask "which stocks go ex-dividend this week" or "who is under disposition" and get ex-dividend dates and shareholders' meetings in the next two weeks, today's attention-stock notices, and stocks under or about to enter disposition (listed companies only).
@@ -94,6 +94,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.10.0]: https://github.com/taux-io/twse-mcp/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/taux-io/twse-mcp/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/taux-io/twse-mcp/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/taux-io/twse-mcp/compare/v0.6.2...v0.7.0
