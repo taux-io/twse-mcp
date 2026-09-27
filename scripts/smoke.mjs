@@ -77,16 +77,19 @@ async function rpc(era, method, params = {}) {
 const CASES = [
   {
     tool: "twse_search_datasets",
+    structured: true,
     args: { query: "殖利率" },
     check: (r) => r.total_matched > 0 || "total_matched 為 0",
   },
   {
     tool: "twse_describe_dataset",
+    structured: true,
     args: { dataset_id: "exchangeReport/BWIBBU_ALL" },
     check: (r) => Object.keys(r.fields ?? {}).length > 0 || "沒有 fields",
   },
   {
     tool: "twse_get_dataset",
+    structured: true,
     args: { dataset_id: "exchangeReport/BWIBBU_ALL", code: "2330" },
     check: (r) => (r.rows_matched === 1 && r.data?.[0]?.Code === "2330") || `預期 2330 一列，得到 ${r.rows_matched} 列`,
   },

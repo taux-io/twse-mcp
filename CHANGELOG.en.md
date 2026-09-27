@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- The dataset search, describe and fetch tools now also return structured data, so all 9 tools do; an unknown dataset or field name is now flagged as an error (the list of available fields is still included).
+
 ## [0.10.1] - 2026-09-27
 
 - Fixed stock snapshots that could be cancelled, or leave the service stuck, when several queries arrived at the same time.
