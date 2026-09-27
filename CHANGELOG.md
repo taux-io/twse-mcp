@@ -7,6 +7,14 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
+## 尚未編號（已上線）
+
+- **工具改名**（只影響寫死工具名稱的人；在 claude.ai、ChatGPT 直接用的話不用做任何事）：
+  搜尋資料集、查欄位定義、取資料 → `dataset.search`、`dataset.describe`、`dataset.get`；
+  個股、ETF、期貨契約、大盤概況 → `snapshot.stock`、`snapshot.etf`、`snapshot.futures`、`snapshot.market`；
+  即時報價、代號查詢 → `quote.realtime`、`quote.lookup`。原本是 `twse_stock_snapshot` 這類名稱。
+  Claude Code 的允許清單要改成 `mcp__twse__snapshot_stock` 這種寫法（點會換成底線），或直接用 `mcp__twse__*`。
+
 ## [0.10.2] - 2026-09-27
 
 - 搜尋資料集、查欄位定義、取資料這三個工具也改成同時回傳結構化資料，9 個工具全部支援；查不到資料集或欄位名稱錯誤時，會明確標示為錯誤（仍附上可用的欄位清單）。

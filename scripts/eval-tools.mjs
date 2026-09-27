@@ -81,9 +81,17 @@ async function mcp(endpoint, method, params = {}) {
 }
 
 /** Claude Code 的 MCP 工具名帶 `mcp__<server>__` 前綴，比對前拿掉。 */
+// ponytail: 0.11.0 以前的工具名稱，讓 eval:ab 拿 main 比對時對得上；main 也換成新名稱後刪掉
+const LEGACY_NAMES = {
+  twse_search_datasets: "dataset.search", twse_describe_dataset: "dataset.describe", twse_get_dataset: "dataset.get",
+  twse_stock_snapshot: "snapshot.stock", twse_etf_snapshot: "snapshot.etf", twse_futures_snapshot: "snapshot.futures",
+  twse_market_overview: "snapshot.market", twse_realtime_quote: "quote.realtime", twse_lookup: "quote.lookup",
+};
+
 export function stripMcpPrefix(name) {
+  const bare = name.replace(/^mcp__[^_]+(?:_[^_]+)*?__/, "");
   // Claude Code 把工具名裡的「.」換成「_」（snapshot.stock → snapshot_stock），換回來才對得上
-  return name.replace(/^mcp__[^_]+(?:_[^_]+)*?__/, "").replace(/^([a-z]+)_/, "$1.");
+  return LEGACY_NAMES[bare] ?? bare.replace(/^([a-z]+)_/, "$1.");
 }
 
 /**
