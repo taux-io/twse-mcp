@@ -1844,6 +1844,7 @@ export interface MarketEventsSources {
 }
 
 /** 行事曆看多遠。除權息預告表本身大約只排到兩週後，股東會也用同一個窗口，兩邊的「近期」才一致。 */
+// ponytail: 固定 14 天、每類 50 筆，使用者要查更遠或更多時，改成 scope=events 的參數
 const EVENT_WINDOW_DAYS = 14;
 /** 每一類最多列幾筆。五、六月股東會旺季一天就上百家，整份倒給模型沒有意義。 */
 const MAX_EVENTS = 50;
@@ -1974,6 +1975,7 @@ export interface FuturesSnapshotSources {
  * 大額表把小台、微台併進台指期（「TX+MTX/4」），小型電子與小型金融也不在表上，
  * 這四個熱門契約的名稱只能寫死；名稱與三大法人表的寫法相同，兩邊才對得起來。
  */
+// ponytail: 只寫死四個大額表沒有的契約名稱，期交所新增這類契約（check-upstream 或使用者回報查不到名稱）時補上
 const FUTURES_NAMES: Record<string, string> = {
   MTX: "小型臺指期貨",
   TMF: "微型臺指期貨",

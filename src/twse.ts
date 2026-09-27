@@ -259,6 +259,7 @@ function tooLarge(label: string, bytes: number, partial = false): string {
  * 值取 3：snapshot.etf 本來就同時抓三個資料集，上限剛好容得下它。個股快照的主檔、
  * 財報、公司治理、融資融券與 ESG 共用同一個請求的名額，分幾輪抓完；邊緣快取命中時每輪都短。
  */
+// ponytail: 每個請求各自限流、沒有整個 isolate 的總上限，同時的請求變多導致記憶體或上游 429 時，改用不跨請求 resolve 的全域佇列（例如 Durable Object）
 const MAX_CONCURRENT_FETCHES = 3;
 
 class FetchLimiter {
