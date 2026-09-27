@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.10.2] - 2026-09-27
 
 - The dataset search, describe and fetch tools now also return structured data, so all 9 tools do; an unknown dataset or field name is now flagged as an error (the list of available fields is still included).
 
@@ -102,6 +102,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.10.2]: https://github.com/taux-io/twse-mcp/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/taux-io/twse-mcp/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/taux-io/twse-mcp/compare/v0.8.0...v0.9.0
