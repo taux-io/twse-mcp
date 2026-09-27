@@ -903,6 +903,16 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     }).toMatchSnapshot();
   });
 
+  // Claude Directory 的必填項目：每支工具都要有 title，以及 readOnlyHint / destructiveHint。
+  it("每支工具都有 title、annotations.title，以及 readOnlyHint 與 destructiveHint", async () => {
+    const tools = (await rpc("tools/list", {})).result.tools;
+    for (const t of tools) {
+      expect(t.title, t.name).toMatch(/\S/);
+      expect(t.annotations, t.name).toMatchObject({ title: t.title, readOnlyHint: true, destructiveHint: false });
+      expect(t.name.length, t.name).toBeLessThanOrEqual(64);
+    }
+  });
+
   it("ENABLE_REALTIME_QUOTE=false：沒有 quote.realtime，snapshot.etf 沒有 include_realtime；沒設時照常提供", async () => {
     const list = async (env: Record<string, string>) => {
       const res = await worker.fetch(eraRequest(era, "tools/list", {}) as unknown as IncomingRequest, env as never, ctx);
