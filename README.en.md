@@ -245,7 +245,7 @@ part of that quote.
 2. **"Live" quotes are best-effort.** They come from the exchange's web interface and can lag by seconds to minutes, occasionally fail, or differ slightly from what your broker shows.
 3. **For reference only, not investment advice.** Figures may be wrong or delayed. **Verify with the exchange or your broker before you trade** — your gains and losses are your own responsibility.
 4. **Everything except live quotes may be up to an hour old.** Reports are cached for an hour so the exchange is not hit on every request; intraday prices are never cached and are always fetched fresh.
-5. **No login, and your questions are not recorded.** They go through this service to fetch **public** data from the exchange; the service does not log what you ask.
+5. **No login, and what you ask is not recorded.** The service only fetches **public** data from the exchanges on your behalf and does not store your questions or query arguments. Cloudflare keeps connection logs for each request (IP, User-Agent and so on) for 3 days for troubleshooting; see the [privacy policy](https://twse-mcp.taux.io/privacy).
 
 ---
 
@@ -278,6 +278,8 @@ you need, or if you wish it could do one more thing, just
 equally welcome if you write code.
 
 What changed in each version: see the [changelog](CHANGELOG.en.md).
+
+Contact (privacy, security or anything you would rather not post publicly): [dev@taux.io](mailto:dev@taux.io). Privacy policy: <https://twse-mcp.taux.io/privacy>.
 
 **The one thing most needed right now: making OTC data available.**
 The OTC data source (the Taipei Exchange) blocks connections from cloud servers.

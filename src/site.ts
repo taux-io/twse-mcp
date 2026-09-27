@@ -230,7 +230,7 @@ const ZH: Page = {
     },
     {
       q: "我的問題內容會被記錄嗎？",
-      a: "不會。服務只是代你去取公開資料，不記錄你問的內容。",
+      a: "不會記錄你問的內容與查詢參數。服務只是代你去取公開資料；Cloudflare 會保存每個請求的連線紀錄（IP、User-Agent 等）3 天，用於排查問題。詳見 /privacy 的隱私權政策。",
     },
   ],
   headings: {
@@ -381,7 +381,7 @@ const EN: Page = {
     },
     {
       q: "Are my questions logged?",
-      a: "No. The service only fetches public data on your behalf and does not log what you ask.",
+      a: "What you ask and the query arguments are not recorded. The service only fetches public data on your behalf; Cloudflare keeps connection logs for each request (IP, User-Agent and so on) for 3 days for troubleshooting. See the privacy policy at /privacy.",
     },
   ],
   headings: {
@@ -748,6 +748,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 <footer>
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
 <p><a href="${REPO}/blob/main/${p.ui.changelogFile}">${esc(p.ui.changelog)}</a></p>
+<p><a href="${SITE_ORIGIN}/privacy">${loc === "zh" ? "隱私權政策" : "Privacy policy"}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
 <p>${esc(p.ui.otherLangLabel)}：</p>
 <ul class="langs">
 <li><a href="${REPO}/blob/main/README.md">繁體中文</a></li>
@@ -774,6 +775,99 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
  * **雙語並列，不是選一種。** 答案引擎回答中文問題時需要中文句子可引用，回答英文問題
  * 時需要英文句子。這是機器讀的檔案，多一份的成本只是位元組。
  */
+/**
+ * 隱私權政策（/privacy）。Claude Directory 送件必填，內容必須與實際行為一致：
+ * 程式本身不寫任何 log；Cloudflare Workers Logs（wrangler.jsonc 的 observability）會保存每個請求的
+ * 中繼資料，欄位是 2026-09-28 從 Observability API 實際取出一筆確認的，不含請求 body。
+ * 改 wrangler.jsonc 的 logs 設定、或開始在程式裡記錄任何東西時，這一頁要一起改。
+ */
+export const PRIVACY_UPDATED = "2026-09-28";
+export const PRIVACY_HTML = `<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>隱私權政策 Privacy Policy｜Taiwan Market Open Data (Unofficial)</title>
+<meta name="description" content="Taiwan Market Open Data (Unofficial) 的隱私權政策：記錄哪些資料、保存多久、用途與聯絡方式。">
+<link rel="canonical" href="${SITE_ORIGIN}/privacy">
+<meta name="robots" content="index,follow">
+<style>${CSS}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>隱私權政策</h1>
+<p>Taiwan Market Open Data (Unofficial)，<a href="${SITE_ORIGIN}/">${SITE_ORIGIN.replace("https://", "")}</a>。最後更新：${PRIVACY_UPDATED}。English version below.</p>
+</header>
+
+<h2>不會記錄的</h2>
+<ul>
+<li><strong>你問的內容與工具參數</strong>：AI 助理送來的請求內容（例如查詢的股票代號、資料集、條件）不會被記錄或保存。</li>
+<li>不需要帳號、不用登入、不設 cookie。</li>
+</ul>
+
+<h2>會記錄的</h2>
+<p>服務架設在 Cloudflare Workers。Cloudflare 會自動為每個請求保存一筆紀錄（Workers Logs），內容包括：</p>
+<ul>
+<li>連線來源的 IP 位址，以及 Cloudflare 依 IP 推估的地理位置（國家、城市、郵遞區號、經緯度）與網路業者（ASN）。</li>
+<li>User-Agent 與其他 HTTP 請求標頭。依 MCP 協定，部分請求的標頭會帶有呼叫的方法與工具名稱（例如 <code>snapshot.stock</code>），但不含參數。</li>
+<li>請求網址、回應狀態碼、處理時間。</li>
+</ul>
+<p>透過 Claude 等 AI 助理使用時，連線來源通常是該 AI 服務的伺服器，而不是你的裝置。</p>
+
+<h2>交易所會看到什麼</h2>
+<p>我們向交易所取資料時，只送出查詢本身（資料集或代號）與可辨識本服務的 User-Agent，不會附上你的問題。但向臺灣證券交易所（OpenAPI 與基本市況報導站）發出的請求，Cloudflare 依其平台規則會在 <code>CF-Connecting-IP</code> 標頭附上連線來源的 IP 位址，本服務無法移除（<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare 說明</a>）；向臺灣期貨交易所的請求不會附上。資料集常直接取自快取（最多 1 小時），這時不會對交易所發出請求；即時報價不快取。</p>
+
+<h2>用途、保存與分享</h2>
+<ul>
+<li><strong>用途</strong>：只用於排查服務問題（例如錯誤、逾時）與防止濫用。</li>
+<li><strong>保存期間</strong>：3 天，之後由 Cloudflare 自動刪除。</li>
+<li><strong>分享</strong>：不出售、不提供給第三方。Cloudflare 以代管服務商的身分處理這些紀錄，適用 <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare 隱私權政策</a>。</li>
+<li>你與 AI 助理之間的對話由該 AI 服務處理，適用其隱私權政策；本服務只收到 AI 送來的工具呼叫。</li>
+</ul>
+
+<h2>聯絡</h2>
+<p>隱私或安全相關問題：<a href="mailto:dev@taux.io">dev@taux.io</a>，或在 <a href="https://github.com/taux-io/twse-mcp/issues">GitHub</a> 開 issue。</p>
+
+<hr>
+
+<h1 lang="en">Privacy Policy</h1>
+<div lang="en">
+<p>Taiwan Market Open Data (Unofficial). Last updated: ${PRIVACY_UPDATED}.</p>
+
+<h2>What we do not record</h2>
+<ul>
+<li><strong>What you ask, and tool arguments</strong>: the content of requests your AI assistant sends (for example the stock codes, datasets or filters) is not logged or stored.</li>
+<li>No account, no sign-in, no cookies.</li>
+</ul>
+
+<h2>What is recorded</h2>
+<p>The service runs on Cloudflare Workers. Cloudflare automatically keeps a log entry for every request (Workers Logs), containing:</p>
+<ul>
+<li>The client IP address, plus the location Cloudflare derives from it (country, city, postal code, latitude/longitude) and the network (ASN).</li>
+<li>The User-Agent and other HTTP request headers. Under the MCP protocol some requests carry the method and tool name in a header (for example <code>snapshot.stock</code>), but never its arguments.</li>
+<li>The request URL, response status and processing time.</li>
+</ul>
+<p>When you use the service through an AI assistant such as Claude, the connection usually comes from that assistant's servers, not from your device.</p>
+
+<h2>What the exchanges see</h2>
+<p>When we fetch data from the exchanges we send only the query itself (a dataset or code) and a User-Agent that identifies this service, never your question. However, on requests to the Taiwan Stock Exchange (its OpenAPI and market information site), Cloudflare's platform adds the connecting IP address in a <code>CF-Connecting-IP</code> header, which this service cannot remove (<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare documentation</a>); requests to the Taiwan Futures Exchange do not carry it. Datasets are often served from cache (up to 1 hour), in which case no request reaches the exchange; live quotes are never cached.</p>
+
+<h2>Use, retention and sharing</h2>
+<ul>
+<li><strong>Use</strong>: only to troubleshoot the service (errors, timeouts) and prevent abuse.</li>
+<li><strong>Retention</strong>: 3 days, after which Cloudflare deletes the logs automatically.</li>
+<li><strong>Sharing</strong>: never sold or given to third parties. Cloudflare processes the logs as our hosting provider under the <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare Privacy Policy</a>.</li>
+<li>Your conversation with the AI assistant is handled by that assistant's provider under its own privacy policy; this service only receives the tool calls the assistant sends.</li>
+</ul>
+
+<h2>Contact</h2>
+<p>Privacy or security questions: <a href="mailto:dev@taux.io">dev@taux.io</a>, or open an issue on <a href="https://github.com/taux-io/twse-mcp/issues">GitHub</a>.</p>
+</div>
+</div>
+</body>
+</html>`;
+
 export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開資料（非官方）
 
 > Taiwan Market Open Data is a free remote MCP (Model Context Protocol) server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). It requires no installation, no account and no API key.
