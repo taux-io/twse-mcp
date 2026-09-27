@@ -16,6 +16,12 @@
   // 代價：twse-mcp.taux-io.workers.dev 部署後立即停止服務。README、server.json
   // 與所有目錄登錄用的都是 twse-mcp.taux.io，那個主機名從未對外文件化過。
   "workers_dev": false,
+
+  // quote.realtime 的開關。來源 mis.twse.com.tw 不在政府資料開放授權範圍內，已去信詢問證交所
+  // （docs/upstream-reports/2026-09-28-twse-mis-inquiry.md）；若回覆不同意，改成 "false" 重新部署即可。
+  "vars": {
+    "ENABLE_REALTIME_QUOTE": "true"
+  },
   // 意圖不變：只開 logs，traces 對這個唯讀 server 用不到，關著省資源。
   // 改的是寫法——先前是 `enabled: false` 配 `logs.enabled: true`，而那個組合的語意
   // Cloudflare **文件從未規定**（文件那一節只記載頂層兩個欄位，完全沒提到 logs /

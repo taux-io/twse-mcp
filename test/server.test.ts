@@ -903,6 +903,19 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     }).toMatchSnapshot();
   });
 
+  it("ENABLE_REALTIME_QUOTE=false：沒有 quote.realtime，snapshot.etf 沒有 include_realtime；沒設時照常提供", async () => {
+    const list = async (env: Record<string, string>) => {
+      const res = await worker.fetch(eraRequest(era, "tools/list", {}) as unknown as IncomingRequest, env as never, ctx);
+      return (await readPayload(res)).result.tools as { name: string; inputSchema: { properties: object } }[];
+    };
+    const off = await list({ ENABLE_REALTIME_QUOTE: "false" });
+    expect(off.map((t) => t.name)).not.toContain("quote.realtime");
+    expect(off.find((t) => t.name === "snapshot.etf")!.inputSchema.properties).not.toHaveProperty("include_realtime");
+    const on = await list({});
+    expect(on.map((t) => t.name)).toContain("quote.realtime");
+    expect(on.find((t) => t.name === "snapshot.etf")!.inputSchema.properties).toHaveProperty("include_realtime");
+  });
+
   it("查資料類：成功回 structuredContent；查無資料集、欄位錯誤回 isError，錯誤細節仍在文字裡", async () => {
     const ok = await rpc("tools/call", { name: "dataset.get", arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL", limit: 1 } });
     expect(ok.result.isError).toBeFalsy();
