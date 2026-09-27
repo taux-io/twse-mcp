@@ -337,14 +337,16 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "dataset.search",
     {
+      title: "Search datasets",
       description:
+        "Search the catalog of Taiwan Stock Exchange (TWSE) OpenAPI and Taiwan Futures Exchange (TAIFEX) OAS datasets and get the dataset_id to fetch. Reads a local catalog (no upstream call). Keywords may be Chinese or English, separated by spaces; every keyword must match. " +
         "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
         "範圍比股票廣：還有公司治理、ESG、財報、權證、券商、期貨與選擇權，以及期交所的每日外幣參考匯率——" +
         "覺得「交易所大概沒有這種資料」時，先搜再下結論。" +
         "會比對資料集代號、中文說明與欄位名稱；多個關鍵字用空白分隔（每個都要命中），" +
         "結果依相關度排序。期交所的資料集代號一律以 taifex/ 開頭，" +
         '搜期貨與選擇權可用 tag="期貨與選擇權"。',
-      annotations: LOCAL_READ,
+      annotations: { ...LOCAL_READ, title: "Search datasets" },
       outputSchema: SEARCH_OUTPUT,
       inputSchema: {
         query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"三大法人 期貨"。留空列出全部。'),
@@ -360,11 +362,13 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "dataset.describe",
     {
+      title: "Describe dataset",
       description:
+        "Show one dataset's definition: id, source (TWSE or TAIFEX), summary, tags, and every field key with its Chinese description. The where, sort_by, fields and match parameters of dataset.get take these field keys. Reads the local catalog only, so it has no row counts or dates. " +
         "查看某個資料集的定義：代號、來源（證交所或期交所）、中文說明、分類標籤，以及每個欄位的鍵名與中文說明。" +
         "dataset.get 的 where、sort_by、fields、match 都要用這裡的鍵名（例如 PEratio），不是中文說明。" +
         "只讀本機目錄、不抓上游，所以不含資料筆數或最新日期。代號不存在時回 error，請先用 dataset.search 找。",
-      annotations: LOCAL_READ,
+      annotations: { ...LOCAL_READ, title: "Describe dataset" },
       outputSchema: DESCRIBE_OUTPUT,
       inputSchema: {
         dataset_id: z
@@ -381,12 +385,14 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "dataset.get",
     {
+      title: "Get dataset rows",
       description:
+        "Fetch rows from a TWSE OpenAPI or TAIFEX OAS dataset, with server-side filtering (code is an exact match; match and where), sorting, field selection and paging: 30 rows by default, 200 at most. Most daily tables hold the previous trading day's after-close data, not live prices; the response note states the period. Data is republished under Taiwan's Open Government Data License. " +
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
         "上游每個資料集都是整份回傳（可能上萬筆），這支工具預設只回前 30 筆（上限 200）；" +
         "用 code/match/where/fields 縮小到需要的範圍。" +
         "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Get dataset rows" },
       outputSchema: GET_DATASET_OUTPUT,
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
@@ -417,9 +423,11 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         where: z
           .array(
             z.object({
-              field: z.string(),
-              op: z.enum(["gt", "gte", "lt", "lte", "eq", "ne"]),
-              value: z.number(),
+              field: z.string().describe('欄位鍵名（dataset.describe 列出的鍵名），例如 "PEratio"。'),
+              op: z
+                .enum(["gt", "gte", "lt", "lte", "eq", "ne"])
+                .describe("比較方式：gt 大於、gte 大於等於、lt 小於、lte 小於等於、eq 等於、ne 不等於。"),
+              value: z.number().describe("要比較的數值。"),
             }),
           )
           .max(10)
@@ -463,11 +471,13 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "snapshot.etf",
     {
+      title: "ETF snapshot",
       description:
+        "One TWSE-listed ETF in a single call: fund profile, the previous trading day's price and volume, and regular-savings (定期定額) popularity. Source: TWSE OpenAPI, updated after each trading day; not live. A section that cannot be fetched comes back null with a caveat. " +
         "一次取得單一上市 ETF 的完整概況：基本資料 + 前一交易日價量 + 定期定額熱度。" +
         "價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
         "合併三個證交所資料集並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "ETF snapshot" },
       outputSchema: ETF_SNAPSHOT_OUTPUT,
       inputSchema: {
         code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
@@ -514,11 +524,13 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "quote.lookup",
     {
+      title: "Look up stock code",
       description:
+        "Find the code of a TWSE-listed company or fund (including ETFs) from its name or code, e.g. 台積電 → 2330. Use it first when the user gives only a name. Listed (TWSE) securities only. Source: TWSE OpenAPI. " +
         "用名稱或代號找上市公司與上市基金（含 ETF）的代號。使用者只講名稱（「台積電」「元大高股息」）" +
         "時先用這個取得代號，不要憑印象猜代號。比對公司簡稱、全名、英文簡稱與代號，不分全半形與台／臺。" +
         "只收上市標的；上櫃公司的名稱對照取不到。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Look up stock code" },
       outputSchema: LOOKUP_OUTPUT,
       inputSchema: {
         // trim 在 min 之前：只有空白的查詢在 core 裡等同空查詢，只會回一句沒有意義的「找不到「」」。
@@ -544,7 +556,9 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "snapshot.stock",
     {
+      title: "Stock snapshot",
       description:
+        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
         "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
         "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
@@ -553,7 +567,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
         "ETF 請用 snapshot.etf。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Stock snapshot" },
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
       inputSchema: {
         code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。'),
@@ -639,14 +653,16 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "snapshot.market",
     {
+      title: "Market overview",
       description:
+        "Whole-market overview for the previous trading day: TAIEX and its change, turnover, advancers and decliners, top 10 by volume, plus futures positioning (institutional net open interest, TAIEX futures positions, put/call ratio, large traders). scope=\"events\" lists ex-dividend dates and shareholder meetings in the next two weeks and attention/disposition stocks. Sources: TWSE OpenAPI and TAIFEX OAS; not live. " +
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。' +
         'scope="events" 另外列出全市場的近期事件：兩週內的除權除息與股東會、今天公布的注意股、處置中與即將處置的股票（皆為上市）；' +
         "只問某一檔股票的除息、注意或處置狀態時，用 snapshot.stock。" +
         "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 snapshot.futures。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Market overview" },
       outputSchema: MARKET_OUTPUT,
       inputSchema: {
         scope: z
@@ -709,12 +725,14 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   server.registerTool(
     "snapshot.futures",
     {
+      title: "Futures contract snapshot",
       description:
+        "One TAIFEX futures contract for the latest trading day: open, high, low, close, change, volume, settlement and open interest for each contract month (regular and after-hours sessions), a near-month summary, institutional and large-trader positions, and final settlement prices. Accepts codes (\"TX\", \"MTX\") or Chinese names; an ambiguous name returns candidates only. Source: TAIFEX OAS; futures only; not live. " +
         "一個期貨契約（最新一個交易日）的完整概況：各月份的開高低收、漲跌、成交量、結算價、未平倉（一般與盤後時段）、" +
         "近月摘要、三大法人部位（指數類期貨）、大額交易人部位與最後結算價。" +
         '可用代號（"TX"、"MTX"、"TMF"、"CDF"）或名稱（"台指期"、"小台"、"台積電期貨"）；名稱對到多個契約時只回 candidates，' +
         "請向使用者確認再用代號重查。只含期貨；選擇權與整體期貨籌碼請用 dataset.search 或 snapshot.market。",
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Futures contract snapshot" },
       outputSchema: FUTURES_OUTPUT,
       inputSchema: {
         contract: z.string().describe('期貨契約代號或名稱，例如 "TX"、"小台"、"台積電期貨"。'),
@@ -737,10 +755,12 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   if (realtime) server.registerTool(
     "quote.realtime",
     {
+      title: "Real-time quote",
       description:
+        "Intraday quotes, refreshed about every 5 seconds, for up to 50 TWSE-listed (market=\"tse\") or OTC (market=\"otc\") codes; each quote carries the trading date it belongs to. Source: the TWSE Market Information System (mis.twse.com.tw), which is not covered by the Open Government Data License. " +
         "取得盤中即時報價（約 5 秒更新一次），每筆帶 date（報價所屬交易日）。OpenAPI 只有前一交易日資料，" +
         '要當下的價格得走基本市況報導站。ETF 與上市股票用 market="tse"，上櫃用 "otc"。',
-      annotations: REMOTE_READ,
+      annotations: { ...REMOTE_READ, title: "Real-time quote" },
       outputSchema: QUOTE_OUTPUT,
       inputSchema: {
         codes: z
