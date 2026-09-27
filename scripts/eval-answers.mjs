@@ -110,6 +110,21 @@ export function toNum(v) {
 }
 
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
+
+/** 答案裡有沒有提到這個日期（2026-09-26、9/26、9月26日 都算）。 */
+export function mentionsDate(text, iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso ?? ""));
+  if (!m) return false;
+  const [, y, mo, d] = m;
+  const M = Number(mo), D = Number(d);
+  return [
+    `${y}-${mo}-${d}`, `${y}/${mo}/${d}`, `${y}/${M}/${D}`,
+    new RegExp(`(?<!\\d)${M}\\s*/\\s*${D}(?!\\d)`), new RegExp(`(?<!\\d)${M}\\s*月\\s*${D}\\s*日`),
+  ].some((p) => (typeof p === "string" ? String(text).includes(p) : p.test(String(text))));
+}
+
+/** 台灣時間的今天（YYYY-MM-DD），與 server.ts 的 taipeiToday 同一個算法。 */
+const taipeiToday = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
 const pass = () => ({ status: "pass" });
 const fail = (reason) => ({ status: "fail", reason });
 const skip = (reason) => ({ status: "沒驗到", reason });
@@ -218,6 +233,51 @@ export const CASES = [
       };
       if (!got.length) return fail("答案裡沒有帶單位的成交量");
       return got.some((x) => ok(x.value, x.unit)) ? pass() : fail(`數字與單位對不上：${got.map((x) => x.value + x.unit).join("、")}`);
+    },
+  },
+  {
+    id: "futures-near-month",
+    question: "台積電的期貨昨天收多少？",
+    // 期貨快照回各月份、一般與盤後兩個時段；答案要是近月一般時段的收盤，並說出是哪個交易日
+    // （問「昨天」但最近交易日可能更早，例如遇到休市）。原本想測「台積電」的候選清單，
+    // 但校準時兩個模型都直接用「台積電期貨」這個精確名稱，候選清單出不來，改測這個。
+    check(run) {
+      const snap = results(run, "twse_futures_snapshot").map((c) => c.result).find((r) => r.near_month);
+      if (!snap) return skip("沒有取得期貨契約快照的近月資料");
+      const close = snap.near_month["收盤"];
+      if (typeof close !== "number") return skip("近月沒有收盤價");
+      const nums = [...String(run.answer).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map((m) => Number(m[0].replace(/,/g, "")));
+      if (!nums.some((n) => near(n, close, 0.001))) return fail(`答案沒有近月一般時段收盤 ${close}`);
+      if (snap.date && snap.date !== taipeiToday() && !mentionsDate(run.answer, snap.date)) return fail(`資料是 ${snap.date} 的，答案沒有說日期`);
+      return pass();
+    },
+  },
+  {
+    id: "quote-date",
+    question: "0050 現在多少？",
+    // 非交易時段查到的是最近一個交易日的收盤；報價帶 date，答案要說出是哪一天，
+    // 不然使用者會以為是當下的價格。盤中（date 就是今天）不要求。
+    check(run) {
+      const q = results(run, "twse_realtime_quote").flatMap((c) => c.result.quotes ?? []).find((x) => x.code === "0050");
+      if (!q) return skip("沒有取得 0050 的即時報價");
+      if (!q.date) return skip("報價沒有 date");
+      if (q.date === taipeiToday()) return pass();
+      return mentionsDate(run.answer, q.date) ? pass() : fail(`報價是 ${q.date} 的，答案沒有說日期`);
+    },
+  },
+  {
+    id: "events-exdividend",
+    question: "接下來兩週有哪些上市股票要除息？",
+    // 事件行事曆：答案要列出行事曆裡真的有的股票（任一檔即可），不能憑印象列。
+    check(run) {
+      const ex = results(run, "twse_market_overview", (c) => c.input.scope === "events")
+        .map((c) => c.result["事件行事曆"]?.["除權除息"])
+        .find(Array.isArray);
+      if (!ex) return skip("沒有查 scope=events");
+      if (!ex.length) return /沒有|無|查無/.test(run.answer) ? pass() : fail("行事曆是空的，答案沒有說沒有");
+      return ex.some((x) => run.answer.includes(String(x["代號"])) || run.answer.includes(String(x["名稱"])))
+        ? pass()
+        : fail("答案沒有列出行事曆裡的任何一檔");
     },
   },
   {
