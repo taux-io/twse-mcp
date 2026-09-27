@@ -7,7 +7,7 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
-## 尚未編號（已上線）
+## [0.10.1] - 2026-09-27
 
 - 修正同時有好幾個查詢進來時，個股快照可能被中斷、甚至讓服務卡住的問題。
 
@@ -82,6 +82,7 @@
 - 登錄到官方 MCP Registry。
 - README 提供繁中、英文、簡中、日文、韓文五種語言。
 
+[0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/taux-io/twse-mcp/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/taux-io/twse-mcp/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/taux-io/twse-mcp/compare/v0.7.0...v0.8.0

@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.10.1] - 2026-09-27
 
 - Fixed stock snapshots that could be cancelled, or leave the service stuck, when several queries arrived at the same time.
 
@@ -98,6 +98,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/taux-io/twse-mcp/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/taux-io/twse-mcp/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/taux-io/twse-mcp/compare/v0.7.0...v0.8.0
