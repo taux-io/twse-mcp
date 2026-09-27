@@ -1026,3 +1026,21 @@ describe("資料日期落後的說明（休市日表）", () => {
     expect(dataGapNote("2026-09-24", "2026-09-28", null)).toContain("無法確認中間是否休市");
   });
 });
+
+describe("getDataset — 回應大小上限", () => {
+  const ds: Dataset = { id: "opendata/wide", source: "twse", summary: "", description: "", tags: [], fields: { A: "a" } };
+  const wide = Array.from({ length: 200 }, (_, i) => ({ A: String(i), B: "x".repeat(1_000) }));
+
+  it("太寬的表會少回幾筆，並說明用 offset 或 fields 取其餘的", () => {
+    const r = getDataset(ds, wide, { limit: 200 }) as any;
+    expect(r.returned).toBeLessThan(200);
+    expect(JSON.stringify(r.data).length).toBeLessThanOrEqual(100_000);
+    expect(r.size_note).toContain(`offset=${r.returned}`);
+  });
+
+  it("用 fields 縮小欄位後放得下，就不減筆數", () => {
+    const r = getDataset(ds, wide, { limit: 200, fields: ["A"] }) as any;
+    expect(r.returned).toBe(200);
+    expect(r.size_note).toBeUndefined();
+  });
+});

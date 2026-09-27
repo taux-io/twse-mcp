@@ -33,6 +33,11 @@ export interface SourceError {
 
 /** 硬上限，保護 client 的 context window。 */
 const MAX_ROWS = 200;
+/**
+ * data 序列化後的字元上限。Claude 的單次工具結果上限約 15 萬字元，而回應的文字版就是整份 JSON；
+ * 最寬的表（公司基本資料 t187ap03_L）取 200 筆實測約 14 萬字元。留給其他欄位與說明的空間後取 10 萬。
+ */
+const MAX_DATA_CHARS = 100_000;
 
 /**
  * data 區塊是證交所回應的原文轉載，我們不改寫也不驗證。目錄裡證交所的 143 個資料集
@@ -573,6 +578,15 @@ export function getDataset(
     });
   }
 
+  // 太寬的表取滿筆數會超過用戶端的單次結果上限：從尾端減筆數，並說明怎麼取其餘的。
+  let trimmed = 0;
+  let size = JSON.stringify(page).length;
+  while (page.length > 1 && size > MAX_DATA_CHARS) {
+    size -= JSON.stringify(page[page.length - 1]).length + 1;
+    page = page.slice(0, -1);
+    trimmed++;
+  }
+
   return {
     dataset_id: ds.id,
     summary: ds.summary,
@@ -606,6 +620,13 @@ export function getDataset(
     ...(sortInfo ? { sorted_by: sortInfo } : {}),
     returned: page.length,
     offset: start,
+    ...(trimmed
+      ? {
+          size_note:
+            `回應大小有上限，這頁少回了 ${trimmed} 筆。要其餘的資料：用 offset=${start + page.length} 取下一頁，` +
+            `或用 fields 只取需要的欄位，一頁就能放更多筆`,
+        }
+      : {}),
     note: periodNote(ds),
     source: SOURCE_NOTE[ds.source],
     data: page,
