@@ -73,6 +73,7 @@ import {
   fetchDataset,
   fetchQuotes,
   fetchSources,
+  withRequestLimiter,
 } from "./twse";
 import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
@@ -865,6 +866,7 @@ export default {
     // legacy 唯一的危險是批次扇出，由 rejectBatch 在進 SDK 前擋掉。
     const batch = await rejectBatch(request);
     if (batch) return batch;
-    return createMcpHandler(createServer, { legacy: "stateless" })(request, env, ctx);
+    // 每個請求一份抓取限制器（見 twse.ts 的 withRequestLimiter）：跨請求共用在 workerd 上會卡死。
+    return withRequestLimiter(() => createMcpHandler(createServer, { legacy: "stateless" })(request, env, ctx));
   },
 } satisfies ExportedHandler;

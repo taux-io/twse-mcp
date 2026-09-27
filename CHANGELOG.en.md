@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- Fixed stock snapshots that could be cancelled, or leave the service stuck, when several queries arrived at the same time.
+
 ## [0.10.0] - 2026-09-27
 
 - New **ESG disclosures** in the stock snapshot: 21 topics such as greenhouse gases, energy, water, waste, the board, workforce and information security, up to 6 per call. Figures are annual filings (currently the 114 / 2025 report year); about half the topics are industry-specific; a company missing from a topic, or an N/A value, is reported as such, never as zero.
