@@ -11,6 +11,7 @@
  */
 import { AsyncLocalStorage } from "node:async_hooks";
 import catalogJson from "./catalog.generated.json";
+import pkg from "../package.json";
 import { headerMatches } from "./csv-header.mjs";
 import {
   DATA_TTL_SECONDS,
@@ -267,8 +268,9 @@ const MAX_CONCURRENT_FETCHES = 3;
 class FetchLimiter {
   private inFlight = 0;
   private readonly waiting: (() => void)[] = [];
+  constructor(private readonly max = MAX_CONCURRENT_FETCHES) {}
   async run<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.inFlight >= MAX_CONCURRENT_FETCHES) {
+    if (this.inFlight >= this.max) {
       await new Promise<void>((resolve) => this.waiting.push(resolve));
     }
     this.inFlight++;
@@ -283,9 +285,13 @@ class FetchLimiter {
 
 const requestLimiter = new AsyncLocalStorage<FetchLimiter>();
 
-/** 在一個請求的範圍內執行 fn：其中所有的 fetchDataset 共用這個請求自己的並行上限。 */
-export function withRequestLimiter<T>(fn: () => T): T {
-  return requestLimiter.run(new FetchLimiter(), fn);
+/**
+ * 在一個請求的範圍內執行 fn：其中所有的 fetchDataset 共用這個請求自己的並行上限。
+ * max 來自環境變數 UPSTREAM_MAX_CONCURRENCY（server.ts）；沒設或不是正整數就用預設的 3。
+ */
+export function withRequestLimiter<T>(fn: () => T, max?: number): T {
+  const n = max !== undefined && Number.isInteger(max) && max > 0 ? max : MAX_CONCURRENT_FETCHES;
+  return requestLimiter.run(new FetchLimiter(n), fn);
 }
 
 async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
@@ -529,6 +535,9 @@ export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quot
     url,
     { Referer: "https://mis.twse.com.tw/stock/index.jsp" },
     0,
+    undefined,
+    url,
+    QUOTE_TIMEOUT_MS,
   );
   const arr = (payload as { msgArray?: Record<string, string>[] }).msgArray ?? [];
   return arr.map((q) => ({
@@ -557,6 +566,36 @@ function bestLevel(v: string | undefined): string | null {
   return first && first !== "-" ? first : null;
 }
 
+/**
+ * 送給上游的 User-Agent：讓交易所看得出是誰在呼叫、要找誰。
+ */
+export const UPSTREAM_USER_AGENT = `TaiwanMarketOpenData/${pkg.version} (+https://twse-mcp.taux.io; dev@taux.io)`;
+/** 整份資料集最大約 2.5 MB，25 秒足夠；即時報價是一次小查詢，8 秒還沒回就當上游有問題。 */
+const DATASET_TIMEOUT_MS = 25_000;
+const QUOTE_TIMEOUT_MS = 8_000;
+const RETRY_DELAY_MS = 500;
+
+/**
+ * 只對「再試一次可能就好」的失敗重試一次：網路錯誤、429、5xx。都是 GET，重試是冪等的。
+ * 逾時不重試——已經等滿一次 timeout，再等一次只會讓整個工具呼叫更久。
+ */
+async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const last = attempt >= 1;
+    try {
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      if (last || (res.status !== 429 && res.status < 500)) return res;
+      await res.body?.cancel();
+    } catch (e) {
+      if ((e as Error)?.name === "TimeoutError") {
+        throw new Error(`上游逾時（${timeoutMs / 1000} 秒沒有回應）for ${url}`);
+      }
+      if (last) throw e;
+    }
+    await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+  }
+}
+
 /** fetch + JSON，附 Cloudflare 邊緣快取（cacheTtl 秒）。cacheTtl<=0 則不快取。 */
 async function fetchJson(
   url: string,
@@ -566,8 +605,9 @@ async function fetchJson(
   fallback?: (body: string) => unknown,
   /** 錯誤訊息裡用來指認來源的標籤。給了 dataset id 就比裸 URL 好讀。 */
   label = url,
+  timeoutMs = DATASET_TIMEOUT_MS,
 ): Promise<unknown> {
-  const init: RequestInit = { headers };
+  const init: RequestInit = { headers: { "User-Agent": UPSTREAM_USER_AGENT, ...headers } };
   // `cf` 是 Workers 專屬；在 Node 下被忽略，無害。
   if (cacheTtl > 0) {
     (init as RequestInit & { cf?: unknown }).cf = {
@@ -575,7 +615,7 @@ async function fetchJson(
       cacheEverything: true,
     };
   }
-  const res = await fetch(url, init);
+  const res = await fetchWithRetry(url, init, timeoutMs);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   // res.ok 擋不住「2xx + HTML」：證交所前面那層 nginx 擋流量或維護時，會用 2xx
   // 送出一張裸錯誤頁（2026-08-03 的 refresh-catalog 排程就是這樣掛的）。

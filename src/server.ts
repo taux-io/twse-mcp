@@ -934,7 +934,7 @@ async function rejectBatch(request: Request): Promise<Response | null> {
   );
 }
 
-type Env = { ENABLE_REALTIME_QUOTE?: string };
+type Env = { ENABLE_REALTIME_QUOTE?: string; UPSTREAM_MAX_CONCURRENCY?: string };
 
 export default {
   async fetch(request, env, ctx) {
@@ -965,6 +965,9 @@ export default {
     const batch = await rejectBatch(request);
     if (batch) return batch;
     // 每個請求一份抓取限制器（見 twse.ts 的 withRequestLimiter）：跨請求共用在 workerd 上會卡死。
-    return withRequestLimiter(() => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false" }), { legacy: "stateless" })(request, env, ctx));
+    return withRequestLimiter(
+      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false" }), { legacy: "stateless" })(request, env, ctx),
+      Number(env.UPSTREAM_MAX_CONCURRENCY ?? NaN),
+    );
   },
 } satisfies ExportedHandler<Env>;

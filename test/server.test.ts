@@ -13,7 +13,7 @@ import worker from "../src/server";
 import { createHash } from "node:crypto";
 import catalogJson from "../src/catalog.generated.json";
 import { COPY_SCRIPT } from "../src/site";
-import { fetchDataset, fetchQuotes } from "../src/twse";
+import { fetchDataset, fetchQuotes, UPSTREAM_USER_AGENT } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
 
@@ -1190,6 +1190,37 @@ function countingFetchStub(bodyFor: (url: string) => unknown = () => [{ Code: "0
   );
   return state;
 }
+
+describe("對上游的禮貌：User-Agent 與重試", () => {
+  const stub = (responses: (() => Response)[]) => {
+    const calls: { url: string; ua: string | null }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: unknown, init?: RequestInit) => {
+        calls.push({ url: String(url), ua: new Headers(init?.headers).get("user-agent") });
+        return (responses[calls.length - 1] ?? responses.at(-1)!)();
+      }),
+    );
+    return calls;
+  };
+
+  it("每個上游請求都帶可辨識的 User-Agent（含服務網址與聯絡信箱）", async () => {
+    const calls = stub([() => jsonResponse(DAY)]);
+    await fetchDataset("exchangeReport/STOCK_DAY_ALL");
+    expect(calls[0].ua).toBe(UPSTREAM_USER_AGENT);
+    expect(UPSTREAM_USER_AGENT).toMatch(/twse-mcp\.taux\.io.*dev@taux\.io/);
+  });
+
+  it("503 重試一次後成功；404 不重試", async () => {
+    const retried = stub([() => new Response("busy", { status: 503 }), () => jsonResponse(DAY)]);
+    expect(await fetchDataset("exchangeReport/STOCK_DAY_ALL")).toHaveLength(DAY.length);
+    expect(retried).toHaveLength(2);
+
+    const notFound = stub([() => new Response("nope", { status: 404 })]);
+    await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow("HTTP 404");
+    expect(notFound).toHaveLength(1);
+  });
+});
 
 describe("扇出上限與並行上限", () => {
   function batch(n: number) {
