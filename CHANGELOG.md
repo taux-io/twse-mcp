@@ -7,7 +7,7 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
-## 尚未編號（已上線）
+## [0.12.0] - 2026-09-28
 
 - 連假或颱風假後，資料日期會比前一個工作日舊。現在個股、ETF、期貨、大盤概況與即時報價會一併說明中間哪幾天休市（例如「9/25（五）中秋節」），AI 不會再把休市講成「查不到資料」；休市日表查不到時會說無法確認，不會說沒有休市。
 
@@ -98,6 +98,7 @@
 - 登錄到官方 MCP Registry。
 - README 提供繁中、英文、簡中、日文、韓文五種語言。
 
+[0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/taux-io/twse-mcp/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/taux-io/twse-mcp/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
