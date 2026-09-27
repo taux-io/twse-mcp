@@ -7,7 +7,7 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
-## 尚未編號（已上線）
+## [0.11.0] - 2026-09-27
 
 - **工具改名**（只影響寫死工具名稱的人；在 claude.ai、ChatGPT 直接用的話不用做任何事）：
   搜尋資料集、查欄位定義、取資料 → `dataset.search`、`dataset.describe`、`dataset.get`；
@@ -94,6 +94,7 @@
 - 登錄到官方 MCP Registry。
 - README 提供繁中、英文、簡中、日文、韓文五種語言。
 
+[0.11.0]: https://github.com/taux-io/twse-mcp/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/taux-io/twse-mcp/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/taux-io/twse-mcp/compare/v0.9.0...v0.10.0
