@@ -229,6 +229,17 @@ async function main() {
     }
   }
 
+  // 隱私權政策是 Claude Directory 的必要條件：正式環境要打得開。
+  try {
+    const res = await fetch(SITE + "/privacy", { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const html = await res.text();
+    if (!res.ok) fails.push(`/privacy：HTTP ${res.status}`);
+    else if (!html.includes("dev@taux.io")) fails.push("/privacy：找不到聯絡信箱");
+    else log("✅ /privacy");
+  } catch (e) {
+    fails.push(`/privacy：${e.message}`);
+  }
+
   const report = [
     `端點：${ENDPOINT}${LIST_ONLY ? "（只看清單）" : ""}`,
     "",

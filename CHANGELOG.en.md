@@ -12,6 +12,7 @@ your AI uses it on its next connection.
 
 - The service is now named **Taiwan Market Open Data (Unofficial)**, and the README, homepage and llms.txt state plainly that it is unofficial and not affiliated with, or endorsed by, the Taiwan Stock Exchange or the Taiwan Futures Exchange. The endpoint URL and tool names are unchanged.
 - When a page of dataset rows would be too large (for example 200 rows of a very wide table), fewer rows come back with a note on how to get the rest, so the result stays within what an AI assistant can read in one go. Upstream calls now have timeouts and one retry, so a brief upstream hiccup is less likely to fail a query.
+- Added a [privacy policy](https://twse-mcp.taux.io/privacy), and corrected the README and homepage, which had said the service does not know what you look up: what you ask and the arguments are not recorded, but Cloudflare keeps per-request connection logs (IP, User-Agent and so on) for 3 days. The homepage footer now lists the contact address dev@taux.io.
 
 ## [0.12.0] - 2026-09-28
 

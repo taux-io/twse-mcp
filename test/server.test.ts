@@ -1307,6 +1307,15 @@ describe("扇出上限與並行上限", () => {
  * 這條有測試守著，免得日後有人「加個小小的分析script」把它悄悄拆掉。
  */
 describe("首頁", () => {
+  it("/privacy：可公開存取，寫明記錄的欄位、保存 3 天、聯絡信箱；首頁頁尾連到它", async () => {
+    const res = await get("/privacy");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    for (const s of ["IP", "User-Agent", "3 天", "3 days", "dev@taux.io", "CF-Connecting-IP"]) expect(html).toContain(s);
+    expect(await (await get("/")).text()).toContain('href="https://twse-mcp.taux.io/privacy"');
+  });
+
   const get = (path: string, method = "GET") =>
     send(
       new Request(`http://twse-mcp.taux.io${path}`, {
