@@ -8,7 +8,9 @@
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 [![Smithery](https://img.shields.io/badge/Smithery-taux%2Ftwse-orange)](https://smithery.ai/servers/taux/twse)
 
-# Taiwan Stock Data Helper (TWSE MCP)
+# Taiwan Market Open Data (Unofficial)
+
+> **Unofficial.** Built and run by taux.io. Not affiliated with, or endorsed by, the Taiwan Stock Exchange (TWSE) or the Taiwan Futures Exchange (TAIFEX). Data is for reference only and is not investment advice.
 
 **Ask your AI about Taiwan stock data, in plain language.**
 

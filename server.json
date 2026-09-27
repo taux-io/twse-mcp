@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.taux-io/twse-mcp",
-  "title": "TWSE Open Data (Taiwan Stock Exchange)",
-  "description": "TWSE & TAIFEX open data as MCP tools: stock, ETF & futures snapshots, live quotes, 270+ datasets.",
+  "title": "Taiwan Market Open Data (Unofficial)",
+  "description": "Unofficial. TWSE & TAIFEX open data for AI: stock, ETF & futures snapshots, quotes, 270+ datasets.",
   "version": "0.12.0",
   "websiteUrl": "https://github.com/taux-io/twse-mcp",
   "repository": {

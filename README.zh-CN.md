@@ -8,7 +8,11 @@
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 [![Smithery](https://img.shields.io/badge/Smithery-taux%2Ftwse-orange)](https://smithery.ai/servers/taux/twse)
 
-# 台股数据小助手（TWSE MCP 服务器）
+# Taiwan Market Open Data (Unofficial)
+
+台股公开数据小助手（非官方）
+
+> **非官方服务。** 本服务由 taux.io 开发运维，与台湾证券交易所、台湾期货交易所没有隶属关系，也未经其背书；数据仅供参考，不构成投资建议。
 
 > **这份简体中文版由繁体中文版转换并做了用词本地化。** 如果发现用词不自然或有错，
 > 欢迎[提 issue 或 PR](https://github.com/taux-io/twse-mcp/issues)。

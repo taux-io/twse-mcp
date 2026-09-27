@@ -1,5 +1,5 @@
 /**
- * site.ts — 官方首頁（`/` 與 `/en`）、`robots.txt`、`sitemap.xml`、`llms.txt`。
+ * site.ts — 首頁（`/` 與 `/en`）、`robots.txt`、`sitemap.xml`、`llms.txt`。
  * ========================================================================
  * 與 MCP 端點同一個 Worker、同一個網域。理由很簡單：貼給使用者的網址是
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，而不是
@@ -164,13 +164,13 @@ interface Page {
 }
 
 const ZH: Page = {
-  title: "台股 MCP｜讓 AI 查台灣證交所與期交所的公開資料",
+  title: "Taiwan Market Open Data（非官方）｜讓 AI 查證交所與期交所的公開資料",
   description:
     "免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢台股即時報價、ETF 資料、" +
     `期貨選擇權行情與臺灣證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。`,
   h1: "讓 AI 查得到真正的台股資料",
   lede:
-    "<strong>台股 MCP</strong> 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
+    "<strong>Taiwan Market Open Data</strong>（非官方）是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
     "臺灣證券交易所與臺灣期貨交易所的公開資料。不用安裝、不用註冊、不需要 API key——複製一個網址就好。",
   features: [
     "台股上市股票與 ETF 的盤中即時報價",
@@ -245,8 +245,8 @@ const ZH: Page = {
   },
   body: {
     problem: `
-<p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。台股 MCP 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
-<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。台股 MCP 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
+<p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。Taiwan Market Open Data 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
+<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。Taiwan Market Open Data 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
 <p><strong>不想寫程式，也不想申請什麼。</strong>沒有 API key、沒有註冊、沒有 SDK。貼一個網址，用中文問就好。</p>`,
     ask: `
 <ul>
@@ -299,19 +299,20 @@ const ZH: Page = {
     attributionKeptInChinese: "",
     exception:
       "<strong>一個例外</strong>：盤中即時報價來自證交所基本市況報導站（<code>mis.twse.com.tw</code>），該站未登錄於政府資料開放平臺，不在上述授權範圍內。",
-    disclaimer: "本服務僅為代理與轉換，不對資料正確性負責；引用時請一併標示上述來源。",
+    disclaimer:
+      "非官方服務：本服務由 taux.io 開發維運，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書。本服務僅為代理與轉換，不對資料正確性負責，資料僅供參考、不構成投資建議；引用時請一併標示上述來源。",
     footerLead: "開源專案，程式碼與問題回報都在",
     footerIssue: "。用起來覺得怪、查不到想要的資料，都歡迎開一個 issue。",
     changelog: "更新紀錄：每一版改了什麼",
     changelogFile: "CHANGELOG.md",
-    howToName: "如何在 Claude 裡安裝台股 MCP",
-    howToDesc: "把台股 MCP 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
+    howToName: "如何在 Claude 裡安裝 Taiwan Market Open Data",
+    howToDesc: "把 Taiwan Market Open Data 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
     otherLangLabel: "其他語言的完整說明",
   },
 };
 
 const EN: Page = {
-  title: "Taiwan Stock MCP | TWSE and TAIFEX data for AI",
+  title: "Taiwan Market Open Data (Unofficial) | TWSE/TAIFEX data for AI",
   // 長度是為搜尋結果片段抓的：Google 大約 155 字元就截斷，超過的部分等於白寫。
   // test/server.test.ts 有守衛，改文案時會擋下超長。
   description:
@@ -319,7 +320,7 @@ const EN: Page = {
     `options, and ${DATASET_COUNT} TWSE/TAIFEX open datasets. No install, no signup.`,
   h1: "Give your AI real Taiwan market data",
   lede:
-    "<strong>Taiwan Stock MCP</strong> is a free remote MCP server that lets Claude and other AI " +
+    "<strong>Taiwan Market Open Data</strong> (unofficial) is a free remote MCP server that lets Claude and other AI " +
     "assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures " +
     "Exchange (TAIFEX). No install, no signup, no API key — just paste one URL.",
   features: [
@@ -395,8 +396,8 @@ const EN: Page = {
   },
   body: {
     problem: `
-<p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Stock MCP makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
-<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Stock MCP merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
+<p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Market Open Data makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
+<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Market Open Data merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
 <p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language — Chinese or English.</p>`,
     ask: `
 <ul>
@@ -453,15 +454,15 @@ const EN: Page = {
     exception:
       "<strong>One exception</strong>: intraday quotes come from the exchange's market-information site (<code>mis.twse.com.tw</code>), which is not registered on the government open-data platform and therefore falls outside the licence above.",
     disclaimer:
-      "This service only proxies and reshapes the data; it makes no warranty as to accuracy. Please carry the attribution above when you cite it.",
+      "Unofficial: built and run by taux.io; not affiliated with, or endorsed by, the Taiwan Stock Exchange or the Taiwan Futures Exchange. This service only proxies and reshapes the data; it makes no warranty as to accuracy, and nothing here is investment advice. Please carry the attribution above when you cite it.",
     footerLead: "Open source. Code and issue tracker are on",
     footerIssue:
       ". If something looks wrong, or you cannot find the data you need, please open an issue.",
     changelog: "Changelog: what changed in each version",
     changelogFile: "CHANGELOG.en.md",
-    howToName: "How to install Taiwan Stock MCP in Claude",
+    howToName: "How to install Taiwan Market Open Data in Claude",
     howToDesc:
-      "Add Taiwan Stock MCP as a custom connector in Claude. It takes about a minute and needs no account or payment.",
+      "Add Taiwan Market Open Data as a custom connector in Claude. It takes about a minute and needs no account or payment.",
     otherLangLabel: "Full documentation in other languages",
   },
 };
@@ -559,8 +560,8 @@ function ldSoftware(loc: Locale, p: Page) {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: loc === "zh" ? "台股 MCP（twse-mcp）" : "Taiwan Stock MCP (twse-mcp)",
-    alternateName: ["twse-mcp", "台股 MCP", "Taiwan Stock MCP"],
+    name: "Taiwan Market Open Data (Unofficial)",
+    alternateName: ["twse-mcp", "台股 MCP", "Taiwan Stock MCP", "Taiwan Market Open Data"],
     applicationCategory: "DeveloperApplication",
     applicationSubCategory: "Model Context Protocol Server",
     operatingSystem: "Any",
@@ -773,10 +774,13 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
  * **雙語並列，不是選一種。** 答案引擎回答中文問題時需要中文句子可引用，回答英文問題
  * 時需要英文句子。這是機器讀的檔案，多一份的成本只是位元組。
  */
-export const LLMS_TXT = `# Taiwan Stock MCP / 台股 MCP (twse-mcp)
+export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開資料（非官方）
 
-> Taiwan Stock MCP is a free remote MCP (Model Context Protocol) server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). It requires no installation, no account and no API key.
-> 台股 MCP 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢臺灣證券交易所（TWSE）與臺灣期貨交易所（TAIFEX）的公開資料。使用者不需要安裝軟體、不需要註冊帳號、也不需要 API key。
+> Taiwan Market Open Data is a free remote MCP (Model Context Protocol) server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). It requires no installation, no account and no API key.
+> Taiwan Market Open Data 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢臺灣證券交易所（TWSE）與臺灣期貨交易所（TAIFEX）的公開資料。使用者不需要安裝軟體、不需要註冊帳號、也不需要 API key。
+>
+> Unofficial: built and run by taux.io; not affiliated with, or endorsed by, TWSE or TAIFEX. Not investment advice.
+> 非官方服務：由 taux.io 開發維運，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書；不構成投資建議。
 
 ## Connection / 連線方式
 
@@ -797,8 +801,8 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 - Over-the-counter (TPEx) stocks have intraday quotes only; historical and statistical reports are unavailable because the Taipei Exchange open-data host refuses cloud-originated connections.
 - 上櫃（OTC）股票只有盤中即時報價；歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。
-- Taiwan Stock MCP does not provide technical indicators, stock picks or investment advice, and computes no forecasts of its own. It can filter and sort by figures the exchange publishes (P/E, dividend yield).
-- 台股 MCP 不提供技術指標、選股建議或投資建議，也不做任何自行計算的預測；可以依交易所公布的數字（本益比、殖利率）篩選與排序。
+- Taiwan Market Open Data does not provide technical indicators, stock picks or investment advice, and computes no forecasts of its own. It can filter and sort by figures the exchange publishes (P/E, dividend yield).
+- Taiwan Market Open Data 不提供技術指標、選股建議或投資建議，也不做任何自行計算的預測；可以依交易所公布的數字（本益比、殖利率）篩選與排序。
 
 ## Freshness / 資料新鮮度
 
@@ -816,7 +820,7 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 ## Pages / 延伸資料
 
-- Homepage (Traditional Chinese) / 官方首頁：${SITE_ORIGIN}/
+- Homepage (Traditional Chinese) / 首頁：${SITE_ORIGIN}/
 - Homepage (English)：${SITE_ORIGIN}/en
 - Source code and issue tracker / 原始碼與問題回報：${REPO}
 - Setup guide (Traditional Chinese)：${REPO}/blob/main/README.md

@@ -8,7 +8,11 @@
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.taux--io%2Ftwse--mcp-blueviolet)](https://registry.modelcontextprotocol.io/v0.1/servers?search=twse)
 [![Smithery](https://img.shields.io/badge/Smithery-taux%2Ftwse-orange)](https://smithery.ai/servers/taux/twse)
 
-# 台股資料小幫手（TWSE MCP）
+# Taiwan Market Open Data (Unofficial)
+
+台股公開資料小幫手（非官方）
+
+> **非官方服務。** 本服務由 taux.io 開發維運，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書；資料僅供參考，不構成投資建議。
 
 **用講話的方式，問你的 AI 台股資料。**
 
