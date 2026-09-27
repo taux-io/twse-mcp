@@ -9,6 +9,9 @@ name: smoke
 #
 # - pull_request：合併前擋下會讓某支工具在真實資料上失敗的改動
 # - schedule：上游資料每天變，程式沒變也可能開始失敗；失敗就開 issue
+#
+# 排程時另外對正式環境做存活檢查：只看工具清單、快捷指令與首頁（6 個請求），不呼叫工具。
+# 本機測不到部署失敗、網域設定跑掉、正式環境跑的不是 main 這類問題。
 
 on:
   pull_request:
@@ -51,6 +54,14 @@ jobs:
       - name: 每支工具實測
         run: npm run smoke
 
+      - name: 正式環境存活檢查
+        if: always() && github.event_name != 'pull_request'
+        env:
+          SMOKE_LIST_ONLY: "1"
+          SMOKE_ENDPOINT: https://twse-mcp.taux.io/mcp
+          SMOKE_REPORT: prod-report.md
+        run: node scripts/smoke.mjs
+
       - name: wrangler log（失敗時看）
         if: failure()
         run: tail -100 wrangler.log || true
@@ -65,13 +76,13 @@ jobs:
           LABEL: smoke
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
-          REPORT=$(cat smoke-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
+          REPORT=$(cat smoke-report.md prod-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
           BODY=$(printf '%s\n' \
-            "每日冒煙測試（本機 wrangler dev + 真實上游資料）發現問題：" \
+            "每日冒煙測試（本機 wrangler dev + 真實上游資料，加上正式環境存活檢查）發現問題：" \
             "" \
             "$REPORT" \
             "" \
-            "常見原因：上游資料多了程式沒預期的值，讓回應不符 outputSchema（SDK 會讓整個呼叫失敗）；或上游格式改變。先用 \`npm run smoke\` 在本機重現。" \
+            "常見原因：上游資料多了程式沒預期的值，讓回應不符 outputSchema（SDK 會讓整個呼叫失敗）；或上游格式改變。先用 \`npm run smoke\` 在本機重現。正式環境那段失敗、本機通過時，看 Cloudflare 的部署與網域設定。" \
             "" \
             "[查看這次 run](${RUN_URL})")
           gh label create "$LABEL" --description "Daily smoke test against real upstream data" --color D93F0B --force
