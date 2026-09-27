@@ -98,7 +98,7 @@ data.gov.tw 上。理由寫在 `scripts/refresh-catalog.mjs` 的 `TAIFEX_EXCLUDE
 |---|---|---|
 | `openapi.twse.com.tw` | OGDL v1，提供機關臺灣證券交易所 | 已顯名 |
 | `openapi.taifex.com.tw` | OGDL v1，提供機關金融監督管理委員會證券期貨局 | 已顯名（本文件） |
-| `mis.twse.com.tw`（`twse_realtime_quote`） | **未登錄於 data.gov.tw** | 不在 OGDL 範圍內，顯名聲明中明列為例外 |
+| `mis.twse.com.tw`（`quote.realtime`） | **未登錄於 data.gov.tw** | 不在 OGDL 範圍內，顯名聲明中明列為例外 |
 
 `mis` 那條是懸而未決的產品決定，不是本文件的範圍；記在這裡只是為了讓三個來源的授權
 狀態能在同一個地方被讀到。

@@ -43,7 +43,7 @@ describe("catalog 健檢腳本", () => {
     expect(total).toBeGreaterThan(MIN_DATASETS);
   });
 
-  it("目錄缺了 twse_etf_snapshot 依賴的資料集時要抓出來", () => {
+  it("目錄缺了 snapshot.etf 依賴的資料集時要抓出來", () => {
     const broken = { ...catalog };
     delete (broken as Record<string, unknown>)[DS_FUND];
     const { problems } = checkCatalog(broken);
@@ -72,7 +72,7 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
   });
 
   it("證交所整批消失時要抓出來", () => {
-    // 不能只斷言含 "twse"：REQUIRED 缺漏的訊息裡有 "twse_etf_snapshot"，會誤中。
+    // 不能只斷言含 "twse"：REQUIRED 缺漏的訊息裡有 "snapshot.etf"，會誤中。
     expect(checkCatalog(without("twse")).problems.join()).toContain("twse：只剩");
   });
 
@@ -124,7 +124,7 @@ describe("catalog 健檢腳本 — 守衛自己的破口", () => {
 
   // 上游把 200 回應的 schema 從裸 $ref 改成 {type:"array", items:{$ref}} 就會發生：
   // buildTaifex 取到空字串，132 筆全部零欄位，而數量門檻與 malformed 都通過。
-  // 零欄位會讓 twse_describe_dataset 什麼都說不出來，也讓 CSV 守衛失去比對對象。
+  // 零欄位會讓 dataset.describe 什麼都說不出來，也讓 CSV 守衛失去比對對象。
   it("大量資料集沒有欄位定義時要抓出來，不能只印個數字就說通過", () => {
     const c = structuredClone(catalog);
     for (const [k, d] of Object.entries(c)) {
@@ -218,11 +218,11 @@ describe("目錄與程式假設的一致性", () => {
   });
 
   // ALIASES.etf 是同一組 id 的第四份字面複本，先前無人守。
-  it("ALIASES.etf 與 twse_etf_snapshot 依賴的常數是同一組", () => {
+  it("ALIASES.etf 與 snapshot.etf 依賴的常數是同一組", () => {
     expect([...ALIASES.etf].sort()).toEqual([DS_FUND, DS_DAY, DS_RANK].sort());
   });
 
-  it("twse_etf_snapshot 依賴的三個資料集都在目錄裡", () => {
+  it("snapshot.etf 依賴的三個資料集都在目錄裡", () => {
     for (const id of [DS_FUND, DS_DAY, DS_RANK]) {
       expect(catalog[id], id).toBeDefined();
     }
@@ -250,7 +250,7 @@ describe("periodNote — 期間說明要跟著資料集的實際頻率", () => {
  * 臺指選擇權Put/Call比、鉅額交易成交資訊、大額交易人未沖銷部位都是**日頻**。
  * 用同一套關鍵字規則去猜，會有一大批被斷言成「非每日更新」——那是憑空編造的事實。
  *
- * 更嚴重的是指引本身：日頻那句話叫使用者「要當下價格請用 twse_realtime_quote」，
+ * 更嚴重的是指引本身：日頻那句話叫使用者「要當下價格請用 quote.realtime」，
  * 但那支工具查的是上市／上櫃股票，查不到任何期貨或選擇權。把它指給期貨使用者，
  * 是把人送去一條走不通的路。
  */
@@ -287,8 +287,8 @@ describe("periodNote — 期交所不亂宣稱頻率，也不指向查不到期�
     expect(tfx.length).toBeGreaterThan(100);
   });
 
-  it("沒有任何一個期交所資料集會被指去用 twse_realtime_quote", () => {
-    const wrong = tfx.filter((d) => periodNote(d).includes("twse_realtime_quote"));
+  it("沒有任何一個期交所資料集會被指去用 quote.realtime", () => {
+    const wrong = tfx.filter((d) => periodNote(d).includes("quote.realtime"));
     expect(wrong.map((d) => d.id)).toEqual([]);
   });
 
@@ -309,8 +309,8 @@ describe("periodNote — 期交所不亂宣稱頻率，也不指向查不到期�
     for (const d of weekly) expect(periodNote(d), d.summary).not.toContain("前一交易日");
   });
 
-  it("證交所的指引不受影響：日頻仍然指向 twse_realtime_quote", () => {
-    expect(periodNote(catalog[DS_DAY])).toContain("twse_realtime_quote");
+  it("證交所的指引不受影響：日頻仍然指向 quote.realtime", () => {
+    expect(periodNote(catalog[DS_DAY])).toContain("quote.realtime");
   });
 });
 
@@ -420,9 +420,9 @@ describe("上游健檢腳本", () => {
  */
 describe("工具選擇測試題", () => {
   const TOOLS = [
-    "twse_search_datasets", "twse_describe_dataset", "twse_get_dataset", "twse_lookup",
-    "twse_stock_snapshot", "twse_market_overview", "twse_etf_snapshot", "twse_realtime_quote",
-    "twse_futures_snapshot",
+    "dataset.search", "dataset.describe", "dataset.get", "quote.lookup",
+    "snapshot.stock", "snapshot.market", "snapshot.etf", "quote.realtime",
+    "snapshot.futures",
   ];
   it("每一題期望的工具都真的存在，dataset_id 都在目錄裡", () => {
     for (const c of toolEval.cases) {
@@ -447,15 +447,16 @@ describe("工具選擇測試題", () => {
     expect(subsetMatch({}, { include_financials: true })).toBe(false);
   });
   it("Claude Code 的 MCP 工具名前綴會被拿掉再比對", () => {
-    expect(stripMcpPrefix("mcp__twse__twse_lookup")).toBe("twse_lookup");
-    expect(stripMcpPrefix("mcp__my_server__twse_get_dataset")).toBe("twse_get_dataset");
-    expect(stripMcpPrefix("twse_lookup")).toBe("twse_lookup");
+    expect(stripMcpPrefix("mcp__twse__quote_lookup")).toBe("quote.lookup");
+    expect(stripMcpPrefix("mcp__my_server__dataset_get")).toBe("dataset.get");
+    expect(stripMcpPrefix("quote.lookup")).toBe("quote.lookup");
+    expect(stripMcpPrefix("mcp__twse__twse_stock_snapshot")).toBe("snapshot.stock");
   });
   it("第一個工具呼叫符合任一選項才通過；沒有呼叫工具不通過", () => {
-    const expectA = [{ tool: "twse_lookup" }, { tool: "twse_stock_snapshot", args: { code: "2303" } }];
-    expect(matchCall({ name: "twse_lookup", input: { query: "聯電" } }, expectA)).toBe(true);
-    expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2303" } }, expectA)).toBe(true);
-    expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2330" } }, expectA)).toBe(false);
+    const expectA = [{ tool: "quote.lookup" }, { tool: "snapshot.stock", args: { code: "2303" } }];
+    expect(matchCall({ name: "quote.lookup", input: { query: "聯電" } }, expectA)).toBe(true);
+    expect(matchCall({ name: "snapshot.stock", input: { code: "2303" } }, expectA)).toBe(true);
+    expect(matchCall({ name: "snapshot.stock", input: { code: "2330" } }, expectA)).toBe(false);
     expect(matchCall(null, expectA)).toBe(false);
   });
 });
@@ -475,7 +476,7 @@ describe("端到端答案檢查的比對規則", () => {
     const c = CASES.find((x) => x.id === "futures-near-month")!;
     const run = (answer: string) => ({
       answer,
-      calls: [{ name: "twse_futures_snapshot", input: {}, result: { date: "2026-09-24", near_month: { 收盤: 2496 } } }],
+      calls: [{ name: "snapshot.futures", input: {}, result: { date: "2026-09-24", near_month: { 收盤: 2496 } } }],
     });
     expect(c.check(run("9/24 近月收在 2,496")).status).toBe("pass");
     expect(c.check(run("近月收在 2,496")).status).toBe("fail");

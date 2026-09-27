@@ -16,8 +16,8 @@ import { dirname, join } from "node:path";
 const CATALOG = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.generated.json");
 
 /**
- * twse_etf_snapshot 與 twse_stock_snapshot 直接依賴這些資料集，少一個該工具就殘廢
- * （twse_lookup 用的兩個主檔也在其中）。
+ * snapshot.etf 與 snapshot.stock 直接依賴這些資料集，少一個該工具就殘廢
+ * （quote.lookup 用的兩個主檔也在其中）。
  * 這份清單必須與 src/twse.ts 的 SNAPSHOT_DATASETS 一致——
  * test/catalog.test.ts 會斷言兩邊相同，改了一邊沒改另一邊 CI 就會紅。
  */
@@ -45,7 +45,7 @@ export const REQUIRED = [
   // include_margin
   "exchangeReport/MI_MARGN",
   "SBL/TWT96U",
-  // twse_market_overview
+  // snapshot.market
   "exchangeReport/MI_INDEX",
   "exchangeReport/FMTQIK",
   "exchangeReport/MI_INDEX20",
@@ -53,9 +53,9 @@ export const REQUIRED = [
   "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
   "taifex/PutCallRatio",
   "taifex/OpenInterestOfLargeTradersFutures",
-  // twse_market_overview 的 scope="events"
+  // snapshot.market 的 scope="events"
   "opendata/t187ap38_L",
-  // twse_futures_snapshot
+  // snapshot.futures
   "taifex/DailyMarketReportFut",
   "taifex/FinalSettlementPriceFutures",
 ];

@@ -34,32 +34,32 @@ export function datasetUrl(datasetId: string): string {
     : `${BASE}/${datasetId}`;
 }
 
-// twse_etf_snapshot 用到的三個資料集
+// snapshot.etf 用到的三個資料集
 export const DS_FUND = "opendata/t187ap47_L"; // 基金基本資料彙總表
 export const DS_DAY = "exchangeReport/STOCK_DAY_ALL"; // 上市個股日成交資訊
 export const DS_RANK = "ETFReport/ETFRank"; // 定期定額交易戶數統計排行月報表
 
-// twse_stock_snapshot 另外用到的資料集（日成交資訊與 ETF 快照共用 DS_DAY）
+// snapshot.stock 另外用到的資料集（日成交資訊與 ETF 快照共用 DS_DAY）
 export const DS_COMPANY = "opendata/t187ap03_L"; // 上市公司基本資料
 export const DS_VALUATION = "exchangeReport/BWIBBU_ALL"; // 上市個股日本益比、殖利率及股價淨值比
 export const DS_REVENUE = "opendata/t187ap05_L"; // 上市公司每月營業收入彙總表
 export const DS_EX_RIGHTS = "exchangeReport/TWT48U_ALL"; // 上市股票除權除息預告表
 export const DS_DIVIDENDS = "opendata/t187ap45_L"; // 上市公司股利分派情形
-export const DS_AGM = "opendata/t187ap38_L"; // 股東會公告（twse_market_overview 的 scope="events"）
+export const DS_AGM = "opendata/t187ap38_L"; // 股東會公告（snapshot.market 的 scope="events"）
 export const DS_NOTICE = "announcement/notice"; // 集中市場當日公布注意股票
 export const DS_PUNISH = "announcement/punish"; // 集中市場公布處置股票
 
-// twse_stock_snapshot 的 include_financials：六種業別各一張損益表與資產負債表。
+// snapshot.stock 的 include_financials：六種業別各一張損益表與資產負債表。
 // 一般業（ci）涵蓋絕大多數公司，所以先查它；查不到才查其餘五種（都很小）。
 export const FIN_TYPE_KEYS = ["ci", "basi", "bd", "fh", "ins", "mim"] as const;
 export const dsIncome = (t: string) => `opendata/t187ap06_L_${t}`;
 export const dsBalance = (t: string) => `opendata/t187ap07_L_${t}`;
 
-// twse_stock_snapshot 的 include_margin
+// snapshot.stock 的 include_margin
 export const DS_MARGIN = "exchangeReport/MI_MARGN"; // 集中市場融資融券餘額
 export const DS_SBL = "SBL/TWT96U"; // 上市上櫃股票當日可借券賣出股數
 
-// twse_stock_snapshot 的 esg_topics：21 個主題各一張表（上市公司企業 ESG 資訊揭露彙總資料）。
+// snapshot.stock 的 esg_topics：21 個主題各一張表（上市公司企業 ESG 資訊揭露彙總資料）。
 // 鍵用上游的主題名稱原文，同時就是工具參數的 enum 值。
 export const ESG_TOPIC_DATASETS = {
   "溫室氣體排放": "opendata/t187ap46_L_1",
@@ -86,14 +86,14 @@ export const ESG_TOPIC_DATASETS = {
 } as const;
 export type EsgTopic = keyof typeof ESG_TOPIC_DATASETS;
 
-// twse_stock_snapshot 的 include_governance
+// snapshot.stock 的 include_governance
 export const DS_CHAIRMAN = "opendata/t187ap33_L"; // 董事長是否兼任總經理
 export const DS_PLEDGE = "opendata/t187ap09_L"; // 董監質權設定占持股比例
 export const DS_PENALTIES = "opendata/t187ap22_L"; // 金管會證期局裁罰案件
 export const DS_SHORTFALL = "opendata/t187ap08_L"; // 董監持股不足法定成數
 export const DS_SHORTFALL_MONTHS = "opendata/t187ap10_L"; // 董監持股連續不足 3 個月以上
 
-// twse_market_overview
+// snapshot.market
 export const DS_INDICES = "exchangeReport/MI_INDEX"; // 每日收盤行情-大盤統計資訊
 export const DS_TURNOVER = "exchangeReport/FMTQIK"; // 集中市場每日市場成交資訊
 export const DS_TOP20 = "exchangeReport/MI_INDEX20"; // 成交量前二十名
@@ -102,7 +102,7 @@ export const DS_INST_CONTRACTS = "taifex/MarketDataOfMajorInstitutionalTradersDe
 export const DS_PCR = "taifex/PutCallRatio";
 export const DS_LARGE_TRADERS = "taifex/OpenInterestOfLargeTradersFutures";
 
-// twse_futures_snapshot（另用上面的三大法人各契約與大額交易人）
+// snapshot.futures（另用上面的三大法人各契約與大額交易人）
 export const DS_FUT_DAILY = "taifex/DailyMarketReportFut"; // 期貨每日交易行情
 export const DS_FUT_SETTLE = "taifex/FinalSettlementPriceFutures"; // 最後結算價-期貨商品
 
@@ -127,7 +127,7 @@ export const SNAPSHOT_DATASETS = [
  * 必定有資料的資料集。回 0 筆一律當成上游故障，不當成「查無資料」。
  *
  * 為什麼需要這道：`fetchJson` 只在 body **無法** JSON.parse 時大聲失敗（擋 2xx+HTML）。
- * 一個格式正確的空陣列 `[]` 通過所有檢查，於是 twse_etf_snapshot 對 0050 回
+ * 一個格式正確的空陣列 `[]` 通過所有檢查，於是 snapshot.etf 對 0050 回
  * `is_etf: false`——對台灣最大的 ETF 之一做出肯定的錯誤陳述，而 cf.cacheTtl 把它釘在
  * 邊緣一小時。這與 2xx+HTML 是同一類問題，只差在 body 是合法 JSON。
  *
@@ -256,7 +256,7 @@ function tooLarge(label: string, bytes: number, partial = false): string {
  * 代價：不再有整個 isolate 的並行上限。兩個同時的請求最多各 3 個。實際最大的資料集是股利
  * 分派表約 2.5 MB，離單一 body 上限與 128 MB 都很遠；真正的保護是單一 body 的上限。
  *
- * 值取 3：twse_etf_snapshot 本來就同時抓三個資料集，上限剛好容得下它。個股快照的主檔、
+ * 值取 3：snapshot.etf 本來就同時抓三個資料集，上限剛好容得下它。個股快照的主檔、
  * 財報、公司治理、融資融券與 ESG 共用同一個請求的名額，分幾輪抓完；邊緣快取命中時每輪都短。
  */
 const MAX_CONCURRENT_FETCHES = 3;
@@ -305,7 +305,7 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
   );
   const rows = Array.isArray(data) ? (data as Row[]) : [data as Row];
   // 必定有資料的資料集回 0 筆 = 上游故障。拋錯讓上層的 errors/failed 機制接手
-  // （twse_etf_snapshot 走第三態、twse_get_dataset 回錯誤），而不是把假的空結果
+  // （snapshot.etf 走第三態、dataset.get 回錯誤），而不是把假的空結果
   // 當成「查無」回傳並被邊緣快取釘住。訊息比照既有上游診斷：帶代號與 0 筆說明。
   if (rows.length === 0 && ALWAYS_POPULATED.has(datasetId)) {
     throw new Error(
@@ -398,7 +398,7 @@ export async function fetchFinancials(
  * 把期交所的 CSV 解析成物件陣列，key 換成目錄宣告的英文欄位。
  *
  * 為什麼要換：目錄的 `fields` 來自 swagger，是英文；CSV 表頭是中文。若直接用中文
- * 當 key，`twse_describe_dataset` 說有 `Contract` 而 `twse_get_dataset` 回的是
+ * 當 key，`dataset.describe` 說有 `Contract` 而 `dataset.get` 回的是
  * `契約`，`code=`／`match=`／`fields=` 全部落空。那不是壞掉，是安靜地給錯答案。
  *
  * 表頭必須通過 `headerMatches`——對不上就丟錯，不做部分對應。壞掉且說得出原因，

@@ -59,7 +59,7 @@ jobs:
       #
       # 測試「有」用到真實目錄（server.ts 直接 import 它，改壞會紅），但覆蓋面
       # 只到少數幾個資料集；check-catalog 補的是整體性檢查——規模、結構、以及
-      # twse_etf_snapshot 依賴的資料集是否還在。
+      # snapshot.etf 依賴的資料集是否還在。
       - name: 健檢新的 catalog
         if: steps.diff.outputs.changed == 'true'
         run: npm run check-catalog
@@ -93,7 +93,7 @@ jobs:
           BODY=$(printf '%s\n' \
             "每週自動刷新發現證交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
             "" \
-            "**已驗證**：catalog 健檢（規模、結構、twse_etf_snapshot 依賴的資料集仍在）、" \
+            "**已驗證**：catalog 健檢（規模、結構、snapshot.etf 依賴的資料集仍在）、" \
             "typecheck、測試（其中有數項直接對真實目錄斷言）、\`wrangler deploy --dry-run\` 全數通過。" \
             "" \
             "[點此開 PR 檢視 diff](${COMPARE})" \

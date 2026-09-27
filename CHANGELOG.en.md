@@ -8,6 +8,14 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- **Tools renamed** (only matters if you hard-coded tool names; nothing to do if you use it from claude.ai or ChatGPT):
+  dataset search, describe and fetch → `dataset.search`, `dataset.describe`, `dataset.get`;
+  stock, ETF, futures contract and market overview → `snapshot.stock`, `snapshot.etf`, `snapshot.futures`, `snapshot.market`;
+  live quote and code lookup → `quote.realtime`, `quote.lookup`. They used to be named like `twse_stock_snapshot`.
+  Claude Code allowlists become `mcp__twse__snapshot_stock` (dots turn into underscores), or just use `mcp__twse__*`.
+
 ## [0.10.2] - 2026-09-27
 
 - The dataset search, describe and fetch tools now also return structured data, so all 9 tools do; an unknown dataset or field name is now flagged as an error (the list of available fields is still included).
