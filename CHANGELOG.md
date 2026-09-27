@@ -7,7 +7,7 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
-## 尚未編號（已上線）
+## [0.13.0] - 2026-09-28
 
 - 服務名稱改為 **Taiwan Market Open Data (Unofficial)**，並在 README、首頁與 llms.txt 明確標示：本服務為非官方，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書。連線網址與工具名稱都不變。
 - 取資料時，如果一頁的內容太大（例如很寬的表一次取 200 筆），會少回幾筆並說明怎麼取其餘的，避免超過 AI 助理單次能讀的長度；連上游時加上逾時與一次重試，上游短暫不穩時比較不會直接失敗。
@@ -105,6 +105,7 @@
 - 登錄到官方 MCP Registry。
 - README 提供繁中、英文、簡中、日文、韓文五種語言。
 
+[0.13.0]: https://github.com/taux-io/twse-mcp/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/taux-io/twse-mcp/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/taux-io/twse-mcp/compare/v0.10.1...v0.10.2
