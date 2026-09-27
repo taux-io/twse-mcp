@@ -799,8 +799,10 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.esg.報告年度).toBe("114");
     // 原文照轉；鍵名去尾端空格；空字串（未揭露）略過而不是 0
     expect(out.esg.主題.溫室氣體排放).toEqual({ "範疇一排放量(噸CO2e)": "2196516.0000", "員工薪資平均數(仟元/人)": "4093" });
-    // 依產業揭露的表裡沒有 2330：說明不代表 0
+    // 表裡沒有 2330：不斷言原因，說明不代表 0
+    expect(out.esg.主題.資訊安全).toContain("不在此主題的申報表中");
     expect(out.esg.主題.資訊安全).toContain("不代表數值為 0");
+    expect(out.caveats.join()).toContain("N/A");
     // 上游回 0 筆：當成無法判斷，不說不在表中
     expect(out.esg.主題.董事會).toBeNull();
     expect(out.caveats.join()).toContain("無法判斷 2330 的 ESG「董事會」");
