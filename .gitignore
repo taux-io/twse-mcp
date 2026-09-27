@@ -14,3 +14,5 @@ dist/
 .scratch/
 docs/spec-security-run7.md
 upstream-report.md
+smoke-report.md
+wrangler.log
