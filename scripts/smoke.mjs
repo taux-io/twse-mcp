@@ -100,11 +100,11 @@ const CASES = [
     tool: "twse_stock_snapshot",
     structured: true,
     // 選配段落全開：outputSchema 對每一段都要驗過真實資料。
-    args: { code: "2330", include_financials: true, include_governance: true, include_margin: true },
+    args: { code: "2330", include_financials: true, include_governance: true, include_margin: true, esg_topics: ["溫室氣體排放"] },
     check: (r) => {
       if (r.is_listed_company !== true) return `is_listed_company = ${r.is_listed_company}`;
       if (!Array.isArray(r.dividends) && r.dividends !== null) return "dividends 不是陣列也不是 null";
-      if (["financials", "governance", "margin"].some((k) => r[k] === "未查詢")) return "選配段落沒有被查詢";
+      if (["financials", "governance", "margin", "esg"].some((k) => r[k] === "未查詢")) return "選配段落沒有被查詢";
       return true;
     },
   },

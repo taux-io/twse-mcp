@@ -40,6 +40,8 @@ export const REQUIRED = [
   "opendata/t187ap22_L",
   "opendata/t187ap08_L",
   "opendata/t187ap10_L",
+  // esg_topics：21 個主題
+  ...Array.from({ length: 21 }, (_, i) => `opendata/t187ap46_L_${i + 1}`),
   // include_margin
   "exchangeReport/MI_MARGN",
   "SBL/TWT96U",

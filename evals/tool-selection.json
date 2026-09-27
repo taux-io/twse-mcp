@@ -69,7 +69,17 @@
     { "id": "discover-margin", "question": "證交所有沒有融資融券餘額的資料？",
       "expect": [{ "tool": "twse_search_datasets" }] },
     { "id": "discover-esg", "question": "我想看台積電的溫室氣體排放 ESG 揭露資料",
-      "expect": [{ "tool": "twse_search_datasets" }] },
+      "expect": [
+        { "tool": "twse_stock_snapshot", "args": { "code": "2330", "esg_topics": ["溫室氣體排放"] } },
+        { "tool": "twse_search_datasets" }
+      ] },
+    { "id": "esg-board", "question": "中鋼的女性董事比例是多少？",
+      "expect": [
+        { "tool": "twse_lookup" },
+        { "tool": "twse_stock_snapshot", "args": { "code": "2002", "esg_topics": ["董事會"] } }
+      ] },
+    { "id": "esg-industry", "question": "2454 聯發科去年有沒有發生資訊外洩事件？",
+      "expect": [{ "tool": "twse_stock_snapshot", "args": { "code": "2454", "esg_topics": ["資訊安全"] } }] },
     { "id": "discover-exdividend", "question": "這週有哪些上市股票要除息？",
       "expect": [
         { "tool": "twse_market_overview", "args": { "scope": "events" } },

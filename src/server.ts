@@ -18,6 +18,7 @@ import {
   buildEtfSnapshot,
   buildFuturesMarket,
   buildMarketEvents,
+  esgLabel,
   buildFuturesSnapshot,
   FUTURES_SOURCE_LABELS,
   buildStockMarket,
@@ -59,6 +60,8 @@ import {
   DS_DIVIDENDS,
   DS_AGM,
   DS_MARGIN,
+  ESG_TOPIC_DATASETS,
+  type EsgTopic,
   DS_SBL,
   DS_FUND,
   DS_NOTICE,
@@ -121,6 +124,7 @@ const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
   financials: z.union([section, z.null(), notQueried]),
   governance: z.union([section, notQueried]),
   margin: z.union([section, notQueried]),
+  esg: z.union([section, notQueried]),
   note: z.string(),
   ...common,
 });
@@ -480,6 +484,7 @@ function createServer() {
         "要財報（損益、資產負債、毛利率等，會自動找對業別的表）帶 include_financials；" +
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
+        "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
         "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
@@ -500,9 +505,18 @@ function createServer() {
           .boolean()
           .default(false)
           .describe("附上融資融券（買賣、餘額、增減、使用率、券資比、停止或分配註記）與當日可借券賣出股數（多兩次外呼）。預設 false。"),
+        esg_topics: z
+          .array(z.enum(Object.keys(ESG_TOPIC_DATASETS) as [EsgTopic, ...EsgTopic[]]))
+          .max(6)
+          .optional()
+          .describe(
+            "附上這些 ESG 主題的最新年度申報資料（每個主題多一次外呼）。不帶就不查。" +
+              "約一半的主題只有特定產業須揭露；公司不在某主題的表中會標明，不代表數值為 0。" +
+              "氣候相關議題管理是長篇文字，只在問到氣候風險時才帶。",
+          ),
       },
     },
-    async ({ code, include_financials, include_governance, include_margin }) => {
+    async ({ code, include_financials, include_governance, include_margin, esg_topics }) => {
       // 選配段落與八個主檔同時發出；各自的失敗都匯進同一份 errors。
       const finTask = include_financials ? fetchFinancials(code, STOCK_SOURCE_LABELS.financials) : null;
       const govTask = include_governance
@@ -520,6 +534,12 @@ function createServer() {
             sbl: { dataset: DS_SBL, label: STOCK_SOURCE_LABELS.sbl },
           })
         : null;
+      const topics = esg_topics ? [...new Set(esg_topics)] : null;
+      const esgTask = topics
+        ? fetchSources(
+            Object.fromEntries(topics.map((t) => [t, { dataset: ESG_TOPIC_DATASETS[t], label: esgLabel(t) }])),
+          )
+        : null;
       const { rows, errors } = await fetchSources({
         company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
         days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
@@ -533,13 +553,15 @@ function createServer() {
       const fin = finTask ? await finTask : null;
       const gov = govTask ? await govTask : null;
       const mar = marginTask ? await marginTask : null;
+      const esg = esgTask ? await esgTask : null;
       return structured(
         buildStockSnapshot(code, {
           ...rows,
-          errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? []), ...(mar?.errors ?? [])],
+          errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? []), ...(mar?.errors ?? []), ...(esg?.errors ?? [])],
           financials: fin?.input,
           governance: gov?.rows,
           margin: mar?.rows,
+          esg: esg?.rows as Record<string, Row[]> | undefined,
           today: taipeiToday(),
         }),
       );

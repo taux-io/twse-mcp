@@ -1020,6 +1020,8 @@ export interface StockSnapshotSources {
   financials?: FinancialsInput;
   governance?: GovernanceSources;
   margin?: MarginSources;
+  /** 主題名稱 → 該主題表的列。undefined 代表這次沒有要求 ESG。 */
+  esg?: Record<string, Row[]>;
   /**
    * 台灣時間的今天（`YYYY-MM-DD`）。除權除息「近期」與處置「進行中」都是相對今天的判斷，
    * 由呼叫端傳入，core 才能維持純函式、測試才不會隨執行日期變動。
@@ -1251,6 +1253,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
   const governance =
     src.governance === undefined ? "未查詢" : buildGovernance(code, src.governance, failed, absent, caveats);
   const margin = src.margin === undefined ? "未查詢" : buildMargin(code, src.margin, failed, absent, caveats);
+  const esg = src.esg === undefined ? "未查詢" : buildEsg(code, src.esg, failed, caveats);
 
   return {
     code,
@@ -1267,6 +1270,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     financials,
     governance,
     margin,
+    esg,
     caveats,
     note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 twse_realtime_quote）",
     source: SOURCE_NOTE.twse,
@@ -1587,6 +1591,60 @@ function buildMargin(
     "融資融券": failed(L.margin) ? null : margin,
     "可借券賣出股數": failed(L.sbl) ? null : sbl,
   };
+}
+
+// ============================================================================
+// ESG（twse_stock_snapshot 的 esg_topics）
+// ============================================================================
+
+/** ESG 主題的抓取標籤，errors 與 caveats 用它對應回主題。 */
+export const esgLabel = (topic: string) => `ESG-${topic}`;
+
+const ESG_META_KEYS = new Set(["出表日期", "報告年度", "公司代號", "公司名稱"]);
+
+/**
+ * 每個主題三種狀態，不能混為一談：
+ *   - 抓失敗（或上游回 0 筆）：null，「無法判斷」
+ *   - 查過但公司不在表中：21 張表有 10 張只收特定產業（例如資訊安全、普惠金融），其餘
+ *     全面申報的表裡缺一家，多半是剛上市、存託憑證或未申報。不斷言是哪個原因，但一律
+ *     **不代表數值為 0**——不在資訊安全表裡，不等於沒有資料外洩
+ *   - 有資料：原文照轉，只把鍵名去空白（上游有些鍵帶尾端空格）。單位已在鍵名裡。
+ *     列內的空字串是「未揭露」，直接略過，不當成 0（融資融券表的「空白是 0」不適用這裡）。
+ */
+function buildEsg(
+  code: string,
+  topics: Record<string, Row[]>,
+  failed: (label: string) => boolean,
+  caveats: string[],
+): Record<string, unknown> {
+  const c = norm(code);
+  const out: Record<string, unknown> = {};
+  const years = new Set<string>();
+  for (const [topic, rows] of Object.entries(topics)) {
+    if (failed(esgLabel(topic)) || rows.length === 0) {
+      caveats.push(`無法判斷 ${code} 的 ESG「${topic}」——上游${rows.length === 0 && !failed(esgLabel(topic)) ? "回 0 筆" : "取得失敗"}，這**不代表**沒有。`);
+      out[topic] = null;
+      continue;
+    }
+    const r = rows.find((x) => norm(x["公司代號"]) === c);
+    if (!r) {
+      out[topic] = "該公司不在此主題的申報表中（可能不屬於須揭露的產業，或未申報），不代表數值為 0";
+      continue;
+    }
+    if (r["報告年度"]) years.add(String(r["報告年度"]));
+    const values: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(r)) {
+      if (ESG_META_KEYS.has(k)) continue;
+      const s = String(v ?? "").trim();
+      if (s) values[k.trim()] = s;
+    }
+    out[topic] = values;
+  }
+  caveats.push(
+    `ESG 為${years.size ? ` ${[...years].join("、")} 年度` : "最新一期"}企業永續報告書的申報資料（年報，不是今年的即時數字）；` +
+      "數值與單位照原文轉出；空白欄位代表未揭露，「N/A」「不適用」等是上游原文，代表不適用或未揭露，都不是 0。",
+  );
+  return { "報告年度": years.size ? [...years].join("、") : null, "主題": out };
 }
 
 // ============================================================================

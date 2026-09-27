@@ -175,7 +175,7 @@ const ZH: Page = {
   features: [
     "台股上市股票與 ETF 的盤中即時報價",
     "前一交易日的開盤、最高、最低、收盤與成交量",
-    "單一上市公司的概況：本益比、殖利率、最新月營收年增率、近一年股利、除權息與處置狀態，可附財報摘要、公司治理與融資融券",
+    "單一上市公司的概況：本益比、殖利率、最新月營收年增率、近一年股利、除權息與處置狀態，可附財報摘要、公司治理、融資融券與 ESG",
     "大盤概況與期貨籌碼：加權指數、成交量排行、三大法人期貨未平倉、Put/Call 比；以及近期事件：除權息、股東會、注意股與處置股",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
     "依本益比、殖利率等交易所公布的數字篩選與排序，以及用名稱查代號",
@@ -325,7 +325,7 @@ const EN: Page = {
   features: [
     "Intraday quotes for TWSE-listed stocks and ETFs",
     "Previous trading day's open, high, low, close and volume",
-    "Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, dividends over the past year, ex-dividend and disposition status, plus optional financials, governance and margin trading",
+    "Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, dividends over the past year, ex-dividend and disposition status, plus optional financials, governance, margin trading and ESG disclosures",
     "Market overview and futures positioning: TAIEX, most-traded stocks, institutional futures open interest, put/call ratio; plus an events calendar of ex-dividend dates, shareholders' meetings, attention and disposition stocks",
     "Per-ETF profile, tracked index and regular-savings popularity",
     "Filter and sort by published figures such as P/E and yield, and look up a ticker by company name",
