@@ -7,6 +7,9 @@
 # 用 OIDC 而非 PAT：不需要任何長期 secret，`id-token: write` 換來的是一次性的憑證。
 # 官方文件的 PAT 版本要求把 token 放進受保護的 Environment，那對這個規模的專案是
 # 沒必要的維護負擔。
+#
+# Registry 成功後，第二個 job 在 Smithery（taux/twse）重新發布，讓它重新掃描工具與分數。
+# 那一步用的是長期的 SMITHERY_API_KEY，存在 `mcp-registry` 的 environment secret 裡。
 name: publish to mcp registry
 
 on:
@@ -93,3 +96,23 @@ jobs:
 
       - name: publish
         run: ./mcp-publisher publish
+
+  # 分成獨立的 job，而不是在上面加一步：上面的 job 握有 id-token: write，同一個 job 裡的
+  # 任何程式都能換到改寫 registry 條目的憑證。npx 會裝進 smithery 與它沒有釘版本的相依，
+  # 那不該和那張憑證待在一起。這裡只拿得到 SMITHERY_API_KEY。
+  #
+  # 同一個 environment：key 只在 required reviewer 核准後才讀得到。
+  smithery:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: mcp-registry
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: publish to Smithery
+        env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+        run: npx --yes smithery@1.2.0 mcp publish https://twse-mcp.taux.io/mcp -n taux/twse
