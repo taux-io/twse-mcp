@@ -21,6 +21,7 @@ import {
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
+import { CLAIMS_NONE, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
@@ -456,5 +457,40 @@ describe("工具選擇測試題", () => {
     expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2303" } }, expectA)).toBe(true);
     expect(matchCall({ name: "twse_stock_snapshot", input: { code: "2330" } }, expectA)).toBe(false);
     expect(matchCall(null, expectA)).toBe(false);
+  });
+});
+
+describe("端到端答案檢查的比對規則", () => {
+  it("抓數字與單位：去逗號、萬／億換算、全形百分號", () => {
+    expect(numbersWithUnits("成交 12,345 張，約 1.2 萬張；股利 7 元；比率 36.36％")).toEqual([
+      { value: 12345, unit: "張" },
+      { value: 12000, unit: "張" },
+      { value: 7, unit: "元" },
+      { value: 36.36, unit: "%" },
+    ]);
+    expect(toNum("36.36%")).toBe(36.36);
+    expect(toNum("N/A")).toBeNull();
+  });
+  it("「說它沒有」只抓錯誤的主張，不抓「沒有揭露」「無法確認是否沒有發生」", () => {
+    for (const bad of ["台積電去年沒有發生資訊外洩", "資訊外洩事件為 0 件", "無外洩事件", "未發生資安事件"]) {
+      expect(CLAIMS_NONE.test(bad), bad).toBe(true);
+    }
+    for (const ok of [
+      "申報資料為 N/A，沒有揭露件數",
+      "無法確認是否沒有發生外洩",
+      "中華電不在申報表中",
+      "2025 年報告",
+      // 2026-09-27 sonnet 的真實答案：否定句裡引用「0起」，不是主張 0 起
+      "欄位皆為「N/A」(公司自填,代表不適用或未揭露,不是明確的「0起」)",
+      "不代表沒有發生外洩",
+      "N/A 不代表 0 件",
+      "無法確認去年有沒有發生資訊外洩",
+      "沒辦法告訴你有沒有資訊外洩",
+      "不能說台積電去年沒有資訊外洩事件",
+      "不能拿這份資料說「沒有發生」",
+      "不能從這份資料推論「沒有發生外洩」",
+    ]) {
+      expect(CLAIMS_NONE.test(ok), ok).toBe(false);
+    }
   });
 });

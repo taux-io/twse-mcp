@@ -31,6 +31,15 @@ Single-context：根目錄一份 `CONTEXT.md`，ADR 放 `docs/adr/`。見 `docs/
 commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 過度工程檢查。
 時機、標記慣例，以及這個 repo 的防禦性守衛為什麼不算冗餘，見 `docs/agents/ponytail.md`。
 
+### Answer eval
+
+`npm run eval:answers` 讓 Claude Code 真的查完、作答，再用規則核對答案（`scripts/eval-answers.mjs`）。`eval:tools`
+只看第一個工具呼叫，看不到多步驟的後續（先查代號，再帶對參數），也看不到模型有沒有照回應裡的說明讀數字
+（單位、累計數、N/A 不是 0）。改到 caveats、`note`、單位說明，或回應裡任何給模型讀的解說文字時，兩個模型各跑一次
+（`EVAL_REPEAT=3`）。標準答案取自同一次對話的工具結果；每題是通過、失敗、需人工看、沒驗到四種之一——「沒驗到」
+不算通過。「說它沒有」這類反向句用規則寫不完（否定、疑問、引用別家），命中只標「需人工看」，要讀原文判斷。
+只打本機、需要登入的 Claude Code，所以不進 CI。
+
 ### Smoke test
 
 `npm run smoke` 對本機 `wrangler dev`（8787）的每支工具發一個真實查詢，兩代協定各一遍。改到工具回應的形狀或

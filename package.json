@@ -17,7 +17,8 @@
     "make-og": "node scripts/make-og.mjs",
     "eval:tools": "node scripts/eval-tools.mjs",
     "eval:ab": "node scripts/eval-ab.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "eval:answers": "node scripts/eval-answers.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.0.0",
