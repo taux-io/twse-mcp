@@ -49,6 +49,9 @@ const MARGIN = [
   { 股票代號: "2303", 股票名稱: "聯電", 融資買進: "10", 融資賣出: "5", 融資現金償還: "", 融資前日餘額: "1000", 融資今日餘額: "1005", 融資限額: "2000", 融券買進: "", 融券賣出: "300", 融券現券償還: "", 融券前日餘額: "100", 融券今日餘額: "400", 融券限額: "2000", 資券互抵: "3", 註記: "OX!" },
 ];
 const SBL = [{ TWSECode: "2330", TWSEAvailableVolume: "6,193,578", GRETAICode: "6488", GRETAIAvailableVolume: "3,155,909" }];
+// ESG：形狀照 2026-09-27 的真實上游（鍵名有尾端空格、未揭露是空字串、依產業揭露的表只有部分公司）。
+const ESG_GHG = [{ 出表日期: "1150926", 報告年度: "114", 公司代號: "2330", 公司名稱: "台積電", "範疇一排放量(噸CO2e)": "2196516.0000", "範疇三排放量(噸CO2e)": "", "員工薪資平均數(仟元/人) ": "4093" }];
+const ESG_INFOSEC = [{ 出表日期: "1150926", 報告年度: "114", 公司代號: "2412", 公司名稱: "中華電", 資訊外洩事件數量: "0" }];
 const AGM = [{ 公司代號: "2330", 公司名稱: "台積電", "股東常(臨時)會日期-常或臨時": "常會", "股東常(臨時)會日期-日期": "1150604" }];
 const EX_RIGHTS = [{ Date: "1151008", Code: "2330", Name: "台積電", Exdividend: "息", CashDividend: "5.0" }];
 // 當日沒有注意股時，上游回一列 Code 為空的佔位資料——照實模擬。
@@ -154,6 +157,9 @@ beforeEach(() => {
       if (u.includes("TWT48U_ALL")) return jsonResponse(EX_RIGHTS);
       if (u.includes("t187ap45_L")) return jsonResponse(DIVIDENDS);
       if (u.includes("t187ap38_L")) return jsonResponse(AGM);
+      if (u.includes("t187ap46_L_1") && !/t187ap46_L_1\d/.test(u)) return jsonResponse(ESG_GHG);
+      if (u.includes("t187ap46_L_16")) return jsonResponse(ESG_INFOSEC);
+      if (u.includes("t187ap46_L_6")) return jsonResponse([]);
       if (u.includes("MI_MARGN")) return jsonResponse(MARGIN);
       if (u.includes("TWT96U")) return jsonResponse(SBL);
       if (u.includes("announcement/notice")) return jsonResponse(NOTICE);
@@ -786,6 +792,33 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.contract).toBeNull();
     expect(out.caveats.join()).toContain("不代表");
     expect(out.caveats.join()).not.toContain("找不到");
+  });
+
+  it("twse_stock_snapshot：esg_topics 分出有資料、不在表中、無法判斷三種狀態", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "2330", esg_topics: ["溫室氣體排放", "資訊安全", "董事會"] });
+    expect(out.esg.報告年度).toBe("114");
+    // 原文照轉；鍵名去尾端空格；空字串（未揭露）略過而不是 0
+    expect(out.esg.主題.溫室氣體排放).toEqual({ "範疇一排放量(噸CO2e)": "2196516.0000", "員工薪資平均數(仟元/人)": "4093" });
+    // 依產業揭露的表裡沒有 2330：說明不代表 0
+    expect(out.esg.主題.資訊安全).toContain("不代表數值為 0");
+    // 上游回 0 筆：當成無法判斷，不說不在表中
+    expect(out.esg.主題.董事會).toBeNull();
+    expect(out.caveats.join()).toContain("無法判斷 2330 的 ESG「董事會」");
+    expect(out.caveats.join()).toContain("114 年度");
+    expect(fetchedUrls().filter((u) => u.includes("t187ap46_L_"))).toHaveLength(3);
+  });
+
+  it("twse_stock_snapshot：沒帶 esg_topics 就不查；主題最多 6 個", async () => {
+    const out = await callTool("twse_stock_snapshot", { code: "2330" });
+    expect(out.esg).toBe("未查詢");
+    expect(fetchedUrls().some((u) => u.includes("t187ap46_L_"))).toBe(false);
+    const payload = await rpc("tools/call", {
+      name: "twse_stock_snapshot",
+      arguments: { code: "2330", esg_topics: ["溫室氣體排放", "能源管理", "水資源管理", "廢棄物管理", "人力發展", "董事會", "投資人溝通"] },
+    });
+    // 超過上限在 schema 層就被擋下，回的是錯誤，不是悄悄只查前 6 個
+    expect(payload.result?.isError ?? Boolean(payload.error)).toBe(true);
+    expect(fetchedUrls().some((u) => u.includes("t187ap46_L_"))).toBe(false);
   });
 
   it("twse_market_overview：scope=events 只抓事件相關的四張表，回事件行事曆", async () => {

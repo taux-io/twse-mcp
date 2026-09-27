@@ -58,6 +58,33 @@ export const dsBalance = (t: string) => `opendata/t187ap07_L_${t}`;
 export const DS_MARGIN = "exchangeReport/MI_MARGN"; // 集中市場融資融券餘額
 export const DS_SBL = "SBL/TWT96U"; // 上市上櫃股票當日可借券賣出股數
 
+// twse_stock_snapshot 的 esg_topics：21 個主題各一張表（上市公司企業 ESG 資訊揭露彙總資料）。
+// 鍵用上游的主題名稱原文，同時就是工具參數的 enum 值。
+export const ESG_TOPIC_DATASETS = {
+  "溫室氣體排放": "opendata/t187ap46_L_1",
+  "能源管理": "opendata/t187ap46_L_2",
+  "水資源管理": "opendata/t187ap46_L_3",
+  "廢棄物管理": "opendata/t187ap46_L_4",
+  "人力發展": "opendata/t187ap46_L_5",
+  "董事會": "opendata/t187ap46_L_6",
+  "投資人溝通": "opendata/t187ap46_L_7",
+  "氣候相關議題管理": "opendata/t187ap46_L_8",
+  "功能性委員會": "opendata/t187ap46_L_9",
+  "燃料管理": "opendata/t187ap46_L_10",
+  "產品生命週期": "opendata/t187ap46_L_11",
+  "食品安全": "opendata/t187ap46_L_12",
+  "供應鏈管理": "opendata/t187ap46_L_13",
+  "產品品質與安全": "opendata/t187ap46_L_14",
+  "社區關係": "opendata/t187ap46_L_15",
+  "資訊安全": "opendata/t187ap46_L_16",
+  "普惠金融": "opendata/t187ap46_L_17",
+  "持股及控制力": "opendata/t187ap46_L_18",
+  "風險管理政策": "opendata/t187ap46_L_19",
+  "反競爭行為法律訴訟": "opendata/t187ap46_L_20",
+  "職業安全衛生": "opendata/t187ap46_L_21",
+} as const;
+export type EsgTopic = keyof typeof ESG_TOPIC_DATASETS;
+
 // twse_stock_snapshot 的 include_governance
 export const DS_CHAIRMAN = "opendata/t187ap33_L"; // 董事長是否兼任總經理
 export const DS_PLEDGE = "opendata/t187ap09_L"; // 董監質權設定占持股比例
@@ -88,6 +115,7 @@ export const SNAPSHOT_DATASETS = [
   ...FIN_TYPE_KEYS.map(dsIncome), ...FIN_TYPE_KEYS.map(dsBalance),
   DS_CHAIRMAN, DS_PLEDGE, DS_PENALTIES, DS_SHORTFALL, DS_SHORTFALL_MONTHS,
   DS_MARGIN, DS_SBL,
+  ...Object.values(ESG_TOPIC_DATASETS),
   DS_INDICES, DS_TURNOVER, DS_TOP20,
   DS_INST_TOTAL, DS_INST_CONTRACTS, DS_PCR, DS_LARGE_TRADERS,
   DS_FUT_DAILY, DS_FUT_SETTLE,

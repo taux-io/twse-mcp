@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unnumbered (already live)
 
+- New **ESG disclosures** in the stock snapshot: 21 topics such as greenhouse gases, energy, water, waste, the board, workforce and information security, up to 6 per call. Figures are annual filings (currently the 114 / 2025 report year); most topics are industry-specific, and a company missing from one is reported as not listed, not as zero.
 - New **events calendar** in the market overview: ask "which stocks go ex-dividend this week" or "who is under disposition" and get ex-dividend dates and shareholders' meetings in the next two weeks, today's attention-stock notices, and stocks under or about to enter disposition (listed companies only).
 
 ## [0.9.0] - 2026-09-26
