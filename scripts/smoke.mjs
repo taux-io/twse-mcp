@@ -194,6 +194,21 @@ async function main() {
     }
   }
 
+  // 並發：同時三個個股快照。逐一打抓不到跨請求的問題——2026-09-27 抓取限制器還是全域共用時，
+  // 同時進來的快照會被 workerd 判定卡死而取消，名額也會漏掉，只有並發才看得到。
+  {
+    const codes = ["2330", "2002", "2412"];
+    const outs = await Promise.all(
+      codes.map((code) =>
+        rpc("modern", "tools/call", { name: "twse_stock_snapshot", arguments: { code, include_financials: true, include_governance: true } })
+          .then((r) => (r.isError ? `isError：${r.content?.map((x) => x.text).join(" ").slice(0, 200)}` : r.structuredContent ? null : "沒有 structuredContent"))
+          .catch((e) => e.message),
+      ),
+    );
+    outs.forEach((o, i) => { if (o) fails.push(`[並發] twse_stock_snapshot ${codes[i]}：${o}`); });
+    log(outs.every((o) => !o) ? "✅ 並發 3 個個股快照" : "❌ 並發 3 個個股快照");
+  }
+
   // 首頁：兩個語系都要回 200，而且頁面上的端點網址要是這個服務本身。
   for (const p of ["/", "/en"]) {
     try {

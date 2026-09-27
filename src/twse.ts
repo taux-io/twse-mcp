@@ -9,6 +9,7 @@
  * `cf` 是 Workers 專屬欄位，在 Node/Vitest 下會被忽略，所以離線測不需要任何分支
  * （測試 mock globalThis.fetch）。
  */
+import { AsyncLocalStorage } from "node:async_hooks";
 import catalogJson from "./catalog.generated.json";
 import { headerMatches } from "./csv-header.mjs";
 import {
@@ -236,37 +237,57 @@ function tooLarge(label: string, bytes: number, partial = false): string {
 }
 
 /**
- * 出站資料集抓取的並行上限。
+ * 出站資料集抓取的並行上限：**每個請求**最多同時 3 個。
  *
- * 這是真正釘住記憶體的那道守衛。`MAX_BODY_BYTES` 是**每次** fetch 的上限，擋不住
- * 「同時有 N 次 fetch」——一個 JSON-RPC 批次會被 SDK 同時分派，275 個元素就是 275 份
- * 並行的 body，而 isolate 只有 128 MB。有了這個閘門，最壞情況固定是
- * MAX_CONCURRENT_FETCHES × MAX_BODY_BYTES，與請求形狀無關。批次大小另在 server.ts
- * 進 SDK 前先擋一道，兩者合起來把扇出釘死。
+ * `MAX_BODY_BYTES` 是**每次** fetch 的上限，擋不住「同時有 N 次 fetch」。這道閘門把一個請求
+ * 的並行抓取數固定住：一個請求最壞是 MAX_CONCURRENT_FETCHES × MAX_BODY_BYTES。
+ * JSON-RPC 批次（一次分派很多個請求）由 server.ts 的 rejectBatch 在進 SDK 前整個擋掉。
  *
- * 值取 3：twse_etf_snapshot 本來就會同時抓三個資料集（DS_FUND/DS_DAY/DS_RANK），
- * 那是既有的正常行為，semaphore 不該把它拖慢，所以上限剛好容得下它。
+ * 為什麼是每個請求一份，而不是整個 isolate 共用一份：原本是模組層級的計數加等待佇列，
+ * 在 workerd 上會出兩個問題（2026-09-27 由端到端 eval 在 wrangler dev 重現）：
+ *   1. 請求 A 在等名額時，只在等一個由請求 B 解開的 promise，自己沒有任何 I/O——workerd 判定
+ *      它卡死並取消（"canceled this request because ... your Worker's code had hung"），也警告
+ *      "A promise was resolved or rejected from a different request context"。
+ *   2. 被取消的請求如果正占著名額，它的 finally 不會執行，名額永遠還不回來；之後同一個
+ *      isolate 的每個請求都卡在等待，直到 isolate 被回收。
+ * 任何跨請求共用、由別的請求完成來解開的狀態在 workerd 上都不安全，所以限制器綁在請求上
+ * （AsyncLocalStorage，server.ts 在每個請求進來時建立），請求結束就一起丟掉。
  *
- * twse_stock_snapshot 要抓八個，**刻意不為它調高**：這個值乘上 MAX_BODY_BYTES 就是
- * isolate 的最壞記憶體，8 × 48 MB 已超過 128 MB。代價是邊緣快取未命中時分三輪
- * （3+3+2）抓完，期間同一個 isolate 的其他呼叫要排隊。這八個資料集最大的是股利分派表，約 2.5 MB，
- * 每輪都短，而且邊緣快取命中時幾乎不花時間——延遲是有意識的取捨，記憶體上限不是。
+ * 代價：不再有整個 isolate 的並行上限。兩個同時的請求最多各 3 個。實際最大的資料集是股利
+ * 分派表約 2.5 MB，離單一 body 上限與 128 MB 都很遠；真正的保護是單一 body 的上限。
+ *
+ * 值取 3：twse_etf_snapshot 本來就同時抓三個資料集，上限剛好容得下它。個股快照的主檔、
+ * 財報、公司治理、融資融券與 ESG 共用同一個請求的名額，分幾輪抓完；邊緣快取命中時每輪都短。
  */
 const MAX_CONCURRENT_FETCHES = 3;
-let inFlight = 0;
-const waiting: (() => void)[] = [];
+
+class FetchLimiter {
+  private inFlight = 0;
+  private readonly waiting: (() => void)[] = [];
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.inFlight >= MAX_CONCURRENT_FETCHES) {
+      await new Promise<void>((resolve) => this.waiting.push(resolve));
+    }
+    this.inFlight++;
+    try {
+      return await fn();
+    } finally {
+      this.inFlight--;
+      this.waiting.shift()?.();
+    }
+  }
+}
+
+const requestLimiter = new AsyncLocalStorage<FetchLimiter>();
+
+/** 在一個請求的範圍內執行 fn：其中所有的 fetchDataset 共用這個請求自己的並行上限。 */
+export function withRequestLimiter<T>(fn: () => T): T {
+  return requestLimiter.run(new FetchLimiter(), fn);
+}
 
 async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
-  if (inFlight >= MAX_CONCURRENT_FETCHES) {
-    await new Promise<void>((resolve) => waiting.push(resolve));
-  }
-  inFlight++;
-  try {
-    return await fn();
-  } finally {
-    inFlight--;
-    waiting.shift()?.();
-  }
+  // 沒有請求範圍（例如單元測試直接呼叫）就給這次呼叫一個新的限制器，絕不退回共用狀態。
+  return (requestLimiter.getStore() ?? new FetchLimiter()).run(fn);
 }
 
 /** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */

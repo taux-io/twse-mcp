@@ -1138,18 +1138,43 @@ describe("扇出上限與並行上限", () => {
     expect(state.calls).toBe(0);
   });
 
-  it("同時進來的多個 modern 請求，並行出站 fetch 數不超過上限", async () => {
+  it("單一請求內的並行出站 fetch 數不超過上限（個股快照選項全開）", async () => {
     const state = countingFetchStub();
-    const call = () =>
-      send(
-        eraRequest("modern", "tools/call", {
-          name: "twse_get_dataset",
-          arguments: { dataset_id: "exchangeReport/STOCK_DAY_AVG_ALL", limit: 1 },
-        }),
-      ).then((r) => r.text());
-    await Promise.all(Array.from({ length: 8 }, call));
-    expect(state.calls).toBe(8);
+    const res = await send(
+      eraRequest("modern", "tools/call", {
+        name: "twse_stock_snapshot",
+        arguments: {
+          code: "2330", include_financials: true, include_governance: true, include_margin: true,
+          esg_topics: ["溫室氣體排放", "能源管理", "董事會", "人力發展"],
+        },
+      }),
+    );
+    await res.text();
+    expect(state.calls).toBeGreaterThan(MAX_CONCURRENT_FETCHES * 3);
     expect(state.peak).toBeLessThanOrEqual(MAX_CONCURRENT_FETCHES);
+  });
+
+  it("名額綁在請求上：一個請求卡住占滿名額，另一個請求照樣完成（原本的全域 semaphore 會讓它永遠等下去）", async () => {
+    // 2026-09-27 在 wrangler dev 重現：全域佇列由別的請求解開，workerd 判定等待中的請求卡死而取消，
+    // 被取消的持有者不會歸還名額，之後整個 isolate 的請求都卡住。
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: unknown) => {
+        const u = String(url);
+        if (u.includes("GeneralBytheDate")) return jsonResponse(INST_TOTAL);
+        if (u.includes("DetailsOfFuturesContractsBytheDate")) return jsonResponse(INST_CONTRACTS);
+        if (u.includes("PutCallRatio")) return jsonResponse(PCR);
+        if (u.includes("OpenInterestOfLargeTradersFutures")) return jsonResponse(LARGE);
+        return new Promise<Response>(() => {}); // 個股快照的每個資料集都永遠不回應
+      }),
+    );
+    void send(eraRequest("modern", "tools/call", { name: "twse_stock_snapshot", arguments: { code: "2330" } }));
+    await new Promise((r) => setTimeout(r, 50)); // 讓 A 先占滿名額
+    const b = await Promise.race([
+      send(eraRequest("modern", "tools/call", { name: "twse_market_overview", arguments: { scope: "futures" } })).then((r) => r.status),
+      new Promise((r) => setTimeout(() => r("timeout"), 2000)),
+    ]);
+    expect(b).toBe(200);
   });
 
   it("twse_etf_snapshot 的三資料集並行不被 semaphore 卡死（三個能同時在飛）", async () => {
