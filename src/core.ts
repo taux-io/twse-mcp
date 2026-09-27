@@ -233,8 +233,8 @@ export function detectCodeField(row: Row): string | null {
 /**
  * 取第一筆 field === code 的列。用 norm（去空白＋轉小寫）比對，與 getDataset 的
  * 證交所路徑（core.ts:327-328）及 matchTaifexCode 共用同一個正規化——否則同一個
- * code 參數會有兩種意思：twse_get_dataset 查得到 00679b，走 firstRow 的
- * twse_etf_snapshot 卻回 is_etf: false。影響所有帶英文字尾的上市 ETF。
+ * code 參數會有兩種意思：dataset.get 查得到 00679b，走 firstRow 的
+ * snapshot.etf 卻回 is_etf: false。影響所有帶英文字尾的上市 ETF。
  */
 export function firstRow(rows: Row[], field: string, code: string): Row | null {
   const c = norm(code);
@@ -255,7 +255,7 @@ export interface SearchResult {
  * 搜尋用的正規化：全形轉半形（NFKC）、小寫，並把「臺」統一成「台」。
  *
  * 中文輸入法常打出全形英數（「ＥＴＦ」「台灣５０」），不轉的話別名與表名一個都對不上。
- * twse_lookup 的名稱比對也走這一個，兩支工具對同一串輸入只有一種理解。
+ * quote.lookup 的名稱比對也走這一個，兩支工具對同一串輸入只有一種理解。
  *
  * 證交所與期交所的正式名稱寫「臺」（臺股期貨、臺灣 50 指數），使用者與模型多半
  * 打「台」。兩個字在字串上完全不同，於是「台股期貨」一筆都搜不到——而那不是查無，
@@ -362,7 +362,7 @@ export function resolveDataset(
   // 一定要 hasOwn：dataset_id="__proto__" 會查到 Object.prototype，是個 truthy 物件，
   // 於是一個不存在的資料集被當成存在、回一份空的有效結果，模型無從分辨。
   const ds = Object.hasOwn(catalog, id) ? catalog[id] : undefined;
-  if (!ds) return { error: `找不到 ${id}，請先用 twse_search_datasets 查詢` };
+  if (!ds) return { error: `找不到 ${id}，請先用 dataset.search 查詢` };
   return { ds };
 }
 
@@ -638,7 +638,7 @@ export function periodNote(ds: Dataset): string {
   // 1. 猜不出頻率。132 個資料集裡有 114 個的 summary 不含「日」，而其中臺指選擇權
   //    Put/Call 比、鉅額交易成交資訊、大額交易人未沖銷部位全都是日頻。同一套關鍵字
   //    規則會把它們一律斷言成「非每日更新」——那是憑空編造。不知道就說以日期欄位為準。
-  // 2. twse_realtime_quote 查的是上市／上櫃股票，查不到任何期貨或選擇權。把它指給
+  // 2. quote.realtime 查的是上市／上櫃股票，查不到任何期貨或選擇權。把它指給
   //    期貨使用者是把人送去走不通的路，比不給指引更糟。
   if (ds.source === "taifex") {
     return daily
@@ -647,7 +647,7 @@ export function periodNote(ds: Dataset): string {
   }
 
   return daily
-    ? "資料為前一交易日（非盤中即時報價；要當下價格請用 twse_realtime_quote）"
+    ? "資料為前一交易日（非盤中即時報價；要當下價格請用 quote.realtime）"
     : "本資料集非每日更新（多為月、季或年度揭露），實際期間以資料中的日期欄位為準";
 }
 
@@ -655,7 +655,7 @@ export function periodNote(ds: Dataset): string {
  * 上櫃標的取不到資料集，但即時報價這條路是通的。兩處 caveat 都要給這個指引，
  * 而測試會對它的字面文字斷言——只寫一次，改的時候不會有一處漏掉。
  */
-const OTC_HINT = '改用 twse_realtime_quote 並帶 market="otc" 取盤中即時報價';
+const OTC_HINT = '改用 quote.realtime 並帶 market="otc" 取盤中即時報價';
 
 /**
  * 快照類工具的共同守衛：先把每段抓取失敗寫進 caveats，再提供「沒找到時該說什麼」。
@@ -741,7 +741,7 @@ export interface EtfSnapshotSources {
 
 /**
  * 合併三個證交所資料集成單一 ETF 概況。任何一段缺就標 null + 記 caveat，不整包失敗。
- * 對應 Python 版 etf_snapshot 的合併邏輯（該工具現名 twse_etf_snapshot）。
+ * 對應 Python 版 etf_snapshot 的合併邏輯（該工具現名 snapshot.etf）。
  */
 export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<string, unknown> {
   code = code.trim();
@@ -855,7 +855,7 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     derived: Object.keys(derived).length ? derived : null,
     caveats,
     // profile 的基金簡稱、基金經理人、保管機構都是申報公司自填的自由文字，與
-    // twse_get_dataset 的 data 同一個性質。同樣的位元組經過兩支工具，不該只有一支
+    // dataset.get 的 data 同一個性質。同樣的位元組經過兩支工具，不該只有一支
     // 帶著「這是資料不是指令」的框架。
     source: SOURCE_NOTE.twse,
   };
@@ -978,7 +978,7 @@ export function lookupSecurities(
     total_matched: hits.length,
     results: hits.slice(0, take).map((h) => h.item),
     caveats,
-    // 公司與基金名稱是申報者自填的文字，與 twse_get_dataset 的 data 同性質。
+    // 公司與基金名稱是申報者自填的文字，與 dataset.get 的 data 同性質。
     source: SOURCE_NOTE.twse,
   };
 }
@@ -1088,8 +1088,8 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     absent(
       STOCK_SOURCE_LABELS.company,
       `${code} 不在上市公司基本資料中——該資料集只收上市公司。` +
-        `若這是 ETF 或基金，請改用 twse_etf_snapshot；若是上櫃公司，${OTC_HINT}` +
-        "（上櫃的歷史與統計資料則無法取得）；也可能單純是代號有誤，可先用 twse_lookup 以名稱查代號。",
+        `若這是 ETF 或基金，請改用 snapshot.etf；若是上櫃公司，${OTC_HINT}` +
+        "（上櫃的歷史與統計資料則無法取得）；也可能單純是代號有誤，可先用 quote.lookup 以名稱查代號。",
     );
   }
   const isListed: boolean | null = co ? true : failed(STOCK_SOURCE_LABELS.company) ? null : false;
@@ -1272,14 +1272,14 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     margin,
     esg,
     caveats,
-    note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 twse_realtime_quote）",
+    note: "價量、本益比為前一交易日；月營收為最新一期公告；皆非盤中即時（要當下價格請用 quote.realtime）",
     source: SOURCE_NOTE.twse,
   };
 }
 
 
 // ============================================================================
-// 財報（twse_stock_snapshot 的 include_financials）
+// 財報（snapshot.stock 的 include_financials）
 // ============================================================================
 
 /**
@@ -1422,7 +1422,7 @@ function buildFinancials(
 }
 
 // ============================================================================
-// 公司治理（twse_stock_snapshot 的 include_governance）
+// 公司治理（snapshot.stock 的 include_governance）
 // ============================================================================
 
 export interface GovernanceSources {
@@ -1516,7 +1516,7 @@ function buildGovernance(
 }
 
 // ============================================================================
-// 融資融券與借券（twse_stock_snapshot 的 include_margin）
+// 融資融券與借券（snapshot.stock 的 include_margin）
 // ============================================================================
 
 export interface MarginSources {
@@ -1594,7 +1594,7 @@ function buildMargin(
 }
 
 // ============================================================================
-// ESG（twse_stock_snapshot 的 esg_topics）
+// ESG（snapshot.stock 的 esg_topics）
 // ============================================================================
 
 /** ESG 主題的抓取標籤，errors 與 caveats 用它對應回主題。 */
@@ -1648,7 +1648,7 @@ function buildEsg(
 }
 
 // ============================================================================
-// 市場概況（twse_market_overview）
+// 市場概況（snapshot.market）
 // ============================================================================
 
 export const MARKET_SOURCE_LABELS = {
@@ -1833,7 +1833,7 @@ export function buildFuturesMarket(src: FuturesMarketSources, errors: SourceErro
 }
 
 // ============================================================================
-// 事件行事曆（twse_market_overview 的 scope="events"）
+// 事件行事曆（snapshot.market 的 scope="events"）
 // ============================================================================
 
 export interface MarketEventsSources {
@@ -1951,7 +1951,7 @@ export function buildMarketEvents(src: MarketEventsSources, today: string, error
 }
 
 // ============================================================================
-// 期貨契約快照（twse_futures_snapshot）
+// 期貨契約快照（snapshot.futures）
 // ============================================================================
 
 export const FUTURES_SOURCE_LABELS = {
@@ -2039,7 +2039,7 @@ export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources)
     } else {
       caveats.push(
         `找不到「${query}」對應的期貨契約。可用代號（例如 TX、MTX、TMF、CDF）或名稱（例如「台積電期貨」）查；` +
-          "選擇權不在這支工具的範圍，請用 twse_search_datasets 找選擇權每日交易行情。",
+          "選擇權不在這支工具的範圍，請用 dataset.search 找選擇權每日交易行情。",
       );
     }
     return { ...base, contract: null, name: null, candidates, caveats };

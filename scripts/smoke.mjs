@@ -76,31 +76,31 @@ async function rpc(era, method, params = {}) {
  */
 const CASES = [
   {
-    tool: "twse_search_datasets",
+    tool: "dataset.search",
     structured: true,
     args: { query: "殖利率" },
     check: (r) => r.total_matched > 0 || "total_matched 為 0",
   },
   {
-    tool: "twse_describe_dataset",
+    tool: "dataset.describe",
     structured: true,
     args: { dataset_id: "exchangeReport/BWIBBU_ALL" },
     check: (r) => Object.keys(r.fields ?? {}).length > 0 || "沒有 fields",
   },
   {
-    tool: "twse_get_dataset",
+    tool: "dataset.get",
     structured: true,
     args: { dataset_id: "exchangeReport/BWIBBU_ALL", code: "2330" },
     check: (r) => (r.rows_matched === 1 && r.data?.[0]?.Code === "2330") || `預期 2330 一列，得到 ${r.rows_matched} 列`,
   },
   {
-    tool: "twse_lookup",
+    tool: "quote.lookup",
     structured: true,
     args: { query: "台積電" },
     check: (r) => r.results?.some((x) => x.code === "2330") || "結果裡沒有 2330",
   },
   {
-    tool: "twse_stock_snapshot",
+    tool: "snapshot.stock",
     structured: true,
     // 選配段落全開：outputSchema 對每一段都要驗過真實資料。
     args: { code: "2330", include_financials: true, include_governance: true, include_margin: true, esg_topics: ["溫室氣體排放"] },
@@ -112,25 +112,25 @@ const CASES = [
     },
   },
   {
-    tool: "twse_etf_snapshot",
+    tool: "snapshot.etf",
     structured: true,
     args: { code: "0056" },
     check: (r) => r.is_etf === true || `is_etf = ${r.is_etf}`,
   },
   {
-    tool: "twse_market_overview",
+    tool: "snapshot.market",
     structured: true,
     args: {},
     check: (r) => (r["證券市場"] && r["期貨籌碼"] ? true : "缺證券市場或期貨籌碼"),
   },
   {
-    tool: "twse_futures_snapshot",
+    tool: "snapshot.futures",
     structured: true,
     args: { contract: "台指期" },
     check: (r) => r.contract === "TX" || `contract = ${r.contract}`,
   },
   {
-    tool: "twse_realtime_quote",
+    tool: "quote.realtime",
     structured: true,
     args: { codes: ["2330"] },
     check: (r) => r.quotes?.[0]?.code === "2330" || "quotes 裡沒有 2330",
@@ -203,12 +203,12 @@ async function main() {
     const codes = ["2330", "2002", "2412"];
     const outs = await Promise.all(
       codes.map((code) =>
-        rpc("modern", "tools/call", { name: "twse_stock_snapshot", arguments: { code, include_financials: true, include_governance: true } })
+        rpc("modern", "tools/call", { name: "snapshot.stock", arguments: { code, include_financials: true, include_governance: true } })
           .then((r) => (r.isError ? `isError：${r.content?.map((x) => x.text).join(" ").slice(0, 200)}` : r.structuredContent ? null : "沒有 structuredContent"))
           .catch((e) => e.message),
       ),
     );
-    outs.forEach((o, i) => { if (o) fails.push(`[並發] twse_stock_snapshot ${codes[i]}：${o}`); });
+    outs.forEach((o, i) => { if (o) fails.push(`[並發] snapshot.stock ${codes[i]}：${o}`); });
     log(outs.every((o) => !o) ? "✅ 並發 3 個個股快照" : "❌ 並發 3 個個股快照");
   }
 

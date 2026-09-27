@@ -33,7 +33,7 @@ const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.
  * 單日大小實測：TimeAndSalesData 255.8 MB、OptionsTimeAndSalesData 162.9 MB、
  * TimeAndSalesDataOnCalendarSpreadOrders 9.7 MB——三個加起來是其餘 132 個端點總和
  * （約 8 MB）的五十倍。這些端點沒有進目錄，不是因為資料不好，而是因為
- * `twse_get_dataset` 會一次抓整份再於 Worker 內過濾：抓 255 MB 進一個 128 MB 的
+ * `dataset.get` 會一次抓整份再於 Worker 內過濾：抓 255 MB 進一個 128 MB 的
  * isolate，結果是把工具打爛，而不是給出答案。
  *
  * 這是刻意的取捨，不是遺漏——所以寫在這裡，而不是讓後人從缺漏中推測。

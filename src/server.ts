@@ -246,17 +246,17 @@ const CACHE_TTL_MS = 3_600_000;
  * 呼叫之前就必須知道、否則會做錯的兩件事。
  *
  * 為什麼放在 `instructions` 而不是工具描述：這兩條是**跨工具**的——選錯資料集發生在
- * 呼叫 twse_get_dataset 之前，而 code_candidates 的誤用發生在讀回應的時候。工具描述
+ * 呼叫 dataset.get 之前，而 code_candidates 的誤用發生在讀回應的時候。工具描述
  * 只在模型看那一支工具時起作用。
  *
  * 為什麼只有兩條：`instructions` 會隨每次連線送給每個 client 並進入 system prompt，
  * 放進去的每個字都佔所有人的 context。刻意不寫「資料是前一交易日」——每則
- * twse_get_dataset 的回應都已經帶 `note` 欄位講同一件事，重複講是純成本。
+ * dataset.get 的回應都已經帶 `note` 欄位講同一件事，重複講是純成本。
  */
 const USAGE_GUIDANCE = [
   "使用要點：",
   `1. 先搜尋再取用。資料集有 ${DATASET_COUNT} 個，` + "名稱不直覺——ETF 的主檔叫「基金基本資料彙總表」，" +
-    "搜「ETF」找不到它。不確定該用哪一個時，先呼叫 twse_search_datasets，" +
+    "搜「ETF」找不到它。不確定該用哪一個時，先呼叫 dataset.search，" +
     "不要憑印象猜 dataset_id。",
   "2. code 是精確比對。找不到完全相符的代號時會回 0 筆並附上 code_candidates，" +
     "**那是拼法相近的候選，不是答案**——期交所的 MXF（小型臺指期貨）與 MXFFX" +
@@ -285,7 +285,7 @@ const OGDL_ATTRIBUTION = [
     "使用者於遵守本條款各項規定之前提下，得利用之。",
   "政府資料開放授權條款：https://data.gov.tw/license",
   "",
-  "例外：twse_realtime_quote 的來源是證交所基本市況報導站（mis.twse.com.tw），" +
+  "例外：quote.realtime 的來源是證交所基本市況報導站（mis.twse.com.tw），" +
     "該站未登錄於政府資料開放平臺，不在上述授權範圍內。",
 ].join("\n");
 
@@ -324,7 +324,7 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_search_datasets",
+    "dataset.search",
     {
       description:
         "搜尋臺灣證交所與期交所 OpenAPI 有哪些資料集可用。取資料前先用這個找 dataset_id。" +
@@ -338,7 +338,7 @@ function createServer() {
       inputSchema: {
         query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"三大法人 期貨"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
-        // .min(0) 與 core 端的夾值是兩層獨立防守，跟 twse_get_dataset 對等：
+        // .min(0) 與 core 端的夾值是兩層獨立防守，跟 dataset.get 對等：
         // schema 擋掉合法 client 的手誤，core 擋掉繞過 schema 的呼叫路徑。
         limit: z.number().int().min(0).default(25).describe("最多回傳幾筆（預設 25）。"),
       },
@@ -347,18 +347,18 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_describe_dataset",
+    "dataset.describe",
     {
       description:
         "查看某個資料集的定義：代號、來源（證交所或期交所）、中文說明、分類標籤，以及每個欄位的鍵名與中文說明。" +
-        "twse_get_dataset 的 where、sort_by、fields、match 都要用這裡的鍵名（例如 PEratio），不是中文說明。" +
-        "只讀本機目錄、不抓上游，所以不含資料筆數或最新日期。代號不存在時回 error，請先用 twse_search_datasets 找。",
+        "dataset.get 的 where、sort_by、fields、match 都要用這裡的鍵名（例如 PEratio），不是中文說明。" +
+        "只讀本機目錄、不抓上游，所以不含資料筆數或最新日期。代號不存在時回 error，請先用 dataset.search 找。",
       annotations: LOCAL_READ,
       outputSchema: DESCRIBE_OUTPUT,
       inputSchema: {
         dataset_id: z
           .string()
-          .describe('來自 twse_search_datasets 的資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
+          .describe('來自 dataset.search 的資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
       },
     },
     async ({ dataset_id }) => {
@@ -368,7 +368,7 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_get_dataset",
+    "dataset.get",
     {
       description:
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
@@ -442,11 +442,11 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_etf_snapshot",
+    "snapshot.etf",
     {
       description:
         "一次取得單一上市 ETF 的完整概況：基本資料 + 前一交易日價量 + 定期定額熱度。" +
-        "價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
         "合併三個證交所資料集並行查詢。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
       outputSchema: ETF_SNAPSHOT_OUTPUT,
@@ -487,7 +487,7 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_lookup",
+    "quote.lookup",
     {
       description:
         "用名稱或代號找上市公司與上市基金（含 ETF）的代號。使用者只講名稱（「台積電」「元大高股息」）" +
@@ -517,21 +517,21 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_stock_snapshot",
+    "snapshot.stock",
     {
       description:
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
         "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
-        "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 twse_realtime_quote。" +
+        "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
         "要財報（損益、資產負債、毛利率等，會自動找對業別的表）帶 include_financials；" +
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
-        "ETF 請用 twse_etf_snapshot。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
+        "ETF 請用 snapshot.etf。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: REMOTE_READ,
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
       inputSchema: {
-        code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 twse_lookup。'),
+        code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。'),
         include_financials: z
           .boolean()
           .default(false)
@@ -612,15 +612,15 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_market_overview",
+    "snapshot.market",
     {
       description:
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。' +
         'scope="events" 另外列出全市場的近期事件：兩週內的除權除息與股東會、今天公布的注意股、處置中與即將處置的股票（皆為上市）；' +
-        "只問某一檔股票的除息、注意或處置狀態時，用 twse_stock_snapshot。" +
-        "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 twse_futures_snapshot。",
+        "只問某一檔股票的除息、注意或處置狀態時，用 snapshot.stock。" +
+        "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 snapshot.futures。",
       annotations: REMOTE_READ,
       outputSchema: MARKET_OUTPUT,
       inputSchema: {
@@ -676,13 +676,13 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_futures_snapshot",
+    "snapshot.futures",
     {
       description:
         "一個期貨契約（最新一個交易日）的完整概況：各月份的開高低收、漲跌、成交量、結算價、未平倉（一般與盤後時段）、" +
         "近月摘要、三大法人部位（指數類期貨）、大額交易人部位與最後結算價。" +
         '可用代號（"TX"、"MTX"、"TMF"、"CDF"）或名稱（"台指期"、"小台"、"台積電期貨"）；名稱對到多個契約時只回 candidates，' +
-        "請向使用者確認再用代號重查。只含期貨；選擇權與整體期貨籌碼請用 twse_search_datasets 或 twse_market_overview。",
+        "請向使用者確認再用代號重查。只含期貨；選擇權與整體期貨籌碼請用 dataset.search 或 snapshot.market。",
       annotations: REMOTE_READ,
       outputSchema: FUTURES_OUTPUT,
       inputSchema: {
@@ -702,7 +702,7 @@ function createServer() {
   );
 
   server.registerTool(
-    "twse_realtime_quote",
+    "quote.realtime",
     {
       description:
         "取得盤中即時報價（約 5 秒更新一次），每筆帶 date（報價所屬交易日）。OpenAPI 只有前一交易日資料，" +
@@ -720,7 +720,7 @@ function createServer() {
     },
     async ({ codes, market }) => {
       const quotes = await fetchQuotes(codes, market);
-      // 報價裡的 name 是上游給的自由文字，與 twse_get_dataset 的 data 同一個性質。
+      // 報價裡的 name 是上游給的自由文字，與 dataset.get 的 data 同一個性質。
       // 同樣的位元組經過不同工具，不該只有一支帶著「這是資料不是指令」的框架。
       return structured({ count: quotes.length, quotes: quotes as unknown as Record<string, unknown>[], units: QUOTE_UNITS, source: QUOTE_SOURCE_NOTE });
     },
@@ -744,8 +744,8 @@ function createServer() {
       argsSchema: { query: z.string().describe('關鍵字，例如 "三大法人"、"融資"、"ESG"。') },
     },
     ({ query }) => textPrompt(
-      `請用 twse_search_datasets 以「${query}」搜尋可用的資料集，` +
-        "從結果裡挑出最貼近我問題的那一個，用 twse_describe_dataset 確認欄位定義，" +
+      `請用 dataset.search 以「${query}」搜尋可用的資料集，` +
+        "從結果裡挑出最貼近我問題的那一個，用 dataset.describe 確認欄位定義，" +
         "再取資料。資料集名稱不直覺，請以搜尋結果為準，不要憑印象猜 dataset_id。",
     ),
   );
@@ -757,9 +757,9 @@ function createServer() {
       argsSchema: { code: z.string().describe('ETF 代號，例如 "0050"、"0056"、"00878"。') },
     },
     ({ code }) => textPrompt(
-      `請用 twse_etf_snapshot 查 ${code} 的完整概況，並把 caveats 裡的提醒一併轉述給我` +
+      `請用 snapshot.etf 查 ${code} 的完整概況，並把 caveats 裡的提醒一併轉述給我` +
         "——特別是市值粗估不等於基金規模這類「哪些數字不能當真」的說明。" +
-        "若要當下價格，另外用 twse_realtime_quote。",
+        "若要當下價格，另外用 quote.realtime。",
     ),
   );
 
@@ -772,10 +772,10 @@ function createServer() {
       },
     },
     ({ contract }) => textPrompt(
-      `請查 ${contract} 的期貨／選擇權每日行情。期貨契約直接用 twse_futures_snapshot 帶 contract="${contract}"；` +
-        "若它回 candidates，請先讓我確認要哪一個。選擇權則先用 twse_search_datasets 配合 " +
+      `請查 ${contract} 的期貨／選擇權每日行情。期貨契約直接用 snapshot.futures 帶 contract="${contract}"；` +
+        "若它回 candidates，請先讓我確認要哪一個。選擇權則先用 dataset.search 配合 " +
         'tag="期貨與選擇權" 找到對的資料集（期貨日行情與選擇權日行情是不同的兩張表），' +
-        `再用 twse_get_dataset 帶 code="${contract}" 取資料。` +
+        `再用 dataset.get 帶 code="${contract}" 取資料。` +
         "注意：同一個商品在不同報表的代號長度不同（日行情用 TX，你手上可能是 TXF）。" +
         "如果回應帶 code_candidates，**那是拼法相近的候選而不是答案**，" +
         "請先告訴我有哪些候選、讓我確認要查哪一個，再用該代號重查——" +

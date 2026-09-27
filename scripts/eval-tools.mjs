@@ -82,7 +82,8 @@ async function mcp(endpoint, method, params = {}) {
 
 /** Claude Code 的 MCP 工具名帶 `mcp__<server>__` 前綴，比對前拿掉。 */
 export function stripMcpPrefix(name) {
-  return name.replace(/^mcp__[^_]+(?:_[^_]+)*?__/, "");
+  // Claude Code 把工具名裡的「.」換成「_」（snapshot.stock → snapshot_stock），換回來才對得上
+  return name.replace(/^mcp__[^_]+(?:_[^_]+)*?__/, "").replace(/^([a-z]+)_/, "$1.");
 }
 
 /**

@@ -25,6 +25,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { portInUse, startServer } from "./eval-ab.mjs";
+import { stripMcpPrefix } from "./eval-tools.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 8787;
@@ -63,7 +64,7 @@ function ask(question, { endpoint, model, cwd }) {
         if (ev.type === "system" && ev.subtype === "init") usedModel = ev.model;
         if (ev.type === "assistant") {
           for (const b of ev.message.content) {
-            if (b.type === "tool_use") calls.set(b.id, { name: b.name.replace(/^mcp__[^_]+__/, ""), input: b.input });
+            if (b.type === "tool_use") calls.set(b.id, { name: stripMcpPrefix(b.name), input: b.input });
           }
         }
         if (ev.type === "user") {
@@ -162,7 +163,7 @@ export const CASES = [
     question: "中鋼的女性董事比例是多少？",
     // 多步驟：先查代號、再帶 esg_topics。第一步 eval-tools 看得到，第二步只有這裡看得到。
     check(run) {
-      const hit = results(run, "twse_stock_snapshot", (c) => c.input.code === "2002" && c.input.esg_topics?.includes("董事會"))
+      const hit = results(run, "snapshot.stock", (c) => c.input.code === "2002" && c.input.esg_topics?.includes("董事會"))
         .map((c) => c.result.esg?.主題?.董事會)
         .find((b) => b && typeof b === "object");
       if (!hit) return skip("沒有對 2002 查 esg_topics=董事會");
@@ -177,7 +178,7 @@ export const CASES = [
     question: "台積電今年第二季賺多少錢？",
     // 損益表是年初至該季的累計數。把累計數當成單季說出去，是回應裡特別警告的錯。
     check(run) {
-      const fin = results(run, "twse_stock_snapshot", (c) => c.input.code === "2330" && c.input.include_financials)
+      const fin = results(run, "snapshot.stock", (c) => c.input.code === "2330" && c.input.include_financials)
         .map((c) => c.result.financials)
         .find((f) => f && typeof f === "object" && f.損益);
       if (!fin) return skip("沒有查 2330 的 include_financials");
@@ -191,7 +192,7 @@ export const CASES = [
     question: "台積電去年有沒有發生資訊外洩事件？",
     // 台積電的資訊安全列存在，但數值是 "N/A"：不適用或未揭露，不是 0。
     check(run) {
-      const sec = results(run, "twse_stock_snapshot", (c) => c.input.code === "2330" && c.input.esg_topics?.includes("資訊安全"))
+      const sec = results(run, "snapshot.stock", (c) => c.input.code === "2330" && c.input.esg_topics?.includes("資訊安全"))
         .map((c) => c.result.esg?.主題?.資訊安全)
         .find((b) => b && typeof b === "object");
       if (!sec) return skip("沒有對 2330 查 esg_topics=資訊安全");
@@ -204,7 +205,7 @@ export const CASES = [
     question: "中華電去年有沒有發生資訊外洩事件？",
     // 2412 不在資訊安全的申報表中：不代表沒有外洩。
     check(run) {
-      const sec = results(run, "twse_stock_snapshot", (c) => c.input.code === "2412" && c.input.esg_topics?.includes("資訊安全"))
+      const sec = results(run, "snapshot.stock", (c) => c.input.code === "2412" && c.input.esg_topics?.includes("資訊安全"))
         .map((c) => c.result.esg?.主題?.資訊安全)
         .find((b) => b !== undefined);
       if (sec === undefined) return skip("沒有對 2412 查 esg_topics=資訊安全");
@@ -219,11 +220,11 @@ export const CASES = [
     // 兩者都可以換算（1 張 = 1,000 股），錯的是把張的數字配上股，或反過來。
     check(run) {
       const got = numbersWithUnits(run.answer).filter((x) => x.unit === "張" || x.unit === "股");
-      const rt = results(run, "twse_realtime_quote").flatMap((c) => c.result.quotes ?? []).find((q) => q.code === "0050");
+      const rt = results(run, "quote.realtime").flatMap((c) => c.result.quotes ?? []).find((q) => q.code === "0050");
       const lots = rt ? toNum(rt.volume) : null;
       const day = [
-        ...results(run, "twse_etf_snapshot", (c) => c.input.code === "0050").map((c) => c.result.quote),
-        ...results(run, "twse_stock_snapshot", (c) => c.input.code === "0050").map((c) => c.result.quote),
+        ...results(run, "snapshot.etf", (c) => c.input.code === "0050").map((c) => c.result.quote),
+        ...results(run, "snapshot.stock", (c) => c.input.code === "0050").map((c) => c.result.quote),
       ].find(Boolean);
       const shares = day ? toNum(day["成交股數"]) : null;
       if (lots === null && shares === null) return skip("沒有取得 0050 的成交量");
@@ -242,7 +243,7 @@ export const CASES = [
     // （問「昨天」但最近交易日可能更早，例如遇到休市）。原本想測「台積電」的候選清單，
     // 但校準時兩個模型都直接用「台積電期貨」這個精確名稱，候選清單出不來，改測這個。
     check(run) {
-      const snap = results(run, "twse_futures_snapshot").map((c) => c.result).find((r) => r.near_month);
+      const snap = results(run, "snapshot.futures").map((c) => c.result).find((r) => r.near_month);
       if (!snap) return skip("沒有取得期貨契約快照的近月資料");
       const close = snap.near_month["收盤"];
       if (typeof close !== "number") return skip("近月沒有收盤價");
@@ -258,7 +259,7 @@ export const CASES = [
     // 非交易時段查到的是最近一個交易日的收盤；報價帶 date，答案要說出是哪一天，
     // 不然使用者會以為是當下的價格。盤中（date 就是今天）不要求。
     check(run) {
-      const q = results(run, "twse_realtime_quote").flatMap((c) => c.result.quotes ?? []).find((x) => x.code === "0050");
+      const q = results(run, "quote.realtime").flatMap((c) => c.result.quotes ?? []).find((x) => x.code === "0050");
       if (!q) return skip("沒有取得 0050 的即時報價");
       if (!q.date) return skip("報價沒有 date");
       if (q.date === taipeiToday()) return pass();
@@ -270,7 +271,7 @@ export const CASES = [
     question: "接下來兩週有哪些上市股票要除息？",
     // 事件行事曆：答案要列出行事曆裡真的有的股票（任一檔即可），不能憑印象列。
     check(run) {
-      const ex = results(run, "twse_market_overview", (c) => c.input.scope === "events")
+      const ex = results(run, "snapshot.market", (c) => c.input.scope === "events")
         .map((c) => c.result["事件行事曆"]?.["除權除息"])
         .find(Array.isArray);
       if (!ex) return skip("沒有查 scope=events");
@@ -284,7 +285,7 @@ export const CASES = [
     id: "dividend-latest",
     question: "台積電最近一次配多少現金股利？",
     check(run) {
-      const divs = results(run, "twse_stock_snapshot", (c) => c.input.code === "2330")
+      const divs = results(run, "snapshot.stock", (c) => c.input.code === "2330")
         .map((c) => c.result.dividends)
         .find((d) => Array.isArray(d) && d.length);
       if (!divs) return skip("沒有取得 2330 的股利資料");
