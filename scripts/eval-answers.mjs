@@ -210,7 +210,7 @@ export const CASES = [
         .find((b) => b !== undefined);
       if (sec === undefined) return skip("沒有對 2412 查 esg_topics=資訊安全");
       if (typeof sec !== "string" || !sec.includes("不在此主題的申報表中")) return skip("中華電已在資訊安全表中，前提已變");
-      return disclosed(run.answer, /不在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/, "中華電不在申報表中");
+      return disclosed(run.answer, /不在|沒(?:有)?出現在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/, "中華電不在申報表中");
     },
   },
   {
