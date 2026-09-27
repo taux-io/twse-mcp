@@ -295,6 +295,21 @@ export const CASES = [
       return got.some((x) => near(x.value, expect, 0.01)) ? pass() : fail(`答案沒有 ${expect} 元`);
     },
   },
+  {
+    id: "holiday-close",
+    question: "2026 年 9 月 25 日台積電的收盤價是多少？",
+    // 2026-09-25 是中秋節，證交所休市（休市日表 holidaySchedule 有 1150925）。答案要說那天沒開盤，
+    // 不能給一個收盤價，也不該只說「查不到那天的資料」——使用者會以為是資料缺漏。
+    // ponytail: 寫死一個已知休市日，休市日表換年、不再列 1150925 時改成表上的下一個休市日
+    check(run) {
+      const table = results(run, "dataset.get", (c) => c.input.dataset_id === "holidaySchedule/holidaySchedule")
+        .flatMap((c) => c.result.data ?? []);
+      if (table.length && !table.some((r) => r.Date === "1150925")) return skip("休市日表已不含 2026-09-25，換一個休市日");
+      return /休市|中秋|沒有開盤|未開盤|沒開盤|非交易日|不是交易日|沒有交易|放假/.test(run.answer)
+        ? pass()
+        : fail("沒有說 9/25 休市（中秋節）");
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------

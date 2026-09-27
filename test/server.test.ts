@@ -885,6 +885,24 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(get.outputSchema.properties.data.items.additionalProperties).not.toBe(false);
   });
 
+  // 工具名稱、參數名稱、型別、必填、enum 是使用者的設定（允許清單、寫死的呼叫）依賴的契約。
+  // 改到這些，快照就會失敗：是刻意的破壞性改動，就用 `npx vitest -u` 更新快照並在 CHANGELOG 說明。
+  // 說明文字常為 eval 調整，不列入。
+  it("工具與快捷指令的介面契約（快照）", async () => {
+    const strip = (v: unknown): unknown =>
+      Array.isArray(v)
+        ? v.map(strip)
+        : v && typeof v === "object"
+          ? Object.fromEntries(Object.entries(v).filter(([k]) => k !== "description" && k !== "$schema").map(([k, x]) => [k, strip(x)]))
+          : v;
+    const tools = (await rpc("tools/list", {})).result.tools;
+    const prompts = (await rpc("prompts/list", {})).result.prompts;
+    expect({
+      tools: tools.map((t: { name: string; inputSchema: unknown }) => ({ name: t.name, input: strip(t.inputSchema) })),
+      prompts: prompts.map((p: { name: string; arguments?: unknown }) => ({ name: p.name, arguments: strip(p.arguments) })),
+    }).toMatchSnapshot();
+  });
+
   it("查資料類：成功回 structuredContent；查無資料集、欄位錯誤回 isError，錯誤細節仍在文字裡", async () => {
     const ok = await rpc("tools/call", { name: "dataset.get", arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL", limit: 1 } });
     expect(ok.result.isError).toBeFalsy();

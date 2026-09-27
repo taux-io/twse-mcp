@@ -45,6 +45,13 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 `npm run smoke` 對本機 `wrangler dev`（8787）的每支工具發一個真實查詢，兩代協定各一遍。改到工具回應的形狀或
 `outputSchema` 時在本機跑一次；CI（`.github/workflows/smoke.yml`）在每個 PR 與每天定時跑，定時的失敗會開 issue。
 預設不打正式環境：它跑在 Workers 免費方案，每個請求都在消耗 CPU 的寬容額度（#104）。
+例外是每天排程裡的正式環境存活檢查（`SMOKE_LIST_ONLY=1`）：只看工具清單、快捷指令與首頁，不呼叫工具。
+
+### 介面契約快照
+
+工具名稱、參數名稱與型別、必填、enum，以及快捷指令的參數，存在 `test/__snapshots__/server.test.ts.snap`。
+改到它們測試就會失敗——這是使用者的設定（允許清單、寫死的呼叫）依賴的契約。確定是刻意的破壞性改動，
+才用 `npx vitest -u` 更新快照，並在 CHANGELOG 寫清楚使用者要怎麼改。說明文字不在快照裡。
 
 ### Tool-selection eval
 

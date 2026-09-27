@@ -1,0 +1,631 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約（快照） 1`] = `
+{
+  "prompts": [
+    {
+      "arguments": [
+        {
+          "name": "query",
+          "required": true,
+        },
+      ],
+      "name": "find_dataset",
+    },
+    {
+      "arguments": [
+        {
+          "name": "code",
+          "required": true,
+        },
+      ],
+      "name": "etf_overview",
+    },
+    {
+      "arguments": [
+        {
+          "name": "contract",
+          "required": true,
+        },
+      ],
+      "name": "futures_quote",
+    },
+  ],
+  "tools": [
+    {
+      "input": {
+        "properties": {
+          "limit": {
+            "default": 25,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "query": {
+            "default": "",
+            "type": "string",
+          },
+          "tag": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "name": "dataset.search",
+    },
+    {
+      "input": {
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "dataset_id",
+        ],
+        "type": "object",
+      },
+      "name": "dataset.describe",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "default": "",
+            "type": "string",
+          },
+          "dataset_id": {
+            "type": "string",
+          },
+          "fields": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 100,
+            "type": "array",
+          },
+          "limit": {
+            "default": 30,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "match": {
+            "additionalProperties": {
+              "type": "string",
+            },
+            "propertyNames": {
+              "type": "string",
+            },
+            "type": "object",
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "order": {
+            "default": "desc",
+            "enum": [
+              "desc",
+              "asc",
+            ],
+            "type": "string",
+          },
+          "sort_by": {
+            "default": "",
+            "type": "string",
+          },
+          "where": {
+            "items": {
+              "properties": {
+                "field": {
+                  "type": "string",
+                },
+                "op": {
+                  "enum": [
+                    "gt",
+                    "gte",
+                    "lt",
+                    "lte",
+                    "eq",
+                    "ne",
+                  ],
+                  "type": "string",
+                },
+                "value": {
+                  "type": "number",
+                },
+              },
+              "required": [
+                "field",
+                "op",
+                "value",
+              ],
+              "type": "object",
+            },
+            "maxItems": 10,
+            "type": "array",
+          },
+        },
+        "required": [
+          "dataset_id",
+        ],
+        "type": "object",
+      },
+      "name": "dataset.get",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "type": "string",
+          },
+          "include_realtime": {
+            "default": false,
+            "type": "boolean",
+          },
+        },
+        "required": [
+          "code",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.etf",
+    },
+    {
+      "input": {
+        "properties": {
+          "limit": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string",
+          },
+        },
+        "required": [
+          "query",
+        ],
+        "type": "object",
+      },
+      "name": "quote.lookup",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "type": "string",
+          },
+          "esg_topics": {
+            "items": {
+              "enum": [
+                "溫室氣體排放",
+                "能源管理",
+                "水資源管理",
+                "廢棄物管理",
+                "人力發展",
+                "董事會",
+                "投資人溝通",
+                "氣候相關議題管理",
+                "功能性委員會",
+                "燃料管理",
+                "產品生命週期",
+                "食品安全",
+                "供應鏈管理",
+                "產品品質與安全",
+                "社區關係",
+                "資訊安全",
+                "普惠金融",
+                "持股及控制力",
+                "風險管理政策",
+                "反競爭行為法律訴訟",
+                "職業安全衛生",
+              ],
+              "type": "string",
+            },
+            "maxItems": 6,
+            "type": "array",
+          },
+          "include_financials": {
+            "default": false,
+            "type": "boolean",
+          },
+          "include_governance": {
+            "default": false,
+            "type": "boolean",
+          },
+          "include_margin": {
+            "default": false,
+            "type": "boolean",
+          },
+        },
+        "required": [
+          "code",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.stock",
+    },
+    {
+      "input": {
+        "properties": {
+          "scope": {
+            "default": "all",
+            "enum": [
+              "all",
+              "stock",
+              "futures",
+              "events",
+            ],
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "name": "snapshot.market",
+    },
+    {
+      "input": {
+        "properties": {
+          "contract": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "contract",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.futures",
+    },
+    {
+      "input": {
+        "properties": {
+          "codes": {
+            "items": {
+              "pattern": "^[0-9A-Za-z]{1,10}$",
+              "type": "string",
+            },
+            "maxItems": 50,
+            "type": "array",
+          },
+          "market": {
+            "default": "tse",
+            "enum": [
+              "tse",
+              "otc",
+            ],
+            "type": "string",
+          },
+        },
+        "required": [
+          "codes",
+        ],
+        "type": "object",
+      },
+      "name": "quote.realtime",
+    },
+  ],
+}
+`;
+
+exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約（快照） 1`] = `
+{
+  "prompts": [
+    {
+      "arguments": [
+        {
+          "name": "query",
+          "required": true,
+        },
+      ],
+      "name": "find_dataset",
+    },
+    {
+      "arguments": [
+        {
+          "name": "code",
+          "required": true,
+        },
+      ],
+      "name": "etf_overview",
+    },
+    {
+      "arguments": [
+        {
+          "name": "contract",
+          "required": true,
+        },
+      ],
+      "name": "futures_quote",
+    },
+  ],
+  "tools": [
+    {
+      "input": {
+        "properties": {
+          "limit": {
+            "default": 25,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "query": {
+            "default": "",
+            "type": "string",
+          },
+          "tag": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "name": "dataset.search",
+    },
+    {
+      "input": {
+        "properties": {
+          "dataset_id": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "dataset_id",
+        ],
+        "type": "object",
+      },
+      "name": "dataset.describe",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "default": "",
+            "type": "string",
+          },
+          "dataset_id": {
+            "type": "string",
+          },
+          "fields": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 100,
+            "type": "array",
+          },
+          "limit": {
+            "default": 30,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "match": {
+            "additionalProperties": {
+              "type": "string",
+            },
+            "propertyNames": {
+              "type": "string",
+            },
+            "type": "object",
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer",
+          },
+          "order": {
+            "default": "desc",
+            "enum": [
+              "desc",
+              "asc",
+            ],
+            "type": "string",
+          },
+          "sort_by": {
+            "default": "",
+            "type": "string",
+          },
+          "where": {
+            "items": {
+              "properties": {
+                "field": {
+                  "type": "string",
+                },
+                "op": {
+                  "enum": [
+                    "gt",
+                    "gte",
+                    "lt",
+                    "lte",
+                    "eq",
+                    "ne",
+                  ],
+                  "type": "string",
+                },
+                "value": {
+                  "type": "number",
+                },
+              },
+              "required": [
+                "field",
+                "op",
+                "value",
+              ],
+              "type": "object",
+            },
+            "maxItems": 10,
+            "type": "array",
+          },
+        },
+        "required": [
+          "dataset_id",
+        ],
+        "type": "object",
+      },
+      "name": "dataset.get",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "type": "string",
+          },
+          "include_realtime": {
+            "default": false,
+            "type": "boolean",
+          },
+        },
+        "required": [
+          "code",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.etf",
+    },
+    {
+      "input": {
+        "properties": {
+          "limit": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string",
+          },
+        },
+        "required": [
+          "query",
+        ],
+        "type": "object",
+      },
+      "name": "quote.lookup",
+    },
+    {
+      "input": {
+        "properties": {
+          "code": {
+            "type": "string",
+          },
+          "esg_topics": {
+            "items": {
+              "enum": [
+                "溫室氣體排放",
+                "能源管理",
+                "水資源管理",
+                "廢棄物管理",
+                "人力發展",
+                "董事會",
+                "投資人溝通",
+                "氣候相關議題管理",
+                "功能性委員會",
+                "燃料管理",
+                "產品生命週期",
+                "食品安全",
+                "供應鏈管理",
+                "產品品質與安全",
+                "社區關係",
+                "資訊安全",
+                "普惠金融",
+                "持股及控制力",
+                "風險管理政策",
+                "反競爭行為法律訴訟",
+                "職業安全衛生",
+              ],
+              "type": "string",
+            },
+            "maxItems": 6,
+            "type": "array",
+          },
+          "include_financials": {
+            "default": false,
+            "type": "boolean",
+          },
+          "include_governance": {
+            "default": false,
+            "type": "boolean",
+          },
+          "include_margin": {
+            "default": false,
+            "type": "boolean",
+          },
+        },
+        "required": [
+          "code",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.stock",
+    },
+    {
+      "input": {
+        "properties": {
+          "scope": {
+            "default": "all",
+            "enum": [
+              "all",
+              "stock",
+              "futures",
+              "events",
+            ],
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "name": "snapshot.market",
+    },
+    {
+      "input": {
+        "properties": {
+          "contract": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "contract",
+        ],
+        "type": "object",
+      },
+      "name": "snapshot.futures",
+    },
+    {
+      "input": {
+        "properties": {
+          "codes": {
+            "items": {
+              "pattern": "^[0-9A-Za-z]{1,10}$",
+              "type": "string",
+            },
+            "maxItems": 50,
+            "type": "array",
+          },
+          "market": {
+            "default": "tse",
+            "enum": [
+              "tse",
+              "otc",
+            ],
+            "type": "string",
+          },
+        },
+        "required": [
+          "codes",
+        ],
+        "type": "object",
+      },
+      "name": "quote.realtime",
+    },
+  ],
+}
+`;

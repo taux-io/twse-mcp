@@ -24,6 +24,8 @@
  *   npx wrangler dev --port 8787 &   # 另一個終端機
  *   node scripts/smoke.mjs
  *   SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs   # 真的要測正式環境時
+ *   SMOKE_LIST_ONLY=1 SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs
+ *     # 正式環境存活檢查：只看工具清單、快捷指令與首頁，不呼叫工具（CI 每天一次，幾個請求）
  *
  * 只用 Node 內建模組：CI 的這個 job 拿的是 issues write token。
  */
@@ -33,6 +35,8 @@ const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "http://localhost:8787/mcp";
 const SITE = new URL(ENDPOINT).origin;
 const MODERN = "2026-07-28";
 const TIMEOUT_MS = 90_000;
+const LIST_ONLY = process.env.SMOKE_LIST_ONLY === "1";
+const REPORT = process.env.SMOKE_REPORT ?? "smoke-report.md";
 
 let nextId = 1;
 
@@ -178,7 +182,7 @@ async function main() {
       fails.push(`[${era}] tools/list 或 prompts/list 失敗：${e.message}`);
     }
 
-    for (const c of CASES) {
+    for (const c of LIST_ONLY ? [] : CASES) {
       const t0 = Date.now();
       let out;
       try {
@@ -199,7 +203,7 @@ async function main() {
 
   // 並發：同時三個個股快照。逐一打抓不到跨請求的問題——2026-09-27 抓取限制器還是全域共用時，
   // 同時進來的快照會被 workerd 判定卡死而取消，名額也會漏掉，只有並發才看得到。
-  {
+  if (!LIST_ONLY) {
     const codes = ["2330", "2002", "2412"];
     const outs = await Promise.all(
       codes.map((code) =>
@@ -226,13 +230,13 @@ async function main() {
   }
 
   const report = [
-    `端點：${ENDPOINT}`,
+    `端點：${ENDPOINT}${LIST_ONLY ? "（只看清單）" : ""}`,
     "",
     fails.length ? `**失敗 ${fails.length} 項**` : "全部通過",
     ...fails.map((f) => `- ${f}`),
     ...(warns.length ? ["", `上游降級 ${warns.length} 項（不算失敗；上游故障由每日上游健檢追蹤）：`, ...warns.map((w) => `- ${w}`)] : []),
   ].join("\n");
-  await writeFile("smoke-report.md", report + "\n");
+  await writeFile(REPORT, report + "\n");
   console.log("\n" + report);
   if (fails.length) process.exit(1);
 }
