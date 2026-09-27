@@ -97,6 +97,15 @@ function structured(value: Record<string, unknown>) {
 }
 
 /**
+ * 查無資料集、欄位名稱錯這類「呼叫本身有問題」的回應。標成 isError：宣告了 outputSchema
+ * 的工具，一般結果一定要符合 schema，而 SDK 對 isError 的結果不做驗證。錯誤內容（例如
+ * available_fields）照樣放在文字裡，模型讀得到、可以拿來改正重查。
+ */
+function toolError(value: Record<string, unknown>) {
+  return { ...json(value), isError: true };
+}
+
+/**
  * 輸出 schema 的共用零件。
  *
  * **刻意寬鬆**：只宣告保證存在的頂層欄位與型別，段落內容一律是「字串鍵的物件」，而且用
@@ -169,6 +178,33 @@ const FUTURES_OUTPUT = z.looseObject({
   large_traders: z.union([section, z.string(), z.null()]).optional(),
   final_settlement: z.array(section).nullable().optional(),
   ...common,
+});
+
+// 查資料類的三支：外層欄位固定，但資料列就是上游那張表的欄位，每張表都不一樣——
+// 所以 data 的每一列、搜尋結果的每一筆都是開放物件，上游多一個欄位不會讓呼叫失敗。
+const SEARCH_OUTPUT = z.looseObject({
+  total_matched: z.number(),
+  results: z.array(z.looseObject({ dataset_id: z.string(), summary: z.string(), tags: z.array(z.string()) })),
+});
+
+const DESCRIBE_OUTPUT = z.looseObject({
+  id: z.string(),
+  source: z.enum(["twse", "taifex"]),
+  summary: z.string(),
+  tags: z.array(z.string()),
+  fields: z.record(z.string(), z.string()),
+});
+
+const GET_DATASET_OUTPUT = z.looseObject({
+  dataset_id: z.string(),
+  summary: z.string(),
+  rows_in_source: z.number(),
+  rows_matched: z.number(),
+  returned: z.number(),
+  offset: z.number(),
+  note: z.string(),
+  source: z.string(),
+  data: z.array(section),
 });
 
 const QUOTE_OUTPUT = z.looseObject({
@@ -298,6 +334,7 @@ function createServer() {
         "結果依相關度排序。期交所的資料集代號一律以 taifex/ 開頭，" +
         '搜期貨與選擇權可用 tag="期貨與選擇權"。',
       annotations: LOCAL_READ,
+      outputSchema: SEARCH_OUTPUT,
       inputSchema: {
         query: z.string().default("").describe('關鍵字，例如 "ETF"、"融資"、"三大法人 期貨"。留空列出全部。'),
         tag: z.string().default("").describe('依分類過濾，例如 "證券交易"、"公司治理"、"財務報表"。'),
@@ -306,7 +343,7 @@ function createServer() {
         limit: z.number().int().min(0).default(25).describe("最多回傳幾筆（預設 25）。"),
       },
     },
-    async ({ query, tag, limit }) => json(searchDatasets(catalog, { query, tag, limit })),
+    async ({ query, tag, limit }) => structured(searchDatasets(catalog, { query, tag, limit })),
   );
 
   server.registerTool(
@@ -317,13 +354,17 @@ function createServer() {
         "twse_get_dataset 的 where、sort_by、fields、match 都要用這裡的鍵名（例如 PEratio），不是中文說明。" +
         "只讀本機目錄、不抓上游，所以不含資料筆數或最新日期。代號不存在時回 error，請先用 twse_search_datasets 找。",
       annotations: LOCAL_READ,
+      outputSchema: DESCRIBE_OUTPUT,
       inputSchema: {
         dataset_id: z
           .string()
           .describe('來自 twse_search_datasets 的資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
       },
     },
-    async ({ dataset_id }) => json(describeDataset(catalog, dataset_id)),
+    async ({ dataset_id }) => {
+      const r = describeDataset(catalog, dataset_id);
+      return "error" in r ? toolError(r) : structured({ ...r });
+    },
   );
 
   server.registerTool(
@@ -335,6 +376,7 @@ function createServer() {
         "用 code/match/where/fields 縮小到需要的範圍。" +
         "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
       annotations: REMOTE_READ,
+      outputSchema: GET_DATASET_OUTPUT,
       inputSchema: {
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
         code: z
@@ -391,12 +433,11 @@ function createServer() {
     },
     async ({ dataset_id, code, match, where, sort_by, order, fields, limit, offset }) => {
       const resolved = resolveDataset(catalog, dataset_id);
-      if ("error" in resolved) return json(resolved);
+      if ("error" in resolved) return toolError(resolved);
       const { ds } = resolved;
       const rows = await fetchDataset(ds.id);
-      return json(
-        getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset }),
-      );
+      const out = getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset });
+      return "error" in out ? toolError(out) : structured(out);
     },
   );
 

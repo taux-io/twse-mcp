@@ -873,18 +873,39 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   // 固定形狀的五支工具宣告 outputSchema，並回傳 structuredContent。SDK 會拿 schema 驗每一次
   // 回應，驗不過就讓整次呼叫失敗——所以本檔其餘測試（部分失敗、未查詢、null）全數通過，
   // 本身就是 schema 涵蓋了所有實際回應形狀的證據。
-  it("固定形狀的工具宣告 outputSchema；查資料類的不宣告", async () => {
+  it("九支工具都宣告 outputSchema；查資料類的資料列是開放物件", async () => {
     const payload = await rpc("tools/list", {});
-    const withSchema = payload.result.tools
-      .filter((t: { outputSchema?: unknown }) => t.outputSchema)
-      .map((t: { name: string }) => t.name)
-      .sort();
-    expect(withSchema).toEqual(
-      ["twse_etf_snapshot", "twse_futures_snapshot", "twse_lookup", "twse_market_overview", "twse_realtime_quote", "twse_stock_snapshot"].sort(),
-    );
+    const withSchema = payload.result.tools.filter((t: { outputSchema?: unknown }) => t.outputSchema);
+    expect(withSchema).toHaveLength(payload.result.tools.length);
     const stock = payload.result.tools.find((t: { name: string }) => t.name === "twse_stock_snapshot");
     expect(stock.outputSchema.type).toBe("object");
     expect(stock.outputSchema.required).toEqual(expect.arrayContaining(["code", "financials", "caveats", "source"]));
+    // 每張表欄位不同：data 的每一列不能限制欄位，否則上游多一欄就整個呼叫失敗
+    const get = payload.result.tools.find((t: { name: string }) => t.name === "twse_get_dataset");
+    expect(get.outputSchema.properties.data.items.additionalProperties).not.toBe(false);
+  });
+
+  it("查資料類：成功回 structuredContent；查無資料集、欄位錯誤回 isError，錯誤細節仍在文字裡", async () => {
+    const ok = await rpc("tools/call", { name: "twse_get_dataset", arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL", limit: 1 } });
+    expect(ok.result.isError).toBeFalsy();
+    expect(ok.result.structuredContent.dataset_id).toBe("exchangeReport/STOCK_DAY_ALL");
+    expect(ok.result.structuredContent.data[0]).toHaveProperty("Code"); // 上游原本的欄位照樣通過驗證
+
+    const missing = await rpc("tools/call", { name: "twse_get_dataset", arguments: { dataset_id: "nope/xx" } });
+    expect(missing.result.isError).toBe(true);
+    expect(JSON.parse(missing.result.content[0].text).error).toContain("twse_search_datasets");
+
+    const badField = await rpc("tools/call", {
+      name: "twse_get_dataset",
+      arguments: { dataset_id: "exchangeReport/STOCK_DAY_ALL", sort_by: "沒有這欄" },
+    });
+    expect(badField.result.isError).toBe(true);
+    expect(JSON.parse(badField.result.content[0].text).available_fields).toContain("Code");
+
+    const desc = await rpc("tools/call", { name: "twse_describe_dataset", arguments: { dataset_id: "nope/xx" } });
+    expect(desc.result.isError).toBe(true);
+    const search = await rpc("tools/call", { name: "twse_search_datasets", arguments: { query: "ETF" } });
+    expect(search.result.structuredContent.total_matched).toBeGreaterThan(0);
   });
 
   it("structuredContent 與 text 是同一份資料", async () => {
