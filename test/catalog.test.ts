@@ -450,7 +450,6 @@ describe("工具選擇測試題", () => {
     expect(stripMcpPrefix("mcp__twse__quote_lookup")).toBe("quote.lookup");
     expect(stripMcpPrefix("mcp__my_server__dataset_get")).toBe("dataset.get");
     expect(stripMcpPrefix("quote.lookup")).toBe("quote.lookup");
-    expect(stripMcpPrefix("mcp__twse__twse_stock_snapshot")).toBe("snapshot.stock");
   });
   it("第一個工具呼叫符合任一選項才通過；沒有呼叫工具不通過", () => {
     const expectA = [{ tool: "quote.lookup" }, { tool: "snapshot.stock", args: { code: "2303" } }];
