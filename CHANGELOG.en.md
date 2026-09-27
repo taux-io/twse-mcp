@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.12.0] - 2026-09-28
 
 - After a long weekend or typhoon day, the data date is older than the previous weekday. The stock, ETF, futures, market overview and live quote tools now say which days in between the market was closed (for example "2026-09-25 (Fri) Mid-Autumn Festival"), so the AI no longer reports a holiday as missing data; if the holiday table can't be fetched, they say it can't be confirmed rather than claiming there was no holiday.
 
@@ -114,6 +114,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/taux-io/twse-mcp/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/taux-io/twse-mcp/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/taux-io/twse-mcp/compare/v0.10.0...v0.10.1
