@@ -1254,7 +1254,7 @@ describe("扇出上限與並行上限", () => {
 });
 
 /**
- * 官方首頁。與 MCP 端點同一個 Worker、同一個網域——貼給使用者的網址是
+ * 首頁。與 MCP 端點同一個 Worker、同一個網域——貼給使用者的網址是
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，
  * 而不是一句 `Not Found`。
  *
@@ -1262,7 +1262,7 @@ describe("扇出上限與並行上限", () => {
  * CSP 因此可以鎖到 `script-src 'none'`，而不必去論證某段 inline script 是安全的。
  * 這條有測試守著，免得日後有人「加個小小的分析script」把它悄悄拆掉。
  */
-describe("官方首頁", () => {
+describe("首頁", () => {
   const get = (path: string, method = "GET") =>
     send(
       new Request(`http://twse-mcp.taux.io${path}`, {
@@ -1483,7 +1483,7 @@ describe("英文版首頁", () => {
   it("英文版有自帶主詞的定義句與結構化資料", async () => {
     const html = await (await get("/en")).text();
     const text = html.replace(/<[^>]+>/g, "");
-    expect(text).toMatch(/Taiwan Stock MCP is a free[^.]*MCP server/);
+    expect(text).toMatch(/Taiwan Market Open Data \(unofficial\) is a free[^.]*MCP server/);
     const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(
       (b) => JSON.parse(b[1]),
     );
@@ -1519,8 +1519,8 @@ describe("英文版首頁", () => {
   it("llms.txt 兩種語言的查詢都服務得到，並指出兩個語系頁面", async () => {
     const body = await (await get("/llms.txt")).text();
     expect(body).toContain("https://twse-mcp.taux.io/en");
-    expect(body).toMatch(/Taiwan Stock MCP is a free/);
-    expect(body).toContain("台股 MCP 是一個免費的");
+    expect(body).toMatch(/Taiwan Market Open Data is a free/);
+    expect(body).toContain("Taiwan Market Open Data 是一個免費的");
   });
 });
 
@@ -1617,7 +1617,7 @@ describe("生成式引擎最佳化（GEO）", () => {
   it("開頭有自帶主詞的定義句", async () => {
     const html = await (await get("/")).text();
     const text = html.replace(/<[^>]+>/g, "");
-    expect(text).toMatch(/台股 MCP 是一個[^。]*MCP 伺服器/);
+    expect(text).toMatch(/Taiwan Market Open Data（非官方）是一個[^。]*MCP 伺服器/);
   });
 
   it("安裝步驟有 HowTo 結構化資料", async () => {
@@ -2136,7 +2136,8 @@ describe("協定 era", () => {
     expect(payload.result.ttlMs).toBe(TOOL_LIST_TTL_MS);
     expect(payload.result.cacheScope).toBe("public");
     expect(payload.result._meta["io.modelcontextprotocol/serverInfo"]).toMatchObject({
-      name: "twse-opendata",
+      name: "taiwan-market-open-data",
+      title: "Taiwan Market Open Data (Unofficial)",
     });
   });
 
@@ -2301,7 +2302,7 @@ describe("協定 era", () => {
     );
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.serverInfo.name).toBe("twse-opendata");
+    expect(payload.result.serverInfo.name).toBe("taiwan-market-open-data");
     expect(payload.result.capabilities).toHaveProperty("tools");
   });
 });

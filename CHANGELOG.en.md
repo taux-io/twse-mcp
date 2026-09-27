@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- The service is now named **Taiwan Market Open Data (Unofficial)**, and the README, homepage and llms.txt state plainly that it is unofficial and not affiliated with, or endorsed by, the Taiwan Stock Exchange or the Taiwan Futures Exchange. The endpoint URL and tool names are unchanged.
+
 ## [0.12.0] - 2026-09-28
 
 - After a long weekend or typhoon day, the data date is older than the previous weekday. The stock, ETF, futures, market overview and live quote tools now say which days in between the market was closed (for example "2026-09-25 (Fri) Mid-Autumn Festival"), so the AI no longer reports a holiday as missing data; if the holiday table can't be fetched, they say it can't be confirmed rather than claiming there was no holiday.

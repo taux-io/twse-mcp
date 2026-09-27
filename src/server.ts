@@ -311,7 +311,7 @@ const QUOTE_SOURCE_NOTE =
 function createServer() {
   const server = new McpServer(
     // 版本只有 package.json 一個來源；server.json 由 test/catalog.test.ts 斷言與它一致。
-    { name: "twse-opendata", version: pkg.version },
+    { name: "taiwan-market-open-data", title: "Taiwan Market Open Data (Unofficial)", version: pkg.version },
     {
       instructions: `${USAGE_GUIDANCE}\n\n${OGDL_ATTRIBUTION}`,
       cacheHints: {
