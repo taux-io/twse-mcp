@@ -1056,6 +1056,31 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(quoteUrl()).toBeUndefined();
   });
 
+  it("dataset.get：證交所日報的資料日期落後時，note 說明中間的休市日；月報不加", async () => {
+    pinToday(); // 週六 9/26
+    overrideFetch((u) => u.includes("STOCK_DAY_ALL"), () => jsonResponse([{ ...DAY[1], Date: "1150924" }]));
+    overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse([{ Name: "中秋節", Date: "1150925" }]));
+    const out = await callTool("dataset.get", { dataset_id: "exchangeReport/STOCK_DAY_ALL", code: "2330" });
+    expect(out.note).toContain("2026-09-25（五）中秋節");
+
+    overrideFetch((u) => u.includes("t187ap05_L"), () => jsonResponse([{ Date: "1150924", 資料年月: "11508" }]));
+    const monthly = await callTool("dataset.get", { dataset_id: "opendata/t187ap05_L", limit: 1 });
+    expect(monthly.note).not.toContain("休市");
+  });
+
+  it("quote.realtime：報價日期落後時，caveats 說明中間的休市日；沒落後就不查休市日表", async () => {
+    pinToday(); // 週六 9/26；報價是週四 9/24，週五 9/25 沒有資料
+    overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse([{ Name: "中秋節", Date: "1150925" }]));
+    const out = await callTool("quote.realtime", { codes: ["0050"] });
+    expect(out.caveats.join()).toContain("2026-09-25（五）中秋節");
+
+    vi.setSystemTime(new Date("2026-09-25T00:30:00Z")); // 週五盤前看到週四的報價，正常
+    const before = fetchedUrls().filter((u) => u.includes("holidaySchedule")).length;
+    const fresh = await callTool("quote.realtime", { codes: ["0050"] });
+    expect(fresh.caveats).toEqual([]);
+    expect(fetchedUrls().filter((u) => u.includes("holidaySchedule")).length).toBe(before);
+  });
+
   // content-type 不是判準：這個回應宣稱 text/html，body 卻是合法 JSON，必須照收。
   // 曾經拿 content-type 當閘門，結果線上整支 quote.realtime 壞掉。
   it("上游宣稱 text/html 但 body 是合法 JSON 時，照樣正常解析", async () => {
@@ -1204,6 +1229,7 @@ describe("扇出上限與並行上限", () => {
         if (u.includes("DetailsOfFuturesContractsBytheDate")) return jsonResponse(INST_CONTRACTS);
         if (u.includes("PutCallRatio")) return jsonResponse(PCR);
         if (u.includes("OpenInterestOfLargeTradersFutures")) return jsonResponse(LARGE);
+        if (u.includes("holidaySchedule")) return jsonResponse([]); // 假資料的日期比假時鐘舊，會查休市日表
         return new Promise<Response>(() => {}); // 個股快照的每個資料集都永遠不回應
       }),
     );

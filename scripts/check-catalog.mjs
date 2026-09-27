@@ -58,6 +58,8 @@ export const REQUIRED = [
   // snapshot.futures
   "taifex/DailyMarketReportFut",
   "taifex/FinalSettlementPriceFutures",
+  // 資料日期落後時說明中間的休市日（snapshot.*、quote.realtime）
+  "holidaySchedule/holidaySchedule",
 ];
 
 /** 目錄少於這個數量，幾乎必然是上游出事而非真的縮編。 */

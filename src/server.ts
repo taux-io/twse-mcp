@@ -20,6 +20,10 @@ import {
   buildMarketEvents,
   esgLabel,
   buildFuturesSnapshot,
+  dataGapNote,
+  isDailyDataset,
+  rocToIso,
+  isStaleDataDate,
   FUTURES_SOURCE_LABELS,
   buildStockMarket,
   buildStockSnapshot,
@@ -46,6 +50,7 @@ import {
   DS_LARGE_TRADERS,
   DS_FUT_DAILY,
   DS_FUT_SETTLE,
+  DS_HOLIDAYS,
   DS_PCR,
   DS_PENALTIES,
   DS_PLEDGE,
@@ -211,6 +216,7 @@ const QUOTE_OUTPUT = z.looseObject({
   count: z.number(),
   quotes: z.array(section),
   units: z.string(),
+  caveats: z.array(z.string()),
   source: z.string(),
 });
 
@@ -437,7 +443,15 @@ function createServer() {
       const { ds } = resolved;
       const rows = await fetchDataset(ds.id);
       const out = getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset });
-      return "error" in out ? toolError(out) : structured(out);
+      if ("error" in out) return toolError(out);
+      // 證交所的日報表（STOCK_DAY_ALL 等）是模型查「某天收盤價」最常走的路，也要說明休市。
+      // 只看日報：月報、季報的日期本來就舊。期交所的頻率猜不準，不加。
+      if (ds.source === "twse" && isDailyDataset(ds)) {
+        const gap: string[] = [];
+        await explainDataGap(rows.map((r) => rocToIso(r["Date"]) ?? "").sort().at(-1), gap);
+        if (gap.length) out.note = `${out.note}；${gap[0]}`;
+      }
+      return structured(out);
     },
   );
 
@@ -475,14 +489,14 @@ function createServer() {
       const rt = rtTask ? await rtTask : null;
       if (rt?.error) errors.push({ source: ETF_SOURCE_LABELS.realtime, error: rt.error });
 
-      return structured(
-        buildEtfSnapshot(code, {
-          ...rows,
-          realtime: rt ? rt.rows : null,
-          includeRealtime: include_realtime,
-          errors,
-        }),
-      );
+      const snap = buildEtfSnapshot(code, {
+        ...rows,
+        realtime: rt ? rt.rows : null,
+        includeRealtime: include_realtime,
+        errors,
+      });
+      await explainDataGap((snap.quote as Row | null)?.["日期"], snap.caveats as string[]);
+      return structured(snap);
     },
   );
 
@@ -597,17 +611,17 @@ function createServer() {
       const gov = govTask ? await govTask : null;
       const mar = marginTask ? await marginTask : null;
       const esg = esgTask ? await esgTask : null;
-      return structured(
-        buildStockSnapshot(code, {
-          ...rows,
-          errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? []), ...(mar?.errors ?? []), ...(esg?.errors ?? [])],
-          financials: fin?.input,
-          governance: gov?.rows,
-          margin: mar?.rows,
-          esg: esg?.rows as Record<string, Row[]> | undefined,
-          today: taipeiToday(),
-        }),
-      );
+      const snap = buildStockSnapshot(code, {
+        ...rows,
+        errors: [...errors, ...(fin?.errors ?? []), ...(gov?.errors ?? []), ...(mar?.errors ?? []), ...(esg?.errors ?? [])],
+        financials: fin?.input,
+        governance: gov?.rows,
+        margin: mar?.rows,
+        esg: esg?.rows as Record<string, Row[]> | undefined,
+        today: taipeiToday(),
+      });
+      await explainDataGap((snap.quote as Row | null)?.["日期"], snap.caveats as string[]);
+      return structured(snap);
     },
   );
 
@@ -664,9 +678,15 @@ function createServer() {
         errors.push(e);
         caveats.push(`${e.source}取得失敗：${e.error}`);
       }
+      const stockMarket = stock ? buildStockMarket(stock.rows, errors, caveats) : null;
+      const futuresMarket = futures ? buildFuturesMarket(futures.rows, errors, caveats) : null;
+      await explainDataGap(
+        ((stockMarket?.["漲跌家數"] ?? null) as Row | null)?.["日期"] ?? (futuresMarket as Row | null)?.["日期"],
+        caveats,
+      );
       return structured({
-        ...(stock ? { "證券市場": buildStockMarket(stock.rows, errors, caveats) } : {}),
-        ...(futures ? { "期貨籌碼": buildFuturesMarket(futures.rows, errors, caveats) } : {}),
+        ...(stockMarket ? { "證券市場": stockMarket } : {}),
+        ...(futuresMarket ? { "期貨籌碼": futuresMarket } : {}),
         ...(events ? { "事件行事曆": buildMarketEvents(events.rows, taipeiToday(), errors, caveats) } : {}),
         caveats,
         note: "皆為前一交易日（或各表最新一期）的收盤後資料，不是盤中即時；各段以資料中的日期為準",
@@ -697,7 +717,9 @@ function createServer() {
         largeTraders: { dataset: DS_LARGE_TRADERS, label: L.largeTraders },
         settlement: { dataset: DS_FUT_SETTLE, label: L.settlement },
       });
-      return structured(buildFuturesSnapshot(contract, { ...rows, errors }));
+      const snap = buildFuturesSnapshot(contract, { ...rows, errors });
+      await explainDataGap(snap.date, snap.caveats as string[]);
+      return structured(snap);
     },
   );
 
@@ -722,7 +744,16 @@ function createServer() {
       const quotes = await fetchQuotes(codes, market);
       // 報價裡的 name 是上游給的自由文字，與 dataset.get 的 data 同一個性質。
       // 同樣的位元組經過不同工具，不該只有一支帶著「這是資料不是指令」的框架。
-      return structured({ count: quotes.length, quotes: quotes as unknown as Record<string, unknown>[], units: QUOTE_UNITS, source: QUOTE_SOURCE_NOTE });
+      const caveats: string[] = [];
+      // 各檔的 date 都是同一個交易日；取最舊的一個，有落後才說明
+      await explainDataGap(quotes.map((q) => q.date).filter(Boolean).sort()[0], caveats);
+      return structured({
+        count: quotes.length,
+        quotes: quotes as unknown as Record<string, unknown>[],
+        units: QUOTE_UNITS,
+        caveats,
+        source: QUOTE_SOURCE_NOTE,
+      });
     },
   );
 
@@ -784,6 +815,18 @@ function createServer() {
   );
 
   return server;
+}
+
+/**
+ * 資料日期比前一個工作日舊時（連假、颱風假、上游延遲），在 caveats 說明中間為什麼沒有資料。
+ * 不說的話，模型只看到「最新是 9/24」，會回答「查不到 9/25」，使用者以為是資料缺漏。
+ * 平常日不觸發，所以休市日表只在需要時才抓。
+ */
+async function explainDataGap(dataDate: unknown, caveats: string[]): Promise<void> {
+  const today = taipeiToday();
+  if (typeof dataDate !== "string" || !isStaleDataDate(dataDate, today)) return;
+  const { rows, errors } = await fetchSources({ holidays: { dataset: DS_HOLIDAYS, label: "休市日表" } });
+  caveats.push(dataGapNote(dataDate, today, errors.length ? null : rows.holidays));
 }
 
 /**

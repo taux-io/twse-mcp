@@ -210,7 +210,7 @@ export const CASES = [
         .find((b) => b !== undefined);
       if (sec === undefined) return skip("沒有對 2412 查 esg_topics=資訊安全");
       if (typeof sec !== "string" || !sec.includes("不在此主題的申報表中")) return skip("中華電已在資訊安全表中，前提已變");
-      return disclosed(run.answer, /不在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/, "中華電不在申報表中");
+      return disclosed(run.answer, /不在|沒(?:有)?出現在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/, "中華電不在申報表中");
     },
   },
   {
@@ -293,6 +293,22 @@ export const CASES = [
       if (typeof expect !== "number") return skip("最新一期沒有現金股利數字");
       const got = numbersWithUnits(run.answer).filter((x) => x.unit === "元");
       return got.some((x) => near(x.value, expect, 0.01)) ? pass() : fail(`答案沒有 ${expect} 元`);
+    },
+  },
+  {
+    id: "latest-close-gap",
+    question: "台積電最新的收盤價是哪一天的？",
+    // 連假或颱風假後，資料日期會比前一個工作日舊。工具的 caveats 會說明中間是休市，
+    // 答案要把這件事講出來，不能讓使用者以為是資料缺漏。平常日沒有落後，這題標「沒驗到」。
+    check(run) {
+      const gap = run.calls
+        // 快照與即時報價放在 caveats，dataset.get 放在 note
+        .flatMap((c) => (c.result && typeof c.result === "object" ? [...(c.result.caveats ?? []), c.result.note ?? ""] : []))
+        .find((x) => String(x).includes("證交所休市（休市日表）"));
+      if (!gap) return skip("工具回應裡沒有休市說明（資料沒有跨休市日）");
+      return /休市|休假|放假|沒有開盤|未開盤|沒開盤|非交易日|不是交易日|沒有交易/.test(run.answer)
+        ? pass()
+        : fail("工具說明了中間休市，答案沒有提到");
     },
   },
   {
