@@ -31,6 +31,12 @@ Single-context：根目錄一份 `CONTEXT.md`，ADR 放 `docs/adr/`。見 `docs/
 commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 過度工程檢查。
 時機、標記慣例，以及這個 repo 的防禦性守衛為什麼不算冗餘，見 `docs/agents/ponytail.md`。
 
+### Smoke test
+
+`npm run smoke` 對本機 `wrangler dev`（8787）的每支工具發一個真實查詢，兩代協定各一遍。改到工具回應的形狀或
+`outputSchema` 時在本機跑一次；CI（`.github/workflows/smoke.yml`）在每個 PR 與每天定時跑，定時的失敗會開 issue。
+預設不打正式環境：它跑在 Workers 免費方案，每個請求都在消耗 CPU 的寬容額度（#104）。
+
 ### Tool-selection eval
 
 改工具描述、`instructions` 或新增工具之前與之後，各跑一次 `npm run eval:tools`，比較通過題數。

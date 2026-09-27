@@ -1,5 +1,5 @@
 /**
- * smoke-prod.mjs — 對正式環境（或 SMOKE_ENDPOINT）的每一支工具發一個真實查詢。
+ * smoke.mjs — 對 MCP 端點的每一支工具發一個真實查詢（預設本機 wrangler dev）。
  *
  * 單元測試跑在手寫的 fixture 上，每日上游健檢只看上游、不呼叫我們的工具。兩者之間的
  * 缺口正是這支要補的：
@@ -15,15 +15,21 @@
  * 新舊兩代協定（legacy 2025、modern 2026-07-28）各跑一遍：主要用戶端是 modern，
  * Codex 走 legacy，兩條路都有真實使用者。
  *
+ * 預設打本機：CI（.github/workflows/smoke.yml）在 runner 上起 wrangler dev 來測，程式與
+ * Workers 執行期和正式環境相同，也真的去抓證交所與期交所。抓不到的只有正式環境專屬的
+ * 問題（部署、邊緣快取、免費方案的 CPU 上限）。不打正式環境，是因為它跑在免費方案，
+ * 每個請求都在消耗 10 ms CPU 的寬容額度（#104）。
+ *
  * 用法：
- *   node scripts/smoke-prod.mjs
- *   SMOKE_ENDPOINT=http://localhost:8787/mcp node scripts/smoke-prod.mjs   # 合併前測本機
+ *   npx wrangler dev --port 8787 &   # 另一個終端機
+ *   node scripts/smoke.mjs
+ *   SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs   # 真的要測正式環境時
  *
  * 只用 Node 內建模組：CI 的這個 job 拿的是 issues write token。
  */
 import { writeFile } from "node:fs/promises";
 
-const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "https://twse-mcp.taux.io/mcp";
+const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "http://localhost:8787/mcp";
 const SITE = new URL(ENDPOINT).origin;
 const MODERN = "2026-07-28";
 const TIMEOUT_MS = 90_000;

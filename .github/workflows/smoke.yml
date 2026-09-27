@@ -1,0 +1,84 @@
+name: smoke
+
+# 在 runner 上起 wrangler dev，對每一支工具發一個真實查詢（scripts/smoke.mjs）。
+# 單元測試跑在手寫 fixture 上，抓不到「上游真實資料不符 outputSchema，整支工具失敗」；
+# 每日上游健檢只看上游，不呼叫我們的工具。這支補兩者之間的缺口。
+#
+# 打本機而不是正式環境：程式與 Workers 執行期相同、也真的抓上游，但不消耗正式環境
+# 免費方案的 CPU 寬容額度（#104）。
+#
+# - pull_request：合併前擋下會讓某支工具在真實資料上失敗的改動
+# - schedule：上游資料每天變，程式沒變也可能開始失敗；失敗就開 issue
+
+on:
+  pull_request:
+  schedule:
+    - cron: "7 2 * * *" # 每天 02:07 UTC（台北 10:07），在上游健檢（09:37）之後
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --ignore-scripts
+
+      - name: 起本機 wrangler dev
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          npx wrangler dev --port 8787 > wrangler.log 2>&1 &
+          for i in $(seq 1 60); do
+            grep -q "Ready on http://localhost:8787" wrangler.log && exit 0
+            sleep 2
+          done
+          cat wrangler.log
+          exit 1
+
+      - name: 每支工具實測
+        run: npm run smoke
+
+      - name: wrangler log（失敗時看）
+        if: failure()
+        run: tail -100 wrangler.log || true
+
+      # 只有排程的失敗開 issue；PR 的失敗留在 PR 上看。作法與 upstream-health 相同：
+      # 標籤先確保存在，查找綁作者與標籤，已存在就留言。
+      - name: 排程失敗就開 issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "smoke: 工具在真實資料上失敗"
+          LABEL: smoke
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
+          REPORT=$(cat smoke-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
+          BODY=$(printf '%s\n' \
+            "每日冒煙測試（本機 wrangler dev + 真實上游資料）發現問題：" \
+            "" \
+            "$REPORT" \
+            "" \
+            "常見原因：上游資料多了程式沒預期的值，讓回應不符 outputSchema（SDK 會讓整個呼叫失敗）；或上游格式改變。先用 \`npm run smoke\` 在本機重現。" \
+            "" \
+            "[查看這次 run](${RUN_URL})")
+          gh label create "$LABEL" --description "Daily smoke test against real upstream data" --color D93F0B --force
+          EXISTING=$(gh issue list --state open --author app/github-actions --label "$LABEL" \
+            --search "$TITLE in:title" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
+          fi
