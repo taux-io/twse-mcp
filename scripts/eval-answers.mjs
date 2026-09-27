@@ -113,6 +113,15 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
 const pass = () => ({ status: "pass" });
 const fail = (reason) => ({ status: "fail", reason });
 const skip = (reason) => ({ status: "沒驗到", reason });
+const review = (reason) => ({ status: "需人工看", reason });
+
+/** 正向條件成立才算通過；同時命中「說它沒有」就標成需人工看，附上前後文。 */
+function disclosed(answer, positive, what) {
+  if (!positive.test(answer)) return fail(`沒有說明${what}`);
+  const m = answer.match(CLAIMS_NONE);
+  if (m) return review(`說明了${what}，但有像「說它沒有」的句子：…${answer.slice(Math.max(0, m.index - 30), m.index + 20).replace(/\n/g, " ")}…`);
+  return pass();
+}
 
 /** 找出符合條件的工具結果；拿不到就是「沒驗到」。 */
 function results(run, name, pred = () => true) {
@@ -121,9 +130,12 @@ function results(run, name, pred = () => true) {
 
 /**
  * 「說它沒有」的錯誤講法。只抓錯誤的主張本身，不抓單字：「沒有揭露」是對的，裡面也有「沒有」。
- * 規則經過實際答案校準；答案寫法超出預期時，寧可判成 fail 讓人讀原文，也不要放過。
+ *
+ * 這條**只用來標記要人看的答案，不直接判失敗**。2026-09-27 校準時，opus 五個被它抓到的答案
+ * 全都是對的：「不能說沒有資訊外洩」「看不出有沒有發生」、引用同業「台灣大 0 件」。否定、
+ * 疑問與引用別家的寫法太多，規則寫不完；判分只看正向條件（有沒有說明 N/A／不在表中）。
  */
-export const CLAIMS_NONE = /(?<![無未沒]法[^，。]{0,6})(沒有發生|未發生|沒發生|無(?:任何)?(?:資訊)?外洩|沒有(?:任何)?(?:資訊)?外洩|(?:^|[^\d.])0\s*(?:件|起|次)|零\s*(?:件|起|次))/;
+export const CLAIMS_NONE = /(?<![無未沒]法[^，。]{0,6})(?<!(?:不是|並非|而非|不代表|不等於|非|不能[^，。]{0,10}(?:說|解讀|推論))[^，。]{0,8})(?<!有)(沒有發生|未發生|沒發生|無(?:任何)?(?:資訊)?外洩|沒有(?:任何)?(?:資訊)?外洩|(?<![\d.])0\s*(?:件|起|次)|零\s*(?:件|起|次))/;
 
 // ---------------------------------------------------------------------------
 // 題目
@@ -169,8 +181,7 @@ export const CASES = [
         .find((b) => b && typeof b === "object");
       if (!sec) return skip("沒有對 2330 查 esg_topics=資訊安全");
       if (!Object.values(sec).some((v) => /N\/A|不適用/.test(String(v)))) return skip("資訊安全的數值不是 N/A，前提已變");
-      if (CLAIMS_NONE.test(run.answer)) return fail(`把 N/A 說成沒有：「${run.answer.match(CLAIMS_NONE)[0]}」`);
-      return /N\/A|不適用|未揭露|沒有揭露|未提供|無法(?:判斷|確認|得知)/.test(run.answer) ? pass() : fail("沒有說明數值是 N/A／未揭露");
+      return disclosed(run.answer, /N\/A|不適用|未揭露|沒有揭露|未提供|無法(?:判斷|確認|得知)/, "數值是 N/A／未揭露");
     },
   },
   {
@@ -183,10 +194,7 @@ export const CASES = [
         .find((b) => b !== undefined);
       if (sec === undefined) return skip("沒有對 2412 查 esg_topics=資訊安全");
       if (typeof sec !== "string" || !sec.includes("不在此主題的申報表中")) return skip("中華電已在資訊安全表中，前提已變");
-      if (CLAIMS_NONE.test(run.answer)) return fail(`把「不在表中」說成沒有：「${run.answer.match(CLAIMS_NONE)[0]}」`);
-      return /不在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/.test(run.answer)
-        ? pass()
-        : fail("沒有說明中華電不在申報表中");
+      return disclosed(run.answer, /不在|沒有(?:相關|這項|此項)?(?:申報|揭露|資料)|未(?:申報|揭露)|查不到|無法(?:判斷|確認|得知)/, "中華電不在申報表中");
     },
   },
   {
@@ -247,7 +255,7 @@ async function main() {
     console.log(`${endpoint} ｜ ${cases.length} 題 × ${repeat} 輪${model ? ` ｜ ${model}` : ""}\n`);
     const jobs = [];
     for (let r = 0; r < repeat; r++) for (const c of cases) jobs.push({ c, r });
-    const tally = new Map(cases.map((c) => [c.id, { pass: 0, fail: 0, skip: 0, notes: [] }]));
+    const tally = new Map(cases.map((c) => [c.id, { pass: 0, fail: 0, skip: 0, review: 0, notes: [] }]));
     let next = 0;
     let fatal = null;
     await Promise.all(
@@ -266,6 +274,7 @@ async function main() {
           const t = tally.get(c.id);
           if (v.status === "pass") t.pass++;
           else if (v.status === "fail") t.fail++;
+          else if (v.status === "需人工看") t.review++;
           else t.skip++;
           if (v.reason) t.notes.push(`${v.status} #${r + 1}：${v.reason}`);
         }
@@ -274,8 +283,8 @@ async function main() {
     if (fatal) throw new Error(fatal);
     for (const c of cases) {
       const t = tally.get(c.id);
-      const mark = t.fail ? "❌" : t.skip ? "・" : "✅";
-      console.log(`${mark} ${c.id}：通過 ${t.pass} ｜ 失敗 ${t.fail} ｜ 沒驗到 ${t.skip}（共 ${repeat}）`);
+      const mark = t.fail ? "❌" : t.review ? "👀" : t.skip ? "・" : "✅";
+      console.log(`${mark} ${c.id}：通過 ${t.pass} ｜ 失敗 ${t.fail} ｜ 需人工看 ${t.review} ｜ 沒驗到 ${t.skip}（共 ${repeat}）`);
       for (const n of t.notes) console.log(`     ${n.slice(0, 160)}`);
     }
     console.log(`\n答案與工具結果原文：${tmp}`);
