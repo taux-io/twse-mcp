@@ -136,6 +136,44 @@
         { "tool": "snapshot.etf", "args": { "code": "0050" } },
         { "tool": "dataset.get", "args": { "dataset_id": "exchangeReport/STOCK_DAY_ALL", "code": "0050" } },
         { "tool": "quote.realtime", "args": { "codes": ["0050"] } }
+      ] },
+    { "id": "en-realtime-name", "question": "What's TSMC trading at right now?",
+      "expect": [{ "tool": "quote.lookup" }, { "tool": "quote.realtime", "args": { "codes": ["2330"] } }] },
+    { "id": "en-lookup", "question": "What is the stock code for Chunghwa Telecom on the Taiwan Stock Exchange?",
+      "expect": [{ "tool": "quote.lookup" }] },
+    { "id": "en-valuation", "question": "Show me the P/E ratio, dividend yield and latest monthly revenue for 2330.",
+      "expect": [{ "tool": "snapshot.stock", "args": { "code": "2330" } }] },
+    { "id": "en-financials-name", "question": "What was UMC's EPS in the latest quarter?",
+      "expect": [
+        { "tool": "quote.lookup" },
+        { "tool": "snapshot.stock", "args": { "code": "2303", "include_financials": true } }
+      ] },
+    { "id": "en-governance-name", "question": "Does Hon Hai's chairman also serve as president, and have its directors pledged shares?",
+      "expect": [
+        { "tool": "quote.lookup" },
+        { "tool": "snapshot.stock", "args": { "code": "2317", "include_governance": true } }
+      ] },
+    { "id": "en-margin", "question": "Is margin buying in 2330 going up or down lately?",
+      "expect": [{ "tool": "snapshot.stock", "args": { "code": "2330", "include_margin": true } }] },
+    { "id": "en-esg", "question": "What greenhouse gas emissions has TSMC disclosed in its ESG data?",
+      "expect": [
+        { "tool": "quote.lookup" },
+        { "tool": "snapshot.stock", "args": { "code": "2330", "esg_topics": ["溫室氣體排放"] } },
+        { "tool": "dataset.search" }
+      ] },
+    { "id": "en-etf", "question": "Which index does the 0056 ETF track?",
+      "expect": [{ "tool": "snapshot.etf", "args": { "code": "0056" } }] },
+    { "id": "en-market", "question": "How did the Taiwan stock market do today?",
+      "expect": [{ "tool": "snapshot.market" }] },
+    { "id": "en-exdividend", "question": "Which Taiwan-listed stocks go ex-dividend in the next two weeks?",
+      "expect": [{ "tool": "snapshot.market", "args": { "scope": "events" } }, { "tool": "dataset.search" }] },
+    { "id": "en-futures", "question": "Where did TAIEX futures settle yesterday, and what's the open interest?",
+      "expect": [{ "tool": "snapshot.futures" }] },
+    { "id": "en-screen-yield", "question": "Which 10 Taiwan-listed stocks have the highest dividend yield?",
+      "expect": [
+        { "tool": "dataset.search" },
+        { "tool": "dataset.describe", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL" } },
+        { "tool": "dataset.get", "args": { "dataset_id": "exchangeReport/BWIBBU_ALL", "sort_by": "DividendYield" } }
       ] }
   ]
 }
