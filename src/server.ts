@@ -387,7 +387,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
     {
       title: "Get dataset rows",
       description:
-        "Fetch rows from a TWSE OpenAPI or TAIFEX OAS dataset, with server-side filtering (code is an exact match; match and where), sorting, field selection and paging: 30 rows by default, 200 at most. Most daily tables hold the previous trading day's after-close data, not live prices; the response note states the period. Data is republished under Taiwan's Open Government Data License. " +
+        "Fetch rows from a TWSE OpenAPI or TAIFEX OAS dataset. Find the dataset_id with dataset.search first; do not guess it, since each metric lives in its own table. Supports server-side filtering (code is an exact match; match and where), sorting, field selection and paging: 30 rows by default, 200 at most. For rankings and screens (top 10 by dividend yield, P/E below 10) use where and sort_by instead of paging through rows. Most daily tables hold the previous trading day's after-close data, not live prices; the response note states the period. Data is republished under Taiwan's Open Government Data License. " +
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
         "上游每個資料集都是整份回傳（可能上萬筆），這支工具預設只回前 30 筆（上限 200）；" +
         "用 code/match/where/fields 縮小到需要的範圍。" +
@@ -526,7 +526,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
     {
       title: "Look up stock code",
       description:
-        "Find the code of a TWSE-listed company or fund (including ETFs) from its name or code, e.g. 台積電 → 2330. Use it first when the user gives only a name. Listed (TWSE) securities only. Source: TWSE OpenAPI. " +
+        "Find the code of a TWSE-listed company or fund (including ETFs) from its name or code, e.g. 台積電 → 2330. Use it first when the user gives only a name. English matching covers the exchange's English short names (TSMC, UMC, MediaTek) and fund English names, not full company names; if an English name finds nothing, try its short form or the Chinese name. Listed (TWSE) securities only. Source: TWSE OpenAPI. " +
         "用名稱或代號找上市公司與上市基金（含 ETF）的代號。使用者只講名稱（「台積電」「元大高股息」）" +
         "時先用這個取得代號，不要憑印象猜代號。比對公司簡稱、全名、英文簡稱與代號，不分全半形與台／臺。" +
         "只收上市標的；上櫃公司的名稱對照取不到。",
