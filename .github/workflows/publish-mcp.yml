@@ -17,7 +17,14 @@ on:
     tags: ["v*"]
   # 手動重發：registry 標示為 preview，官方明說可能有資料重置，
   # 屆時不必為了重發而硬打一個新 tag。
+  # smithery_only：只重跑 Smithery（例如改了 .github/smithery.json），不動 registry——
+  # 同一個版本不能在 registry 重發，那一步會失敗而把 Smithery 擋掉。
   workflow_dispatch:
+    inputs:
+      smithery_only:
+        description: "只更新 Smithery（不發布到 registry）"
+        type: boolean
+        default: false
 
 concurrency:
   group: publish-mcp
@@ -25,6 +32,7 @@ concurrency:
 
 jobs:
   publish:
+    if: ${{ !inputs.smithery_only }}
     runs-on: ubuntu-latest
     # 這個 environment 掛 required reviewer，是唯一同時蓋住 tag 路徑與
     # `workflow_dispatch`-from-any-ref 路徑的閘門——它閘門化的是 OIDC 憑證的鑄造
@@ -104,11 +112,14 @@ jobs:
   # 同一個 environment：key 只在 required reviewer 核准後才讀得到。
   smithery:
     needs: publish
+    # publish 被 smithery_only 跳過時照樣跑；publish 失敗時不跑。
+    if: ${{ always() && (needs.publish.result == 'success' || inputs.smithery_only) }}
     runs-on: ubuntu-latest
     environment: mcp-registry
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
@@ -116,3 +127,12 @@ jobs:
         env:
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
         run: npx --yes smithery@1.2.0 mcp publish https://twse-mcp.taux.io/mcp -n taux/twse
+      # 顯示名稱與說明只在 .github/smithery.json 維護，每次發布都同步過去，網頁上改的會被覆蓋。
+      - name: sync Smithery listing metadata
+        env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+        run: |
+          curl -fsS -X PATCH "https://api.smithery.ai/servers/taux%2Ftwse" \
+            -H "Authorization: Bearer ${SMITHERY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data @.github/smithery.json -o /dev/null -w "HTTP %{http_code}\n"
