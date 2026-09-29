@@ -24,6 +24,20 @@
     "ENABLE_REALTIME_QUOTE": "true",
     "UPSTREAM_MAX_CONCURRENCY": "3"
   },
+
+  // 每日存檔（src/archive.ts）：上市個股日成交資訊存進 D1，自己累積歷史價量。
+  // 證交所 OpenAPI 約在台灣時間清晨更新前一交易日的資料；排兩次（台灣 06:30、09:30），
+  // 寫入以（代號、交易日）為主鍵，重跑只是覆寫。D1 只綁在 Worker 內，沒有對外的寫入路由。
+  "d1_databases": [
+    {
+      "binding": "ARCHIVE",
+      "database_name": "twse-mcp-archive",
+      "database_id": "eb3dc69d-0cae-4dd3-a0d3-1fc112230c14"
+    }
+  ],
+  "triggers": {
+    "crons": ["30 22 * * *", "30 1 * * *"]
+  },
   // 意圖不變：只開 logs，traces 對這個唯讀 server 用不到，關著省資源。
   // 改的是寫法——先前是 `enabled: false` 配 `logs.enabled: true`，而那個組合的語意
   // Cloudflare **文件從未規定**（文件那一節只記載頂層兩個欄位，完全沒提到 logs /

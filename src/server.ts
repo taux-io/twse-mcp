@@ -80,6 +80,7 @@ import {
   fetchSources,
   withRequestLimiter,
 } from "./twse";
+import { archiveDailyQuotes } from "./archive";
 import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
@@ -956,7 +957,7 @@ async function rejectBatch(request: Request): Promise<Response | null> {
   );
 }
 
-type Env = { ENABLE_REALTIME_QUOTE?: string; UPSTREAM_MAX_CONCURRENCY?: string };
+type Env = { ENABLE_REALTIME_QUOTE?: string; UPSTREAM_MAX_CONCURRENCY?: string; ARCHIVE?: D1Database };
 
 export default {
   async fetch(request, env, ctx) {
@@ -991,5 +992,15 @@ export default {
       () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false" }), { legacy: "stateless" })(request, env, ctx),
       Number(env.UPSTREAM_MAX_CONCURRENCY ?? NaN),
     );
+  },
+
+  /**
+   * 每日存檔（Cron，見 wrangler.jsonc 的 triggers）。只有排程會呼叫這裡，HTTP 請求進不來。
+   * 失敗就讓它丟出：Cron 的失敗會記在 Workers Logs，下一次排程會重寫同一批列。
+   */
+  async scheduled(_controller, env) {
+    if (!env.ARCHIVE) return;
+    const r = await archiveDailyQuotes(env.ARCHIVE);
+    console.log(JSON.stringify({ archive: "daily_quotes", rows: r.rows, dates: r.dates }));
   },
 } satisfies ExportedHandler<Env>;
