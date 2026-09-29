@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.14.0] - 2026-09-30
 
 - On days when the Taiwan Stock Exchange responds slowly (such as the first trading day after a holiday), lookups no longer give up too early: the wait limit goes from 25 to 60 seconds.
 - "Is the market open today?" and "When is the next trading day?" now get a direct answer: the market overview includes a trading calendar from the TWSE holiday schedule, naming the holiday when the market is closed.
@@ -127,6 +127,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.14.0]: https://github.com/taux-io/twse-mcp/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/taux-io/twse-mcp/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/taux-io/twse-mcp/compare/v0.10.2...v0.11.0
