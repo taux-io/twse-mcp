@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 import {
   dataGapNote,
+  tradingCalendar,
   isStaleDataDate,
   buildEtfSnapshot,
   describeDataset,
@@ -1042,5 +1043,30 @@ describe("getDataset — 回應大小上限", () => {
     const r = getDataset(ds, wide, { limit: 200, fields: ["A"] }) as any;
     expect(r.returned).toBe(200);
     expect(r.size_note).toBeUndefined();
+  });
+});
+
+describe("交易日曆（休市日表）", () => {
+  const holidays = [
+    { Name: "中秋節", Date: "1150925" },
+    { Name: "孔子誕辰紀念日/ 教師節", Date: "1150928" },
+    { Name: "國曆新年開始交易日", Date: "1150102" },
+  ];
+  it("今天休市：寫出名稱；下一個交易日跳過週末與連續的休市日", () => {
+    const { calendar, caveat } = tradingCalendar("2026-09-25", holidays);
+    expect(calendar["今天狀態"]).toBe("休市（中秋節）");
+    expect(calendar["下一個交易日"]).toBe("2026-09-29（二）"); // 跳過週末與 9/28 教師節
+    expect(caveat).toBeUndefined();
+  });
+  it("週末與一般交易日", () => {
+    expect(tradingCalendar("2026-09-27", holidays).calendar["今天狀態"]).toBe("週末休市");
+    expect(tradingCalendar("2026-09-30", holidays).calendar).toMatchObject({ "今天狀態": "交易日", "下一個交易日": "2026-10-01（四）" });
+  });
+  it("開始交易日當天有交易，不算休市", () => {
+    expect(tradingCalendar("2026-01-02", holidays).calendar["今天狀態"]).toBe("交易日");
+  });
+  it("跨進休市日表沒有的年份：照實說可能有未公布的休市日", () => {
+    const { caveat } = tradingCalendar("2026-12-31", holidays);
+    expect(caveat).toContain("2027");
   });
 });

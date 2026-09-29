@@ -921,15 +921,40 @@ export function isStaleDataDate(dataDate: string, today: string): boolean {
  * 「最後交易日」，那兩種當天有交易，要排除。今天不算缺漏：當天的資料本來就還沒出來。
  * holidays 為 null 表示休市日表取得失敗——說無法確認，不說「沒有休市」。
  */
-export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
-  if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
+/** 休市日表 → 休市日（ISO）與名稱。「開始交易日」「最後交易日」當天有交易，排除。 */
+function closedDates(holidays: Row[]): Map<string, string> {
   const closed = new Map<string, string>();
   for (const r of holidays) {
     const d = rocToIso(r["Date"]);
     const name = String(r["Name"] ?? "").trim();
     if (d && !/開始交易|最後交易/.test(name)) closed.set(d, name);
   }
-  const label = (d: string) => `${d}（${"日一二三四五六"[weekdayOf(d)]}）`;
+  return closed;
+}
+
+const dayLabel = (d: string) => `${d}（${"日一二三四五六"[weekdayOf(d)]}）`;
+
+/**
+ * 今天有沒有開盤、下一個交易日是哪天（證交所休市日表）。休市日表只列當年度：往後找跨進
+ * 表上沒有的年份時，那一天是否休市無從得知——照實說，而不是把它當成交易日。
+ */
+export function tradingCalendar(today: string, holidays: Row[]): { calendar: Record<string, unknown>; caveat?: string } {
+  const closed = closedDates(holidays);
+  const years = new Set([...closed.keys()].map((d) => d.slice(0, 4)));
+  const status = (d: string) => (!isWeekday(d) ? "週末休市" : closed.has(d) ? `休市（${closed.get(d)}）` : "交易日");
+  let next = addDays(today, 1);
+  while (!isWeekday(next) || closed.has(next)) next = addDays(next, 1);
+  const calendar = { "今天": dayLabel(today), "今天狀態": status(today), "下一個交易日": dayLabel(next) };
+  const missing = [...new Set([today, next].map((d) => d.slice(0, 4)))].filter((y) => !years.has(y));
+  return missing.length
+    ? { calendar, caveat: `休市日表還沒有 ${missing.join("、")} 年的資料，這一年的日期只排除了週末，可能有未公布的休市日` }
+    : { calendar };
+}
+
+export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
+  if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
+  const closed = closedDates(holidays);
+  const label = dayLabel;
   const closedDays: string[] = [];
   const unexplained: string[] = [];
   for (let d = addDays(dataDate, 1); d <= today; d = addDays(d, 1)) {

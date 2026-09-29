@@ -137,6 +137,10 @@
         { "tool": "dataset.get", "args": { "dataset_id": "exchangeReport/STOCK_DAY_ALL", "code": "0050" } },
         { "tool": "quote.realtime", "args": { "codes": ["0050"] } }
       ] },
+    { "id": "calendar-open", "question": "明天台股有開盤嗎？",
+      "expect": [{ "tool": "snapshot.market" }, { "tool": "dataset.search" }] },
+    { "id": "en-calendar", "question": "Is the Taiwan stock market open tomorrow?",
+      "expect": [{ "tool": "snapshot.market" }, { "tool": "dataset.search" }] },
     { "id": "en-realtime-name", "question": "What's TSMC trading at right now?",
       "expect": [{ "tool": "quote.lookup" }, { "tool": "quote.realtime", "args": { "codes": ["2330"] } }] },
     { "id": "en-lookup", "question": "What is the stock code for Chunghwa Telecom on the Taiwan Stock Exchange?",
