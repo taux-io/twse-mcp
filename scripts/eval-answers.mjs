@@ -312,6 +312,19 @@ export const CASES = [
     },
   },
   {
+    id: "next-trading-day",
+    question: "台股下一個交易日是哪一天？",
+    // 交易日曆（snapshot.market）算出的下一個交易日要原樣出現在答案裡，不能自己推算週末與假日。
+    check(run) {
+      const next = results(run, "snapshot.market")
+        .map((c) => c.result["交易日曆"]?.["下一個交易日"])
+        .find(Boolean);
+      if (!next) return skip("沒有取得交易日曆");
+      const iso = String(next).slice(0, 10);
+      return mentionsDate(run.answer, iso) ? pass() : fail(`交易日曆說下一個交易日是 ${iso}，答案沒有說`);
+    },
+  },
+  {
     id: "holiday-close",
     question: "2026 年 9 月 25 日台積電的收盤價是多少？",
     // 2026-09-25 是中秋節，證交所休市（休市日表 holidaySchedule 有 1150925）。答案要說那天沒開盤，

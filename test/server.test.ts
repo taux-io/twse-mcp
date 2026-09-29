@@ -1091,6 +1091,18 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(monthly.note).not.toContain("休市");
   });
 
+  it("snapshot.market：每個 scope 都附交易日曆；休市日表抓不到時說無法確認", async () => {
+    pinToday(); // 9/26 週六
+    overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse([{ Name: "中秋節", Date: "1150925" }]));
+    const out = await callTool("snapshot.market", { scope: "futures" });
+    expect(out["交易日曆"]).toMatchObject({ "今天狀態": "週末休市", "下一個交易日": "2026-09-28（一）" });
+
+    overrideFetch((u) => u.includes("holidaySchedule"), () => new Response("down", { status: 404 }));
+    const failed = await callTool("snapshot.market", { scope: "futures" });
+    expect(failed["交易日曆"]).toBeUndefined();
+    expect(failed.caveats.join()).toContain("無法確認今天是否開盤");
+  });
+
   it("quote.realtime：報價日期落後時，caveats 說明中間的休市日；沒落後就不查休市日表", async () => {
     pinToday(); // 週六 9/26；報價是週四 9/24，週五 9/25 沒有資料
     overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse([{ Name: "中秋節", Date: "1150925" }]));

@@ -21,6 +21,7 @@ import {
   esgLabel,
   buildFuturesSnapshot,
   dataGapNote,
+  tradingCalendar,
   isDailyDataset,
   rocToIso,
   isStaleDataDate,
@@ -168,6 +169,7 @@ const MARKET_OUTPUT = z.looseObject({
   證券市場: section.optional(),
   期貨籌碼: section.optional(),
   事件行事曆: section.optional(),
+  交易日曆: section.optional(),
   note: z.string(),
   ...common,
 });
@@ -656,11 +658,12 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
     {
       title: "Market overview",
       description:
-        "Whole-market overview for the previous trading day: TAIEX and its change, turnover, advancers and decliners, top 10 by volume, plus futures positioning (institutional net open interest, TAIEX futures positions, put/call ratio, large traders). scope=\"events\" lists ex-dividend dates and shareholder meetings in the next two weeks and attention/disposition stocks. Sources: TWSE OpenAPI and TAIFEX OAS; not live. " +
+        "Whole-market overview for the previous trading day: TAIEX and its change, turnover, advancers and decliners, top 10 by volume, plus futures positioning (institutional net open interest, TAIEX futures positions, put/call ratio, large traders). scope=\"events\" lists ex-dividend dates and shareholder meetings in the next two weeks and attention/disposition stocks. Every scope also includes a trading calendar: whether the market is open today and the next trading day (TWSE holiday schedule). Sources: TWSE OpenAPI and TAIFEX OAS; not live. " +
         "一次看完整體市場（前一交易日）：加權指數與漲跌、成交金額、上市股票漲跌家數、成交量前十名；" +
         "以及期貨籌碼：三大法人期貨未平倉淨部位、台指期各法人部位、Put/Call 比、台指期大額交易人淨部位。" +
         '只要其中一邊時用 scope="stock" 或 "futures"。' +
         'scope="events" 另外列出全市場的近期事件：兩週內的除權除息與股東會、今天公布的注意股、處置中與即將處置的股票（皆為上市）；' +
+        "每個 scope 都附交易日曆：今天有沒有開盤、下一個交易日（證交所休市日表）。" +
         "只問某一檔股票的除息、注意或處置狀態時，用 snapshot.stock。" +
         "不含個別契約的行情價格；要查台指期、小台、個股期貨等單一期貨契約的收盤價與部位，用 snapshot.futures。",
       annotations: { ...REMOTE_READ, title: "Market overview" },
@@ -676,7 +679,8 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
       const caveats: string[] = [];
       const errors: SourceError[] = [];
       const L = MARKET_SOURCE_LABELS;
-      const [stock, futures, events] = await Promise.all([
+      // 交易日曆每個 scope 都附：休市日表 27 列、走邊緣快取，多抓一次的成本可以忽略。
+      const [stock, futures, events, cal] = await Promise.all([
         scope === "futures" || scope === "events"
           ? null
           : fetchSources({
@@ -701,10 +705,18 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
               notice: { dataset: DS_NOTICE, label: L.notice },
               punish: { dataset: DS_PUNISH, label: L.punish },
             }),
+        fetchSources({ holidays: { dataset: DS_HOLIDAYS, label: "休市日表" } }),
       ]);
       for (const e of [...(stock?.errors ?? []), ...(futures?.errors ?? []), ...(events?.errors ?? [])]) {
         errors.push(e);
         caveats.push(`${e.source}取得失敗：${e.error}`);
+      }
+      let calendar: Record<string, unknown> | null = null;
+      if (cal.errors.length) caveats.push("休市日表取得失敗，無法確認今天是否開盤與下一個交易日");
+      else {
+        const t = tradingCalendar(taipeiToday(), cal.rows.holidays);
+        calendar = t.calendar;
+        if (t.caveat) caveats.push(t.caveat);
       }
       const stockMarket = stock ? buildStockMarket(stock.rows, errors, caveats) : null;
       const futuresMarket = futures ? buildFuturesMarket(futures.rows, errors, caveats) : null;
@@ -713,6 +725,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         caveats,
       );
       return structured({
+        ...(calendar ? { "交易日曆": calendar } : {}),
         ...(stockMarket ? { "證券市場": stockMarket } : {}),
         ...(futuresMarket ? { "期貨籌碼": futuresMarket } : {}),
         ...(events ? { "事件行事曆": buildMarketEvents(events.rows, taipeiToday(), errors, caveats) } : {}),
