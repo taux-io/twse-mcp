@@ -43,7 +43,7 @@ jobs:
         env:
           WRANGLER_SEND_METRICS: "false"
         run: |
-          npx wrangler dev --port 8787 > wrangler.log 2>&1 &
+          npx wrangler dev --port 8787 --test-scheduled > wrangler.log 2>&1 &
           for i in $(seq 1 60); do
             grep -q "Ready on http://localhost:8787" wrangler.log && exit 0
             sleep 2
@@ -53,6 +53,15 @@ jobs:
 
       - name: 每支工具實測
         run: npm run smoke
+
+      # 每日存檔的寫入路徑：觸發一次排程，確認本機 D1 真的寫進了一整天的上市股票。
+      - name: 每日存檔（本機 D1）
+        run: |
+          curl -fsS "http://localhost:8787/__scheduled?cron=30+22+*+*+*"
+          N=$(npx wrangler d1 execute twse-mcp-archive --local --json \
+                --command "SELECT COUNT(*) AS n FROM daily_quotes" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)[0].results[0].n))')
+          echo "daily_quotes: $N 列"
+          test "$N" -gt 1000
 
       - name: 正式環境存活檢查
         if: always() && github.event_name != 'pull_request'
