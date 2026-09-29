@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- On days when the Taiwan Stock Exchange responds slowly (such as the first trading day after a holiday), lookups no longer give up too early: the wait limit goes from 25 to 60 seconds.
+
 ## [0.13.0] - 2026-09-28
 
 - The service is now named **Taiwan Market Open Data (Unofficial)**, and the README, homepage and llms.txt state plainly that it is unofficial and not affiliated with, or endorsed by, the Taiwan Stock Exchange or the Taiwan Futures Exchange. The endpoint URL and tool names are unchanged.
