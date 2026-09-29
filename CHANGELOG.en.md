@@ -12,6 +12,7 @@ your AI uses it on its next connection.
 
 - On days when the Taiwan Stock Exchange responds slowly (such as the first trading day after a holiday), lookups no longer give up too early: the wait limit goes from 25 to 60 seconds.
 - "Is the market open today?" and "When is the next trading day?" now get a direct answer: the market overview includes a trading calendar from the TWSE holiday schedule, naming the holiday when the market is closed.
+- The stock snapshot can compare 2 to 5 companies at once: pass `codes` (for example ["2330","2303","2454"]) to get price, P/E, dividend yield, P/B and market cap side by side. The existing `code` usage is unchanged.
 
 ## [0.13.0] - 2026-09-28
 

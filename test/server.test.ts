@@ -879,7 +879,9 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(withSchema).toHaveLength(payload.result.tools.length);
     const stock = payload.result.tools.find((t: { name: string }) => t.name === "snapshot.stock");
     expect(stock.outputSchema.type).toBe("object");
-    expect(stock.outputSchema.required).toEqual(expect.arrayContaining(["code", "financials", "caveats", "source"]));
+    // 單檔與比較（codes）兩種模式共用：兩邊都有的才是必填，其餘（code、financials、compared…）是 optional
+    expect(stock.outputSchema.required).toEqual(expect.arrayContaining(["note", "caveats", "source"]));
+    expect(Object.keys(stock.outputSchema.properties)).toEqual(expect.arrayContaining(["code", "financials", "compared"]));
     // 每張表欄位不同：data 的每一列不能限制欄位，否則上游多一欄就整個呼叫失敗
     const get = payload.result.tools.find((t: { name: string }) => t.name === "dataset.get");
     expect(get.outputSchema.properties.data.items.additionalProperties).not.toBe(false);
@@ -1089,6 +1091,27 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     overrideFetch((u) => u.includes("t187ap05_L"), () => jsonResponse([{ Date: "1150924", 資料年月: "11508" }]));
     const monthly = await callTool("dataset.get", { dataset_id: "opendata/t187ap05_L", limit: 1 });
     expect(monthly.note).not.toContain("休市");
+  });
+
+  it("snapshot.stock codes：並排比較，主檔只抓一次；不在主檔的代號照列、標 is_listed_company: false", async () => {
+    const before = fetchedUrls().length;
+    const out = await callTool("snapshot.stock", { codes: ["2330", "9999"] });
+    expect(out.compared.map((c: { code: string }) => c.code)).toEqual(["2330", "9999"]);
+    expect(out.compared[0]).toMatchObject({ code: "2330", is_listed_company: true });
+    expect(out.compared[0].valuation).toHaveProperty("本益比");
+    expect(out.compared[1].is_listed_company).toBe(false);
+    // 八個主檔各一次（加上可能的休市日表），不會因為兩檔就抓兩輪
+    expect(fetchedUrls().length - before).toBeLessThanOrEqual(9);
+  });
+
+  it("snapshot.stock：code 與 codes 要擇一；比較模式帶選配段落回 isError", async () => {
+    const neither = await rpc("tools/call", { name: "snapshot.stock", arguments: {} });
+    expect(neither.result.isError).toBe(true);
+    const both = await rpc("tools/call", { name: "snapshot.stock", arguments: { code: "2330", codes: ["2330", "2303"] } });
+    expect(both.result.isError).toBe(true);
+    const withFin = await rpc("tools/call", { name: "snapshot.stock", arguments: { codes: ["2330", "2303"], include_financials: true } });
+    expect(withFin.result.isError).toBe(true);
+    expect(withFin.result.content[0].text).toContain("include_financials");
   });
 
   it("snapshot.market：每個 scope 都附交易日曆；休市日表抓不到時說無法確認", async () => {

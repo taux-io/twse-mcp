@@ -126,22 +126,24 @@ const section = z.looseObject({});
 const notQueried = z.literal("未查詢");
 const common = { caveats: z.array(z.string()), source: z.string() };
 
+// 單檔（code）與比較（codes）兩種模式共用這份 schema：單檔的欄位在比較模式不出現，所以都是 optional。
 const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
-  code: z.string(),
-  name: z.string().nullable(),
-  is_listed_company: z.boolean().nullable(),
-  profile: section.nullable(),
-  quote: section.nullable(),
-  valuation: section.nullable(),
-  monthly_revenue: section.nullable(),
-  upcoming_ex_rights: z.array(section).nullable(),
-  dividends: z.array(section).nullable(),
-  alerts: section,
-  derived: section.nullable(),
-  financials: z.union([section, z.null(), notQueried]),
-  governance: z.union([section, notQueried]),
-  margin: z.union([section, notQueried]),
-  esg: z.union([section, notQueried]),
+  code: z.string().optional(),
+  name: z.string().nullable().optional(),
+  is_listed_company: z.boolean().nullable().optional(),
+  profile: section.nullable().optional(),
+  quote: section.nullable().optional(),
+  valuation: section.nullable().optional(),
+  monthly_revenue: section.nullable().optional(),
+  upcoming_ex_rights: z.array(section).nullable().optional(),
+  dividends: z.array(section).nullable().optional(),
+  alerts: section.optional(),
+  derived: section.nullable().optional(),
+  financials: z.union([section, z.null(), notQueried]).optional(),
+  governance: z.union([section, notQueried]).optional(),
+  margin: z.union([section, notQueried]).optional(),
+  esg: z.union([section, notQueried]).optional(),
+  compared: z.array(section).optional(),
   note: z.string(),
   ...common,
 });
@@ -561,7 +563,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
     {
       title: "Stock snapshot",
       description:
-        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
+        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). To compare 2–5 companies side by side (price, P/E, dividend yield, P/B, market cap), pass codes instead of code. Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
         "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
         "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
@@ -569,11 +571,24 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         "要公司治理（董事長兼任總經理、董監質押、裁罰、董監持股不足）帶 include_governance。" +
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
+        "要並排比較 2–5 家（價量、本益比、殖利率、股價淨值比、市值）時，改帶 codes 而不是 code。" +
         "ETF 請用 snapshot.etf。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: { ...REMOTE_READ, title: "Stock snapshot" },
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
       inputSchema: {
-        code: z.string().describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。'),
+        code: z
+          .string()
+          .optional()
+          .describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。與 codes 擇一。'),
+        codes: z
+          .array(z.string().trim().regex(/^[0-9A-Za-z]{1,10}$/, "代號只能是英數字，最多 10 碼"))
+          .min(2)
+          .max(5)
+          .optional()
+          .describe(
+            '要並排比較的 2–5 檔代號，例如 ["2330", "2303", "2454"]。回傳 compared：每檔的價量、本益比、殖利率、' +
+              "股價淨值比與市值。與 code 擇一；比較模式不支援 include_financials、include_governance、include_margin、esg_topics。",
+          ),
         include_financials: z
           .boolean()
           .default(false)
@@ -601,7 +616,19 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
           ),
       },
     },
-    async ({ code, include_financials, include_governance, include_margin, esg_topics }) => {
+    async ({ code, codes, include_financials, include_governance, include_margin, esg_topics }) => {
+      if (!code === !codes) {
+        return toolError({ error: "code 與 codes 要擇一：查一檔用 code，並排比較 2–5 檔用 codes。" });
+      }
+      if (codes) {
+        if (include_financials || include_governance || include_margin || esg_topics) {
+          return toolError({
+            error: "比較模式（codes）不支援 include_financials、include_governance、include_margin、esg_topics；要這些資料請改用 code 逐檔查詢。",
+          });
+        }
+        return structured(await compareStocks([...new Set(codes)]));
+      }
+      code = code!;
       // 選配段落與八個主檔同時發出；各自的失敗都匯進同一份 errors。
       const finTask = include_financials ? fetchFinancials(code, STOCK_SOURCE_LABELS.financials) : null;
       const govTask = include_governance
@@ -860,6 +887,41 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   );
 
   return server;
+}
+
+/**
+ * 並排比較（snapshot.stock 的 codes）。八個主檔只抓一次，逐檔用同一份資料組出概況，
+ * 不多打上游；每檔只留比較用的欄位，回應大小與單檔差不多。
+ * 不在公司主檔的代號照樣列出（is_listed_company: false），不整個失敗。
+ */
+async function compareStocks(codes: string[]): Promise<Record<string, unknown>> {
+  const { rows, errors } = await fetchSources({
+    company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
+    days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
+    valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
+    revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
+    exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
+    dividends: { dataset: DS_DIVIDENDS, label: STOCK_SOURCE_LABELS.dividends },
+    notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
+    punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
+  });
+  const today = taipeiToday();
+  const snaps = codes.map((c) => buildStockSnapshot(c, { ...rows, errors, today }));
+  const caveats = [...new Set(snaps.flatMap((s) => s.caveats as string[]))];
+  await explainDataGap(snaps.map((s) => (s.quote as Row | null)?.["日期"]).find(Boolean), caveats);
+  return {
+    compared: snaps.map((s) => ({
+      code: s.code,
+      name: s.name,
+      is_listed_company: s.is_listed_company,
+      quote: s.quote,
+      valuation: s.valuation,
+      derived: s.derived,
+    })),
+    caveats,
+    note: snaps[0].note,
+    source: snaps[0].source,
+  };
 }
 
 /**

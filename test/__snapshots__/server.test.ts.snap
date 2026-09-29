@@ -202,6 +202,15 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
           "code": {
             "type": "string",
           },
+          "codes": {
+            "items": {
+              "pattern": "^[0-9A-Za-z]{1,10}$",
+              "type": "string",
+            },
+            "maxItems": 5,
+            "minItems": 2,
+            "type": "array",
+          },
           "esg_topics": {
             "items": {
               "enum": [
@@ -245,9 +254,6 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
             "type": "boolean",
           },
         },
-        "required": [
-          "code",
-        ],
         "type": "object",
       },
       "name": "snapshot.stock",
@@ -517,6 +523,15 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
           "code": {
             "type": "string",
           },
+          "codes": {
+            "items": {
+              "pattern": "^[0-9A-Za-z]{1,10}$",
+              "type": "string",
+            },
+            "maxItems": 5,
+            "minItems": 2,
+            "type": "array",
+          },
           "esg_topics": {
             "items": {
               "enum": [
@@ -560,9 +575,6 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
             "type": "boolean",
           },
         },
-        "required": [
-          "code",
-        ],
         "type": "object",
       },
       "name": "snapshot.stock",
