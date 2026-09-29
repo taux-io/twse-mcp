@@ -312,6 +312,22 @@ export const CASES = [
     },
   },
   {
+    id: "compare-pe",
+    question: "比較 2330、2303、2454 的本益比",
+    // 並排比較（snapshot.stock codes）：每一檔的本益比都要出現在答案裡，而且是工具給的那個數字。
+    check(run) {
+      const compared = results(run, "snapshot.stock", (c) => Array.isArray(c.result.compared))
+        .flatMap((c) => c.result.compared);
+      const single = results(run, "snapshot.stock", (c) => c.result.valuation).map((c) => c.result);
+      const byCode = new Map([...single, ...compared].map((x) => [x.code, x.valuation?.["本益比"]]));
+      const want = ["2330", "2303", "2454"].map((code) => [code, byCode.get(code)]);
+      if (want.some(([, pe]) => typeof pe !== "number")) return skip("沒有取得三檔的本益比");
+      const nums = (String(run.answer).match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+      const missing = want.filter(([, pe]) => !nums.some((n) => Math.abs(n - pe) <= 0.01)).map(([c, pe]) => `${c}=${pe}`);
+      return missing.length ? fail(`答案缺少本益比：${missing.join("、")}`) : pass();
+    },
+  },
+  {
     id: "next-trading-day",
     question: "台股下一個交易日是哪一天？",
     // 交易日曆（snapshot.market）算出的下一個交易日要原樣出現在答案裡，不能自己推算週末與假日。
