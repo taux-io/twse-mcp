@@ -570,8 +570,13 @@ function bestLevel(v: string | undefined): string | null {
  * 送給上游的 User-Agent：讓交易所看得出是誰在呼叫、要找誰。
  */
 export const UPSTREAM_USER_AGENT = `TaiwanMarketOpenData/${pkg.version} (+https://twse-mcp.taux.io; dev@taux.io)`;
-/** 整份資料集最大約 2.5 MB，25 秒足夠；即時報價是一次小查詢，8 秒還沒回就當上游有問題。 */
-const DATASET_TIMEOUT_MS = 25_000;
+/**
+ * 逾時只防「永遠不回」，不是效能門檻。2026-09-29 從美國連證交所，公司基本資料表要 25 秒以上
+ * （前一天 1–2 秒），原本的 25 秒把「很慢但拿得到」變成失敗；而 claude.ai 的請求經由美國機房。
+ * 60 秒：個股快照最多三輪抓取，3 × 60 仍在 Claude 單次工具呼叫的 240 秒上限內。
+ * 即時報價是一次小查詢，8 秒還沒回就當上游有問題。
+ */
+const DATASET_TIMEOUT_MS = 60_000;
 const QUOTE_TIMEOUT_MS = 8_000;
 const RETRY_DELAY_MS = 500;
 
@@ -627,7 +632,13 @@ async function fetchJson(
   // 拿 content-type 當閘門會把這條正常路徑整個擋掉（實際發生過）。
   // 所以先讀文字再 parse，parse 不過才丟出附診斷資訊的錯誤。
   const ctype = res.headers.get("content-type") ?? "(none)";
-  const body = await readCapped(res, label);
+  // timeout 的 signal 也涵蓋讀 body：標頭回來了、內容還沒讀完就逾時，同樣給看得懂的訊息。
+  const body = await readCapped(res, label).catch((e: unknown) => {
+    if ((e as Error)?.name === "TimeoutError") {
+      throw new Error(`上游逾時（${timeoutMs / 1000} 秒內沒有傳完）for ${url}`);
+    }
+    throw e;
+  });
   try {
     return JSON.parse(body);
   } catch {

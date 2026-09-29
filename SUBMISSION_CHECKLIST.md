@@ -18,7 +18,7 @@
 | 參數 schema 都有說明、enum、pattern | 完成 | 所有參數都有 `.describe()`（#132 補上 `where[]` 的三個欄位）；`codes` 有 pattern；`scope`、`op`、`order`、`market`、`esg_topics` 都是 enum |
 | 單次回傳量在 Claude 上限（約 15 萬字元）內 | 完成 | #130：`dataset.get` 的資料超過 10 萬字元就減少筆數，並附 `size_note`；實測最寬的表 `t187ap03_L` 取 200 筆約 14 萬字元 |
 | 錯誤訊息不含 stack trace 或敏感資訊 | 完成 | `errorText` 只保留 `name: message`；訊息裡的網址都是公開 API 網址 |
-| 上游保護：timeout、一次重試、User-Agent、並行上限 | 完成 | #130：資料集 25 秒、即時報價 8 秒；網路錯誤、429、5xx 重試一次；UA 是 `TaiwanMarketOpenData/<ver> (+https://twse-mcp.taux.io; dev@taux.io)`；`UPSTREAM_MAX_CONCURRENCY`（預設 3） |
+| 上游保護：timeout、一次重試、User-Agent、並行上限 | 完成 | #130：資料集 60 秒（原 25 秒，2026-09-29 證交所從美國連線變慢後放寬）、即時報價 8 秒；網路錯誤、429、5xx 重試一次；UA 是 `TaiwanMarketOpenData/<ver> (+https://twse-mcp.taux.io; dev@taux.io)`；`UPSTREAM_MAX_CONCURRENCY`（預設 3） |
 | 上游快取 | 完成 | 資料集用邊緣快取 1 小時（`DATA_TTL_SECONDS`）；即時報價不快取 |
 | 上游公告的限流數字 | 待查證 | TWSE OpenAPI 的 swagger 和使用條款、TAIFEX OAS 的 swagger 和使用條款都沒有公告限流數字 |
 | 用戶端限速 | 未完成 | 需要你在 Cloudflare 後台設定 WAF 限速規則，步驟見下方。程式裡刻意不做逐 IP 限速：Claude 的請求都來自 Anthropic 的 `160.79.104.0/21` |
