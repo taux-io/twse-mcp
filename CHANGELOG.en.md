@@ -8,7 +8,7 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
-## Unnumbered (already live)
+## [0.15.0] - 2026-09-30
 
 - The stock snapshot adds `history_days`: the last N trading days of closing prices and volume with the period change. The exchange's open data only has the latest day, so these come from this service's own daily archive, which started on 2026-09-29; while it is short, the response says how many days it has. Other parameters are unchanged.
 
@@ -131,6 +131,7 @@ your AI uses it on its next connection.
 - Listed on the official MCP Registry.
 - README in Traditional Chinese, English, Simplified Chinese, Japanese and Korean.
 
+[0.15.0]: https://github.com/taux-io/twse-mcp/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/taux-io/twse-mcp/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/taux-io/twse-mcp/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0
