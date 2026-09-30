@@ -34,7 +34,10 @@ import { writeFile } from "node:fs/promises";
 const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "http://localhost:8787/mcp";
 const SITE = new URL(ENDPOINT).origin;
 const MODERN = "2026-07-28";
-const TIMEOUT_MS = 90_000;
+// CI 與本機沒有邊緣快取，每次都重抓整份資料集；證交所慢的日子（2026-09-29、09-30），個股快照的
+// 八張表分三輪抓，每輪最長 60 秒（twse.ts 的 DATASET_TIMEOUT_MS）。等 200 秒：仍低於 Claude 單次
+// 工具呼叫的 240 秒上限——超過那個才是使用者真的會遇到的失敗。
+const TIMEOUT_MS = 200_000;
 const LIST_ONLY = process.env.SMOKE_LIST_ONLY === "1";
 const REPORT = process.env.SMOKE_REPORT ?? "smoke-report.md";
 
@@ -156,9 +159,14 @@ async function runCase(era, c) {
   }
   if (c.structured && !result.structuredContent) return { fail: "宣告了 outputSchema 卻沒有 structuredContent" };
   const r = body(result);
-  const ok = c.check(r);
-  if (ok !== true) return { fail: typeof ok === "string" ? ok : "檢查未通過" };
   const degraded = (r.caveats ?? []).filter((x) => String(x).includes("取得失敗"));
+  const ok = c.check(r);
+  if (ok !== true) {
+    const reason = typeof ok === "string" ? ok : "檢查未通過";
+    // 上游抓不到而導致檢查不過（例如公司主檔逾時 → 查不到 2330）是上游降級，不是程式失敗；
+    // 上游故障由每日上游健檢追蹤。回應裡沒有說明上游失敗，才算程式的問題。
+    return degraded.length ? { warn: [...degraded, `因此檢查未通過：${reason}`] } : { fail: reason };
+  }
   return { warn: degraded };
 }
 
