@@ -159,9 +159,14 @@ async function runCase(era, c) {
   }
   if (c.structured && !result.structuredContent) return { fail: "宣告了 outputSchema 卻沒有 structuredContent" };
   const r = body(result);
-  const ok = c.check(r);
-  if (ok !== true) return { fail: typeof ok === "string" ? ok : "檢查未通過" };
   const degraded = (r.caveats ?? []).filter((x) => String(x).includes("取得失敗"));
+  const ok = c.check(r);
+  if (ok !== true) {
+    const reason = typeof ok === "string" ? ok : "檢查未通過";
+    // 上游抓不到而導致檢查不過（例如公司主檔逾時 → 查不到 2330）是上游降級，不是程式失敗；
+    // 上游故障由每日上游健檢追蹤。回應裡沒有說明上游失敗，才算程式的問題。
+    return degraded.length ? { warn: [...degraded, `因此檢查未通過：${reason}`] } : { fail: reason };
+  }
   return { warn: degraded };
 }
 
