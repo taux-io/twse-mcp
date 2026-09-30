@@ -954,13 +954,12 @@ export function tradingCalendar(today: string, holidays: Row[]): { calendar: Rec
 export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
   if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
   const closed = closedDates(holidays);
-  const label = dayLabel;
   const closedDays: string[] = [];
   const unexplained: string[] = [];
   for (let d = addDays(dataDate, 1); d <= today; d = addDays(d, 1)) {
     if (!isWeekday(d)) continue;
-    if (closed.has(d)) closedDays.push(`${label(d)}${closed.get(d)}`);
-    else if (d < today) unexplained.push(label(d));
+    if (closed.has(d)) closedDays.push(`${dayLabel(d)}${closed.get(d)}`);
+    else if (d < today) unexplained.push(dayLabel(d));
   }
   const parts = [`資料日期是 ${dataDate}`];
   if (closedDays.length) parts.push(`之後的 ${closedDays.join("、")}，證交所休市（休市日表），這幾天沒有交易，不是資料缺漏`);

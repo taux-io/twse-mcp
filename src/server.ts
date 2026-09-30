@@ -652,16 +652,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
             Object.fromEntries(topics.map((t) => [t, { dataset: ESG_TOPIC_DATASETS[t], label: esgLabel(t) }])),
           )
         : null;
-      const { rows, errors } = await fetchSources({
-        company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
-        days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
-        valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
-        revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
-        exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
-        dividends: { dataset: DS_DIVIDENDS, label: STOCK_SOURCE_LABELS.dividends },
-        notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
-        punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
-      });
+      const { rows, errors } = await fetchSources(STOCK_BASE_SOURCES);
       const fin = finTask ? await finTask : null;
       const gov = govTask ? await govTask : null;
       const mar = marginTask ? await marginTask : null;
@@ -889,22 +880,25 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
   return server;
 }
 
+/** 個股快照的八個主檔：單檔與並排比較共用。 */
+const STOCK_BASE_SOURCES = {
+  company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
+  days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
+  valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
+  revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
+  exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
+  dividends: { dataset: DS_DIVIDENDS, label: STOCK_SOURCE_LABELS.dividends },
+  notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
+  punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
+};
+
 /**
  * 並排比較（snapshot.stock 的 codes）。八個主檔只抓一次，逐檔用同一份資料組出概況，
  * 不多打上游；每檔只留比較用的欄位，回應大小與單檔差不多。
  * 不在公司主檔的代號照樣列出（is_listed_company: false），不整個失敗。
  */
 async function compareStocks(codes: string[]): Promise<Record<string, unknown>> {
-  const { rows, errors } = await fetchSources({
-    company: { dataset: DS_COMPANY, label: STOCK_SOURCE_LABELS.company },
-    days: { dataset: DS_DAY, label: STOCK_SOURCE_LABELS.days },
-    valuation: { dataset: DS_VALUATION, label: STOCK_SOURCE_LABELS.valuation },
-    revenue: { dataset: DS_REVENUE, label: STOCK_SOURCE_LABELS.revenue },
-    exRights: { dataset: DS_EX_RIGHTS, label: STOCK_SOURCE_LABELS.exRights },
-    dividends: { dataset: DS_DIVIDENDS, label: STOCK_SOURCE_LABELS.dividends },
-    notice: { dataset: DS_NOTICE, label: STOCK_SOURCE_LABELS.notice },
-    punish: { dataset: DS_PUNISH, label: STOCK_SOURCE_LABELS.punish },
-  });
+  const { rows, errors } = await fetchSources(STOCK_BASE_SOURCES);
   const today = taipeiToday();
   const snaps = codes.map((c) => buildStockSnapshot(c, { ...rows, errors, today }));
   const caveats = [...new Set(snaps.flatMap((s) => s.caveats as string[]))];
