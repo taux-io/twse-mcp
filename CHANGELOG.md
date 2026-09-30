@@ -7,7 +7,7 @@
 
 服務是線上版，**不用更新任何東西**——新版上線後，你的 AI 下次連線就會用到。
 
-## 尚未編號（已上線）
+## [0.15.0] - 2026-09-30
 
 - 個股快照新增 `history_days`：附上最近 N 個交易日的收盤價量與期間漲跌幅。證交所開放資料只有最新一天，這些是本服務自 2026-09-29 起每天存下的資料；天數不足時會說明目前只有幾天。其他參數不變。
 
@@ -115,6 +115,7 @@
 - 登錄到官方 MCP Registry。
 - README 提供繁中、英文、簡中、日文、韓文五種語言。
 
+[0.15.0]: https://github.com/taux-io/twse-mcp/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/taux-io/twse-mcp/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/taux-io/twse-mcp/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/taux-io/twse-mcp/compare/v0.11.0...v0.12.0

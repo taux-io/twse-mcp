@@ -1,6 +1,6 @@
 {
   "name": "twse-mcp",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Taiwan Market Open Data (Unofficial): remote MCP server for TWSE and TAIFEX open data, on Cloudflare Workers. Not affiliated with TWSE or TAIFEX.",
   "type": "module",
   "private": true,
