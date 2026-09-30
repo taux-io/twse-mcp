@@ -21,7 +21,7 @@
 | 上游保護：timeout、一次重試、User-Agent、並行上限 | 完成 | #130：資料集 60 秒（原 25 秒，2026-09-29 證交所從美國連線變慢後放寬）、即時報價 8 秒；網路錯誤、429、5xx 重試一次；UA 是 `TaiwanMarketOpenData/<ver> (+https://twse-mcp.taux.io; dev@taux.io)`；`UPSTREAM_MAX_CONCURRENCY`（預設 3） |
 | 上游快取 | 完成 | 資料集用邊緣快取 1 小時（`DATA_TTL_SECONDS`）；即時報價不快取 |
 | 上游公告的限流數字 | 待查證 | TWSE OpenAPI 的 swagger 和使用條款、TAIFEX OAS 的 swagger 和使用條款都沒有公告限流數字 |
-| 用戶端限速 | 未完成（2026-09-30 起更重要：D1 歷史查詢的免費讀取額度可被大量請求耗盡，見 ADR-0003） | 需要你在 Cloudflare 後台設定 WAF 限速規則，步驟見下方。程式裡刻意不做逐 IP 限速：Claude 的請求都來自 Anthropic 的 `160.79.104.0/21` |
+| 用戶端限速 | 完成 | 2026-09-30 建立 Cloudflare WAF 限速規則「twse-mcp abuse guard」：`twse-mcp.taux.io` 的 `/mcp`，同一 IP 10 秒內超過 100 次即封鎖 10 秒（免費方案：1 條、以 IP 計數、10 秒）。門檻刻意寬鬆：Claude 的請求共用 Anthropic 的 `160.79.104.0/21`。也保護 D1 歷史查詢的讀取額度（ADR-0003） |
 | 非官方、無隸屬聲明 | 完成 | #128：五份 README 標題下方、首頁的授權區塊、llms.txt |
 | 資料來源與授權的顯名聲明 | 完成 | MCP `instructions`、README、首頁都有 OGDL v1 的顯名聲明，文字照[條款附件](https://data.gov.tw/license)原文 |
 | OGDL 是否禁止「暗示機關背書」 | 完成（查證結果：沒有這條） | 條款六(一)「依本條款提供之開放資料，不構成任何資料提供機關申述、保證或暗示其推薦、同意、許可或核准之意思表示」，這是提供機關的免責聲明。條款中沒有禁止使用者暗示背書的規定。我們仍然主動聲明無隸屬 |
