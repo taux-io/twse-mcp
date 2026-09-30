@@ -328,6 +328,25 @@ export const CASES = [
     },
   },
   {
+    id: "history-closes",
+    question: "台積電最近 5 個交易日的收盤價是多少？",
+    // 歷史價量（snapshot.stock history_days）：每一天的收盤價都要出現在答案裡；存檔天數不足時，
+    // 答案要說出只有幾天（存檔 2026-09-29 才開始，初期一定不足——那時測的就是這一條）。
+    check(run) {
+      const hit = results(run, "snapshot.stock", (c) => c.input.code === "2330" && c.input.history_days)
+        .map((c) => c.result)
+        .find((r) => r.history);
+      if (!hit) return skip("沒有取得 2330 的歷史價量");
+      const closes = hit.history.rows.map((r) => r.close).filter((x) => typeof x === "number");
+      const nums = (String(run.answer).match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((x) => Number(x.replace(/,/g, "")));
+      const missing = closes.filter((c) => !nums.some((n) => Math.abs(n - c) <= 0.01));
+      if (missing.length) return fail(`答案缺少收盤價：${missing.join("、")}`);
+      const short = (hit.caveats ?? []).some((c) => String(c).includes("存檔自"));
+      if (short && !/存檔|只有|僅有|開始記錄|開始存|天的資料|個交易日|archiv|only (?:got|have|\d)|trading days? (?:available|so far)/i.test(run.answer)) return fail("存檔天數不足，答案沒有說明");
+      return pass();
+    },
+  },
+  {
     id: "next-trading-day",
     question: "台股下一個交易日是哪一天？",
     // 交易日曆（snapshot.market）算出的下一個交易日要原樣出現在答案裡，不能自己推算週末與假日。

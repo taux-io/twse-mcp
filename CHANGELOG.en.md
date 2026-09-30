@@ -8,6 +8,10 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unnumbered (already live)
+
+- The stock snapshot adds `history_days`: the last N trading days of closing prices and volume with the period change. The exchange's open data only has the latest day, so these come from this service's own daily archive, which started on 2026-09-29; while it is short, the response says how many days it has. Other parameters are unchanged.
+
 ## [0.14.0] - 2026-09-30
 
 - On days when the Taiwan Stock Exchange responds slowly (such as the first trading day after a holiday), lookups no longer give up too early: the wait limit goes from 25 to 60 seconds.

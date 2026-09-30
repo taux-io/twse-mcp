@@ -241,6 +241,11 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
             "maxItems": 6,
             "type": "array",
           },
+          "history_days": {
+            "maximum": 250,
+            "minimum": 2,
+            "type": "integer",
+          },
           "include_financials": {
             "default": false,
             "type": "boolean",
@@ -561,6 +566,11 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
             },
             "maxItems": 6,
             "type": "array",
+          },
+          "history_days": {
+            "maximum": 250,
+            "minimum": 2,
+            "type": "integer",
           },
           "include_financials": {
             "default": false,

@@ -52,3 +52,17 @@
 **若 Cron 的 CPU 經常超過 10 ms**，備案是 GitHub Actions 每天抓好、經 D1 REST API 寫入——
 代價是要在 GitHub 存一把長期有效、只能寫這個資料庫的 Cloudflare token，
 而且無人值守的排程不能放在需要人工核准的 environment 後面。能用 Worker Cron 就不走這條。
+
+## 讀取路徑（2026-09-30 上線）
+
+`snapshot.stock` 的 `history_days`（2–250，預設不帶）→ `stockHistory`：一條
+`SELECT … WHERE code = ?1 ORDER BY date DESC LIMIT ?2`，主鍵讓它只讀 N 列。
+
+- 資料不足、查無資料、D1 出錯或沒有綁定，都回 `history: null`（或較短的歷史）加一句固定說明；
+  D1 的錯誤內容不回給用戶端，讀取路徑也不寫 log。D1 出事只影響這一段，其他段落與工具照常。
+- 只回原始價量與整段期間漲跌幅，不算技術指標——llms.txt 公開說本服務不做技術指標。
+- 比較模式（codes）不接受 `history_days`。
+- **讀取額度是可被耗盡的資源**：每次最多 250 列，約 2 萬次請求就能用完每天 500 萬列的免費額度，
+  之後歷史查詢一律回「暫時無法取得」（其他功能不受影響）。擋這件事要靠 Cloudflare WAF 限速規則
+  （SUBMISSION_CHECKLIST 的用戶端限速一項）——在那條規則建立前，這是已知的缺口。
+- 隱私不變：資料庫只有公開市場資料，查詢不存任何使用者資訊。

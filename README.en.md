@@ -37,6 +37,9 @@ Once installed, just ask in your own words, for example:
 - **"What's TSMC at right now?"** — Live prices, several tickers at once.
 - **"Where did 0050 close yesterday, and on what volume?"** — Previous trading day's open, high, low, close and volume.
 - **"How fast is TSMC's revenue growing? What are its P/E and yield?"** — A one-page company snapshot: monthly revenue growth, P/E, dividend yield, the dividend paid for each period over the past year, upcoming ex-dividend dates, and whether it is under disposition.
+- **"Compare the P/E and dividend yield of TSMC, UMC and MediaTek."** — Two to five companies side by side: price and volume, P/E, dividend yield, P/B and market cap.
+- **"What were TSMC's closing prices over the last 5 trading days?"** — Recent daily closes and volume with the period change. The exchange's open data only covers the latest day, so this service has archived it daily since 2026-09-29; while the archive is short, it says how many days it has.
+- **"Is the Taiwan stock market open tomorrow?"** — Whether the market is open today and the next trading day, from the TWSE holiday schedule, with the holiday named when closed.
 - **"Is margin buying in TSMC going up or down? How many shares can still be borrowed and sold short?"** — Margin and short balances with the daily change, utilisation, short-to-margin ratio and any suspension flags, plus today's shares available for securities-lending short sales (OTC stocks included for the latter).
 - **"Which stocks yield over 6% with a P/E under 10?"** — Filters and sorts by the exchange's published figures, so you do not page through them yourself.
 - **"How much did TSMC earn this half? Gross margin? Are directors' shares pledged?"** — The latest quarter's financials (the right industry table is picked for you) plus governance: chair/CEO duality, director share pledges, regulatory penalties.

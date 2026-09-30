@@ -1104,6 +1104,15 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(fetchedUrls().length - before).toBeLessThanOrEqual(9);
   });
 
+  it("snapshot.stock history_days：沒有 D1 綁定時 history 為 null 並說明，其他段落照常；比較模式不接受", async () => {
+    const out = await callTool("snapshot.stock", { code: "2330", history_days: 5 });
+    expect(out.history).toBeNull();
+    expect(out.caveats).toContain("歷史資料暫時無法取得");
+    expect(out.valuation).toHaveProperty("本益比");
+    const cmp = await rpc("tools/call", { name: "snapshot.stock", arguments: { codes: ["2330", "2303"], history_days: 5 } });
+    expect(cmp.result.isError).toBe(true);
+  });
+
   it("snapshot.stock：code 與 codes 要擇一；比較模式帶選配段落回 isError", async () => {
     const neither = await rpc("tools/call", { name: "snapshot.stock", arguments: {} });
     expect(neither.result.isError).toBe(true);

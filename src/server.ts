@@ -81,7 +81,7 @@ import {
   fetchSources,
   withRequestLimiter,
 } from "./twse";
-import { archiveDailyQuotes } from "./archive";
+import { archiveDailyQuotes, stockHistory } from "./archive";
 import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
@@ -144,6 +144,7 @@ const STOCK_SNAPSHOT_OUTPUT = z.looseObject({
   margin: z.union([section, notQueried]).optional(),
   esg: z.union([section, notQueried]).optional(),
   compared: z.array(section).optional(),
+  history: section.nullable().optional(),
   note: z.string(),
   ...common,
 });
@@ -318,7 +319,7 @@ const QUOTE_SOURCE_NOTE =
  * 開關預設開啟；ENABLE_REALTIME_QUOTE="false" 時不註冊 quote.realtime，snapshot.etf 也拿掉 include_realtime。
  * ponytail: 關閉時其他工具描述與 caveats 裡提到 quote.realtime 的文字不跟著改，真的要長期關閉時再一併處理
  */
-function createServer({ realtime = true }: { realtime?: boolean } = {}) {
+function createServer({ realtime = true, archive }: { realtime?: boolean; archive?: D1Database } = {}) {
   const server = new McpServer(
     // 版本只有 package.json 一個來源；server.json 由 test/catalog.test.ts 斷言與它一致。
     { name: "taiwan-market-open-data", title: "Taiwan Market Open Data (Unofficial)", version: pkg.version },
@@ -563,7 +564,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
     {
       title: "Stock snapshot",
       description:
-        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). To compare 2–5 companies side by side (price, P/E, dividend yield, P/B, market cap), pass codes instead of code. Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
+        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). To compare 2–5 companies side by side (price, P/E, dividend yield, P/B, market cap), pass codes instead of code. For recent price history (daily closes and the period change, archived by this service since 2026-09-29), pass history_days. Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
         "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
         "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
@@ -572,6 +573,7 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
         "要並排比較 2–5 家（價量、本益比、殖利率、股價淨值比、市值）時，改帶 codes 而不是 code。" +
+        "要最近幾個交易日的走勢（每日收盤價量與期間漲跌幅，本服務自 2026-09-29 起存檔）帶 history_days。" +
         "ETF 請用 snapshot.etf。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: { ...REMOTE_READ, title: "Stock snapshot" },
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
@@ -614,16 +616,26 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
               "約一半的主題只有特定產業須揭露；公司不在某主題的表中會標明，不代表數值為 0。" +
               "氣候相關議題管理是長篇文字，只在問到氣候風險時才帶。",
           ),
+        history_days: z
+          .number()
+          .int()
+          .min(2)
+          .max(250)
+          .optional()
+          .describe(
+            "附上最近 N 個交易日的收盤價量與整段期間的漲跌幅（本服務自己存的日成交資訊，存檔自 2026-09-29 開始；" +
+              "不足 N 日會說明）。問「最近走勢」「這個月漲多少」時才帶。不支援比較模式（codes）。",
+          ),
       },
     },
-    async ({ code, codes, include_financials, include_governance, include_margin, esg_topics }) => {
+    async ({ code, codes, include_financials, include_governance, include_margin, esg_topics, history_days }) => {
       if (!code === !codes) {
         return toolError({ error: "code 與 codes 要擇一：查一檔用 code，並排比較 2–5 檔用 codes。" });
       }
       if (codes) {
-        if (include_financials || include_governance || include_margin || esg_topics) {
+        if (include_financials || include_governance || include_margin || esg_topics || history_days) {
           return toolError({
-            error: "比較模式（codes）不支援 include_financials、include_governance、include_margin、esg_topics；要這些資料請改用 code 逐檔查詢。",
+            error: "比較模式（codes）不支援 include_financials、include_governance、include_margin、esg_topics、history_days；要這些資料請改用 code 逐檔查詢。",
           });
         }
         return structured(await compareStocks([...new Set(codes)]));
@@ -667,6 +679,12 @@ function createServer({ realtime = true }: { realtime?: boolean } = {}) {
         today: taipeiToday(),
       });
       await explainDataGap((snap.quote as Row | null)?.["日期"], snap.caveats as string[]);
+      if (history_days) {
+        // 只有這裡碰 D1：它出錯只影響這一段，其他段落照常回傳。
+        const h = await stockHistory(archive, code, history_days);
+        snap.history = h.history;
+        if (h.caveat) (snap.caveats as string[]).push(h.caveat);
+      }
       return structured(snap);
     },
   );
@@ -1058,7 +1076,7 @@ export default {
     if (batch) return batch;
     // 每個請求一份抓取限制器（見 twse.ts 的 withRequestLimiter）：跨請求共用在 workerd 上會卡死。
     return withRequestLimiter(
-      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false" }), { legacy: "stateless" })(request, env, ctx),
+      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false", archive: env.ARCHIVE }), { legacy: "stateless" })(request, env, ctx),
       Number(env.UPSTREAM_MAX_CONCURRENCY ?? NaN),
     );
   },
