@@ -34,7 +34,10 @@ import { writeFile } from "node:fs/promises";
 const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "http://localhost:8787/mcp";
 const SITE = new URL(ENDPOINT).origin;
 const MODERN = "2026-07-28";
-const TIMEOUT_MS = 90_000;
+// CI 與本機沒有邊緣快取，每次都重抓整份資料集；證交所慢的日子（2026-09-29、09-30），個股快照的
+// 八張表分三輪抓，每輪最長 60 秒（twse.ts 的 DATASET_TIMEOUT_MS）。等 200 秒：仍低於 Claude 單次
+// 工具呼叫的 240 秒上限——超過那個才是使用者真的會遇到的失敗。
+const TIMEOUT_MS = 200_000;
 const LIST_ONLY = process.env.SMOKE_LIST_ONLY === "1";
 const REPORT = process.env.SMOKE_REPORT ?? "smoke-report.md";
 
