@@ -249,6 +249,7 @@ part of that quote.
 3. **For reference only, not investment advice.** Figures may be wrong or delayed. **Verify with the exchange or your broker before you trade** — your gains and losses are your own responsibility.
 4. **Everything except live quotes may be up to an hour old.** Reports are cached for an hour so the exchange is not hit on every request; intraday prices are never cached and are always fetched fresh.
 5. **No login, and what you ask is not recorded.** The service only fetches **public** data from the exchanges on your behalf and does not store your questions or query arguments. Cloudflare keeps connection logs for each request (IP, User-Agent and so on) for 3 days for troubleshooting; see the [privacy policy](https://twse-mcp.taux.io/privacy).
+6. **There is an abuse guard.** More than 100 requests from one source within 10 seconds are blocked for 10 seconds (HTTP 429). Normal use never gets close.
 
 ---
 
