@@ -77,8 +77,8 @@ const LOCALES: Record<Locale, { path: string; lang: string; hreflang: string; la
  * 用 ASCII slug 而不是標題的百分比編碼，後者被複製貼上時會爛掉。
  */
 const SECTION_IDS = [
-  "problem",
   "install",
+  "problem",
   "shortcuts",
   "ask",
   "scope",
@@ -142,6 +142,16 @@ interface Page {
   ui: {
     shortcutCols: [string, string, string];
     installPrimary: string;
+    /** 頂端網址區塊上方的動作說明：告訴讀者這個網址要貼去哪裡。 */
+    endpointLabel: string;
+    /** 安裝步驟後的安心說明（HTML）：唯讀、碰不到錢、怎麼移除、無隸屬。 */
+    safety: string;
+    /** 手機讀者的一句話：先用電腦設定一次。 */
+    mobileNote: string;
+    /** 「沒成功？」排錯清單（HTML，<li> 們）。 */
+    troubleshoot: string;
+    /** ChatGPT 的安裝說明（HTML）。只在 Claude 上完整測過，方案與選單以 OpenAI 官方為準。 */
+    chatgpt: string;
     otherTools: string;
     copy: string;
     copied: string;
@@ -160,14 +170,15 @@ interface Page {
     howToName: string;
     howToDesc: string;
     otherLangLabel: string;
+    troubleshootTitle: string;
   };
 }
 
 const ZH: Page = {
   title: "Taiwan Market Open Data（非官方）｜讓 AI 查證交所與期交所的公開資料",
   description:
-    "免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢台股即時報價、ETF 資料、" +
-    `期貨選擇權行情與臺灣證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用安裝、不用註冊，貼一個網址就能用。`,
+    "非官方、免費、唯讀的遠端 MCP 伺服器，讓 Claude 等 AI 助理查詢台股即時報價、ETF 資料、" +
+    `期貨選擇權行情與證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用註冊，貼一個網址就能用。`,
   h1: "讓 AI 查得到真正的台股資料",
   lede:
     "<strong>Taiwan Market Open Data</strong>（非官方）是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
@@ -286,12 +297,30 @@ const ZH: Page = {
   ui: {
     shortcutCols: ["指令", "做什麼", "帶什麼"],
     installPrimary: "Claude（網頁版或桌面版）",
+    endpointLabel: "把這個網址貼進 AI 的連接器設定：",
+    safety: `
+<p><strong>它碰不到你的錢。</strong>這個連接器只讀取交易所的公開資料：不能下單，也連不到你的券商帳戶。AI 只會把查詢條件（例如股票代號或關鍵字）送過來，不會送來整段對話。不想用了，回到同一個 Connectors 頁面把它移除即可。</p>
+<p>這是 taux.io 的個人專案，與證交所、期交所沒有隸屬關係。</p>`,
+    chatgpt:
+      "ChatGPT 也能加，但要付費方案，並先在網頁版的設定裡開啟「開發者模式」（Developer mode），" +
+      "再用上面同一個網址新增連接器，驗證方式選 No authentication。哪些方案開放、選單放在哪裡，OpenAI 改過好幾次，" +
+      '請以<a href="https://developers.openai.com/api/docs/guides/developer-mode">官方說明</a>為準。' +
+      "這個服務目前只在 Claude 上完整測過。",
     otherTools: "Claude Code、Codex 或其他支援遠端 MCP 的工具",
     copy: "複製",
     copied: "已複製",
     transportNote:
       "其他工具請選 <strong>Streamable HTTP</strong>（遠端 MCP），不要選舊的 SSE；不需要認證。",
-    verify: "免費方案就能用。裝好後問一句「0050 現在多少？」，回得出具體價格就成功了。",
+    verify:
+      "免費方案就能用。裝好後問「用 Taiwan Market Open Data 查 0050 最近一個交易日的收盤價」：" +
+      "回答裡看得到它的工具呼叫（可以點開看查詢內容），而且寫出資料日期，才算成功。" +
+      "只給一個數字、沒有工具呼叫，代表連接器沒打開，那個價格是 AI 自己猜的。",
+    mobileNote: "在手機上看到這頁？先用電腦打開 Claude 網頁版設定一次，之後手機 App 也能用同一個連接器。",
+    troubleshoot: `
+<li><strong>AI 沒用它、直接回答</strong>：在對話的「+」→ Connectors 確認它是打開的，或在問題前加上「用 Taiwan Market Open Data 查」。</li>
+<li><strong>新增時出錯</strong>：網址要完整、結尾是 <code>/mcp</code>、前後不要有空白；驗證方式選 No sign-in。</li>
+<li><strong>ChatGPT 找不到地方加</strong>：免費版目前不能加自訂連接器，要付費方案並開啟開發者模式。</li>
+<li><strong>還是不行</strong>：寫信到 <a href="mailto:dev@taux.io">dev@taux.io</a>，或到 <a href="${REPO}/issues">GitHub</a> 回報。</li>`,
     shortcutIntro:
       "它們跟著連接器自動出現，不用另外安裝。Claude Desktop 在「+」選單裡，Claude Code 輸入 <code>/</code> 就會列出來。",
     shortcutOutro: "不用也沒關係——它們只是把常見問法先寫好，直接用中文問一樣有效。",
@@ -308,6 +337,7 @@ const ZH: Page = {
     howToName: "如何在 Claude 裡安裝 Taiwan Market Open Data",
     howToDesc: "把 Taiwan Market Open Data 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
     otherLangLabel: "其他語言的完整說明",
+    troubleshootTitle: "沒成功？",
   },
 };
 
@@ -316,8 +346,8 @@ const EN: Page = {
   // 長度是為搜尋結果片段抓的：Google 大約 155 字元就截斷，超過的部分等於白寫。
   // test/server.test.ts 有守衛，改文案時會擋下超長。
   description:
-    "Free remote MCP server. Let Claude query Taiwan stock quotes, ETF data, futures and " +
-    `options, and ${DATASET_COUNT} TWSE/TAIFEX open datasets. No install, no signup.`,
+    "Unofficial, free, read-only MCP server. Let Claude query Taiwan stock quotes, ETF data, " +
+    `futures and options, and ${DATASET_COUNT} TWSE/TAIFEX open datasets. No signup.`,
   h1: "Give your AI real Taiwan market data",
   lede:
     "<strong>Taiwan Market Open Data</strong> (unofficial) is a free remote MCP server that lets Claude and other AI " +
@@ -437,13 +467,31 @@ const EN: Page = {
   ui: {
     shortcutCols: ["Command", "What it does", "What to pass"],
     installPrimary: "Claude (web or desktop)",
+    endpointLabel: "Paste this URL into your AI's connector settings:",
+    safety: `
+<p><strong>It cannot touch your money.</strong> This connector only reads the exchanges' public data: it cannot place orders and cannot reach your brokerage account. Your AI sends it only the query (a ticker or a keyword, for example), never the whole conversation. To stop using it, remove it from the same Connectors page.</p>
+<p>This is a personal project by taux.io, not affiliated with the Taiwan Stock Exchange or the Taiwan Futures Exchange.</p>`,
+    chatgpt:
+      "ChatGPT can add it too, on a paid plan: first turn on Developer mode in the web app's settings, " +
+      "then add a connector with the same URL and choose No authentication. OpenAI has changed which plans qualify " +
+      'and where the menus live several times, so follow <a href="https://developers.openai.com/api/docs/guides/developer-mode">its official guide</a>. ' +
+      "This service has only been fully tested with Claude.",
     otherTools: "Claude Code, Codex, or any other tool that supports remote MCP",
     copy: "Copy",
     copied: "Copied",
     transportNote:
       "For any other tool, choose <strong>Streamable HTTP</strong> (remote MCP) rather than the older SSE transport. No authentication is needed.",
     verify:
-      'The free plan is enough. Once it is on, ask "what is 0050 trading at?" — a concrete price means it worked.',
+      'The free plan is enough. Once it is on, ask "Use Taiwan Market Open Data to get 0050\'s closing price on the latest trading day." ' +
+      "It worked if the reply shows a tool call (you can expand it to see the query) and states the data date. " +
+      "A bare number with no tool call means the connector is off and the AI guessed the price.",
+    mobileNote:
+      "Reading this on a phone? Set it up once in Claude on the web from a computer; the mobile app then uses the same connector.",
+    troubleshoot: `
+<li><strong>The AI answers without using it</strong>: check that it is switched on under "+" → Connectors in the chat, or start your question with "Use Taiwan Market Open Data to…".</li>
+<li><strong>Adding it fails</strong>: the URL must be complete, end in <code>/mcp</code> and have no spaces around it; choose No sign-in for authentication.</li>
+<li><strong>No place to add it in ChatGPT</strong>: the free plan cannot add custom connectors; you need a paid plan with Developer mode turned on.</li>
+<li><strong>Still stuck</strong>: email <a href="mailto:dev@taux.io">dev@taux.io</a> or report it on <a href="${REPO}/issues">GitHub</a>.</li>`,
     shortcutIntro:
       'They appear automatically with the connector; nothing extra to install. In Claude Desktop they are in the "+" menu; in Claude Code, type <code>/</code> to list them.',
     shortcutOutro:
@@ -464,6 +512,7 @@ const EN: Page = {
     howToDesc:
       "Add Taiwan Market Open Data as a custom connector in Claude. It takes about a minute and needs no account or payment.",
     otherLangLabel: "Full documentation in other languages",
+    troubleshootTitle: "Did not work?",
   },
 };
 
@@ -513,6 +562,7 @@ body{
 header{margin-bottom:3rem}
 h1{font-size:1.9rem;line-height:1.35;margin:0 0 .6rem;letter-spacing:-.01em;text-wrap:balance}
 .lede{font-size:1.1rem;color:var(--muted);margin:0 0 1.75rem}
+.endpoint-label{margin:0 0 -.35rem;font-size:.85rem;font-weight:600;letter-spacing:.02em;color:var(--muted)}
 h2{font-size:1.2rem;margin:3rem 0 .9rem;letter-spacing:-.005em}
 h3{font-size:1rem;margin:1.75rem 0 .4rem}
 p,li{margin:.6rem 0}
@@ -534,7 +584,7 @@ pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user
 .copy.done .i-done{display:block;color:var(--accent)}
 .copy[hidden]{display:none}
 .endpoint{border-color:var(--accent);background:var(--soft)}
-table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.95rem;display:block;overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
 th,td{border-bottom:1px solid var(--line);padding:.55rem .6rem;text-align:left;vertical-align:top}
 th{font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.02em}
 .steps{counter-reset:s;list-style:none;padding:0}
@@ -549,12 +599,23 @@ th{font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.02em}
 details{border-bottom:1px solid var(--line);padding:.35rem 0}
 summary{cursor:pointer;padding:.6rem 0;font-weight:500}
 summary::marker{color:var(--muted)}
-details p{margin:.2rem 0 .9rem;color:var(--muted)}
+details p,details ul{margin:.2rem 0 .9rem;color:var(--muted)}
 footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
 .langs{display:flex;gap:.9rem;flex-wrap:wrap;margin:.5rem 0 0;padding:0;list-style:none}
 .attr{font-size:.85rem;line-height:1.7}
 @media (max-width:32rem){ .wrap{padding:1.5rem 1rem 3.5rem} h1{font-size:1.55rem} }
 `.trim();
+
+/**
+ * 公告欄圖示：港灣藍方塊上三行字。不用 📈 之類的行情 emoji——那會被讀成漲跌訊號，
+ * 有些平台還畫成紅綠（見 DESIGN.md 的 No Red-Green Rule）。data: URI，CSP 的 img-src 已放行。
+ */
+const FAVICON =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='#2f5d8a'/>" +
+      "<path d='M9 11h14M9 16h14M9 21h9' stroke='#fff' stroke-width='2.5' stroke-linecap='round'/></svg>",
+  );
 
 function ldSoftware(loc: Locale, p: Page) {
   return {
@@ -629,11 +690,22 @@ function copyable(p: Page, code: string, cls = ""): string {
 
 function installHtml(p: Page): string {
   return `
+<p>${esc(p.ui.mobileNote)}</p>
 <h3>${esc(p.ui.installPrimary)}</h3>
 <ol class="steps">
-${p.installSteps.map((st) => `<li>${esc(st.text)}</li>`).join("\n")}
+${p.installSteps
+  .map(
+    // 貼網址的那一步就地附上可複製的網址，讀者不用捲回頁首。
+    (st) => `<li>${esc(st.text)}${st.text.includes(MCP_ENDPOINT) ? copyable(p, MCP_ENDPOINT) : ""}</li>`,
+  )
+  .join("\n")}
 </ol>
 <p>${esc(p.ui.verify)}</p>
+<details><summary>${esc(p.ui.troubleshootTitle)}</summary><ul>${p.ui.troubleshoot}</ul></details>
+<div class="note">${p.ui.safety}</div>
+
+<h3>ChatGPT</h3>
+<p>${p.ui.chatgpt}</p>
 
 <h3>${esc(p.ui.otherTools)}</h3>
 ${copyable(p, `claude mcp add twse --transport http ${MCP_ENDPOINT}`)}
@@ -725,7 +797,7 @@ ${alternates}
 <meta name="twitter:title" content="${esc(p.title)}">
 <meta name="twitter:description" content="${esc(p.description)}">
 <meta name="robots" content="index,follow">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="${FAVICON}">
 <link rel="alternate" type="text/markdown" href="${SITE_ORIGIN}/llms.txt" title="Plain-text summary for AI">
 <script type="application/ld+json">${JSON.stringify(ldSoftware(loc, p))}</script>
 <script type="application/ld+json">${JSON.stringify(ldHowTo(loc, p))}</script>
@@ -740,6 +812,7 @@ ${alternates}
 <header>
 <h1>${esc(p.h1)}</h1>
 <p class="lede">${p.lede}</p>
+<p class="endpoint-label">${esc(p.ui.endpointLabel)}</p>
 ${copyable(p, MCP_ENDPOINT, "endpoint")}
 </header>
 
@@ -749,7 +822,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
 <p><a href="${REPO}/blob/main/${p.ui.changelogFile}">${esc(p.ui.changelog)}</a></p>
 <p><a href="${SITE_ORIGIN}/privacy">${loc === "zh" ? "隱私權政策" : "Privacy policy"}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
-<p>${esc(p.ui.otherLangLabel)}：</p>
+<p>${esc(p.ui.otherLangLabel)}${loc === "zh" ? "：" : ":"}</p>
 <ul class="langs">
 <li><a href="${REPO}/blob/main/README.md">繁體中文</a></li>
 <li><a href="${REPO}/blob/main/README.en.md">English</a></li>
