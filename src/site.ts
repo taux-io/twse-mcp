@@ -43,8 +43,9 @@ export const DATASET_COUNT = Object.keys(catalog).length;
  * 一鍵複製。頁面上唯一會執行的腳本，CSP 以它的 SHA-256 放行（見 COPY_SCRIPT_HASH）。
  *
  * 按鈕預設 `hidden`，由這段腳本打開：沒有腳本就不會出現一顆按了沒反應的按鈕。
- * 按鈕是右上角的圖示（複製 → 打勾），語系文字只放在 aria-label／title 與 data 屬性裡，
- * 腳本本身不含任何語系文字——
+ * 按鈕是右上角的圖示（複製 → 打勾）；頁首的網址另外顯示文字（見 copyable）。語系文字只放在
+ * HTML 裡（aria-label／title／data 屬性／按鈕內文），複製成功時把 data-done 寫進旁邊的
+ * role="status"，螢幕閱讀器才會唸出「已複製」。腳本本身不含任何語系文字——
  * 兩個語系共用同一段腳本、同一個雜湊。複製失敗（例如非安全連線）就什麼都不做，
  * 讀者仍可點程式碼區塊全選後手動複製。
  */
@@ -52,8 +53,9 @@ export const COPY_SCRIPT =
   'for(const b of document.querySelectorAll("button.copy")){b.hidden=false;' +
   'b.addEventListener("click",async()=>{const t=b.parentElement.querySelector("code").textContent;' +
   'try{await navigator.clipboard.writeText(t);const o=b.getAttribute("aria-label");' +
-  'b.classList.add("done");b.setAttribute("aria-label",b.dataset.done);b.title=b.dataset.done;' +
-  'setTimeout(()=>{b.classList.remove("done");b.setAttribute("aria-label",o);b.title=o},1500)}catch{}})}';
+  'const s=b.parentElement.querySelector("[role=status]");' +
+  'b.classList.add("done");b.setAttribute("aria-label",b.dataset.done);b.title=b.dataset.done;s.textContent=b.dataset.done;' +
+  'setTimeout(()=>{b.classList.remove("done");b.setAttribute("aria-label",o);b.title=o;s.textContent=""},2500)}catch{}})}';
 
 /** COPY_SCRIPT 的 SHA-256（base64），給 CSP 的 script-src 用。從腳本本身算，改了腳本不會忘記改雜湊。 */
 export const COPY_SCRIPT_HASH = createHash("sha256").update(COPY_SCRIPT).digest("base64");
@@ -181,8 +183,8 @@ const ZH: Page = {
     `期貨選擇權行情與證交所、期交所的 ${DATASET_COUNT} 個公開資料集。不用註冊，貼一個網址就能用。`,
   h1: "讓 AI 查得到真正的台股資料",
   lede:
-    "<strong>Taiwan Market Open Data</strong>（非官方）是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢" +
-    "臺灣證券交易所與臺灣期貨交易所的公開資料。不用安裝、不用註冊、不需要 API key——複製一個網址就好。",
+    "<strong>Taiwan Market Open Data</strong>（非官方）是一個免費的 AI 連接器（技術上叫遠端 MCP 伺服器），讓 Claude 等 AI 助理直接查詢" +
+    "臺灣證券交易所與臺灣期貨交易所的公開資料。不用安裝、不用註冊、不需要 API key，複製一個網址就好。",
   features: [
     "台股上市股票與 ETF 的盤中即時報價",
     "前一交易日的開盤、最高、最低、收盤與成交量",
@@ -221,15 +223,15 @@ const ZH: Page = {
   faq: [
     {
       q: "要付費嗎？需要註冊或申請 API key 嗎？",
-      a: "都不用。服務公開、免費、不需要帳號，Claude 的免費方案就能加。資料來自政府開放資料平臺，本服務只是把它轉成 AI 看得懂的形式。",
+      a: "都不用。服務公開、免費、不需要帳號，Claude 的免費方案就能加。資料來自政府資料開放平臺，本服務只是把它轉成 AI 讀得懂的格式。",
     },
     {
-      q: "可以查上櫃（興櫃、OTC）股票嗎？",
-      a: "只有盤中即時報價可以，查詢時把市場別指定為 otc 即可。上櫃的歷史與統計報表目前取不到——證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線，這是已知限制，不是漏做。",
+      q: "可以查上櫃股票嗎？",
+      a: "只有盤中即時報價可以，查詢時把市場別指定為 otc 即可。上櫃的歷史與統計報表目前取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。這是已知限制，不是漏做。興櫃股票查不到。",
     },
     {
       q: "資料是即時的嗎？",
-      a: "盤中即時報價約每 5 秒更新，來自證交所基本市況報導站，屬盡力而為。其餘各類報表最新到前一交易日，而且會快取一小時以免打擾交易所主機。",
+      a: "盤中即時報價約每 5 秒更新，來自證交所基本市況報導站，不保證準時。其餘各類報表最新到前一交易日，而且會快取一小時以免打擾交易所主機。",
     },
     {
       q: "查得到期貨和選擇權嗎？",
@@ -246,7 +248,7 @@ const ZH: Page = {
   ],
   headings: {
     problem: "這解決什麼問題",
-    install: "一分鐘裝好",
+    install: "一分鐘設定好",
     shortcuts: "三個現成的快捷入口",
     ask: "可以問什麼",
     scope: "有些查得到，有些查不到",
@@ -256,26 +258,26 @@ const ZH: Page = {
   },
   body: {
     problem: `
-<p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來很合理、但憑空生成的價格——而你無從分辨。Taiwan Market Open Data 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
-<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而命名對一般人幾乎無法搜尋——ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。Taiwan Market Open Data 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
+<p><strong>AI 講台股時會編數字。</strong>它們的訓練資料有時效，而且沒有連到交易所。問「0050 昨天收多少」，得到的可能是一個看起來合理、其實是編出來的價格，你也無從分辨。Taiwan Market Open Data 讓 AI 去取<strong>交易所發布的原始開放資料</strong>，答案有出處。</p>
+<p><strong>資料分散、名稱不直覺。</strong>證交所與期交所各有一套 OpenAPI，加起來 ${DATASET_COUNT} 張報表，而且名稱幾乎搜不到：ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」是找不到它的。Taiwan Market Open Data 把兩邊合併成一份可搜尋的目錄，讓 AI 自己找到對的那一張。</p>
 <p><strong>不想寫程式，也不想申請什麼。</strong>沒有 API key、沒有註冊、沒有 SDK。貼一個網址，用中文問就好。</p>`,
     ask: `
 <ul>
-<li>「台積電現在多少？」——盤中即時報價，一次問好幾檔也行。</li>
-<li>「0050 昨天收盤多少、量多大？」——前一交易日的開高低收與成交量。</li>
-<li>「台積電最近營收成長多少？本益比、殖利率呢？」——上市公司一頁式概況，含月營收年增率與是否被列為處置股。</li>
-<li>「殖利率 6% 以上、本益比低於 10 的有哪些？」——依交易所公布的數字篩選與排序，不用自己一頁頁翻。</li>
-<li>「台積電上半年毛利率多少？負債比高嗎？」——最新一季財報摘要，自動找對業別的表，並提醒損益是年初累計數。</li>
-<li>「這家公司的董監有沒有大量質押股票？」——公司治理：董監質押、董事長兼任總經理、金管會裁罰紀錄。</li>
-<li>「昨天大盤怎麼樣？外資期貨是多還是空？」——加權指數、漲跌家數、成交量排行，以及三大法人期貨未平倉與 Put/Call 比。</li>
-<li>「隴華的股票代號是多少？」——只知道公司或 ETF 名稱時，先幫你查出代號。</li>
-<li>「0056 這檔 ETF 到底是什麼？」——追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
-<li>「台指期昨天收在哪？」——期貨與選擇權的每日行情、三大法人、未平倉。</li>
-<li>「交易所有沒有 ⋯⋯ 的資料？」——在兩百多張公開報表裡找到對的那一張。</li>
+<li>「台積電現在多少？」：盤中即時報價，一次問好幾檔也行。</li>
+<li>「0050 昨天收盤多少、量多大？」：前一交易日的開高低收與成交量。</li>
+<li>「台積電最近營收成長多少？本益比、殖利率呢？」：上市公司一頁式概況，含月營收年增率與是否被列為處置股。</li>
+<li>「殖利率 6% 以上、本益比低於 10 的有哪些？」：依交易所公布的數字篩選與排序，不用自己一頁頁翻。</li>
+<li>「台積電上半年毛利率多少？負債比高嗎？」：最新一季財報摘要，自動找對業別的表，並提醒損益是年初累計數。</li>
+<li>「這家公司的董監有沒有大量質押股票？」：公司治理，包括董監質押、董事長兼任總經理、金管會裁罰紀錄。</li>
+<li>「昨天大盤怎麼樣？外資期貨是多還是空？」：加權指數、漲跌家數、成交量排行，以及三大法人期貨未平倉與 Put/Call 比。</li>
+<li>「隴華的股票代號是多少？」：只知道公司或 ETF 名稱時，先幫你查出代號。</li>
+<li>「0056 這檔 ETF 到底是什麼？」：追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
+<li>「台指期昨天收在哪？」：期貨與選擇權的每日行情、三大法人、未平倉。</li>
+<li>「交易所有沒有……的資料？」：在 ${DATASET_COUNT} 張公開報表裡找到對的那一張。</li>
 </ul>`,
     scope: `
 <div class="note">
-<p><strong>上櫃股票目前只有即時報價。</strong>歷史與統計報表取不到——證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。這是已知限制，寫在這裡免得你以為是查詢方式錯了。</p>
+<p><strong>上櫃股票目前只有即時報價。</strong>歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。這是已知限制，寫在這裡免得你以為是查詢方式錯了。</p>
 </div>
 <ul>
 <li><strong>上市股票與 ETF</strong>：即時報價、前一交易日價量、基本資料、定期定額熱度、財報與公司治理揭露。</li>
@@ -323,7 +325,7 @@ const ZH: Page = {
 <li><strong>還是不行</strong>：寫信到 <a href="mailto:dev@taux.io">dev@taux.io</a>，或到 <a href="${REPO}/issues">GitHub</a> 回報。</li>`,
     shortcutIntro:
       "它們跟著連接器自動出現，不用另外安裝。Claude Desktop 在「+」選單裡，Claude Code 輸入 <code>/</code> 就會列出來。",
-    shortcutOutro: "不用也沒關係——它們只是把常見問法先寫好，直接用中文問一樣有效。",
+    shortcutOutro: "不用也沒關係，它們只是把常見問法先寫好，直接用中文問一樣有效。",
     licenceLabel: "政府資料開放授權條款",
     attributionKeptInChinese: "",
     exception:
@@ -352,7 +354,7 @@ const EN: Page = {
   lede:
     "<strong>Taiwan Market Open Data</strong> (unofficial) is a free remote MCP server that lets Claude and other AI " +
     "assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures " +
-    "Exchange (TAIFEX). No install, no signup, no API key — just paste one URL.",
+    "Exchange (TAIFEX). No install, no signup, no API key: just paste one URL.",
   features: [
     "Intraday quotes for TWSE-listed stocks and ETFs",
     "Previous trading day's open, high, low, close and volume",
@@ -395,11 +397,11 @@ const EN: Page = {
     },
     {
       q: "Can it look up over-the-counter (TPEx) stocks?",
-      a: 'Intraday quotes only — pass the market as "otc". Historical and statistical reports for OTC listings are not available: the Taipei Exchange open-data host refuses connections originating from cloud providers. That is a known limitation, not an oversight.',
+      a: 'Intraday quotes only: pass the market as "otc". Historical and statistical reports for OTC listings are not available: the Taipei Exchange open-data host refuses connections originating from cloud providers. That is a known limitation, not an oversight. Emerging-market (興櫃) stocks are not covered.',
     },
     {
       q: "Is the data real-time?",
-      a: "Intraday quotes refresh roughly every 5 seconds and come from the exchange's market-information site on a best-effort basis. Everything else is current to the previous trading day and is cached for an hour so the exchange is not hammered.",
+      a: "Intraday quotes refresh roughly every 5 seconds and come from the exchange's market-information site with no timing guarantee. Everything else is current to the previous trading day and is cached for an hour so the exchange is not hammered.",
     },
     {
       q: "Does it cover futures and options?",
@@ -426,22 +428,22 @@ const EN: Page = {
   },
   body: {
     problem: `
-<p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented — with nothing to tell the two apart. Taiwan Market Open Data makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
-<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search — the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Market Open Data merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
-<p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language — Chinese or English.</p>`,
+<p><strong>AI assistants make up Taiwan market numbers.</strong> Their training data has a cutoff and they are not wired to any exchange. Ask "where did 0050 close yesterday" and you may get a plausible-looking price that was invented, and nothing to tell the two apart. Taiwan Market Open Data makes the assistant fetch <strong>the exchange's own published open data</strong>, so the answer has a source.</p>
+<p><strong>The data is split across two APIs and named unsearchably.</strong> TWSE and TAIFEX each publish their own OpenAPI; together that is ${DATASET_COUNT} reports whose names defeat keyword search: the ETF master table is called 「基金基本資料彙總表」 (fund master data), so searching "ETF" never finds it. Taiwan Market Open Data merges both into one searchable catalogue so the assistant can locate the right table itself.</p>
+<p><strong>No code, no paperwork.</strong> There is no API key, no registration and no SDK. Paste a URL and ask in plain language, Chinese or English.</p>`,
     ask: `
 <ul>
-<li>"What's TSMC trading at right now?" — intraday quotes, several tickers at once.</li>
-<li>"Where did 0050 close yesterday, and on what volume?" — the previous session's open, high, low, close and volume.</li>
-<li>"How fast is TSMC's revenue growing? What are its P/E and yield?" — a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
-<li>"Which stocks yield over 6% with a P/E under 10?" — filter and sort by the exchange's published figures, server-side.</li>
-<li>"What was TSMC's gross margin this half, and is its debt ratio high?" — the latest quarter's financials, from the right industry table, noting that income figures are year-to-date.</li>
-<li>"Have this company's directors pledged a lot of their shares?" — governance: director share pledges, chair/CEO duality, regulatory penalties.</li>
-<li>"How did the market do yesterday? Are foreign investors long or short on futures?" — TAIEX, advancers and decliners, most-traded stocks, institutional futures open interest and the put/call ratio.</li>
-<li>"What's the ticker for 隴華?" — looks up the code when you only know a company or ETF name.</li>
-<li>"What exactly is the ETF 0056?" — which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
-<li>"Where did the TAIEX futures settle yesterday?" — daily futures and options quotes, institutional flows, open interest.</li>
-<li>"Does the exchange publish data on …?" — finds the right one among two hundred-plus public reports.</li>
+<li>"What's TSMC trading at right now?": intraday quotes, several tickers at once.</li>
+<li>"Where did 0050 close yesterday, and on what volume?": the previous session's open, high, low, close and volume.</li>
+<li>"How fast is TSMC's revenue growing? What are its P/E and yield?": a one-page company snapshot, including monthly revenue growth and whether the stock is under disposition.</li>
+<li>"Which stocks yield over 6% with a P/E under 10?": filter and sort by the exchange's published figures, server-side.</li>
+<li>"What was TSMC's gross margin this half, and is its debt ratio high?": the latest quarter's financials, from the right industry table, noting that income figures are year-to-date.</li>
+<li>"Have this company's directors pledged a lot of their shares?": governance, including director share pledges, chair/CEO duality, regulatory penalties.</li>
+<li>"How did the market do yesterday? Are foreign investors long or short on futures?": TAIEX, advancers and decliners, most-traded stocks, institutional futures open interest and the put/call ratio.</li>
+<li>"What's the ticker for 隴華?": looks up the code when you only know a company or ETF name.</li>
+<li>"What exactly is the ETF 0056?": which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
+<li>"Where did the TAIEX futures settle yesterday?": daily futures and options quotes, institutional flows, open interest.</li>
+<li>"Does the exchange publish data on …?": finds the right one among ${DATASET_COUNT} public reports.</li>
 </ul>`,
     scope: `
 <div class="note">
@@ -495,7 +497,7 @@ const EN: Page = {
     shortcutIntro:
       'They appear automatically with the connector; nothing extra to install. In Claude Desktop they are in the "+" menu; in Claude Code, type <code>/</code> to list them.',
     shortcutOutro:
-      "You do not have to use them — they only pre-write common phrasings. Asking in plain language works just as well.",
+      "You do not have to use them; they only pre-write common phrasings. Asking in plain language works just as well.",
     licenceLabel: "Open Government Data License",
     attributionKeptInChinese:
       "The attribution above is reproduced in its original Chinese wording. The Open Government Data License requires that exact form of notice, so translating it would not satisfy the obligation.",
@@ -580,8 +582,12 @@ pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user
 .copyable pre{padding-right:2.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
 .copy{position:absolute;top:.4rem;right:.4rem;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
 .copy:hover,.copy:focus-visible{border-color:var(--line);background:var(--surface);color:var(--accent)}
-.copy .i-done,.copy.done .i-copy{display:none}
+.copy .i-done,.copy.done .i-copy,.copy .t-done,.copy.done .t-copy{display:none}
 .copy.done .i-done{display:block;color:var(--accent)}
+.copy.done .t-done{display:inline}
+.copyable .endpoint{padding-right:7rem;min-height:3.5rem}
+.endpoint+.copy{width:auto;height:2.75rem;gap:.35rem;padding:0 .8rem;top:.375rem;right:.375rem;border-color:var(--accent);background:var(--surface);color:var(--accent);font-family:inherit;font-size:.85rem;font-weight:600;line-height:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .copy[hidden]{display:none}
 .endpoint{border-color:var(--accent);background:var(--soft)}
 table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
@@ -681,10 +687,13 @@ const ICON_DONE =
  */
 function copyable(p: Page, code: string, cls = ""): string {
   const label = esc(p.ui.copy);
+  const done = esc(p.ui.copied);
+  // 頁首的網址是整頁唯一要做的事：按鈕多一行看得見的文字，不只一個灰色圖示。
+  const text = cls === "endpoint" ? `<span class="t-copy">${label}</span><span class="t-done">${done}</span>` : "";
   return (
     `<div class="copyable"><pre${cls ? ` class="${cls}"` : ""}><code>${code}</code></pre>` +
-    `<button type="button" class="copy" aria-label="${label}" title="${label}" data-done="${esc(p.ui.copied)}" hidden>` +
-    `${ICON_COPY}${ICON_DONE}</button></div>`
+    `<button type="button" class="copy" aria-label="${label}" title="${label}" data-done="${done}" hidden>` +
+    `${ICON_COPY}${ICON_DONE}${text}</button><span class="sr" role="status"></span></div>`
   );
 }
 
