@@ -181,6 +181,19 @@ client 看得出是版本問題而不是服務故障。
 
 實作：`legacy: "stateless"`（`agents` 的預設）＋ `rejectBatch`。
 
+### 重新開放一週後的驗證（issue #83，2026-10-05）
+
+過去 7 天 `POST /mcp` 共 49,070 次：200 有 36,490 次、202（通知）3,650 次、沒有回應的 5,420 次
+（多為被中斷的 `subscriptions/listen` 長連線或客戶端先關閉）、503 有 590 次（免費方案 CPU 上限，#104）。
+
+- **Codex（`codex-mcp-client/*`）2,650 次全部 200 或 202**：legacy lane 對它是通的。
+- **400 共 1,930 次，全部來自監測 bot**：`SentinelOracle` 1,780、`rokmcp-collector` 120、`heldfast` 20、
+  `MCP-Radar` 10。沒有任何真實 client。
+- **406 共 970 次，全部來自同一個 `Python/3.11 aiohttp` 腳本**，送 `Accept: */*`
+  （規範要求同時接受 `application/json` 與 `text/event-stream`），不是 MCP client。
+
+結論：維持 dual-era，不需處置。
+
 ### 若要再收斂
 
 改回 `legacy: "reject"` 即可，`rejectBatch` 留著無害。前提是 Codex 等仍只會 legacy 的主流
