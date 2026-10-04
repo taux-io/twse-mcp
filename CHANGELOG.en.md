@@ -8,6 +8,11 @@ internal refactors, tests and doc fixes are left out. Each version links to the 
 This is a hosted service, so **there is nothing to update on your side**: once a version is live,
 your AI uses it on its next connection.
 
+## Unreleased
+
+- The homepage install guide was rewritten: setup now comes first, the URL can be copied right at the step that needs it, and success is judged by a visible tool call and data date rather than any price; it adds a "Did not work?" checklist, a note for phone readers, and how to add it in ChatGPT.
+- The homepage now states plainly that the connector cannot touch your money: it only reads public data, cannot place orders or reach your brokerage account, and explains how to remove it.
+
 ## [0.15.0] - 2026-09-30
 
 - The stock snapshot adds `history_days`: the last N trading days of closing prices and volume with the period change. The exchange's open data only has the latest day, so these come from this service's own daily archive, which started on 2026-09-29; while it is short, the response says how many days it has. Other parameters are unchanged.

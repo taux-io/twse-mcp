@@ -1,0 +1,398 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T17:41:17.959909+00:00",
+  "title": "Design System: Taiwan Market Open Data (Unofficial)",
+  "extensions": {
+    "colorMeta": {
+      "harbour-blue": {
+        "role": "primary",
+        "displayName": "港灣藍 Harbour Blue",
+        "canonical": "#2f5d8a",
+        "tonalRamp": [
+          "oklch(15% 0.08 250)",
+          "oklch(25% 0.08 250)",
+          "oklch(38% 0.08 250)",
+          "oklch(50% 0.08 250)",
+          "oklch(62% 0.08 250)",
+          "oklch(75% 0.08 250)",
+          "oklch(86% 0.08 250)",
+          "oklch(95% 0.08 250)"
+        ]
+      },
+      "harbour-blue-night": {
+        "role": "primary",
+        "displayName": "港灣藍（深色模式）",
+        "canonical": "#8ab6e2",
+        "tonalRamp": [
+          "oklch(15% 0.08 250)",
+          "oklch(25% 0.08 250)",
+          "oklch(38% 0.08 250)",
+          "oklch(50% 0.08 250)",
+          "oklch(62% 0.08 250)",
+          "oklch(75% 0.08 250)",
+          "oklch(86% 0.08 250)",
+          "oklch(95% 0.08 250)"
+        ]
+      },
+      "harbour-mist": {
+        "role": "primary",
+        "displayName": "港灣霧 Harbour Mist",
+        "canonical": "#eef3f8",
+        "tonalRamp": [
+          "oklch(15% 0.02 250)",
+          "oklch(25% 0.02 250)",
+          "oklch(38% 0.02 250)",
+          "oklch(50% 0.02 250)",
+          "oklch(62% 0.02 250)",
+          "oklch(75% 0.02 250)",
+          "oklch(86% 0.02 250)",
+          "oklch(95% 0.02 250)"
+        ]
+      },
+      "harbour-mist-night": {
+        "role": "primary",
+        "displayName": "港灣霧（深色模式）",
+        "canonical": "#1a2430",
+        "tonalRamp": [
+          "oklch(15% 0.02 250)",
+          "oklch(25% 0.02 250)",
+          "oklch(38% 0.02 250)",
+          "oklch(50% 0.02 250)",
+          "oklch(62% 0.02 250)",
+          "oklch(75% 0.02 250)",
+          "oklch(86% 0.02 250)",
+          "oklch(95% 0.02 250)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "紙 Paper",
+        "canonical": "#fcfcfb",
+        "tonalRamp": [
+          "oklch(15% 0.002 100)",
+          "oklch(25% 0.002 100)",
+          "oklch(38% 0.002 100)",
+          "oklch(50% 0.002 100)",
+          "oklch(62% 0.002 100)",
+          "oklch(75% 0.002 100)",
+          "oklch(86% 0.002 100)",
+          "oklch(95% 0.002 100)"
+        ]
+      },
+      "paper-night": {
+        "role": "neutral",
+        "displayName": "紙（深色模式）",
+        "canonical": "#121416",
+        "tonalRamp": [
+          "oklch(15% 0.005 250)",
+          "oklch(25% 0.005 250)",
+          "oklch(38% 0.005 250)",
+          "oklch(50% 0.005 250)",
+          "oklch(62% 0.005 250)",
+          "oklch(75% 0.005 250)",
+          "oklch(86% 0.005 250)",
+          "oklch(95% 0.005 250)"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "紙卡 Sheet",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(75% 0 0)",
+          "oklch(86% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "sheet-night": {
+        "role": "neutral",
+        "displayName": "紙卡（深色模式）",
+        "canonical": "#181b1e",
+        "tonalRamp": [
+          "oklch(15% 0.006 250)",
+          "oklch(25% 0.006 250)",
+          "oklch(38% 0.006 250)",
+          "oklch(50% 0.006 250)",
+          "oklch(62% 0.006 250)",
+          "oklch(75% 0.006 250)",
+          "oklch(86% 0.006 250)",
+          "oklch(95% 0.006 250)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "墨 Ink",
+        "canonical": "#17181a",
+        "tonalRamp": [
+          "oklch(15% 0.004 260)",
+          "oklch(25% 0.004 260)",
+          "oklch(38% 0.004 260)",
+          "oklch(50% 0.004 260)",
+          "oklch(62% 0.004 260)",
+          "oklch(75% 0.004 260)",
+          "oklch(86% 0.004 260)",
+          "oklch(95% 0.004 260)"
+        ]
+      },
+      "ink-night": {
+        "role": "neutral",
+        "displayName": "墨（深色模式）",
+        "canonical": "#e8eaec",
+        "tonalRamp": [
+          "oklch(15% 0.004 250)",
+          "oklch(25% 0.004 250)",
+          "oklch(38% 0.004 250)",
+          "oklch(50% 0.004 250)",
+          "oklch(62% 0.004 250)",
+          "oklch(75% 0.004 250)",
+          "oklch(86% 0.004 250)",
+          "oklch(95% 0.004 250)"
+        ]
+      },
+      "pencil": {
+        "role": "neutral",
+        "displayName": "鉛筆 Pencil",
+        "canonical": "#5f6570",
+        "tonalRamp": [
+          "oklch(15% 0.015 260)",
+          "oklch(25% 0.015 260)",
+          "oklch(38% 0.015 260)",
+          "oklch(50% 0.015 260)",
+          "oklch(62% 0.015 260)",
+          "oklch(75% 0.015 260)",
+          "oklch(86% 0.015 260)",
+          "oklch(95% 0.015 260)"
+        ]
+      },
+      "pencil-night": {
+        "role": "neutral",
+        "displayName": "鉛筆（深色模式）",
+        "canonical": "#9aa1aa",
+        "tonalRamp": [
+          "oklch(15% 0.012 255)",
+          "oklch(25% 0.012 255)",
+          "oklch(38% 0.012 255)",
+          "oklch(50% 0.012 255)",
+          "oklch(62% 0.012 255)",
+          "oklch(75% 0.012 255)",
+          "oklch(86% 0.012 255)",
+          "oklch(95% 0.012 255)"
+        ]
+      },
+      "rule-line": {
+        "role": "neutral",
+        "displayName": "格線 Rule Line",
+        "canonical": "#e4e6e8",
+        "tonalRamp": [
+          "oklch(15% 0.003 250)",
+          "oklch(25% 0.003 250)",
+          "oklch(38% 0.003 250)",
+          "oklch(50% 0.003 250)",
+          "oklch(62% 0.003 250)",
+          "oklch(75% 0.003 250)",
+          "oklch(86% 0.003 250)",
+          "oklch(95% 0.003 250)"
+        ]
+      },
+      "rule-line-night": {
+        "role": "neutral",
+        "displayName": "格線（深色模式）",
+        "canonical": "#282c31",
+        "tonalRamp": [
+          "oklch(15% 0.008 255)",
+          "oklch(25% 0.008 255)",
+          "oklch(38% 0.008 255)",
+          "oklch(50% 0.008 255)",
+          "oklch(62% 0.008 255)",
+          "oklch(75% 0.008 255)",
+          "oklch(86% 0.008 255)",
+          "oklch(95% 0.008 255)"
+        ]
+      },
+      "code-well": {
+        "role": "neutral",
+        "displayName": "程式碼井 Code Well",
+        "canonical": "#f4f5f6",
+        "tonalRamp": [
+          "oklch(15% 0.002 250)",
+          "oklch(25% 0.002 250)",
+          "oklch(38% 0.002 250)",
+          "oklch(50% 0.002 250)",
+          "oklch(62% 0.002 250)",
+          "oklch(75% 0.002 250)",
+          "oklch(86% 0.002 250)",
+          "oklch(95% 0.002 250)"
+        ]
+      },
+      "code-well-night": {
+        "role": "neutral",
+        "displayName": "程式碼井（深色模式）",
+        "canonical": "#1e2226",
+        "tonalRamp": [
+          "oklch(15% 0.007 250)",
+          "oklch(25% 0.007 250)",
+          "oklch(38% 0.007 250)",
+          "oklch(50% 0.007 250)",
+          "oklch(62% 0.007 250)",
+          "oklch(75% 0.007 250)",
+          "oklch(86% 0.007 250)",
+          "oklch(95% 0.007 250)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "只用於頁面 h1；32rem 以下縮為 1.55rem。"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "各節 h2，上方 3rem 留白。"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "節內小標 h3。"
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "h1 下方的導言，鉛筆色。"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "正文，行高 1.75，欄寬 44rem。"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "表頭、語言切換、步驟數字。"
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "32rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Connector 網址區塊",
+      "kind": "custom",
+      "refersTo": "endpoint-block",
+      "description": "整頁最重要的元件：要複製的 connector 網址。",
+      "html": "<div class=\"ds-copyable\"><pre class=\"ds-endpoint\"><code>https://twse-mcp.taux.io/mcp</code></pre><button type=\"button\" class=\"ds-copy\" aria-label=\"複製\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1\"/></svg></button></div>",
+      "css": ".ds-copyable{position:relative;font-family:system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif} .ds-endpoint{background:#eef3f8;border:1px solid #2f5d8a;border-radius:8px;padding:.9rem 2.9rem .9rem 1rem;margin:.75rem 0;white-space:pre-wrap;overflow-wrap:anywhere;color:#17181a} .ds-endpoint code{font-size:.95rem;user-select:all} .ds-copy{position:absolute;top:.4rem;right:.4rem;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:#5f6570;cursor:pointer} .ds-copy:hover,.ds-copy:focus-visible{border-color:#e4e6e8;background:#fff;color:#2f5d8a}"
+    },
+    {
+      "name": "程式碼區塊",
+      "kind": "custom",
+      "refersTo": "code-block",
+      "description": "其他可複製的指令。",
+      "html": "<pre class=\"ds-pre\"><code>claude mcp add twse --transport http https://twse-mcp.taux.io/mcp</code></pre>",
+      "css": ".ds-pre{background:#f4f5f6;border:1px solid #e4e6e8;border-radius:8px;padding:.9rem 1rem;white-space:pre-wrap;overflow-wrap:anywhere;color:#17181a;font-size:.95rem}"
+    },
+    {
+      "name": "語言切換",
+      "kind": "nav",
+      "refersTo": "language-switch",
+      "description": "右上角的膠囊連結。",
+      "html": "<a class=\"ds-switch\" href=\"#\">English</a>",
+      "css": ".ds-switch{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #e4e6e8;border-radius:999px;padding:.25rem .8rem;text-decoration:none;color:#5f6570;background:#fff;font:.85rem system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif} .ds-switch:hover{border-color:#2f5d8a;color:#2f5d8a} .ds-switch:focus-visible{outline:2px solid #2f5d8a;outline-offset:2px}"
+    },
+    {
+      "name": "安裝步驟",
+      "kind": "custom",
+      "refersTo": "step-marker",
+      "description": "圓形編號的步驟清單。",
+      "html": "<ol class=\"ds-steps\"><li>打開 Claude 的「設定 → 連接器」</li><li>新增自訂連接器，貼上網址</li></ol>",
+      "css": ".ds-steps{counter-reset:s;list-style:none;padding:0;font:16px/1.75 system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif;color:#17181a} .ds-steps>li{counter-increment:s;position:relative;padding-left:2.2rem;margin:1.1rem 0} .ds-steps>li::before{content:counter(s);position:absolute;left:0;top:.15rem;width:1.55rem;height:1.55rem;border-radius:50%;background:#eef3f8;color:#2f5d8a;border:1px solid #e4e6e8;font-size:.85rem;font-weight:600;display:grid;place-items:center}"
+    },
+    {
+      "name": "提示框",
+      "kind": "card",
+      "refersTo": "note",
+      "description": "補充說明，不當警告用。",
+      "html": "<div class=\"ds-note\"><p>資料大多是前一交易日收盤後的資料。</p></div>",
+      "css": ".ds-note{border-left:3px solid #2f5d8a;background:#eef3f8;padding:.1rem 1rem;border-radius:0 6px 6px 0;font:16px/1.75 system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif;color:#17181a}"
+    },
+    {
+      "name": "連結",
+      "kind": "custom",
+      "refersTo": "link",
+      "description": "港灣藍、保留底線。",
+      "html": "<a class=\"ds-link\" href=\"#\">隱私權政策</a>",
+      "css": ".ds-link{color:#2f5d8a;font:16px system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif} .ds-link:hover{text-decoration-thickness:2px} .ds-link:focus-visible{outline:2px solid #2f5d8a;outline-offset:2px;border-radius:2px}"
+    },
+    {
+      "name": "FAQ",
+      "kind": "custom",
+      "refersTo": "faq",
+      "description": "原生 details，答案退後一層。",
+      "html": "<details class=\"ds-faq\"><summary>要付費嗎？</summary><p>不用，免費、免登入。</p></details>",
+      "css": ".ds-faq{border-bottom:1px solid #e4e6e8;padding:.35rem 0;font:16px/1.75 system-ui,-apple-system,\"Noto Sans TC\",\"PingFang TC\",\"Microsoft JhengHei\",sans-serif;color:#17181a} .ds-faq summary{cursor:pointer;padding:.6rem 0;font-weight:500} .ds-faq p{margin:.2rem 0 .9rem;color:#5f6570}"
+    }
+  ],
+  "narrative": {
+    "northStar": "交易所公告欄（The Exchange Notice Board）",
+    "overview": "首頁讀起來像一張貼在公告欄上的通知：\n\n- 白紙黑字、單欄、由上往下讀。\n- 唯一的顏色用來指路（連結、步驟、要複製的網址）。\n\n讀者是不寫程式的一般投資人。他們只為一件事而來：把 connector 加進自己的 AI。所以版面上的一切都要讓這件事顯得簡單、可信。\n\n這個系統刻意「不像行情」：\n\n- 不用紅綠（台股紅漲綠跌，用了會被讀成漲跌訊號）。\n- 不用 K 線或儀表板語彙，不做任何讓人聯想到即時看盤的裝飾。\n\n這個服務也是非官方的，所以設計不借用交易所的配色、標誌或制式外觀。\n\n版面平面、無陰影，深淺兩套主題由系統設定自動切換，沒有切換按鈕。",
+    "keyCharacteristics": [
+      "單欄閱讀版面，寬 44rem。",
+      "中性紙色底，搭配一個港灣藍重點色。",
+      "系統字體，不另外載入任何字型檔。",
+      "層次靠細線與淡藍底塊表現，不靠陰影。",
+      "深淺主題完全由 `prefers-color-scheme` 決定。"
+    ],
+    "rules": [
+      {
+        "name": "The No Red-Green Rule",
+        "body": "介面上永遠不出現紅色或綠色。即使是成功、錯誤這類狀態，也用港灣藍與文字表達，不靠紅綠。",
+        "section": "colors"
+      },
+      {
+        "name": "The One Voice Rule",
+        "body": "港灣藍是唯一的彩度來源。要新增顏色前，先問：能不能用港灣藍、港灣霧，或一條格線解決？",
+        "section": "colors"
+      },
+      {
+        "name": "The Paired Token Rule",
+        "body": "每個顏色都有對應的 `-night` 版本，兩者同時新增、同時修改，不能只做淺色版。",
+        "section": "colors"
+      },
+      {
+        "name": "The System Font Rule",
+        "body": "不載入任何網頁字型。首頁要輕（見 PRODUCT.md），字型檔也算重量。",
+        "section": "typography"
+      },
+      {
+        "name": "The Generous Leading Rule",
+        "body": "正文行高維持 1.75。中文段落壓緊了就難讀。",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Notice Rule",
+        "body": "公告欄上的紙是貼平的。不加陰影、不加漸層、不加模糊；需要強調時，換成港灣霧底色或港灣藍邊框。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** 所有顏色都透過 `:root` 的 CSS 變數取用，並同時提供 `-night` 版本。",
+      "**Do** 把 connector 網址放在網址區塊元件裡：港灣霧底色加港灣藍邊框。",
+      "**Do** 要強調時先用留白、港灣霧或格線；陰影永遠不是選項。",
+      "**Do** 新內容維持在 44rem 的單欄裡，窄螢幕不能出現橫向捲動。",
+      "**Do** 所有互動元素都要保留可見的 `:focus-visible` 樣式（港灣藍）。"
+    ],
+    "donts": [
+      "**Don't** 在介面上使用紅色或綠色：會被讀成台股的漲跌訊號。",
+      "**Don't** 使用證交所、期交所的標誌、配色，或任何讓人以為是官方服務的視覺元素。",
+      "**Don't** 加 `box-shadow`、漸層或模糊效果。",
+      "**Don't** 載入網頁字型、外部圖片或其他外部資源：首頁要輕，CSP 也只放行頁面內嵌的內容。",
+      "**Don't** 加主題切換按鈕：深淺主題交給 `prefers-color-scheme` 決定。"
+    ]
+  }
+}

@@ -1434,18 +1434,18 @@ describe("首頁", () => {
   it.each([
     ["/", "複製", "已複製"],
     ["/en", "Copy", "Copied"],
-  ])("%s：端點與兩行安裝指令都有右上角的複製圖示（預設隱藏、語系標籤）", async (path, label, done) => {
+  ])("%s：端點、安裝步驟裡的網址與兩行安裝指令都有右上角的複製圖示（預設隱藏、語系標籤）", async (path, label, done) => {
     const html = await (await get(path)).text();
     const buttons = [
       ...html.matchAll(/<button type="button" class="copy" aria-label="([^"]+)" title="([^"]+)" data-done="([^"]+)" hidden>/g),
     ];
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(4);
     for (const b of buttons) {
       expect([b[1], b[2], b[3]]).toEqual([label, label, done]);
     }
     // 圖示按鈕：複製與完成兩個圖示都在，文字只在 aria-label／title（給螢幕閱讀器與滑鼠提示）
-    expect(html.match(/class="i-copy"/g)).toHaveLength(3);
-    expect(html.match(/class="i-done"/g)).toHaveLength(3);
+    expect(html.match(/class="i-copy"/g)).toHaveLength(4);
+    expect(html.match(/class="i-done"/g)).toHaveLength(4);
     // 沒有腳本時的退路：點程式碼區塊就全選
     expect(html).toContain("user-select:all");
   });

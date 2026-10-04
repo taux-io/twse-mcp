@@ -16,3 +16,6 @@ docs/spec-security-run7.md
 upstream-report.md
 smoke-report.md
 wrangler.log
+
+# --- Impeccable：每人自己的 hook 同意紀錄 ---
+.impeccable/config.local.json
