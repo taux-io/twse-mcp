@@ -1040,6 +1040,13 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
 `;
 
 /**
+ * 兩個首頁最後一次**內容**變更的日期（UTC）。不是部署日：Google 只在 lastmod 長期可信時
+ * 才採用它，每次部署都更新等於把它變成噪音。改動首頁文字或結構時手動更新；
+ * test/server.test.ts 有一組內容雜湊斷言，內容變了而這個日期沒動，測試會失敗。
+ */
+export const PAGES_LASTMOD = "2026-10-05";
+
+/**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
  * 而 Google 明確要求兩處宣告必須一致。
  */
@@ -1050,6 +1057,7 @@ ${(Object.keys(LOCALES) as Locale[])
   .map(
     (l) => `  <url>
     <loc>${SITE_ORIGIN}${LOCALES[l].path}</loc>
+    <lastmod>${PAGES_LASTMOD}</lastmod>
 ${(Object.keys(LOCALES) as Locale[])
   .map(
     (o) =>

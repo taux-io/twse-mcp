@@ -1578,6 +1578,33 @@ describe("英文版首頁", () => {
     expect(body).toContain("<loc>https://twse-mcp.taux.io/en</loc>");
   });
 
+  it("sitemap 每個網址都有 lastmod，且是合法的 YYYY-MM-DD", async () => {
+    const body = await (await get("/sitemap.xml")).text();
+    const dates = [...body.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
+    expect(dates).toHaveLength(2);
+    for (const d of dates) {
+      expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(Number.isNaN(Date.parse(d))).toBe(false);
+      expect(Date.parse(d)).toBeLessThanOrEqual(Date.now());
+    }
+  });
+
+  // lastmod 必須反映內容真的變了的日期。首頁內容一變、這組雜湊就會對不上：
+  // 請把 PAGES_LASTMOD 改成今天，再把下面的雜湊更新為失敗訊息裡的新值。
+  it("首頁內容變動時必須同步更新 PAGES_LASTMOD", async () => {
+    const { createHash } = await import("node:crypto");
+    const { renderPage, PAGES_LASTMOD } = await import("../src/site");
+    const hash = createHash("sha256")
+      .update(renderPage("zh"))
+      .update(renderPage("en"))
+      .digest("hex")
+      .slice(0, 16);
+    expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
+      hash: "8702bf996547c727",
+      lastmod: "2026-10-05",
+    });
+  });
+
   // OGDL 的顯名聲明必須維持中文原文——條款要求的就是那組措辭，翻成英文等於沒盡義務。
   // 五份 README 早就是這樣處理的，並附一句說明為什麼。
   it("英文版的顯名聲明保留中文原文，並解釋原因", async () => {
