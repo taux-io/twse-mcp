@@ -1,0 +1,24 @@
+# 版本更新（安全更新是另外在 repo 設定裡開的，不靠這份檔案）。
+# 每週一次，minor/patch 併成一個 PR，避免一次湧進一堆。
+# PR 一樣要過 main 的分支保護：required check 是 test（見 AGENTS.md）。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      actions:
+        patterns: ["*"]
