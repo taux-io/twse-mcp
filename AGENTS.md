@@ -12,6 +12,19 @@
 升版時把那一節改成版本號與日期。只寫對使用者的影響，不寫內部重構。
 `npm run check-readmes` 會擋下 `package.json` 版本在兩份 CHANGELOG 裡沒有對應一節的情況。
 
+## 分支保護
+
+`main` 設有分支保護（2026-10-17 用 `gh api` 建立，設定在 GitHub，不在程式碼裡）：
+
+- 要 PR 才能合併，不能直接 push；核准人數 0（單人維護）。
+- required check 只有 `test`（`test.yml` 的 job）。`smoke` 與 `Workers Builds` 會跑但不擋合併；
+  `upstream health` 的 job 叫 `check`，只在排程時跑，**不要加進 required**，否則每個 PR 都會永遠卡住。
+- 禁止 force push、禁止刪除 `main`；不要求分支與 `main` 同步（`strict` 為 false）。
+- `enforce_admins` 為 false，管理員可繞過，只在緊急時用。
+- 合併後自動刪來源分支（`delete_branch_on_merge`）。
+
+查現況：`gh api repos/taux-io/twse-mcp/branches/main/protection`。
+
 ## Agent skills
 
 ### Issue tracker
