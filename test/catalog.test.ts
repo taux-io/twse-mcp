@@ -30,6 +30,7 @@ import {
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
 import { diffCatalogs, formatDiff } from "../scripts/catalog-diff.mjs";
+import { findProblems, jobNames, readWorkflows, REQUIRED_CHECKS } from "../scripts/check-required-checks.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
@@ -550,5 +551,30 @@ describe("目錄差異摘要", () => {
     expect(text).toContain("另有 20 項");
     const evil = formatDiff(diffCatalogs({}, { "a`b\nc": ds({}) }));
     expect(evil).toBe("- 新增資料集 `a b c`");
+  });
+});
+
+/**
+ * main 的分支保護要求 `test` 這個 check（設定在 GitHub）。job 改名或 pull_request 觸發加了路徑篩選，
+ * PR 會永遠卡在等它。這裡守的是程式碼這一側；GitHub 那一側用 `npm run check-required-checks -- --remote` 對。
+ */
+describe("required checks 與 workflow", () => {
+  const wf = (on: string, jobs: string) => [{ file: "x.yml", text: `name: x\non:\n${on}\njobs:\n${jobs}\n` }];
+  it("真實的 workflow 滿足 REQUIRED_CHECKS", async () => {
+    expect(REQUIRED_CHECKS).toContain("test");
+    expect(findProblems(await readWorkflows())).toEqual([]);
+  });
+  it("job 名稱：有 name: 用 name:，否則用 job id", () => {
+    expect(jobNames("jobs:\n  a:\n    runs-on: x\n  b:\n    name: 好 b\n    runs-on: x\n")).toEqual(["a", "好 b"]);
+  });
+  it("job 改名、只在排程跑、加了 paths 篩選，都會被抓到", () => {
+    const ok = wf("  pull_request:", "  test:\n    runs-on: x");
+    expect(findProblems(ok, ["test"])).toEqual([]);
+    expect(findProblems(wf("  pull_request:", "  tests:\n    runs-on: x"), ["test"])[0]).toContain("沒有任何 workflow");
+    expect(findProblems(wf("  schedule:\n    - cron: '1 1 * * *'", "  test:\n    runs-on: x"), ["test"])[0]).toContain("不在 pull_request");
+    expect(findProblems(wf("  pull_request:\n    paths: ['src/**']", "  test:\n    runs-on: x"), ["test"])[0]).toContain("paths");
+  });
+  it("排程才跑的 job（例如 upstream health 的 check）不能當 required", async () => {
+    expect(findProblems(await readWorkflows(), ["check"])[0]).toContain("不在 pull_request");
   });
 });
