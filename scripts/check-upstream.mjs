@@ -90,8 +90,15 @@ export function classify(id, { status, body }, now, catalog) {
     data = JSON.parse(body);
   } catch {
     if (readableCsv(id, body, catalog)) return null;
-    const head = body.trim().slice(0, 80).replace(/\s+/g, " ");
-    return { kind: "format", detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）：「${head}」` };
+    // 完整表頭與欄數：要判斷是該刷新目錄還是補規則，就得看得到整行；截斷的話只能確認「有不符」。
+    // 上限 500 字，免得 HTML 錯誤頁整頁灌進 issue。
+    const first = body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].trim();
+    const head = first.slice(0, 500) + (first.length > 500 ? "…" : "");
+    const want = Object.keys(catalog[id]?.fields ?? {}).length;
+    return {
+      kind: "format",
+      detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：「${head}」`,
+    };
   }
   const rows = Array.isArray(data) ? data : [data];
   if (rows.length === 0 && ALWAYS_POPULATED.includes(id)) {
