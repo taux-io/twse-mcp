@@ -29,6 +29,7 @@ import {
   FRESHNESS,
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
+import { diffCatalogs, formatDiff } from "../scripts/catalog-diff.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
 import serverJson from "../server.json";
@@ -403,6 +404,18 @@ describe("上游健檢腳本", () => {
     // 證交所沒有 CSV 退路：同樣的 CSV 在證交所端點就是格式錯誤
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: fsp }, now)?.kind).toBe("format");
   });
+  it("format 的 detail 附完整表頭與欄數，不截在 80 字", () => {
+    const header = Array.from({ length: 20 }, (_, i) => `欄位名稱第${i}號`).join(",");
+    const d = classifyAt("taifex/PutCallRatio", { status: 200, body: `\uFEFF${header}\r\n1,2` }, now);
+    expect(d?.kind).toBe("format");
+    expect(d?.detail).toContain(header);
+    expect(d?.detail).toContain(`表頭 20 欄、目錄 ${Object.keys(catalog["taifex/PutCallRatio"].fields).length} 欄`);
+  });
+  it("format 的表頭過長（例如 HTML 錯誤頁）截在 500 字", () => {
+    const d = classifyAt("taifex/PutCallRatio", { status: 200, body: "<html>" + "x".repeat(2000) }, now);
+    expect(d?.detail).toContain("…");
+    expect(d!.detail.length).toBeLessThan(700);
+  });
   it("必定有資料的主檔回 0 筆是 empty；其他表 0 筆不算", () => {
     expect(classifyAt("opendata/t187ap03_L", ok([]), now)?.kind).toBe("empty");
     expect(classifyAt("announcement/notice", ok([]), now)).toBeNull();
@@ -506,5 +519,36 @@ describe("端到端答案檢查的比對規則", () => {
     ]) {
       expect(CLAIMS_NONE.test(ok), ok).toBe(false);
     }
+  });
+});
+
+/** 每週刷新的 issue 內文用（scripts/catalog-diff.mjs）：要讓維護者不開 diff 就知道動了什麼。 */
+describe("目錄差異摘要", () => {
+  const ds = (fields: Record<string, string>) => ({ source: "x", summary: "", description: "", tags: [], fields });
+  const before = { "a/one": ds({ A: "甲", B: "乙" }), "taifex/gone": ds({ X: "叉" }), "a/same": ds({ S: "同" }) };
+  const after = { "a/one": ds({ A: "甲", C: "丙" }), "taifex/new": ds({ Y: "唉" }), "a/same": ds({ S: "同" }) };
+
+  it("列出新增與移除的資料集、欄位增減；沒變的不列", () => {
+    const d = diffCatalogs(before, after);
+    expect(d.added).toEqual(["taifex/new"]);
+    expect(d.removed).toEqual(["taifex/gone"]);
+    expect(d.fields).toEqual([{ id: "a/one", added: ["C"], removed: ["B"] }]);
+    const text = formatDiff(d);
+    expect(text).toContain("新增資料集 `taifex/new`");
+    expect(text).toContain("移除資料集 `taifex/gone`");
+    expect(text).toContain("`a/one`：新增欄位 `C`；移除欄位 `B`");
+    expect(text).not.toContain("a/same");
+  });
+  it("只有說明文字變動時明說，而不是回空字串", () => {
+    const changed = { ...before, "a/same": ds({ S: "不同的說明" }) };
+    expect(formatDiff(diffCatalogs(before, changed))).toContain("沒有增減");
+  });
+  it("過長截斷，上游字串裡的反引號與換行不進內文", () => {
+    const many = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`d${i}`, ds({})]));
+    const text = formatDiff(diffCatalogs({}, many));
+    expect(text.split("\n")).toHaveLength(41);
+    expect(text).toContain("另有 20 項");
+    const evil = formatDiff(diffCatalogs({}, { "a`b\nc": ds({}) }));
+    expect(evil).toBe("- 新增資料集 `a b c`");
   });
 });

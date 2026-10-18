@@ -52,6 +52,9 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             git --no-pager diff --stat "$CATALOG"
+            # 資料集與欄位的增減，給 issue 內文用（commit 之前，HEAD 還是舊的目錄）
+            git show "HEAD:$CATALOG" > "$RUNNER_TEMP/catalog-old.json"
+            node scripts/catalog-diff.mjs "$RUNNER_TEMP/catalog-old.json" "$CATALOG" | tee "$RUNNER_TEMP/catalog-diff.md"
           fi
 
       # 推分支不會觸發既有的 tests workflow，所以在這裡就把驗證做完，
@@ -78,7 +81,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add "$CATALOG"
-          git commit -m "chore: refresh TWSE catalog"
+          git commit -m "chore: refresh TWSE/TAIFEX catalog"
           # force：這是機器人專用的暫存分支，每次都以最新結果覆寫（見上方 env 註解）
           git push --force origin "$BRANCH"
 
@@ -90,15 +93,21 @@ jobs:
           LABEL: catalog-drift
         run: |
           COMPARE="${{ github.server_url }}/${{ github.repository }}/compare/main...${BRANCH}?expand=1"
+          SUMMARY=$(cat "$RUNNER_TEMP/catalog-diff.md")
           BODY=$(printf '%s\n' \
-            "每週自動刷新發現證交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
+            "每週自動刷新發現證交所或期交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
+            "" \
+            "**異動**（資料集 id 的 \`taifex/\` 前綴是期交所，其餘是證交所）：" \
+            "" \
+            "${SUMMARY}" \
             "" \
             "**已驗證**：catalog 健檢（規模、結構、snapshot.etf 依賴的資料集仍在）、" \
             "typecheck、測試（其中有數項直接對真實目錄斷言）、\`wrangler deploy --dry-run\` 全數通過。" \
             "" \
             "[點此開 PR 檢視 diff](${COMPARE})" \
             "" \
-            "diff 會顯示證交所新增／移除了哪些資料集或欄位——這就是我們把 catalog 簽入版控的用意。" \
+            "上面只列資料集與欄位名稱的增減；說明文字的改動看 diff。" \
+            "欄位被移除時，先對照實際資料還有沒有那一欄——可能是 swagger 少寫，不是上游真的拿掉。" \
             "" \
             "⚠️ \`${BRANCH}\` 是機器人專用分支，每次執行都會被覆寫。要修改請另開分支，別直接推到它上面。" \
             "" \
