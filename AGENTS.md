@@ -14,16 +14,19 @@
 
 ## 分支保護
 
-`main` 設有分支保護（2026-10-17 用 `gh api` 建立，設定在 GitHub，不在程式碼裡）：
+`main` 要 PR 才能合併，required check 只有 `test`（`test.yml` 的 job）。設定在 GitHub，現況用
+`gh api repos/taux-io/twse-mcp/branches/main/protection` 查。
 
-- 要 PR 才能合併，不能直接 push；核准人數 0（單人維護）。
-- required check 只有 `test`（`test.yml` 的 job）。`smoke` 與 `Workers Builds` 會跑但不擋合併；
-  `upstream health` 的 job 叫 `check`，只在排程時跑，**不要加進 required**，否則每個 PR 都會永遠卡住。
-- 禁止 force push、禁止刪除 `main`；不要求分支與 `main` 同步（`strict` 為 false）。
-- `enforce_admins` 為 false，管理員可繞過，只在緊急時用。
-- 合併後自動刪來源分支（`delete_branch_on_merge`）。
+- `upstream health` 的 job 叫 `check`，只在排程時跑；把它加進 required，每個 PR 都會永遠卡住。
+- 改 `test` 這個 job 的名稱、或給它的 `pull_request` 觸發加 `paths` 篩選，PR 一樣會卡住。
+  `scripts/check-required-checks.mjs` 在 CI 擋這兩件事；改了 GitHub 上的設定要同步它的 `REQUIRED_CHECKS`，
+  再跑 `npm run check-required-checks -- --remote` 對一次。
 
-查現況：`gh api repos/taux-io/twse-mcp/branches/main/protection`。
+## 依賴升級
+
+Dependabot 的 PR 都改 `package-lock.json`，合併一個後其他的會衝突：留言 `@dependabot rebase`，一次重建一個。
+`smoke` 在 push 到 `main` 時不跑，合併後要驗就 `gh workflow run smoke.yml`。
+驗證做法與新舊回應比對的結果見 [docs/dependency-upgrade-2026-10-17.md](docs/dependency-upgrade-2026-10-17.md)。
 
 ## Agent skills
 
