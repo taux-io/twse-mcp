@@ -1783,6 +1783,78 @@ function signed(dir: unknown, v: unknown): number | null {
   return String(dir ?? "").trim() === "-" ? -Math.abs(n) : n;
 }
 
+/** 上市股票（含少數存託憑證）：四碼、不以 0 開頭，不含 ETF 與權證。漲跌家數與漲跌幅排行共用這個範圍。 */
+export const LISTED_STOCK_SCOPE = "上市股票（四碼代號，不含 ETF）";
+const isListedStock = (r: Row) => /^[1-9]\d{3}$/.test(String(r["Code"] ?? "").trim());
+
+/** 股票升降單位（單位：分）。依該價位而定。 */
+function tickCents(priceCents: number): number {
+  if (priceCents < 1000) return 1;
+  if (priceCents < 5000) return 5;
+  if (priceCents < 10000) return 10;
+  if (priceCents < 50000) return 50;
+  if (priceCents < 100000) return 100;
+  return 500;
+}
+
+/**
+ * 漲停價＝前收盤 ×1.1 依升降單位無條件捨去；跌停價＝前收盤 ×0.9 依升降單位無條件進位。
+ * 全程用「分」的整數算，避免 0.1 的浮點誤差把剛好等於漲停價的收盤判成沒到。
+ * 資料本身沒有漲跌停標記，這是推算：新上市前幾日無漲跌幅限制等例外不在這裡處理。
+ */
+function limitStatus(prev: number, close: number): "漲停" | "跌停" | null {
+  const prevC = Math.round(prev * 100);
+  const closeC = Math.round(close * 100);
+  const upC = Math.floor((prevC * 11) / 10);
+  const up = upC - (upC % tickCents(upC));
+  const downC = Math.ceil((prevC * 9) / 10);
+  const t = tickCents(downC);
+  const down = Math.ceil(downC / t) * t;
+  if (closeC >= up) return "漲停";
+  if (closeC <= down) return "跌停";
+  return null;
+}
+
+export interface Mover {
+  "排名": number;
+  "代號": unknown;
+  "名稱": unknown;
+  "收盤": number;
+  "漲跌": number;
+  "漲跌幅%": number;
+  "成交股數": number | null;
+  "漲跌停": "漲停" | "跌停" | null;
+}
+
+/** 漲跌幅排行：由上市個股日成交資訊算。漲跌幅% = 漲跌 ÷ 前收盤（收盤減漲跌）。 */
+export function buildMovers(days: Row[], limit: number) {
+  const scored = days.filter(isListedStock).flatMap((r) => {
+    const close = num(r["ClosingPrice"]);
+    const change = num(r["Change"]);
+    if (close === null || change === null || close - change <= 0) return [];
+    return [{ r, close, change, pct: (change / (close - change)) * 100, limit: limitStatus(close - change, close) }];
+  });
+  const rank = (rows: typeof scored): Mover[] =>
+    rows.slice(0, limit).map((x, i) => ({
+      "排名": i + 1,
+      "代號": x.r["Code"],
+      "名稱": x.r["Name"],
+      "收盤": x.close,
+      "漲跌": x.change,
+      "漲跌幅%": Math.round(x.pct * 100) / 100,
+      "成交股數": num(x.r["TradeVolume"]),
+      "漲跌停": x.limit,
+    }));
+  return {
+    "日期": rocToIso(latest(days.filter(isListedStock), "Date")?.["Date"]),
+    "範圍": LISTED_STOCK_SCOPE,
+    "漲幅排行": rank(scored.filter((x) => x.change > 0).sort((a, b) => b.pct - a.pct)),
+    "跌幅排行": rank(scored.filter((x) => x.change < 0).sort((a, b) => a.pct - b.pct)),
+    "漲停家數": scored.filter((x) => x.limit === "漲停").length,
+    "跌停家數": scored.filter((x) => x.limit === "跌停").length,
+  };
+}
+
 export function buildStockMarket(src: StockMarketSources, errors: SourceError[], caveats: string[]) {
   const failed = (l: string) => errors.some((e) => e.source === l);
   const L = MARKET_SOURCE_LABELS;
@@ -1815,7 +1887,7 @@ export function buildStockMarket(src: StockMarketSources, errors: SourceError[],
   // 2026-06-05，三個多月沒更新。日成交資訊每天都有，每一檔都帶有號的漲跌價。
   // 範圍限四碼、不以 0 開頭的代號：上市股票（含少數存託憑證），不含 ETF（00 開頭）。
   // 沒有收盤價的（當日無成交或僅零星成交）另計，不混進持平。
-  const listed = src.breadth.filter((r) => /^[1-9]\d{3}$/.test(String(r["Code"] ?? "").trim()));
+  const listed = src.breadth.filter(isListedStock);
   let up = 0, down = 0, flat = 0, noClose = 0;
   for (const r of listed) {
     const c = num(r["Change"]);
@@ -1827,7 +1899,7 @@ export function buildStockMarket(src: StockMarketSources, errors: SourceError[],
   const breadth = listed.length
     ? {
         "日期": rocToIso(latest(src.breadth, "Date")?.["Date"]),
-        "範圍": "上市股票（四碼代號，不含 ETF）",
+        "範圍": LISTED_STOCK_SCOPE,
         "上漲": up,
         "下跌": down,
         "持平": flat,

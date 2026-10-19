@@ -26,6 +26,8 @@ import {
   rocToIso,
   isStaleDataDate,
   FUTURES_SOURCE_LABELS,
+  buildMovers,
+  LISTED_STOCK_SCOPE,
   buildStockMarket,
   buildStockSnapshot,
   MARKET_SOURCE_LABELS,
@@ -173,6 +175,17 @@ const MARKET_OUTPUT = z.looseObject({
   期貨籌碼: section.optional(),
   事件行事曆: section.optional(),
   交易日曆: section.optional(),
+  note: z.string(),
+  ...common,
+});
+
+const MOVERS_OUTPUT = z.looseObject({
+  日期: z.string().nullable(),
+  範圍: z.string(),
+  漲幅排行: z.array(section).nullable(),
+  跌幅排行: z.array(section).nullable(),
+  漲停家數: z.number().nullable(),
+  跌停家數: z.number().nullable(),
   note: z.string(),
   ...common,
 });
@@ -397,7 +410,8 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
         "取得證交所或期交所資料集內容，支援伺服器端過濾、欄位投影與分頁。" +
         "上游每個資料集都是整份回傳（可能上萬筆），這支工具預設只回前 30 筆（上限 200）；" +
         "用 code/match/where/fields 縮小到需要的範圍。" +
-        "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。",
+        "排名與篩選（殖利率最高的前 20 檔、本益比低於 10 的股票）用 where + sort_by，不要自己翻頁比大小。" +
+        "漲幅榜、跌幅榜與漲停家數用 snapshot.movers：日成交資訊沒有漲跌幅%，依漲跌額排會讓高價股永遠排前面。",
       annotations: { ...REMOTE_READ, title: "Get dataset rows" },
       outputSchema: GET_DATASET_OUTPUT,
       inputSchema: {
@@ -767,6 +781,55 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
         ...(events ? { "事件行事曆": buildMarketEvents(events.rows, taipeiToday(), errors, caveats) } : {}),
         caveats,
         note: "皆為前一交易日（或各表最新一期）的收盤後資料，不是盤中即時；各段以資料中的日期為準",
+        source: MARKET_SOURCE_NOTE,
+      });
+    },
+  );
+
+  server.registerTool(
+    "snapshot.movers",
+    {
+      title: "Top gainers and losers",
+      description:
+        "Top gainers and losers by percentage change among TWSE-listed stocks for the previous trading day, plus how many closed limit-up and limit-down. Each row has the code, name, close, change, percentage change and volume. Use it for \"top gainers / top losers / which stocks hit the daily limit\" instead of sorting dataset.get by price change, which ranks by absolute points and puts high-priced stocks first. Limit-up and limit-down are derived from the previous close and the tick size (the data carries no flag). Listed stocks only (4-digit codes, no ETFs or warrants); OTC (TPEx) is not covered. Source: TWSE OpenAPI; not live. " +
+        "上市股票前一交易日的漲幅與跌幅排行（依漲跌幅%，不是依漲跌額），以及漲停、跌停家數。" +
+        "問「漲幅榜」「跌幅榜」「今天漲停幾檔」時用這個，不要用 dataset.get 依漲跌排序——那會依點數排，股價高的永遠排前面。" +
+        "漲停與跌停是依前收盤與升降單位推算（資料本身沒有標記）。範圍是上市股票（四碼代號，不含 ETF 與權證），不含上櫃。" +
+        "資料為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。",
+      annotations: { ...REMOTE_READ, title: "Top gainers and losers" },
+      outputSchema: MOVERS_OUTPUT,
+      inputSchema: {
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(30)
+          .default(10)
+          .describe("漲幅與跌幅各取前幾名，預設 10，最多 30。漲停與跌停家數不受這個數字影響，數的是全部個股。"),
+      },
+    },
+    async ({ limit }) => {
+      const caveats: string[] = [];
+      const errors: SourceError[] = [];
+      const label = MARKET_SOURCE_LABELS.breadth;
+      const { rows, errors: errs } = await fetchSources({ days: { dataset: DS_DAY, label } });
+      for (const e of errs) {
+        errors.push(e);
+        caveats.push(`${e.source}取得失敗：${e.error}`);
+      }
+      const movers = errs.length ? null : buildMovers(rows.days, limit);
+      if (movers) await explainDataGap(movers["日期"], caveats);
+      return structured({
+        "日期": movers?.["日期"] ?? null,
+        "範圍": LISTED_STOCK_SCOPE,
+        "漲幅排行": movers?.["漲幅排行"] ?? null,
+        "跌幅排行": movers?.["跌幅排行"] ?? null,
+        "漲停家數": movers?.["漲停家數"] ?? null,
+        "跌停家數": movers?.["跌停家數"] ?? null,
+        caveats,
+        note:
+          "前一交易日的收盤後資料，不是盤中即時；漲跌幅% = 漲跌 ÷ 前收盤。漲停與跌停是依前收盤與升降單位推算，" +
+          "資料本身沒有標記，新上市初期不設漲跌幅限制等例外未處理",
         source: MARKET_SOURCE_NOTE,
       });
     },
