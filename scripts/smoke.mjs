@@ -131,6 +131,19 @@ const CASES = [
     check: (r) => (r["證券市場"] && r["期貨籌碼"] ? true : "缺證券市場或期貨籌碼"),
   },
   {
+    tool: "snapshot.movers",
+    structured: true,
+    args: { limit: 5 },
+    check: (r) => {
+      const g = r["漲幅排行"];
+      const l = r["跌幅排行"];
+      if (g?.length !== 5 || l?.length !== 5) return `漲幅 ${g?.length}、跌幅 ${l?.length} 檔，預期各 5`;
+      if (!g.every((x, i) => i === 0 || g[i - 1]["漲跌幅%"] >= x["漲跌幅%"])) return "漲幅排行沒有依漲跌幅%由大到小";
+      if (!(g[0]["漲跌幅%"] > 0 && l[0]["漲跌幅%"] < 0)) return "漲幅榜首不是正的或跌幅榜首不是負的";
+      return typeof r["漲停家數"] === "number" && typeof r["跌停家數"] === "number" ? true : "缺漲停或跌停家數";
+    },
+  },
+  {
     tool: "snapshot.futures",
     structured: true,
     args: { contract: "台指期" },

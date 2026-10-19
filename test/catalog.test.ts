@@ -436,7 +436,7 @@ describe("工具選擇測試題", () => {
   const TOOLS = [
     "dataset.search", "dataset.describe", "dataset.get", "quote.lookup",
     "snapshot.stock", "snapshot.market", "snapshot.etf", "quote.realtime",
-    "snapshot.futures",
+    "snapshot.futures", "snapshot.movers",
   ];
   it("每一題期望的工具都真的存在，dataset_id 都在目錄裡", () => {
     for (const c of toolEval.cases) {

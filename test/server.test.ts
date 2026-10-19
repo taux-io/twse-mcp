@@ -356,7 +356,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     return JSON.parse(payload.result.content[0].text);
   }
 
-  it("tools/list 暴露 9 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
+  it("tools/list 暴露 10 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
@@ -367,6 +367,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
         "dataset.get",
         "quote.lookup",
         "snapshot.market",
+        "snapshot.movers",
         "quote.realtime",
         "dataset.search",
         "snapshot.stock",
@@ -848,6 +849,56 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out).not.toHaveProperty("期貨籌碼");
   });
 
+  // snapshot.movers：漲跌幅排行的演算法在 core.test.ts；這裡只驗工具的接線——註冊、參數、
+  // 上游資料怎麼進來、失敗怎麼說。
+  describe("snapshot.movers", () => {
+    const row = (Code: string, Name: string, ClosingPrice: string, Change: string) => ({
+      Date: "1151016", Code, Name, ClosingPrice, Change, TradeVolume: "1,000",
+    });
+    const DAY_FULL = [
+      row("6756", "威鋒電子", "110.00", "10.0000"), // 前收 100 → +10.00%，漲停
+      row("2059", "川湖", "9955.00", "235.0000"), // +2.42%
+      row("2330", "台積電", "2420.00", "-20.0000"), // -0.82%
+      row("0050", "元大台灣50", "109.00", "9.0000"), // ETF，不列入
+    ];
+
+    it("回漲幅與跌幅排行、漲停跌停家數與資料日期；limit 控制名次數", async () => {
+      overrideFetch((u) => u.includes("STOCK_DAY_ALL"), () => jsonResponse(DAY_FULL));
+      const out = await callTool("snapshot.movers", { limit: 2 });
+      expect(out.日期).toBe("2026-10-16");
+      expect(out.範圍).toBe("上市股票（四碼代號，不含 ETF）");
+      expect(out.漲幅排行.map((x: { 代號: string }) => x.代號)).toEqual(["6756", "2059"]);
+      expect(out.漲幅排行[0]).toMatchObject({ 排名: 1, 名稱: "威鋒電子", 收盤: 110, 漲跌: 10, "漲跌幅%": 10, 漲跌停: "漲停" });
+      expect(out.跌幅排行.map((x: { 代號: string }) => x.代號)).toEqual(["2330"]);
+      expect(out.漲停家數).toBe(1);
+      expect(out.跌停家數).toBe(0);
+      expect(out.note).toContain("不是盤中即時");
+      expect(out.source).toContain("未經查證");
+    });
+
+    it("預設前 10 名", async () => {
+      const many = Array.from({ length: 12 }, (_, i) => row(String(1100 + i), `股${i}`, "101.00", "1.0000"));
+      overrideFetch((u) => u.includes("STOCK_DAY_ALL"), () => jsonResponse(many));
+      const out = await callTool("snapshot.movers", {});
+      expect(out.漲幅排行).toHaveLength(10);
+    });
+
+    it("limit 超出 1–30 在 schema 這層就被擋下", async () => {
+      for (const limit of [0, 31, -1]) {
+        const payload = await rpc("tools/call", { name: "snapshot.movers", arguments: { limit } });
+        expect(payload.result.isError, String(limit)).toBe(true);
+      }
+    });
+
+    it("上游抓失敗時照實說，不講成沒有漲跌", async () => {
+      overrideFetch((u) => u.includes("STOCK_DAY_ALL"), () => new Response("down", { status: 503 }));
+      const out = await callTool("snapshot.movers", {});
+      expect(out.漲幅排行).toBeNull();
+      expect(out.跌幅排行).toBeNull();
+      expect(out.caveats.join()).toContain("取得失敗");
+    });
+  });
+
   it("snapshot.market：期貨籌碼（法人未平倉、台指期、P/C 比、大額交易人）", async () => {
     const out = await callTool("snapshot.market", { scope: "futures" });
     const f = out["期貨籌碼"];
@@ -873,7 +924,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   // 固定形狀的五支工具宣告 outputSchema，並回傳 structuredContent。SDK 會拿 schema 驗每一次
   // 回應，驗不過就讓整次呼叫失敗——所以本檔其餘測試（部分失敗、未查詢、null）全數通過，
   // 本身就是 schema 涵蓋了所有實際回應形狀的證據。
-  it("九支工具都宣告 outputSchema；查資料類的資料列是開放物件", async () => {
+  it("十支工具都宣告 outputSchema；查資料類的資料列是開放物件", async () => {
     const payload = await rpc("tools/list", {});
     const withSchema = payload.result.tools.filter((t: { outputSchema?: unknown }) => t.outputSchema);
     expect(withSchema).toHaveLength(payload.result.tools.length);
@@ -1510,7 +1561,7 @@ describe("首頁", () => {
   // 首頁不能吃掉 MCP 的路由。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
-    expect(payload.result.tools).toHaveLength(9);
+    expect(payload.result.tools).toHaveLength(10);
   });
 
   it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {
@@ -2418,7 +2469,7 @@ describe("協定 era", () => {
     );
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(9);
+    expect(payload.result.tools).toHaveLength(10);
   });
 
   // Codex（codex-mcp-client/0.155）收斂期間被擋的就是這個交握：先 initialize、沒有協定標頭。

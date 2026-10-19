@@ -284,6 +284,20 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
     {
       "input": {
         "properties": {
+          "limit": {
+            "default": 10,
+            "maximum": 30,
+            "minimum": 1,
+            "type": "integer",
+          },
+        },
+        "type": "object",
+      },
+      "name": "snapshot.movers",
+    },
+    {
+      "input": {
+        "properties": {
           "contract": {
             "type": "string",
           },
@@ -606,6 +620,20 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
         "type": "object",
       },
       "name": "snapshot.market",
+    },
+    {
+      "input": {
+        "properties": {
+          "limit": {
+            "default": 10,
+            "maximum": 30,
+            "minimum": 1,
+            "type": "integer",
+          },
+        },
+        "type": "object",
+      },
+      "name": "snapshot.movers",
     },
     {
       "input": {
