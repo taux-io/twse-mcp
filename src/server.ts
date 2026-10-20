@@ -85,6 +85,7 @@ import {
 } from "./twse";
 import { archiveDailyQuotes, stockHistory } from "./archive";
 import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { APPLE_ICON_BASE64, FAVICON_ICO_BASE64, FAVICON_SVG } from "./icons";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
 const catalog = catalogJson as unknown as Catalog;
@@ -1034,7 +1035,7 @@ const MCP_ROUTE = "/mcp";
  * 這一頁只有一段會被執行的腳本（一鍵複製，見 src/site.ts 的 COPY_SCRIPT），CSP 只放行
  * 它內容的 SHA-256。所以這不是在收緊一個寬鬆的預設，而是把「只有這一段」寫成規則——
  * 日後有人加了別的 script、inline 事件處理器或外部腳本，是瀏覽器擋下來，不是 review 漏看。`default-src 'none'` 意味著連字型、圖片、XHR 都不允許外連；
- * 頁面確實一個外部資源都沒有（favicon 是 data: URI，所以要放行 img-src data:）。
+ * 頁面確實一個外部資源都沒有（網站圖示由同一個 Worker 服務，所以 img-src 只放行 'self'）。
  *
  * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。那在沒有腳本
  * 的頁面上不構成注入面：CSS 無法讀取或外送任何東西，而 default-src 'none' 已經
@@ -1042,7 +1043,7 @@ const MCP_ROUTE = "/mcp";
  */
 const SITE_HEADERS: Record<string, string> = {
   "content-security-policy":
-    "default-src 'none'; style-src 'unsafe-inline'; img-src data:; " +
+    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; " +
     `base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'sha256-${COPY_SCRIPT_HASH}'`,
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
@@ -1056,6 +1057,9 @@ const SITE_HEADERS: Record<string, string> = {
  * base64 在模組載入時解一次——它是常數，每請求重解只是浪費 CPU。
  */
 const OG_PNG = Uint8Array.from(atob(OG_IMAGE_BASE64), (c) => c.charCodeAt(0));
+const decode = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+const FAVICON_ICO = decode(FAVICON_ICO_BASE64);
+const APPLE_ICON = decode(APPLE_ICON_BASE64);
 
 /**
  * 靜態頁面的路由表。
@@ -1076,6 +1080,10 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
   "/sitemap.xml": { body: SITEMAP_XML, type: "application/xml; charset=utf-8" },
   // 圖的內容只隨部署改變，而抓取端（Slack、X、Discord…）會重複來拿，所以放長快取。
   "/og.png": { body: OG_PNG, type: "image/png", cache: "public, max-age=86400, s-maxage=604800" },
+  // 網站圖示。瀏覽器與爬蟲不讀 <link> 時會直接來要 /favicon.ico（過去回 404）。
+  "/favicon.svg": { body: FAVICON_SVG, type: "image/svg+xml", cache: "public, max-age=86400, s-maxage=604800" },
+  "/favicon.ico": { body: FAVICON_ICO, type: "image/x-icon", cache: "public, max-age=86400, s-maxage=604800" },
+  "/apple-touch-icon.png": { body: APPLE_ICON, type: "image/png", cache: "public, max-age=86400, s-maxage=604800" },
 };
 
 /**

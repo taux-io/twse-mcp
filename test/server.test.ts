@@ -1557,6 +1557,40 @@ describe("首頁", () => {
     expect(await res.text()).toBe("");
   });
 
+  // 瀏覽器與爬蟲不讀 <link> 時會直接來要 /favicon.ico；過去回 404。
+  it("網站圖示：svg、ico、apple-touch-icon 都服務得到，格式正確", async () => {
+    const svg = await get("/favicon.svg");
+    expect(svg.status).toBe(200);
+    expect(svg.headers.get("content-type")).toContain("image/svg+xml");
+    expect(await svg.text()).toContain("<svg");
+
+    const ico = await get("/favicon.ico");
+    expect(ico.status).toBe(200);
+    expect(ico.headers.get("content-type")).toContain("image/x-icon");
+    const icoBytes = new Uint8Array(await ico.arrayBuffer());
+    // ICONDIR：保留 0、類型 1（圖示）、至少一張影像
+    expect([icoBytes[0], icoBytes[1], icoBytes[2], icoBytes[3]]).toEqual([0, 0, 1, 0]);
+    expect(icoBytes[4]).toBeGreaterThanOrEqual(1);
+
+    const apple = await get("/apple-touch-icon.png");
+    expect(apple.status).toBe(200);
+    expect(apple.headers.get("content-type")).toBe("image/png");
+    const png = new Uint8Array(await apple.arrayBuffer());
+    expect(Array.from(png.slice(0, 8))).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    // IHDR 寬高 = 180
+    const dv = new DataView(png.buffer, png.byteOffset);
+    expect([dv.getUint32(16), dv.getUint32(20)]).toEqual([180, 180]);
+  });
+
+  it.each(["/", "/en", "/privacy"])("%s：宣告三個圖示，且 CSP 放行同源圖片", async (path) => {
+    const res = await get(path);
+    const html = await res.text();
+    expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">');
+    expect(html).toContain('<link rel="icon" href="/favicon.ico"');
+    expect(html).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
+    expect(res.headers.get("content-security-policy")).toContain("img-src 'self'");
+  });
+
   it("robots.txt 允許索引並指向 sitemap", async () => {
     const res = await get("/robots.txt");
     expect(res.status).toBe(200);
@@ -1671,7 +1705,7 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "4f6ecf7df2e6c073",
+      hash: "55f7a44d9afd344a",
       lastmod: "2026-10-20",
     });
   });

@@ -762,15 +762,14 @@ footer{margin-top:clamp(4rem,9vw,7rem);padding-top:2rem;border-top:1px solid var
 `.trim();
 
 /**
- * 公告欄圖示：港灣藍方塊上三行字。不用 📈 之類的行情 emoji——那會被讀成漲跌訊號，
- * 有些平台還畫成紅綠（見 DESIGN.md 的 No Red-Green Rule）。data: URI，CSP 的 img-src 已放行。
+ * 網站圖示的 <link>：港灣藍方塊上三行字（圖樣在 scripts/make-icons.mjs）。不用 📈 之類的行情 emoji——
+ * 那會被讀成漲跌訊號，有些平台還畫成紅綠（見 DESIGN.md 的 No Red-Green Rule）。
+ * 檔案由 Worker 服務（見 server.ts 的 STATIC_ROUTES），CSP 的 img-src 'self' 已放行。
  */
-const FAVICON =
-  "data:image/svg+xml," +
-  encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='#2f5d8a'/>" +
-      "<path d='M9 11h14M9 16h14M9 21h9' stroke='#fff' stroke-width='2.5' stroke-linecap='round'/></svg>",
-  );
+const ICON_LINKS =
+  '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n' +
+  '<link rel="icon" href="/favicon.ico" sizes="48x48">\n' +
+  '<link rel="apple-touch-icon" href="/apple-touch-icon.png">';
 
 function ldSoftware(loc: Locale, p: Page) {
   return {
@@ -958,7 +957,7 @@ ${alternates}
 <meta name="twitter:title" content="${esc(p.title)}">
 <meta name="twitter:description" content="${esc(p.description)}">
 <meta name="robots" content="index,follow">
-<link rel="icon" href="${FAVICON}">
+${ICON_LINKS}
 <link rel="alternate" type="text/markdown" href="${SITE_ORIGIN}/llms.txt" title="Plain-text summary for AI">
 <script type="application/ld+json">${JSON.stringify(ldSoftware(loc, p))}</script>
 <script type="application/ld+json">${JSON.stringify(ldHowTo(loc, p))}</script>
@@ -1042,6 +1041,7 @@ export const PRIVACY_HTML = `<!doctype html>
 <meta name="description" content="Taiwan Market Open Data (Unofficial) 的隱私權政策：記錄哪些資料、保存多久、用途與聯絡方式。">
 <link rel="canonical" href="${SITE_ORIGIN}/privacy">
 <meta name="robots" content="index,follow">
+${ICON_LINKS}
 <style>${CSS}</style>
 </head>
 <body>
