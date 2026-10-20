@@ -58,6 +58,7 @@ export const dsBalance = (t: string) => `opendata/t187ap07_L_${t}`;
 
 // snapshot.stock 的 include_margin
 export const DS_MARGIN = "exchangeReport/MI_MARGN"; // 集中市場融資融券餘額
+export const DS_PE = "exchangeReport/BWIBBU_ALL"; // 上市個股日本益比、殖利率及股價淨值比
 export const DS_SBL = "SBL/TWT96U"; // 上市上櫃股票當日可借券賣出股數
 
 // snapshot.stock 的 esg_topics：21 個主題各一張表（上市公司企業 ESG 資訊揭露彙總資料）。

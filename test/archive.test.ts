@@ -1,5 +1,7 @@
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ARCHIVE_SINCE, archiveDailyQuotes, quoteTuples, stockHistory } from "../src/archive";
+import worker from "../src/server";
+import { ARCHIVE_SINCE, archiveDaily, marginTuples, peTuples, quoteTuples, stockHistory } from "../src/archive";
 
 const DAY = [
   { Date: "1150924", Code: "2330", Name: "台積電", TradeVolume: "14,557,662", TradeValue: "36,1", OpeningPrice: "2,480", HighestPrice: "2,490", LowestPrice: "2,470", ClosingPrice: "2,475", Change: "-25.0000", Transaction: "31,000" },
@@ -17,26 +19,193 @@ describe("每日存檔", () => {
     expect(t[0][6]).toBe(2475); // close
     expect(t[0][7]).toBe(-25); // change
   });
+});
 
-  it("整次只發兩個查詢（建表、寫入），資料以單一 JSON 參數綁定，不拼進 SQL", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(DAY), { headers: { "content-type": "application/json" } })));
-    const sql: string[] = [];
-    const binds: unknown[][] = [];
-    const db = {
-      prepare(q: string) {
-        sql.push(q);
-        const stmt = { bind: (...a: unknown[]) => (binds.push(a), stmt), run: async () => ({}) };
-        return stmt;
-      },
-    } as unknown as D1Database;
+// BWIBBU_ALL（個股日本益比、殖利率、股價淨值比）。虧損公司的本益比是空字串，不是 0。
+const PE = [
+  { Date: "1151020", Code: "1101", Name: "台泥", PEratio: "", DividendYield: "2.99", PBratio: "0.87" },
+  { Date: "1151020", Code: "2330", Name: "台積電", PEratio: "24.31", DividendYield: "1.52", PBratio: "7.10" },
+  { Date: "1151020", Code: "", Name: "壞列", PEratio: "1" },
+  { Date: "", Code: "9999", Name: "沒日期", PEratio: "1" },
+];
 
-    const r = await archiveDailyQuotes(db);
-    expect(r).toEqual({ rows: 1, dates: ["2026-09-24"] });
-    expect(sql).toHaveLength(2);
-    expect(sql[1]).toContain("json_each(?1)");
-    expect(sql.join()).not.toContain("台積電");
-    expect(binds).toHaveLength(1);
-    expect(JSON.parse(binds[0][0] as string)[0][0]).toBe("2330");
+describe("每日存檔：本益比、殖利率、股價淨值比", () => {
+  it("轉成存檔列：日期轉 ISO；空字串存成 null 不是 0；缺代號或日期的列丟掉", () => {
+    expect(peTuples(PE)).toEqual([
+      ["1101", "2026-10-20", "台泥", null, 2.99, 0.87],
+      ["2330", "2026-10-20", "台積電", 24.31, 1.52, 7.1],
+    ]);
+  });
+});
+
+// MI_MARGN（融資融券餘額）。上游這份每一列都沒有日期欄位，日期由呼叫端給。
+const MARGIN = [
+  { "股票代號": "00400A", "股票名稱": "主動國泰動能高息", "融資買進": "424", "融資賣出": "220", "融資現金償還": "6", "融資前日餘額": "11189", "融資今日餘額": "11,387", "融資限額": "512535", "融券買進": "", "融券賣出": "", "融券現券償還": "", "融券前日餘額": "", "融券今日餘額": "", "融券限額": "512535", "資券互抵": "5", "註記": " " },
+  { "股票代號": "2330", "股票名稱": "台積電", "融資買進": "1", "融資賣出": "2", "融資現金償還": "3", "融資前日餘額": "10", "融資今日餘額": "8", "融資限額": "100", "融券買進": "4", "融券賣出": "5", "融券現券償還": "6", "融券前日餘額": "20", "融券今日餘額": "19", "融券限額": "200", "資券互抵": "0", "註記": "Ｘ" },
+  { "股票代號": "", "股票名稱": "壞列", "融資買進": "1" },
+];
+
+describe("每日存檔：融資融券餘額", () => {
+  it("轉成存檔列：日期由參數給；不存前日餘額；空字串與空白註記是 null，0 仍是 0；缺代號的列丟掉", () => {
+    expect(marginTuples(MARGIN, "2026-10-20")).toEqual([
+      ["00400A", "2026-10-20", "主動國泰動能高息", 424, 220, 6, 11387, 512535, null, null, null, null, 512535, 5, null],
+      ["2330", "2026-10-20", "台積電", 1, 2, 3, 8, 100, 4, 5, 6, 19, 200, 0, "Ｘ"],
+    ]);
+  });
+});
+
+/** 依網址回不同資料集的假 fetch；值是 Error 的資料集回 500。 */
+function stubUpstream(by: { day?: unknown[] | Error; pe?: unknown[] | Error; margin?: unknown[] | Error }) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      const body = url.includes("STOCK_DAY_ALL") ? by.day : url.includes("BWIBBU_ALL") ? by.pe : url.includes("MI_MARGN") ? by.margin : undefined;
+      if (body === undefined || body instanceof Error) return new Response("upstream down", { status: 500 });
+      return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
+    }),
+  );
+}
+
+/** 記下 SQL 與綁定值的假 D1（寫入路徑）。 */
+function recordingDb() {
+  const writes: { sql: string; bind: unknown[] }[] = [];
+  const prepared: string[] = [];
+  const db = {
+    prepare(sql: string) {
+      prepared.push(sql);
+      const stmt = {
+        bind: (...a: unknown[]) => (writes.push({ sql, bind: a }), stmt),
+        run: async () => ({}),
+      };
+      return stmt;
+    },
+  } as unknown as D1Database;
+  return { db, writes, prepared };
+}
+
+describe("每日存檔：三張表一起存", () => {
+  it("每張表各兩個查詢（建表、寫入）、每個寫入只綁一個 JSON 參數；融資融券的日期用日成交資訊的交易日", async () => {
+    stubUpstream({ day: DAY, pe: PE, margin: MARGIN });
+    const { db, writes, prepared } = recordingDb();
+    const r = await archiveDaily(db);
+    // 查詢總數遠低於免費方案每次執行 50 個的上限：3 張表 × （建表 + 寫入）
+    expect(prepared).toHaveLength(6);
+    expect(writes).toHaveLength(3);
+    for (const w of writes) {
+      expect(w.sql).toContain("json_each(?1)");
+      expect(w.bind).toHaveLength(1);
+    }
+    const margin = writes.find((w) => w.sql.includes("margin_daily"))!;
+    // 日成交資訊那天是 2026-09-24（DAY），融資融券沒有日期欄位，就該標成這一天
+    expect(JSON.parse(margin.bind[0] as string)[0].slice(0, 2)).toEqual(["00400A", "2026-09-24"]);
+    // 資料只以綁定參數進去，不拼進 SQL
+    expect(writes.map((w) => w.sql).join()).not.toContain("台積電");
+    expect(r).toEqual({
+      daily_quotes: { rows: 1, dates: ["2026-09-24"] },
+      pe_daily: { rows: 2, dates: ["2026-10-20"] },
+      margin_daily: { rows: 2, dates: ["2026-09-24"] },
+    });
+  });
+});
+
+describe("每日存檔：一張表失敗不拖垮其他張", () => {
+  it("本益比那份抓不到：價量與融資融券照存，結果標出失敗的那張", async () => {
+    stubUpstream({ day: DAY, pe: new Error("down"), margin: MARGIN });
+    const { db, writes } = recordingDb();
+    const r = await archiveDaily(db);
+    expect(writes.map((w) => /INTO (\w+)/.exec(w.sql)![1]).sort()).toEqual(["daily_quotes", "margin_daily"]);
+    expect(r.daily_quotes.rows).toBe(1);
+    expect(r.margin_daily.rows).toBe(2);
+    expect(r.pe_daily).toEqual({ rows: 0, dates: [], error: expect.any(String) });
+  });
+});
+
+describe("每日存檔：價量抓不到時融資融券不能存", () => {
+  it("沒有交易日可借，融資融券不寫（不存日期是空的列），本益比照存，並說明原因", async () => {
+    stubUpstream({ day: new Error("down"), pe: PE, margin: MARGIN });
+    const { db, writes } = recordingDb();
+    const r = await archiveDaily(db);
+    expect(writes.map((w) => /INTO (\w+)/.exec(w.sql)![1])).toEqual(["pe_daily"]);
+    expect(r.daily_quotes.error).toEqual(expect.any(String));
+    expect(r.pe_daily.rows).toBe(2);
+    expect(r.margin_daily).toEqual({ rows: 0, dates: [], error: expect.stringContaining("交易日") });
+  });
+});
+
+/**
+ * 用真的 SQLite（node:sqlite，D1 底層同一個引擎）跑 SCHEMA 與 INSERT。假 D1 看不到
+ * `json_extract(value, '$[n]')` 的位置寫錯——欄位順序錯了，資料會悄悄存進別的欄位。
+ */
+function sqliteD1() {
+  const sqlite = new DatabaseSync(":memory:");
+  const db = {
+    prepare(sql: string) {
+      const stmt = {
+        bind: (...a: unknown[]) => ({ run: async () => (sqlite.prepare(sql).run(...(a as string[])), {}) }),
+        run: async () => (sqlite.exec(sql), {}),
+      };
+      return stmt;
+    },
+  } as unknown as D1Database;
+  return { db, sqlite };
+}
+
+describe("每日存檔：真的 SQLite 跑一遍", () => {
+  it("每個值落在對的欄位；空值是 NULL；重跑只覆寫同一批列（主鍵是代號與交易日）", async () => {
+    stubUpstream({ day: DAY, pe: PE, margin: MARGIN });
+    const { db, sqlite } = sqliteD1();
+    await archiveDaily(db);
+    await archiveDaily(db); // 一天跑兩次
+
+    expect(sqlite.prepare("SELECT COUNT(*) AS n FROM pe_daily").get()).toEqual({ n: 2 });
+    expect(sqlite.prepare("SELECT * FROM pe_daily WHERE code = '1101'").get()).toEqual({
+      code: "1101", date: "2026-10-20", name: "台泥", pe_ratio: null, dividend_yield: 2.99, pb_ratio: 0.87,
+    });
+    expect(sqlite.prepare("SELECT * FROM margin_daily WHERE code = '2330'").get()).toEqual({
+      code: "2330", date: "2026-09-24", name: "台積電",
+      margin_buy: 1, margin_sell: 2, margin_repay: 3, margin_balance: 8, margin_limit: 100,
+      short_buy: 4, short_sell: 5, short_repay: 6, short_balance: 19, short_limit: 200,
+      offset_qty: 0, note: "Ｘ",
+    });
+    expect(sqlite.prepare("SELECT short_balance, note FROM margin_daily WHERE code = '00400A'").get()).toEqual({ short_balance: null, note: null });
+    expect(sqlite.prepare("SELECT COUNT(*) AS n FROM margin_daily").get()).toEqual({ n: 2 });
+    expect(sqlite.prepare("SELECT COUNT(*) AS n FROM daily_quotes").get()).toEqual({ n: 1 });
+  });
+});
+
+describe("排程（scheduled）", () => {
+  const run = (env: Record<string, unknown>) =>
+    (worker.scheduled as (c: unknown, e: unknown) => Promise<void>)({}, env);
+
+  it("沒有 ARCHIVE 綁定就什麼都不做：不抓上游、不丟例外", async () => {
+    stubUpstream({ day: DAY, pe: PE, margin: MARGIN });
+    await expect(run({})).resolves.toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("三張表各印一行 log（表名、列數、交易日），沒有別的內容", async () => {
+    stubUpstream({ day: DAY, pe: PE, margin: MARGIN });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await run({ ARCHIVE: recordingDb().db });
+    expect(log.mock.calls.map((c) => JSON.parse(String(c[0])))).toEqual([
+      { archive: "daily_quotes", rows: 1, dates: ["2026-09-24"] },
+      { archive: "pe_daily", rows: 2, dates: ["2026-10-20"] },
+      { archive: "margin_daily", rows: 2, dates: ["2026-09-24"] },
+    ]);
+    log.mockRestore();
+  });
+
+  // 一張失敗不拖垮其他張（見上），但整次排程要標成失敗：Cron 的失敗才會出現在 Workers Logs，
+  // 否則上游壞了好幾天都沒人知道。
+  it("有任何一張失敗：其他張照存照印，最後丟出例外並說是哪一張", async () => {
+    stubUpstream({ day: DAY, pe: new Error("down"), margin: MARGIN });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    await expect(run({ ARCHIVE: recordingDb().db })).rejects.toThrow(/pe_daily/);
+    const lines = log.mock.calls.map((c) => JSON.parse(String(c[0])));
+    expect(lines.map((l) => l.archive)).toEqual(["daily_quotes", "pe_daily", "margin_daily"]);
+    expect(lines[1].error).toEqual(expect.any(String));
+    log.mockRestore();
   });
 });
 

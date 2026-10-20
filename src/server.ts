@@ -83,7 +83,7 @@ import {
   fetchSources,
   withRequestLimiter,
 } from "./twse";
-import { archiveDailyQuotes, stockHistory } from "./archive";
+import { archiveDaily, stockHistory } from "./archive";
 import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { APPLE_ICON_BASE64, FAVICON_ICO_BASE64, FAVICON_SVG } from "./icons";
 import { OG_IMAGE_BASE64 } from "./og-image";
@@ -1158,7 +1158,9 @@ export default {
    */
   async scheduled(_controller, env) {
     if (!env.ARCHIVE) return;
-    const r = await archiveDailyQuotes(env.ARCHIVE);
-    console.log(JSON.stringify({ archive: "daily_quotes", rows: r.rows, dates: r.dates }));
+    const r = await archiveDaily(env.ARCHIVE);
+    for (const [archive, t] of Object.entries(r)) console.log(JSON.stringify({ archive, ...t }));
+    const failed = Object.entries(r).filter(([, t]) => t.error).map(([archive]) => archive);
+    if (failed.length) throw new Error(`每日存檔有 ${failed.length} 張表失敗：${failed.join("、")}`);
   },
 } satisfies ExportedHandler<Env>;
