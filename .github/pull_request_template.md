@@ -5,7 +5,7 @@
 ## 驗證
 
 - [ ] `npm test`、`npm run typecheck`、`npm run dry-run` 通過
-- [ ] commit 前跑過 `/ponytail:ponytail-review`（見 `docs/agents/ponytail.md`）
+- [ ] （可選）commit 前跑過 `/ponytail:ponytail-review`；沒有外掛的做法見 `docs/agents/ponytail.md`
 
 <!-- 動到工具描述、inputSchema／outputSchema、server instructions，或新增／移除工具時，下面這段必填 -->
 ### 工具選擇測試（`npm run eval:tools`）
