@@ -190,6 +190,7 @@ const ZH: Page = {
     "前一交易日的開盤、最高、最低、收盤與成交量",
     "單一上市公司的概況：本益比、殖利率、最新月營收年增率、近一年股利、除權息與處置狀態，可附財報摘要、公司治理、融資融券與 ESG",
     "大盤概況與期貨籌碼：加權指數、成交量排行、三大法人期貨未平倉、Put/Call 比；以及近期事件：除權息、股東會、注意股與處置股",
+    "上市股票前一交易日的漲幅與跌幅排行（依漲跌幅%）與漲停、跌停家數，不含 ETF 與上櫃",
     "單一 ETF 的基本資料、追蹤指數與定期定額熱度",
     "依本益比、殖利率等交易所公布的數字篩選與排序，以及用名稱查代號",
     "單一期貨契約（台指期、小台、個股期貨等）的各月份行情、三大法人與大額交易人部位，以及期交所其他每日報表",
@@ -270,6 +271,7 @@ const ZH: Page = {
 <li>「台積電上半年毛利率多少？負債比高嗎？」：最新一季財報摘要，自動找對業別的表，並提醒損益是年初累計數。</li>
 <li>「這家公司的董監有沒有大量質押股票？」：公司治理，包括董監質押、董事長兼任總經理、金管會裁罰紀錄。</li>
 <li>「昨天大盤怎麼樣？外資期貨是多還是空？」：加權指數、漲跌家數、成交量排行，以及三大法人期貨未平倉與 Put/Call 比。</li>
+<li>「上一個交易日漲幅最大的是哪幾檔？漲停幾檔？」：上市股票的漲幅與跌幅排行，依漲跌幅%而不是漲了幾元，並數出漲停、跌停家數（推算值，不含 ETF 與上櫃）。</li>
 <li>「隴華的股票代號是多少？」：只知道公司或 ETF 名稱時，先幫你查出代號。</li>
 <li>「0056 這檔 ETF 到底是什麼？」：追蹤哪個指數、多少人定期定額，還會提醒哪些數字不能當真。</li>
 <li>「台指期昨天收在哪？」：期貨與選擇權的每日行情、三大法人、未平倉。</li>
@@ -360,6 +362,7 @@ const EN: Page = {
     "Previous trading day's open, high, low, close and volume",
     "Per-company snapshot: P/E, dividend yield, latest monthly revenue growth, dividends over the past year, ex-dividend and disposition status, plus optional financials, governance, margin trading and ESG disclosures",
     "Market overview and futures positioning: TAIEX, most-traded stocks, institutional futures open interest, put/call ratio; plus an events calendar of ex-dividend dates, shareholders' meetings, attention and disposition stocks",
+    "Previous trading day's top gainers and losers among listed stocks by percentage change, plus limit-up and limit-down counts (no ETFs or OTC)",
     "Per-ETF profile, tracked index and regular-savings popularity",
     "Filter and sort by published figures such as P/E and yield, and look up a ticker by company name",
     "Per-contract futures snapshot (TAIEX, mini-TAIEX, single-stock futures): quotes by month, institutional and large-trader positions, plus other TAIFEX daily reports",
@@ -440,6 +443,7 @@ const EN: Page = {
 <li>"What was TSMC's gross margin this half, and is its debt ratio high?": the latest quarter's financials, from the right industry table, noting that income figures are year-to-date.</li>
 <li>"Have this company's directors pledged a lot of their shares?": governance, including director share pledges, chair/CEO duality, regulatory penalties.</li>
 <li>"How did the market do yesterday? Are foreign investors long or short on futures?": TAIEX, advancers and decliners, most-traded stocks, institutional futures open interest and the put/call ratio.</li>
+<li>"Which stocks gained the most last session? How many hit the limit?": top gainers and losers among listed stocks by percentage change rather than points, plus limit-up and limit-down counts (derived; no ETFs or OTC).</li>
 <li>"What's the ticker for 隴華?": looks up the code when you only know a company or ETF name.</li>
 <li>"What exactly is the ETF 0056?": which index it tracks, how popular it is for regular savings, plus which figures not to take at face value.</li>
 <li>"Where did the TAIEX futures settle yesterday?": daily futures and options quotes, institutional flows, open interest.</li>
@@ -1044,7 +1048,7 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
  * 才採用它，每次部署都更新等於把它變成噪音。改動首頁文字或結構時手動更新；
  * test/server.test.ts 有一組內容雜湊斷言，內容變了而這個日期沒動，測試會失敗。
  */
-export const PAGES_LASTMOD = "2026-10-05";
+export const PAGES_LASTMOD = "2026-10-20";
 
 /**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
