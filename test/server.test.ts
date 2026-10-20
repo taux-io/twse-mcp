@@ -1671,7 +1671,7 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "d9fbe46cb562cb12",
+      hash: "4f6ecf7df2e6c073",
       lastmod: "2026-10-20",
     });
   });
