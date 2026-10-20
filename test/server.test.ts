@@ -11,6 +11,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import toolEval from "../evals/tool-selection.json";
 import catalogJson from "../src/catalog.generated.json";
 import { COPY_SCRIPT } from "../src/site";
 import { fetchDataset, fetchQuotes, UPSTREAM_USER_AGENT } from "../src/twse";
@@ -356,7 +358,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     return JSON.parse(payload.result.content[0].text);
   }
 
-  it("tools/list 暴露 10 個工具（含 egress 驗通後開放的 realtime_quote）", async () => {
+  it("tools/list 暴露的工具名單（含 egress 驗通後開放的 realtime_quote）", async () => {
     const payload = await rpc("tools/list", {});
     const names = payload.result.tools.map((t: { name: string }) => t.name).sort();
     expect(names).toEqual(
@@ -373,6 +375,23 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
         "snapshot.stock",
       ].sort(),
     );
+  });
+
+  // 新增工具最容易漏的是周邊：smoke 沒有它的查詢、工具選擇測試沒有它的題目。名單從 tools/list 來，
+  // 所以新增工具後這裡自己會失敗，不必記得去改某個寫死的數字。README 不在此列：那是給使用者看的
+  // 白話說明，沒有工具名稱。
+  it("每個註冊的工具都有 smoke 查詢與工具選擇題，題目期望的工具也都存在", async () => {
+    const payload = await rpc("tools/list", {});
+    const names: string[] = payload.result.tools.map((t: { name: string }) => t.name);
+    const smoke = readFileSync("scripts/smoke.mjs", "utf-8");
+    const expected = new Set(
+      toolEval.cases.flatMap((c) => (c.expect as { tool: string }[]).map((e) => e.tool)),
+    );
+    for (const name of names) {
+      expect(smoke, `smoke.mjs 沒有 ${name} 的查詢`).toContain(`tool: "${name}"`);
+      expect(expected.has(name), `tool-selection.json 沒有期望 ${name} 的題目`).toBe(true);
+    }
+    for (const t of expected) expect(names, `題目期望的 ${t} 不存在`).toContain(t);
   });
 
   it("dataset.search：ETF 別名命中真實目錄裡的基金表", async () => {
@@ -924,7 +943,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   // 固定形狀的五支工具宣告 outputSchema，並回傳 structuredContent。SDK 會拿 schema 驗每一次
   // 回應，驗不過就讓整次呼叫失敗——所以本檔其餘測試（部分失敗、未查詢、null）全數通過，
   // 本身就是 schema 涵蓋了所有實際回應形狀的證據。
-  it("十支工具都宣告 outputSchema；查資料類的資料列是開放物件", async () => {
+  it("每個工具都宣告 outputSchema；查資料類的資料列是開放物件", async () => {
     const payload = await rpc("tools/list", {});
     const withSchema = payload.result.tools.filter((t: { outputSchema?: unknown }) => t.outputSchema);
     expect(withSchema).toHaveLength(payload.result.tools.length);
@@ -1561,7 +1580,7 @@ describe("首頁", () => {
   // 首頁不能吃掉 MCP 的路由。
   it("不影響 /mcp：POST 仍走 MCP handler", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
-    expect(payload.result.tools).toHaveLength(10);
+    expect(payload.result.tools.map((t: { name: string }) => t.name)).toContain("dataset.search");
   });
 
   it("沒登記的路徑仍是 404，首頁不是萬用 catch-all", async () => {
@@ -1641,7 +1660,8 @@ describe("英文版首頁", () => {
   });
 
   // lastmod 必須反映內容真的變了的日期。首頁內容一變、這組雜湊就會對不上：
-  // 請把 PAGES_LASTMOD 改成今天，再把下面的雜湊更新為失敗訊息裡的新值。
+  // 請把 PAGES_LASTMOD 改成 UTC 的今天（`date -u +%F`，不是台北日期：上面的測試要求 lastmod 不晚於
+  // 現在，台北已過午夜、UTC 還沒時，台北日期會被擋），再把下面的雜湊更新為失敗訊息裡的新值。
   it("首頁內容變動時必須同步更新 PAGES_LASTMOD", async () => {
     const { createHash } = await import("node:crypto");
     const { renderPage, PAGES_LASTMOD } = await import("../src/site");
@@ -2469,7 +2489,7 @@ describe("協定 era", () => {
     );
     expect(res.status).toBe(200);
     const payload = await readPayload(res);
-    expect(payload.result.tools).toHaveLength(10);
+    expect(payload.result.tools.map((t: { name: string }) => t.name)).toContain("dataset.search");
   });
 
   // Codex（codex-mcp-client/0.155）收斂期間被擋的就是這個交握：先 initialize、沒有協定標頭。

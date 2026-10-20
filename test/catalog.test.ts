@@ -433,15 +433,9 @@ describe("上游健檢腳本", () => {
  * 就沒有意義——這裡不呼叫模型，只檢查題目與比對邏輯。
  */
 describe("工具選擇測試題", () => {
-  const TOOLS = [
-    "dataset.search", "dataset.describe", "dataset.get", "quote.lookup",
-    "snapshot.stock", "snapshot.market", "snapshot.etf", "quote.realtime",
-    "snapshot.futures", "snapshot.movers",
-  ];
-  it("每一題期望的工具都真的存在，dataset_id 都在目錄裡", () => {
+  it("每一題的 dataset_id 都在目錄裡（期望的工具是否存在，由 server.test.ts 對 tools/list 檢查）", () => {
     for (const c of toolEval.cases) {
       for (const e of c.expect as { tool: string; args?: Record<string, unknown> }[]) {
-        expect(TOOLS, `${c.id}`).toContain(e.tool);
         const id = e.args?.dataset_id as string | undefined;
         if (id) expect(catalog[id], `${c.id}: ${id}`).toBeDefined();
       }
