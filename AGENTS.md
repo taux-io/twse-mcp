@@ -58,7 +58,7 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 
 ### Smoke test
 
-`npm run smoke` 對本機 `wrangler dev`（8787）的每支工具發一個真實查詢，兩代協定各一遍。改到工具回應的形狀或
+`npm run smoke` 對本機 `wrangler dev`（8787）的每支工具發一個真實查詢，兩代協定各一遍；8787 沒人用就自己起、跑完關掉。改到工具回應的形狀或
 `outputSchema` 時在本機跑一次；CI（`.github/workflows/smoke.yml`）在每個 PR 與每天定時跑，定時的失敗會開 issue。
 預設不打正式環境：它跑在 Workers 免費方案，每個請求都在消耗 CPU 的寬容額度（#104）。
 例外是每天排程裡的正式環境存活檢查（`SMOKE_LIST_ONLY=1`）：只看工具清單、快捷指令與首頁，不呼叫工具。

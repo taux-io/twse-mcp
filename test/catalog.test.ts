@@ -21,6 +21,7 @@ import {
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
+import { summarize } from "../scripts/pr-wait.mjs";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
@@ -570,5 +571,21 @@ describe("required checks 與 workflow", () => {
   });
   it("排程才跑的 job（例如 upstream health 的 check）不能當 required", async () => {
     expect(findProblems(await readWorkflows(), ["check"])[0]).toContain("不在 pull_request");
+  });
+});
+
+describe("pr-wait 的檢查彙整", () => {
+  it("全部通過（略過的不算失敗）才算完成且沒有失敗", () => {
+    const r = summarize([{ name: "test", bucket: "pass" }, { name: "x", bucket: "skipping" }]);
+    expect(r).toMatchObject({ done: true, bad: [], pending: [] });
+  });
+  it("還有 pending 就是沒完成；沒有任何檢查也不算完成", () => {
+    expect(summarize([{ name: "test", bucket: "pass" }, { name: "smoke", bucket: "pending" }]).done).toBe(false);
+    expect(summarize([]).done).toBe(false);
+  });
+  it("fail 與 cancel 都列為未通過", () => {
+    const r = summarize([{ name: "a", bucket: "fail" }, { name: "b", bucket: "cancel" }, { name: "c", bucket: "pass" }]);
+    expect(r.bad.map((c: { name: string }) => c.name)).toEqual(["a", "b"]);
+    expect(r.done).toBe(true);
   });
 });

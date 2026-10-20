@@ -21,8 +21,8 @@
  * 每個請求都在消耗 10 ms CPU 的寬容額度（#104）。
  *
  * 用法：
- *   npx wrangler dev --port 8787 &   # 另一個終端機
- *   node scripts/smoke.mjs
+ *   npm run smoke                    # 8787 沒人用就自己起 wrangler dev，跑完關掉；已經有就直接用
+ *   SMOKE_ENDPOINT 有設定時不會自己起（CI 的正式環境存活檢查、CI 自己先起好的 wrangler dev 都是）
  *   SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs   # 真的要測正式環境時
  *   SMOKE_LIST_ONLY=1 SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs
  *     # 正式環境存活檢查：只看工具清單、快捷指令與首頁，不呼叫工具（CI 每天一次，幾個請求）
@@ -270,9 +270,22 @@ async function main() {
   ].join("\n");
   await writeFile(REPORT, report + "\n");
   console.log("\n" + report);
-  if (fails.length) process.exit(1);
+  if (fails.length) process.exitCode = 1;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  await main();
+  let server = null;
+  if (!process.env.SMOKE_ENDPOINT) {
+    // 只在要打本機預設埠、而且那裡沒人時才起；動態載入，正式環境存活檢查不需要這些。
+    const { portInUse, startServer } = await import("./eval-ab.mjs");
+    if (!(await portInUse(8787))) {
+      console.log("8787 沒有伺服器，自己起 wrangler dev…");
+      server = await startServer(new URL("..", import.meta.url).pathname, 8787);
+    }
+  }
+  try {
+    await main();
+  } finally {
+    if (server) try { process.kill(-server.pid); } catch {}
+  }
 }
