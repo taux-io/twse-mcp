@@ -360,6 +360,53 @@ export const CASES = [
     },
   },
   {
+    id: "movers-gainers",
+    question: "上市股票漲幅前五名是哪幾檔？各漲多少？",
+    // 排行依漲跌幅%（不是漲了幾元）；資料是前一交易日，答案要說出是哪一天，不然使用者會以為是今天盤中。
+    // 榜首的代號或名稱、漲跌幅% 都要對得上工具結果。
+    check(run) {
+      const r = results(run, "snapshot.movers").map((c) => c.result).find((x) => x["漲幅排行"]?.length);
+      if (!r) return skip("沒有取得 snapshot.movers 的漲幅排行");
+      const top = r["漲幅排行"][0];
+      if (!run.answer.includes(String(top["代號"])) && !run.answer.includes(String(top["名稱"]))) return fail(`答案沒有榜首 ${top["代號"]} ${top["名稱"]}`);
+      const got = numbersWithUnits(run.answer).filter((x) => x.unit === "%");
+      if (!got.some((x) => near(x.value, top["漲跌幅%"], 0.01))) return fail(`答案沒有榜首的漲幅 ${top["漲跌幅%"]}%`);
+      if (r["日期"] && r["日期"] !== taipeiToday() && !mentionsDate(run.answer, r["日期"])) return fail(`資料是 ${r["日期"]} 的，答案沒有說日期`);
+      return pass();
+    },
+  },
+  {
+    id: "movers-losers",
+    question: "上市股票跌幅前五名是哪幾檔？各跌多少？",
+    // 跌幅榜的漲跌幅% 是負的；答案可以寫「-7.8%」或「下跌 7.8%」，比的是絕對值。
+    check(run) {
+      const r = results(run, "snapshot.movers").map((c) => c.result).find((x) => x["跌幅排行"]?.length);
+      if (!r) return skip("沒有取得 snapshot.movers 的跌幅排行");
+      const top = r["跌幅排行"][0];
+      if (!run.answer.includes(String(top["代號"])) && !run.answer.includes(String(top["名稱"]))) return fail(`答案沒有榜首 ${top["代號"]} ${top["名稱"]}`);
+      const got = numbersWithUnits(run.answer).filter((x) => x.unit === "%");
+      if (!got.some((x) => near(x.value, Math.abs(top["漲跌幅%"]), 0.01))) return fail(`答案沒有榜首的跌幅 ${Math.abs(top["漲跌幅%"])}%`);
+      if (r["日期"] && r["日期"] !== taipeiToday() && !mentionsDate(run.answer, r["日期"])) return fail(`資料是 ${r["日期"]} 的，答案沒有說日期`);
+      return pass();
+    },
+  },
+  {
+    id: "movers-limit-up",
+    question: "上一個交易日上市股票有幾檔漲停？",
+    // 漲停家數是依前收盤與升降單位推算的（資料沒有標記），note 會說明。答案要有正確的家數，
+    // 也要讓使用者知道這是推算值。家數是 0 時，只看有沒有講出 0／沒有。
+    check(run) {
+      const r = results(run, "snapshot.movers").map((c) => c.result).find((x) => typeof x["漲停家數"] === "number");
+      if (!r) return skip("沒有取得 snapshot.movers 的漲停家數");
+      const n = r["漲停家數"];
+      const nums = [...String(run.answer).matchAll(/\d[\d,]*/g)].map((m) => Number(m[0].replace(/,/g, "")));
+      const said = nums.includes(n) || (n === 0 && /沒有|無/.test(run.answer));
+      if (!said) return fail(`答案沒有漲停家數 ${n}`);
+      if (!/推算|估算|推估|依.{0,12}(?:前收盤|升降單位)|非官方|沒有(?:直接)?標記/.test(run.answer)) return fail("答案沒有說明漲停家數是推算值");
+      return pass();
+    },
+  },
+  {
     id: "holiday-close",
     question: "2026 年 9 月 25 日台積電的收盤價是多少？",
     // 2026-09-25 是中秋節，證交所休市（休市日表 holidaySchedule 有 1150925）。答案要說那天沒開盤，
