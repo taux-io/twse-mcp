@@ -279,7 +279,7 @@ components:
 
 ### Favicon
 
-港灣藍圓角方塊上三條白色橫線，像一張公告。用 inline SVG 的 data URI，不用 emoji（📈 是行情圖示，有些平台畫成紅綠）。
+港灣藍圓角方塊上三條白色橫線，像一張公告。不用 emoji（📈 是行情圖示，有些平台畫成紅綠）。由 Worker 服務三個檔案：`/favicon.svg`（現代瀏覽器）、`/favicon.ico`（16／32／48，給直接來要的爬蟲與舊瀏覽器）、`/apple-touch-icon.png`（180，iOS）；`npm run make-icons` 產生 `src/icons.ts`，CSP 的 `img-src` 因此是 `'self'`。
 
 ### 連結
 

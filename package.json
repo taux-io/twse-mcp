@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "make-og": "node scripts/make-og.mjs",
+    "make-icons": "node scripts/make-icons.mjs",
     "eval:tools": "node scripts/eval-tools.mjs",
     "eval:ab": "node scripts/eval-ab.mjs",
     "smoke": "node scripts/smoke.mjs",
