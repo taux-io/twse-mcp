@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unreleased
 
+- Homepage redesign (English and Chinese): a new hero, an illustrative chat, a key-figures strip, "What you can ask" as cards, and better dark-mode and mobile reading. Content and URLs are unchanged.
 - Added `snapshot.movers`: the previous trading day's top gainers and losers among TWSE-listed stocks, ranked by percentage change (top 10 by default, up to 30), plus how many closed limit-up and limit-down. Asking for a gainers list used to rank by price change in points, which puts high-priced stocks first; limit-up and limit-down are derived from the previous close and the tick size. Listed stocks only (no ETFs); OTC (TPEx) is not covered.
 - The homepage install guide was rewritten: setup now comes first, the URL can be copied right at the step that needs it, and success is judged by a visible tool call and data date rather than any price; it adds a "Did not work?" checklist, a note for phone readers, and how to add it in ChatGPT.
 - The homepage now states plainly that the connector cannot touch your money: it only reads public data, cannot place orders or reach your brokerage account, and explains how to remove it.

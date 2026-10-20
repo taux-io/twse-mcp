@@ -1,6 +1,6 @@
 ---
 name: Taiwan Market Open Data (Unofficial)
-description: 安靜、可信的交易所公告欄：中性底色，一個港灣藍重點色，只講事實
+description: 安靜、可信的交易所公告欄，2026-10 改版為編輯式版面：大字標題、示意對話、卡片牆；中性底色，一個港灣藍重點色，只講事實
 colors:
   harbour-blue: "#2f5d8a"
   harbour-blue-night: "#8ab6e2"
@@ -21,10 +21,10 @@ colors:
 typography:
   display:
     fontFamily: "system-ui, -apple-system, \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
-    fontSize: "1.9rem"
-    fontWeight: 700
-    lineHeight: 1.35
-    letterSpacing: "-0.01em"
+    fontSize: "clamp(2.3rem, 5.6vw, 4.1rem)"
+    fontWeight: 800
+    lineHeight: 1.12
+    letterSpacing: "-0.035em"
   display-narrow:
     fontFamily: "system-ui, -apple-system, \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "1.55rem"
@@ -69,7 +69,8 @@ spacing:
   gutter: "1.25rem"
   gutter-mobile: "1rem"
   section: "3rem"
-  measure: "44rem"
+  measure: "46rem"
+  page: "72rem"
 components:
   endpoint-block:
     backgroundColor: "{colors.harbour-mist}"
@@ -125,14 +126,14 @@ components:
 
 這個服務也是非官方的，所以設計不借用交易所的配色、標誌或制式外觀。
 
-版面平面、無陰影，深淺兩套主題由系統設定自動切換，沒有切換按鈕。
+2026-10 改版（首頁重構）：首屏改成左側大標題加右側示意對話，其餘內容維持單欄閱讀。層次改用細線、一層柔和陰影與港灣藍的淡光暈，深淺兩套主題由系統設定自動切換，沒有切換按鈕。
 
 **Key Characteristics:**
 
-- 單欄閱讀版面，寬 44rem。
+- 首屏與數字帶用 72rem 寬；正文欄 46rem（卡片牆佔滿 72rem），窄螢幕一律單欄。
 - 中性紙色底，搭配一個港灣藍重點色。
 - 系統字體，不另外載入任何字型檔。
-- 層次靠細線與淡藍底塊表現，不靠陰影。
+- 層次靠細線、淡藍底塊，以及示意對話與結尾區塊上的一層柔和陰影。
 - 深淺主題完全由 `prefers-color-scheme` 決定。
 
 ## Colors
@@ -194,7 +195,7 @@ components:
 
 ## Layout
 
-- 單欄，置中，最大寬度 44rem（`measure`）。
+- 頂欄與首屏最大寬 72rem（`page`），正文 46rem（`measure`）靠左對齊首屏；「可以問什麼」的卡片牆用滿 72rem（三欄、兩欄、一欄隨寬度）。
 - 內距：上 2rem，左右 1.25rem，下 5rem。32rem 以下的窄螢幕改成 1.5rem / 1rem / 3.5rem。
 - 節與節之間靠 h2 上方的 3rem 留白分隔，不另外畫線。
 - 版面最上方是語言切換，靠右對齊。接著是標頭：h1 加導言，下方留 3rem。
@@ -203,7 +204,7 @@ components:
 
 ## Elevation & Depth
 
-完全平面，沒有任何 `box-shadow`。
+幾乎平面：只有示意對話與結尾區塊用一層柔和陰影（`--shadow`），網址區塊外圈一圈港灣藍光暈（4px，`--glow`）。其餘沒有 `box-shadow`。
 
 需要表達層次時用三種手段：
 
@@ -213,7 +214,7 @@ components:
 
 只有網址區塊同時用了藍色邊框和淡藍底，它是頁面上最重要的東西。
 
-**The Flat Notice Rule.** 公告欄上的紙是貼平的。不加陰影、不加漸層、不加模糊；需要強調時，換成港灣霧底色或港灣藍邊框。
+**The Flat Notice Rule（2026-10-21 放寬）.** 公告欄上的紙大多是貼平的。陰影與漸層只留給三個地方：示意對話、結尾區塊、首屏背景的光暈與格線；其餘需要強調時，換成港灣霧底色或港灣藍邊框。頂欄的毛玻璃模糊是唯一的 `backdrop-filter`。
 
 ## Shapes
 
@@ -291,14 +292,28 @@ components:
 
 - **Do** 所有顏色都透過 `:root` 的 CSS 變數取用，並同時提供 `-night` 版本。
 - **Do** 把 connector 網址放在網址區塊元件裡：港灣霧底色加港灣藍邊框。
-- **Do** 要強調時先用留白、港灣霧或格線；陰影永遠不是選項。
-- **Do** 新內容維持在 44rem 的單欄裡，窄螢幕不能出現橫向捲動。
+- **Do** 要強調時先用留白、港灣霧或格線；陰影只用在已列出的三個地方。
+- **Do** 新正文維持在 46rem 欄寬內，窄螢幕不能出現橫向捲動。所有動畫都要被 `prefers-reduced-motion` 包住，而且動畫結束狀態就是預設狀態（動畫沒跑，內容也看得到）。
 - **Do** 所有互動元素都要保留可見的 `:focus-visible` 樣式（港灣藍）。
 
 ### Don't:
 
 - **Don't** 在介面上使用紅色或綠色：會被讀成台股的漲跌訊號。
 - **Don't** 使用證交所、期交所的標誌、配色，或任何讓人以為是官方服務的視覺元素。
-- **Don't** 加 `box-shadow`、漸層或模糊效果。
+- **Don't** 在上述之外加 `box-shadow`、漸層或模糊效果；不用 JavaScript 做動效（CSP 只放行複製腳本，動畫靠 CSS 與 `animation-timeline: view()`）。
 - **Don't** 載入網頁字型、外部圖片或其他外部資源：首頁要輕，CSP 也只放行頁面內嵌的內容。
 - **Don't** 加主題切換按鈕：深淺主題交給 `prefers-color-scheme` 決定。
+
+## 2026-10 改版新增的元件
+
+- **頂欄**：黏在頂端，半透明加毛玻璃，左品牌、右錨點（可以問什麼、設定、FAQ）與語言膠囊；44rem 以下隱藏錨點。
+- **首屏**：背景是 56px 格線加右上港灣藍光暈，往下淡出。左欄依序是小標、h1（最後一段用港灣藍漸層字）、導言、網址區塊；右欄是示意對話。載入時由上而下依序浮現。
+- **網址區塊的複製按鈕**：實心港灣藍底（`--accent`）、`--accent-ink` 字，取代原本的細框按鈕。
+- **示意對話**：只放問題、工具呼叫列、答案與出處，**不放任何數字**，避免把示意當成真實查詢結果；右上角標「示意」。對螢幕閱讀器是一張圖（`role="img"`），內文 `aria-hidden`。
+- **數字帶**：四格（資料集數量從目錄算、0 註冊、3 步、唯讀），每格都是可從頁面其他地方驗證的事實。
+- **章節**：每節用 `<section class="s-<id>">` 包住；h2 上方用 CSS 計數器顯示 01、02…（`main` 重設計數）。
+- **卡片牆**：「可以問什麼」每題是一張卡，問句粗體、說明降一階；hover 時邊框變港灣藍並上移 2px。
+- **步驟**：每步一張紙卡，左側實心藍圓編號。
+- **FAQ**：自畫的箭頭（CSS 邊框旋轉），展開時翻轉。
+- **結尾區塊**：置中的標題加「回到頂端複製網址」按鈕，連到 `#top`（不再多放一個複製按鈕）。
+- **捲動進場**：`@supports (animation-timeline: view())` 才啟用，章節、數字格、步驟與卡片隨進入視窗淡入上移。

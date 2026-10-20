@@ -79,10 +79,10 @@ const LOCALES: Record<Locale, { path: string; lang: string; hreflang: string; la
  * 用 ASCII slug 而不是標題的百分比編碼，後者被複製貼上時會爛掉。
  */
 const SECTION_IDS = [
-  "install",
   "problem",
-  "shortcuts",
   "ask",
+  "install",
+  "shortcuts",
   "scope",
   "caveats",
   "faq",
@@ -173,6 +173,15 @@ interface Page {
     howToDesc: string;
     otherLangLabel: string;
     troubleshootTitle: string;
+    /** h1 裡要上強調色的那一段（必須是 h1 的子字串）。 */
+    h1Accent: string;
+    cta: [string, string];
+    /** 首屏小標。 */
+    eyebrow: string;
+    /** 首屏的示意對話：不放任何數字，避免把示意當成真實查詢結果。 */
+    demo: { label: string; q: string; tool: string; a: string; src: string };
+    /** 數字帶：四個可從事實驗證的數字。 */
+    stats: [string, string][];
   };
 }
 
@@ -342,6 +351,22 @@ const ZH: Page = {
     howToDesc: "把 Taiwan Market Open Data 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
     otherLangLabel: "其他語言的完整說明",
     troubleshootTitle: "沒成功？",
+    h1Accent: "真正的台股資料",
+    cta: ["一分鐘，讓你的 AI 開始查交易所的原始資料", "回到頂端複製網址"],
+    eyebrow: "非官方 · 免費 · 唯讀",
+    demo: {
+      label: "示意",
+      q: "0050 昨天收盤多少？",
+      tool: "查詢交易所開放資料",
+      a: "收盤價與資料日期都直接取自交易所發布的原始資料，不是 AI 憑印象猜的數字。",
+      src: "出處：臺灣證券交易所 OpenAPI",
+    },
+    stats: [
+      [String(DATASET_COUNT), "個公開資料集可查"],
+      ["0", "註冊、API key 與安裝"],
+      ["3", "步、約一分鐘設定完"],
+      ["唯讀", "不能下單、碰不到帳戶"],
+    ],
   },
 };
 
@@ -519,6 +544,22 @@ const EN: Page = {
       "Add Taiwan Market Open Data as a custom connector in Claude. It takes about a minute and needs no account or payment.",
     otherLangLabel: "Full documentation in other languages",
     troubleshootTitle: "Did not work?",
+    h1Accent: "real Taiwan market data",
+    cta: ["One minute to let your AI read the exchange's own data", "Copy the URL"],
+    eyebrow: "Unofficial · Free · Read-only",
+    demo: {
+      label: "Illustration",
+      q: "Where did 0050 close yesterday?",
+      tool: "Querying exchange open data",
+      a: "The closing price and its data date come straight from the exchange's published data, not from the model's memory.",
+      src: "Source: Taiwan Stock Exchange OpenAPI",
+    },
+    stats: [
+      [String(DATASET_COUNT), "open datasets to query"],
+      ["0", "signups, API keys or installs"],
+      ["3", "steps, about a minute"],
+      ["Read-only", "no orders, no account access"],
+    ],
   },
 };
 
@@ -541,79 +582,183 @@ function esc(s: string): string {
  */
 const CSS = `
 :root{
-  --bg:#fcfcfb; --surface:#fff; --text:#17181a; --muted:#5f6570;
-  --line:#e4e6e8; --accent:#2f5d8a; --soft:#eef3f8; --code:#f4f5f6;
+  color-scheme:light dark;
+  --bg:#fafaf8; --surface:#fff; --text:#14161a; --muted:#596270;
+  --line:#e2e5e8; --accent:#2f5d8a; --accent-ink:#fff; --soft:#eef3f8; --code:#f3f4f5;
+  --glow:rgba(47,93,138,.16); --grid:rgba(20,22,26,.06);
+  --shadow:0 1px 2px rgba(20,22,26,.05),0 12px 32px -12px rgba(20,40,70,.18);
+  --r:14px; --ease:cubic-bezier(.2,.7,.2,1);
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#121416; --surface:#181b1e; --text:#e8eaec; --muted:#9aa1aa;
-    --line:#282c31; --accent:#8ab6e2; --soft:#1a2430; --code:#1e2226;
+    --bg:#0e1013; --surface:#16191d; --text:#eceef0; --muted:#98a1ac;
+    --line:#262b31; --accent:#8ab6e2; --accent-ink:#0e1013; --soft:#18222e; --code:#1b1f24;
+    --glow:rgba(138,182,226,.14); --grid:rgba(255,255,255,.05);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px -16px rgba(0,0,0,.7);
   }
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:6rem}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:var(--bg);color:var(--text);
-  font:16px/1.75 system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-  word-break:break-word;
+  font:16px/1.8 system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  word-break:break-word;text-wrap:pretty;-webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:44rem;margin:0 auto;padding:2rem 1.25rem 5rem}
-.switch{display:flex;justify-content:flex-end;margin:0 0 1.5rem;font-size:.85rem}
-.switch a{
-  display:inline-flex;align-items:center;gap:.4rem;
-  border:1px solid var(--line);border-radius:999px;padding:.25rem .8rem;
-  text-decoration:none;color:var(--muted);background:var(--surface);
-}
+::selection{background:var(--accent);color:var(--accent-ink)}
+a{color:var(--accent);text-underline-offset:.2em}
+a:hover{text-decoration-thickness:2px}
+a:focus-visible,summary:focus-visible,.copy:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:72rem;margin:0 auto;padding:0 1.25rem 5rem}
+main>section>*,footer>*{max-width:46rem}
+.prose{max-width:46rem;padding-top:3rem}
+.prose h1{font-size:clamp(1.8rem,4vw,2.4rem);margin-bottom:1rem}
+.prose h2{font-size:1.35rem;margin:2.5rem 0 .8rem}
+.prose h2::before{display:none}
+main>.s-ask>ul{max-width:none}
+.wide{max-width:72rem;margin:0 auto;padding:0 1.25rem}
+
+/* 頂欄 */
+.top{position:sticky;top:0;z-index:10;backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--line)}
+.top .wide{display:flex;align-items:center;gap:1.5rem;height:3.5rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.95rem;color:var(--text);text-decoration:none;letter-spacing:-.01em}
+.mark{width:1.5rem;height:1.5rem;border-radius:.4rem;background:var(--accent);display:grid;place-content:center;gap:.18rem;padding:.3rem}
+.mark i{display:block;height:2px;border-radius:2px;background:var(--accent-ink);width:.9rem}
+.mark i:last-child{width:.55rem}
+.nav{display:flex;gap:1.4rem;margin-left:auto;font-size:.88rem}
+.nav a{color:var(--muted);text-decoration:none}
+.nav a:hover{color:var(--text)}
+.switch{font-size:.82rem}
+.switch a{display:inline-flex;gap:.4rem;border:1px solid var(--line);border-radius:999px;padding:.2rem .75rem;text-decoration:none;color:var(--muted);background:var(--surface);transition:border-color .2s,color .2s}
 .switch a:hover{border-color:var(--accent);color:var(--accent)}
-header{margin-bottom:3rem}
-h1{font-size:1.9rem;line-height:1.35;margin:0 0 .6rem;letter-spacing:-.01em;text-wrap:balance}
-.lede{font-size:1.1rem;color:var(--muted);margin:0 0 1.75rem}
-.endpoint-label{margin:0 0 -.35rem;font-size:.85rem;font-weight:600;letter-spacing:.02em;color:var(--muted)}
-h2{font-size:1.2rem;margin:3rem 0 .9rem;letter-spacing:-.005em}
-h3{font-size:1rem;margin:1.75rem 0 .4rem}
+@media (max-width:44rem){.nav{display:none}.switch{margin-left:auto}}
+
+/* 首屏 */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(60rem 28rem at 78% -10%,var(--glow),transparent 70%),
+  linear-gradient(var(--grid) 1px,transparent 1px) 0 0/56px 56px,
+  linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/56px 56px;
+  -webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);pointer-events:none}
+.hero .wide{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:3.5rem;align-items:center;padding-top:clamp(3rem,8vw,6.5rem);padding-bottom:clamp(3rem,7vw,5.5rem)}
+@media (max-width:60rem){.hero .wide{grid-template-columns:1fr;gap:2.5rem}}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 1.25rem}
+.eyebrow::before{content:"";width:1.5rem;height:2px;background:var(--accent);border-radius:2px}
+h1{font-size:clamp(2.3rem,5.6vw,4.1rem);line-height:1.12;margin:0 0 1.4rem;letter-spacing:-.035em;font-weight:800;text-wrap:balance}
+html:lang(zh-Hant-TW) h1 .hl{display:inline-block}
+h1 .hl{background:linear-gradient(100deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--text)));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:clamp(1.02rem,1.6vw,1.18rem);color:var(--muted);margin:0 0 2rem;max-width:34rem}
+.lede strong{color:var(--text)}
+.endpoint-label{margin:0 0 .5rem;font-size:.82rem;font-weight:600;letter-spacing:.02em;color:var(--muted)}
+
+/* 示意對話 */
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.demo-bar{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);font-size:.75rem;color:var(--muted)}
+.demo-bar i{width:.6rem;height:.6rem;border-radius:50%;background:var(--line)}
+.demo-bar span{margin-left:auto;letter-spacing:.04em}
+.demo-body{padding:1.25rem 1.25rem 1.4rem;display:grid;gap:1rem;font-size:.95rem;line-height:1.7}
+.msg-q{justify-self:end;max-width:86%;background:var(--soft);border:1px solid var(--line);padding:.6rem .95rem;border-radius:16px 16px 4px 16px}
+.tool{display:flex;align-items:center;gap:.6rem;font:.8rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:.55rem .75rem}
+.tool b{color:var(--accent);font-weight:600}
+.pulse{width:.5rem;height:.5rem;border-radius:50%;background:var(--accent);flex:none}
+.msg-a{max-width:94%}
+.src{display:inline-flex;margin-top:.55rem;font-size:.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.1rem .7rem}
+@media (prefers-reduced-motion:no-preference){
+  .msg-q,.tool,.msg-a{animation:rise .7s var(--ease) backwards}
+  .msg-q{animation-delay:.35s}.tool{animation-delay:1.1s}.msg-a{animation-delay:1.9s}
+  .pulse{animation:pulse 1.4s ease-in-out infinite}
+  .hero .copy-col>*{animation:rise .8s var(--ease) backwards}
+  .hero .copy-col>:nth-child(2){animation-delay:.08s}.hero .copy-col>:nth-child(3){animation-delay:.16s}
+  .hero .copy-col>:nth-child(4){animation-delay:.24s}.hero .copy-col>:nth-child(5){animation-delay:.32s}
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes pulse{50%{opacity:.3}}
+
+/* 數字帶 */
+.stats{border-bottom:1px solid var(--line);background:var(--surface)}
+.stats .wide{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{padding:1.6rem 1.25rem 1.6rem 1.5rem;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat b{display:block;font-size:clamp(1.8rem,3.6vw,2.6rem);line-height:1.1;letter-spacing:-.03em;font-weight:800;font-variant-numeric:tabular-nums}
+.stat span{font-size:.85rem;color:var(--muted)}
+@media (max-width:44rem){.stats .wide{grid-template-columns:repeat(2,1fr)}.stat:nth-child(3){border-left:0;padding-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}}
+
+/* 內文 */
+main{counter-reset:sec}
+section{margin-top:clamp(3.5rem,8vw,6rem)}
+h2{counter-increment:sec;font-size:clamp(1.55rem,3vw,2.1rem);line-height:1.25;margin:0 0 1.1rem;letter-spacing:-.025em;font-weight:800;text-wrap:balance}
+h2::before{content:counter(sec,decimal-leading-zero);display:block;font-size:.78rem;font-weight:600;letter-spacing:.12em;color:var(--accent);margin-bottom:.6rem;font-variant-numeric:tabular-nums}
+h3{font-size:1.02rem;margin:2rem 0 .4rem}
 p,li{margin:.6rem 0}
 ul{padding-left:1.2rem}
-a{color:var(--accent)}
-a:hover{text-decoration-thickness:2px}
-a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-code{background:var(--code);padding:.12em .38em;border-radius:4px;font-size:.9em}
-pre{
-  background:var(--code);border:1px solid var(--line);border-radius:8px;
-  padding:.9rem 1rem;overflow-x:auto;margin:.75rem 0;
-}
+code{background:var(--code);padding:.12em .38em;border-radius:5px;font-size:.9em}
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;overflow-x:auto;margin:.75rem 0}
 pre code{background:none;padding:0;font-size:.95rem;-webkit-user-select:all;user-select:all}
 .copyable{position:relative}
 .copyable pre{padding-right:2.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
-.copy{position:absolute;top:.4rem;right:.4rem;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.copy{position:absolute;top:.4rem;right:.4rem;display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
 .copy:hover,.copy:focus-visible{border-color:var(--line);background:var(--surface);color:var(--accent)}
 .copy .i-done,.copy.done .i-copy,.copy .t-done,.copy.done .t-copy{display:none}
 .copy.done .i-done{display:block;color:var(--accent)}
 .copy.done .t-done{display:inline}
-.copyable .endpoint{padding-right:7rem;min-height:3.5rem}
-.endpoint+.copy{width:auto;height:2.75rem;gap:.35rem;padding:0 .8rem;top:.375rem;right:.375rem;border-color:var(--accent);background:var(--surface);color:var(--accent);font-family:inherit;font-size:.85rem;font-weight:600;line-height:1}
+.copyable .endpoint{padding-right:7.5rem;min-height:3.6rem;display:flex;align-items:center;margin:0;font-size:1rem}
+.endpoint+.copy{width:auto;height:2.75rem;gap:.4rem;padding:0 1rem;top:.45rem;right:.45rem;border-radius:10px;border-color:transparent;background:var(--accent);color:var(--accent-ink);font-family:inherit;font-size:.85rem;font-weight:700;line-height:1}
+.endpoint+.copy:hover,.endpoint+.copy:focus-visible{background:var(--accent);color:var(--accent-ink);border-color:transparent;filter:brightness(1.08)}
+.endpoint+.copy.done .i-done{color:var(--accent-ink)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .copy[hidden]{display:none}
-.endpoint{border-color:var(--accent);background:var(--soft)}
-table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
-th,td{border-bottom:1px solid var(--line);padding:.55rem .6rem;text-align:left;vertical-align:top}
-th{font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.02em}
-.steps{counter-reset:s;list-style:none;padding:0}
-.steps>li{counter-increment:s;position:relative;padding-left:2.2rem;margin:1.1rem 0}
-.steps>li::before{
-  content:counter(s);position:absolute;left:0;top:.15rem;
-  width:1.55rem;height:1.55rem;border-radius:50%;
-  background:var(--soft);color:var(--accent);border:1px solid var(--line);
-  font-size:.85rem;font-weight:600;display:grid;place-items:center;
-}
-.note{border-left:3px solid var(--accent);background:var(--soft);padding:.1rem 1rem;margin:1.25rem 0;border-radius:0 6px 6px 0}
-details{border-bottom:1px solid var(--line);padding:.35rem 0}
-summary{cursor:pointer;padding:.6rem 0;font-weight:500}
-summary::marker{color:var(--muted)}
-details p,details ul{margin:.2rem 0 .9rem;color:var(--muted)}
-footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+.endpoint{border-color:var(--accent);background:var(--soft);border-radius:14px;box-shadow:0 0 0 4px var(--glow)}
+
+/* 問什麼：卡片牆 */
+.s-ask>ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin:1.5rem 0 0}
+@media (max-width:64rem){.s-ask>ul{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:40rem){.s-ask>ul{grid-template-columns:1fr}}
+.s-ask>ul li{margin:0;padding:1.1rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);color:var(--muted);font-size:.92rem;line-height:1.7;transition:border-color .25s,transform .25s var(--ease),box-shadow .25s}
+.s-ask>ul li:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.q{display:block;color:var(--text);font-weight:700;font-size:1rem;margin-bottom:.25rem;letter-spacing:-.01em}
+
+/* 步驟 */
+.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:.9rem}
+.steps>li{counter-increment:s;position:relative;margin:0;padding:1.2rem 1.25rem 1.2rem 4rem;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.steps>li::before{content:counter(s);position:absolute;left:1.2rem;top:1.15rem;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.9rem;display:grid;place-items:center}
+.steps .copyable{margin-top:.7rem}
+.note{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--soft);padding:.4rem 1.2rem;margin:1.5rem 0;border-radius:4px var(--r) var(--r) 4px}
+
+/* 表格 */
+.tbl{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td code{white-space:nowrap}
+th,td{border-bottom:1px solid var(--line);padding:.8rem 1rem;text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-weight:600;color:var(--muted);font-size:.78rem;letter-spacing:.06em;background:var(--code)}
+
+/* FAQ */
+details{border-bottom:1px solid var(--line)}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{cursor:pointer;padding:1.05rem 2rem 1.05rem 0;font-weight:600;list-style:none;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";position:absolute;right:.3rem;top:50%;width:.6rem;height:.6rem;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .25s var(--ease)}
+details[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
+details p,details ul{margin:0 0 1.1rem;color:var(--muted)}
+
+/* 結尾行動區 */
+.cta{margin-top:clamp(4rem,9vw,6.5rem);text-align:center;padding:clamp(2.5rem,6vw,4rem) 1.5rem;border:1px solid var(--line);border-radius:24px;background:radial-gradient(40rem 16rem at 50% 0,var(--glow),transparent 70%),var(--surface);box-shadow:var(--shadow)}
+.cta h2{margin:0 auto 1.5rem;max-width:30rem;counter-increment:none}
+.cta h2::before{display:none}
+.btn{display:inline-flex;align-items:center;height:3rem;padding:0 1.6rem;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none;transition:transform .2s var(--ease),filter .2s}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+/* 頁尾 */
+footer{margin-top:clamp(4rem,9vw,7rem);padding-top:2rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
 .langs{display:flex;gap:.9rem;flex-wrap:wrap;margin:.5rem 0 0;padding:0;list-style:none}
-.attr{font-size:.85rem;line-height:1.7}
-@media (max-width:32rem){ .wrap{padding:1.5rem 1rem 3.5rem} h1{font-size:1.55rem} }
+.attr{font-size:.85rem;line-height:1.75}
+
+/* 捲動進場：只在支援且未要求減少動態時啟用，其餘直接顯示 */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    section,.stat,.steps>li,.s-ask>ul li{animation:rise both linear;animation-timeline:view();animation-range:entry 0% entry 28%}
+  }
+}
+@media (max-width:32rem){.wrap,.wide{padding-left:1rem;padding-right:1rem}.steps>li{padding-left:3.4rem}}
 `.trim();
 
 /**
@@ -733,12 +878,12 @@ function shortcutsHtml(p: Page): string {
   }).join("\n");
   return `
 <p>${p.ui.shortcutIntro}</p>
-<table>
+<div class="tbl"><table>
 <thead><tr>${p.ui.shortcutCols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead>
 <tbody>
 ${rows}
 </tbody>
-</table>
+</table></div>
 <p>${esc(p.ui.shortcutOutro)}</p>`;
 }
 
@@ -769,7 +914,10 @@ function sectionHtml(p: Page, id: SectionId): string {
     faq: faqHtml(p),
     license: licenseHtml(p),
   };
-  return `<h2 id="${id}">${esc(p.headings[id])}</h2>${structural[id] ?? p.body[id]}`;
+  let inner = structural[id] ?? p.body[id];
+  // 「問題」與回答拆成兩層：問題上粗體，說明降一階。卡片牆的版面靠它。
+  if (id === "ask") inner = inner.replace(/<li>("[^"]*"|「[^」]*」)[:：]s*/g, '<li><span class="q">$1</span>');
+  return `<section class="s-${id}"><h2 id="${id}">${esc(p.headings[id])}</h2>${inner}</section>`;
 }
 
 export function renderPage(loc: Locale): string {
@@ -818,18 +966,36 @@ ${alternates}
 <style>${CSS}</style>
 </head>
 <body>
-<div class="wrap">
+<header class="top"><div class="wide">
+<a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i></span>Taiwan Market Open Data</a>
+<nav class="nav" aria-label="${esc(p.ui.eyebrow)}"><a href="#ask">${esc(p.headings.ask)}</a><a href="#install">${esc(p.headings.install)}</a><a href="#faq">${esc(p.headings.faq)}</a></nav>
+<div class="switch"><a href="${SITE_ORIGIN}${LOCALES[other].path}" hreflang="${LOCALES[other].hreflang}">${loc === "zh" ? "文" : "中"}A　${esc(LOCALES[other].label)}</a></div>
+</div></header>
 
-<nav class="switch"><a href="${SITE_ORIGIN}${LOCALES[other].path}" hreflang="${LOCALES[other].hreflang}">${loc === "zh" ? "文" : "中"}A　${esc(LOCALES[other].label)}</a></nav>
-
-<header>
-<h1>${esc(p.h1)}</h1>
+<div class="hero" id="top"><div class="wide">
+<div class="copy-col">
+<p class="eyebrow">${esc(p.ui.eyebrow)}</p>
+<h1>${esc(p.h1).replace(esc(p.ui.h1Accent), (m) => `<span class="hl">${m}</span>`)}</h1>
 <p class="lede">${p.lede}</p>
 <p class="endpoint-label">${esc(p.ui.endpointLabel)}</p>
 ${copyable(p, MCP_ENDPOINT, "endpoint")}
-</header>
+</div>
+<div class="demo" role="img" aria-label="${esc(p.ui.demo.label)}: ${esc(p.ui.demo.q)}">
+<div class="demo-bar"><i></i><i></i><i></i><span>${esc(p.ui.demo.label)}</span></div>
+<div class="demo-body" aria-hidden="true">
+<div class="msg-q">${esc(p.ui.demo.q)}</div>
+<div class="tool"><span class="pulse"></span><span><b>twse</b> · ${esc(p.ui.demo.tool)}</span></div>
+<div class="msg-a">${esc(p.ui.demo.a)}<br><span class="src">${esc(p.ui.demo.src)}</span></div>
+</div>
+</div>
+</div></div>
 
+<div class="stats"><div class="wide">${p.ui.stats.map(([n, l]) => `<div class="stat"><b>${esc(n)}</b><span>${esc(l)}</span></div>`).join("")}</div></div>
+
+<main class="wrap">
 ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
+
+<div class="cta"><h2 id="start">${esc(p.ui.cta[0])}</h2><a class="btn" href="#top">${esc(p.ui.cta[1])}</a></div>
 
 <footer>
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
@@ -844,8 +1010,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 <li><a href="${REPO}/blob/main/README.zh-CN.md">简体中文</a></li>
 </ul>
 </footer>
-
-</div>
+</main>
 <script>${COPY_SCRIPT}</script>
 </body>
 </html>
@@ -880,7 +1045,7 @@ export const PRIVACY_HTML = `<!doctype html>
 <style>${CSS}</style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap prose">
 <header>
 <h1>隱私權政策</h1>
 <p>Taiwan Market Open Data (Unofficial)，<a href="${SITE_ORIGIN}/">${SITE_ORIGIN.replace("https://", "")}</a>。最後更新：${PRIVACY_UPDATED}。English version below.</p>
