@@ -11,6 +11,7 @@
   - 比較改動前後的行為，用 main 當對照組（`eval:ab` 會用 worktree 起一份 main 的伺服器）；不要拿正式環境來比。
   - 合併前跑 `npm run pr:wait`（可帶 PR 編號），exit code 是 0 才合併。它會先等檢查註冊再 watch；
     直接 `gh pr checks --watch` 在剛開 PR 時會提早以非 0 結束。不要用 pipe 處理輸出，pipe 會把失敗吞掉。
+  - 合併後跑 `npm run main-wait`，exit code 是 0 才算 main 上的 tests 通過；失敗時它會印出查原因的指令。同樣不要用 pipe。
 - **修 bug 要找根因。**
   - 先看 log、失敗的測試或 CI 輸出，修的是原因，不是症狀。
   - CI 失敗直接查、直接修，不用等人指示。
