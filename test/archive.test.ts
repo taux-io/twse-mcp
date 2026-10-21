@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/server";
-import { ARCHIVE_SINCE, archiveDaily, marginTuples, peTuples, quoteTuples, stockHistory } from "../src/archive";
+import { ARCHIVE_PE_MARGIN_SINCE, ARCHIVE_SINCE, archiveDaily, marginTuples, peTuples, quoteTuples, stockHistory } from "../src/archive";
 
 const DAY = [
   { Date: "1150924", Code: "2330", Name: "台積電", TradeVolume: "14,557,662", TradeValue: "36,1", OpeningPrice: "2,480", HighestPrice: "2,490", LowestPrice: "2,470", ClosingPrice: "2,475", Change: "-25.0000", Transaction: "31,000" },
@@ -142,7 +142,10 @@ function sqliteD1() {
   const db = {
     prepare(sql: string) {
       const stmt = {
-        bind: (...a: unknown[]) => ({ run: async () => (sqlite.prepare(sql).run(...(a as string[])), {}) }),
+        bind: (...a: unknown[]) => ({
+          run: async () => (sqlite.prepare(sql).run(...(a as never[])), {}),
+          all: async () => ({ results: sqlite.prepare(sql).all(...(a as never[])) }),
+        }),
         run: async () => (sqlite.exec(sql), {}),
       };
       return stmt;
@@ -209,6 +212,46 @@ describe("排程（scheduled）", () => {
   });
 });
 
+describe("歷史價量帶本益比與融資融券：存檔起點不同", () => {
+  it("較早只有價量的日子照樣回來、新欄位是 null，並說明本益比與融資融券從哪天才有", async () => {
+    const { db } = sqliteD1();
+    // 10-19 只有價量（本益比與融資融券的上游當天抓不到）；10-20 三份都有
+    stubUpstream({
+      day: [{ Date: "1151019", Code: "2330", Name: "台積電", ClosingPrice: "100" }],
+      pe: new Error("down"),
+      margin: new Error("down"),
+    });
+    await archiveDaily(db).catch(() => {});
+    await seedDay(db, "1151020", { close: "101", pe: "21", marginBalance: "480", shortBalance: "12" });
+
+    const { history, caveat } = await stockHistory(db, "2330", 2);
+    const rows = history!.rows as Record<string, unknown>[];
+    expect(rows.map((r) => r.date)).toEqual(["2026-10-19", "2026-10-20"]); // 列數 = 價量的筆數
+    expect(rows[0]).toMatchObject({ close: 100, pe_ratio: null, dividend_yield: null, pb_ratio: null, margin_balance: null, short_balance: null });
+    expect(rows[1]).toMatchObject({ close: 101, pe_ratio: 21, margin_balance: 480 });
+    expect(ARCHIVE_PE_MARGIN_SINCE).toBe("2026-10-20");
+    expect(caveat).toContain(ARCHIVE_PE_MARGIN_SINCE);
+    expect(caveat).toMatch(/本益比.*融資融券|融資融券.*本益比/);
+  });
+});
+
+describe("歷史價量帶本益比與融資融券：新表還不存在", () => {
+  // 讀取端部署在第一次排程之前，或某天 pe／margin 的上游一直壞到連表都沒建：
+  // 不能因此讓原本好好的價量歷史整段變成「暫時無法取得」。
+  it("pe_daily、margin_daily 都還沒建：價量歷史照回，新欄位是 null", async () => {
+    const { db } = sqliteD1();
+    stubUpstream({ day: [{ Date: "1151019", Code: "2330", Name: "台積電", ClosingPrice: "100" }], pe: new Error("down"), margin: new Error("down") });
+    await archiveDaily(db).catch(() => {});
+
+    const { history, caveat } = await stockHistory(db, "2330", 5);
+    expect(history).not.toBeNull();
+    expect(history!.rows).toEqual([
+      { date: "2026-10-19", open: null, high: null, low: null, close: 100, change: null, volume: null, pe_ratio: null, dividend_yield: null, pb_ratio: null, margin_balance: null, short_balance: null },
+    ]);
+    expect(caveat).toContain(ARCHIVE_PE_MARGIN_SINCE);
+  });
+});
+
 /** 假的 D1：記下 SQL 與綁定值，回傳給定的列（由新到舊，如同 ORDER BY date DESC）。 */
 function fakeDb(rows: Record<string, unknown>[] | Error) {
   const seen = { sql: [] as string[], binds: [] as unknown[][] };
@@ -226,17 +269,41 @@ function fakeDb(rows: Record<string, unknown>[] | Error) {
   return { db, seen };
 }
 
+/** 用真的存檔流程灌一天：三份上游各回一列 2330，經 archiveDaily 寫進（真的）SQLite。 */
+async function seedDay(db: D1Database, roc: string, v: { close: string; pe: string; marginBalance: string; shortBalance: string }) {
+  stubUpstream({
+    day: [{ Date: roc, Code: "2330", Name: "台積電", OpeningPrice: "1", HighestPrice: "3", LowestPrice: "1", ClosingPrice: v.close, Change: "1", TradeVolume: "1,000", TradeValue: "1", Transaction: "1" }],
+    pe: [{ Date: roc, Code: "2330", Name: "台積電", PEratio: v.pe, DividendYield: "1.5", PBratio: "7.1" }],
+    margin: [{ "股票代號": "2330", "股票名稱": "台積電", "融資今日餘額": v.marginBalance, "融券今日餘額": v.shortBalance }],
+  });
+  await archiveDaily(db);
+}
+
+describe("歷史價量帶本益比與融資融券（讀取端，真的 SQLite）", () => {
+  it("每列帶 pe_ratio、dividend_yield、pb_ratio、margin_balance、short_balance，由舊到新", async () => {
+    const { db } = sqliteD1();
+    await seedDay(db, "1151019", { close: "100", pe: "20.5", marginBalance: "500", shortBalance: "10" });
+    await seedDay(db, "1151020", { close: "101", pe: "", marginBalance: "480", shortBalance: "12" });
+
+    const { history } = await stockHistory(db, "2330", 2);
+    expect((history!.rows as Record<string, unknown>[])).toEqual([
+      { date: "2026-10-19", open: 1, high: 3, low: 1, close: 100, change: 1, volume: 1000, pe_ratio: 20.5, dividend_yield: 1.5, pb_ratio: 7.1, margin_balance: 500, short_balance: 10 },
+      { date: "2026-10-20", open: 1, high: 3, low: 1, close: 101, change: 1, volume: 1000, pe_ratio: null, dividend_yield: 1.5, pb_ratio: 7.1, margin_balance: 480, short_balance: 12 },
+    ]);
+  });
+});
+
 describe("歷史價量（讀取端）", () => {
   const desc = [
-    { date: "2026-10-02", close: 110 },
-    { date: "2026-10-01", close: 105 },
-    { date: "2026-09-30", close: 100 },
+    { date: "2026-10-22", close: 110 },
+    { date: "2026-10-21", close: 105 },
+    { date: "2026-10-20", close: 100 },
   ];
 
   it("由舊到新；期間漲跌幅；只綁代號與筆數，SQL 裡沒有使用者輸入", async () => {
     const { db, seen } = fakeDb(desc);
     const { history, caveat } = await stockHistory(db, "2330", 3);
-    expect((history!.rows as { date: string }[]).map((r) => r.date)).toEqual(["2026-09-30", "2026-10-01", "2026-10-02"]);
+    expect((history!.rows as { date: string }[]).map((r) => r.date)).toEqual(["2026-10-20", "2026-10-21", "2026-10-22"]);
     expect(history!["期間漲跌幅%"]).toBe(10);
     expect(caveat).toBeUndefined();
     expect(seen.binds).toEqual([["2330", 3]]);

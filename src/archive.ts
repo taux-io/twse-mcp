@@ -215,8 +215,20 @@ export async function archiveDaily(
 /** 存檔開始的日期（第一筆正式存檔）。歷史不足時照實說從哪天開始，不必為此多查一次 MIN(date)。 */
 export const ARCHIVE_SINCE = "2026-09-29";
 
-const HISTORY = `SELECT date, open, high, low, close, change, volume
+/** 本益比與融資融券開始存檔的交易日（比價量晚）。更早的日子，歷史裡這幾個欄位是 null。 */
+export const ARCHIVE_PE_MARGIN_SINCE = "2026-10-20";
+
+// 價量是主表（LEFT JOIN）：某天有價量但沒有本益比／融資融券（存檔開始得比較晚）時，那天照樣回來，
+// 多出的欄位是 NULL；列數永遠等於價量的筆數，所以讀取量是 N 列的三倍，不會更多。
+const HISTORY_PRICE_ONLY = `SELECT date, open, high, low, close, change, volume
 FROM daily_quotes WHERE code = ?1 ORDER BY date DESC LIMIT ?2`;
+
+const HISTORY = `SELECT q.date, q.open, q.high, q.low, q.close, q.change, q.volume,
+  p.pe_ratio, p.dividend_yield, p.pb_ratio, m.margin_balance, m.short_balance
+FROM daily_quotes q
+LEFT JOIN pe_daily p ON p.code = q.code AND p.date = q.date
+LEFT JOIN margin_daily m ON m.code = q.code AND m.date = q.date
+WHERE q.code = ?1 ORDER BY q.date DESC LIMIT ?2`;
 
 /**
  * 某一檔最近 N 個交易日的價量（snapshot.stock 的 history_days）。
@@ -236,7 +248,14 @@ export async function stockHistory(
   try {
     rows = (await db.prepare(HISTORY).bind(code, days).all()).results ?? [];
   } catch {
-    return { history: null, caveat: "歷史資料暫時無法取得" };
+    // 新表（pe_daily、margin_daily）還沒建——讀取端先於第一次排程部署，或那兩份上游一直壞著——
+    // 不能因此拖垮原本好好的價量歷史：退回只讀價量，新欄位補 null。
+    try {
+      const plain = (await db.prepare(HISTORY_PRICE_ONLY).bind(code, days).all()).results ?? [];
+      rows = plain.map((r) => ({ ...r, pe_ratio: null, dividend_yield: null, pb_ratio: null, margin_balance: null, short_balance: null }));
+    } catch {
+      return { history: null, caveat: "歷史資料暫時無法取得" };
+    }
   }
   if (!rows.length) {
     return { history: null, caveat: `${code} 沒有存檔的歷史價量（存檔自 ${ARCHIVE_SINCE} 開始，只收上市股票與 ETF）` };
@@ -250,7 +269,10 @@ export async function stockHistory(
     "期間漲跌幅%": first && last && rows.length > 1 ? Math.round((last / first - 1) * 10000) / 100 : null,
     rows,
   };
-  return rows.length < days
-    ? { history, caveat: `存檔自 ${ARCHIVE_SINCE} 開始，目前只有 ${rows.length} 個交易日，少於要求的 ${days} 日` }
-    : { history };
+  const caveats: string[] = [];
+  if (rows.length < days) caveats.push(`存檔自 ${ARCHIVE_SINCE} 開始，目前只有 ${rows.length} 個交易日，少於要求的 ${days} 日`);
+  if (rows.some((r) => String(r.date) < ARCHIVE_PE_MARGIN_SINCE)) {
+    caveats.push(`本益比與融資融券自 ${ARCHIVE_PE_MARGIN_SINCE} 才開始存檔，更早的日子這幾個欄位是 null`);
+  }
+  return caveats.length ? { history, caveat: caveats.join("；") } : { history };
 }
