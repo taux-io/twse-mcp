@@ -20,6 +20,7 @@
     "eval:tools": "node scripts/eval-tools.mjs",
     "eval:ab": "node scripts/eval-ab.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "call": "node scripts/call.mjs",
     "pr:wait": "node scripts/pr-wait.mjs",
     "eval:answers": "node scripts/eval-answers.mjs"
   },

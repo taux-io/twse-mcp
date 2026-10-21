@@ -129,3 +129,32 @@
 - **對帳的限度。** 日期借用的假設是用上游「前日餘額」對我們存的前一日「今日餘額」驗證的；
   它驗證過的只是那幾個交易日，不保證三份上游永遠同步更新。若之後某天融資融券晚一天出來，
   那天的融資融券會被標成錯的日期——這是這個設計的已知風險，回應裡沒有逐日的提示。
+
+## 維運查詢
+
+這台機器的 `wrangler` 登入了兩個帳號，非互動模式不會替你選，直接報錯。查正式環境要先指定帳號：
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=5164de0801b523f919f7a9eac9bbf9bf   # 拓思科技股份有限公司，twse-mcp 在這個帳號
+```
+
+不要把它寫進 `wrangler.jsonc`：別的環境（CI、其他人的帳號）部署會跟著指到這個帳號。
+
+資料庫是 `twse-mcp-archive`。**只下唯讀的 SELECT**（讀取也計入免費額度的每日列數，見上面「讀取額度」；
+`--remote` 的寫入會動到正式資料）：
+
+```sh
+# 各表的筆數與日期範圍
+npx wrangler d1 execute twse-mcp-archive --remote --json --command \
+  "SELECT 'daily_quotes' t, COUNT(*) n, MIN(date) a, MAX(date) b FROM daily_quotes
+   UNION ALL SELECT 'pe_daily', COUNT(*), MIN(date), MAX(date) FROM pe_daily
+   UNION ALL SELECT 'margin_daily', COUNT(*), MIN(date), MAX(date) FROM margin_daily"
+```
+
+- 表還沒建（第一次排程之前）會報 `no such table`，這是正常的；`sqlite_master` 可以列出現有的表。
+- `--json` 的輸出前面有 wrangler 的訊息，解析時從第一個單獨成行的 `[` 開始（訊息裡也有 `[` 字元）。
+- 筆數查詢要掃整張表（`daily_quotes` 約 2 萬列），別放進迴圈或排程。
+- 看排程 log：`npx wrangler tail twse-mcp --format json`，只看得到開著期間發生的事件；排程是 UTC 22:30 與 01:30（台北 06:30、09:30），
+  要提前開。`outcome` 是 `exceededCpu` 表示 Cron CPU 超限，tail 不顯示 CPU 毫秒數。
+- 驗證剛部署的工具回應：`npm run call -- snapshot.stock '{"code":"2330","history_days":5}' --prod`。
+
