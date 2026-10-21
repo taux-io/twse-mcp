@@ -41,6 +41,9 @@ describe("classify", () => {
   });
 });
 
+// 預設設定下最多約 181 次（15 分鐘 ÷ 5 秒）；500 不會誤殺正常情況。
+const MAX_READS = 500;
+
 describe("waitForMain（讀取、睡眠、時鐘由外部注入）", () => {
   /** 每次 readRuns 依序回一份清單；睡眠只讓假時鐘前進，不真的等。 */
   function harness(reads: ReturnType<typeof run>[][], opts: { registerWaitMs?: number; timeoutMs?: number } = {}) {
@@ -50,7 +53,11 @@ describe("waitForMain（讀取、睡眠、時鐘由外部注入）", () => {
     return {
       deps: {
         sha: "bbb",
-        readRuns: async () => reads[Math.min(i++, reads.length - 1)],
+        readRuns: async () => {
+          // 迴圈全在微任務裡，vitest 的 testTimeout 中斷不了；逾時邏輯壞掉時要報失敗，不能卡死。
+          if (i >= MAX_READS) throw new Error(`讀取超過 ${MAX_READS} 次，逾時邏輯可能壞了`);
+          return reads[Math.min(i++, reads.length - 1)];
+        },
         sleep: async (ms: number) => void (t += ms),
         now: () => t,
         log: (l: string) => lines.push(l),
@@ -108,6 +115,8 @@ describe("main（git 與 gh 由外部注入）", () => {
         exec: (file: string, args: string[]) => {
           const key = [file, ...args].join(" ");
           calls.push(key);
+          // now 固定是 0、sleep 不等：run 沒通過時迴圈永遠不會逾時，要靠這個上限報失敗，不能卡死。
+          if (calls.length > MAX_READS) throw new Error(`指令超過 ${MAX_READS} 次，迴圈可能停不下來`);
           const r = replies[key];
           if (r === undefined) throw Object.assign(new Error(`spawn ${file} ENOENT`), { code: "ENOENT" });
           if (r instanceof Error) throw r;
