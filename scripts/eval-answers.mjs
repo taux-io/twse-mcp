@@ -347,6 +347,29 @@ export const CASES = [
     },
   },
   {
+    id: "history-pe-margin",
+    question: "台積電最近 5 個交易日的本益比和融資餘額是多少？",
+    // history_days 每列帶 pe_ratio、margin_balance。每個有值的數字都要出現在答案裡；
+    // 本益比與融資融券比價量晚開始存（caveats 會說），有 null 的日子答案要說明，不能當成 0。
+    check(run) {
+      const hit = results(run, "snapshot.stock", (c) => c.input.code === "2330" && c.input.history_days)
+        .map((c) => c.result)
+        .find((r) => r.history);
+      if (!hit) return skip("沒有取得 2330 的歷史價量");
+      const rows = hit.history.rows;
+      const pes = rows.map((r) => r.pe_ratio).filter((x) => typeof x === "number");
+      const margins = rows.map((r) => r.margin_balance).filter((x) => typeof x === "number");
+      if (!pes.length && !margins.length) return skip("這幾天都還沒有本益比與融資餘額（存檔剛開始）");
+      const nums = (String(run.answer).match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((x) => Number(x.replace(/,/g, "")));
+      const has = (v) => nums.some((n) => Math.abs(n - v) <= 0.01);
+      const missing = [...pes.map((v) => `本益比 ${v}`).filter((_, i) => !has(pes[i])), ...margins.map((v) => `融資餘額 ${v}`).filter((_, i) => !has(margins[i]))];
+      if (missing.length) return fail(`答案缺少：${missing.join("、")}`);
+      const partial = rows.some((r) => r.margin_balance === null || r.pe_ratio === null && r.dividend_yield === null);
+      if (partial && !/才開始|開始存|存檔|只有|沒有資料|無資料|缺|null|尚無|還沒有/.test(run.answer)) return fail("有幾天沒有本益比或融資餘額，答案沒有說明");
+      return pass();
+    },
+  },
+  {
     id: "next-trading-day",
     question: "台股下一個交易日是哪一天？",
     // 交易日曆（snapshot.market）算出的下一個交易日要原樣出現在答案裡，不能自己推算週末與假日。

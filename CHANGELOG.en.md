@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unreleased
 
+- The stock snapshot's `history_days` now adds each day's P/E, dividend yield, P/B, margin balance and short balance (P/E and margin data are archived only from 2026-10-20; earlier days are null).
 - Added the site icon: `/favicon.ico`, `/favicon.svg` and an iOS home-screen icon, so browser tabs and bookmarks no longer show a blank icon.
 - Homepage redesign (English and Chinese): a new hero, an illustrative chat, a key-figures strip, "What you can ask" as cards, and better dark-mode and mobile reading. Content and URLs are unchanged.
 - Added `snapshot.movers`: the previous trading day's top gainers and losers among TWSE-listed stocks, ranked by percentage change (top 10 by default, up to 30), plus how many closed limit-up and limit-down. Asking for a gainers list used to rank by price change in points, which puts high-priced stocks first; limit-up and limit-down are derived from the previous close and the tick size. Listed stocks only (no ETFs); OTC (TPEx) is not covered.

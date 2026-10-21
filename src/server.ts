@@ -579,7 +579,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
     {
       title: "Stock snapshot",
       description:
-        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). To compare 2–5 companies side by side (price, P/E, dividend yield, P/B, market cap), pass codes instead of code. For recent price history (daily closes and the period change, archived by this service since 2026-09-29), pass history_days. Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
+        "One TWSE-listed company in a single call: profile, the previous trading day's price and volume, P/E, dividend yield, P/B, latest monthly revenue, dividends and upcoming ex-dividend dates, attention/disposition status, and market cap. Optional sections: financial statements (include_financials; year-to-date cumulative figures), corporate governance (include_governance), margin trading and securities lending (include_margin), ESG disclosures (esg_topics). To compare 2–5 companies side by side (price, P/E, dividend yield, P/B, market cap), pass codes instead of code. For recent history (daily closes and volume, the period change, plus daily P/E, dividend yield, P/B and margin/short balances; this service archives prices since 2026-09-29 and P/E and margin figures since 2026-10-20, null before that), pass history_days. Source: TWSE OpenAPI; daily tables are previous-trading-day, revenue monthly, financials quarterly; not live. " +
         "一次取得單一上市公司的完整概況：基本資料、前一交易日價量、本益比／殖利率／股價淨值比、" +
         "最新月營收（含月增率與年增率）、近一年各期股利與近期除權除息預告、是否為注意股或處置股，以及市值。" +
         "合併八個證交所資料集。價量為前一交易日，不是盤中即時；要當下價格請用 quote.realtime。" +
@@ -588,7 +588,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
         "要融資融券餘額、券資比與可借券賣出股數帶 include_margin。" +
         "要 ESG 帶 esg_topics（主題名稱陣列，最多 6 個）；只說「ESG」時用溫室氣體排放、能源管理、董事會、人力發展。" +
         "要並排比較 2–5 家（價量、本益比、殖利率、股價淨值比、市值）時，改帶 codes 而不是 code。" +
-        "要最近幾個交易日的走勢（每日收盤價量與期間漲跌幅，本服務自 2026-09-29 起存檔）帶 history_days。" +
+        "要最近幾個交易日的走勢（每日收盤價量、每日本益比／殖利率／股價淨值比與融資融券餘額、期間漲跌幅；本服務自 2026-09-29 起存檔價量，本益比與融資融券自 2026-10-20 起）帶 history_days。" +
         "ETF 請用 snapshot.etf。任何一段查不到都會標成 null 並記在 caveats，不會整個失敗。",
       annotations: { ...REMOTE_READ, title: "Stock snapshot" },
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
@@ -639,7 +639,9 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
           .optional()
           .describe(
             "附上最近 N 個交易日的收盤價量與整段期間的漲跌幅（本服務自己存的日成交資訊，存檔自 2026-09-29 開始；" +
-              "不足 N 日會說明）。問「最近走勢」「這個月漲多少」時才帶。不支援比較模式（codes）。",
+              "不足 N 日會說明）。每列另附當天的本益比（pe_ratio，虧損公司是 null）、殖利率（dividend_yield）、" +
+              "股價淨值比（pb_ratio）、融資餘額（margin_balance）與融券餘額（short_balance），這幾項自 2026-10-20 才開始存，" +
+              "更早的日子是 null。問「最近走勢」「這個月漲多少」「本益比變化」「融資水位」時才帶。不支援比較模式（codes）。",
           ),
       },
     },

@@ -1183,6 +1183,27 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(cmp.result.isError).toBe(true);
   });
 
+  it("snapshot.stock history_days：有 D1 綁定時 history.rows 帶本益比、殖利率、股價淨值比、融資餘額、融券餘額", async () => {
+    // 假 D1：回兩天已經 JOIN 好的列（由新到舊，如同 ORDER BY date DESC）。JOIN 本身由 test/archive.test.ts 用真 SQLite 驗。
+    const joined = [
+      { date: "2026-10-21", open: 1, high: 3, low: 1, close: 102, change: 1, volume: 10, pe_ratio: 22.5, dividend_yield: 1.4, pb_ratio: 7.2, margin_balance: 470, short_balance: 13 },
+      { date: "2026-10-20", open: 1, high: 3, low: 1, close: 101, change: 1, volume: 10, pe_ratio: null, dividend_yield: 1.5, pb_ratio: 7.1, margin_balance: 480, short_balance: 12 },
+    ];
+    const archive = {
+      prepare: () => ({ bind: () => ({ all: async () => ({ results: joined }) }) }),
+    } as unknown as D1Database;
+    const res = await worker.fetch(
+      eraRequest(ERAS[0], "tools/call", { name: "snapshot.stock", arguments: { code: "2330", history_days: 2 } }) as unknown as IncomingRequest,
+      { ARCHIVE: archive } as never,
+      ctx,
+    );
+    const out = JSON.parse((await readPayload(res)).result.content[0].text);
+    expect(out.history.rows.map((r: Record<string, unknown>) => r.date)).toEqual(["2026-10-20", "2026-10-21"]);
+    expect(out.history.rows[1]).toMatchObject({ pe_ratio: 22.5, dividend_yield: 1.4, pb_ratio: 7.2, margin_balance: 470, short_balance: 13 });
+    expect(out.history.rows[0].pe_ratio).toBeNull();
+    expect(out.valuation).toHaveProperty("本益比"); // 其他段落照常
+  });
+
   it("snapshot.stock：code 與 codes 要擇一；比較模式帶選配段落回 isError", async () => {
     const neither = await rpc("tools/call", { name: "snapshot.stock", arguments: {} });
     expect(neither.result.isError).toBe(true);
