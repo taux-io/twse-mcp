@@ -41,7 +41,7 @@
 | 每個查詢的綁定參數 | 100 | 1 |
 | 每天寫入列數 | 10 萬 | 每次排程約 1,400，一天兩次 |
 | 單一資料庫大小 | 500 MB | 一年約 34 萬列 |
-| Cron 每次 CPU | 10 ms | 待部署後量測 |
+| Cron 每次 CPU | 10 ms | 2026-10-21 第一次排程（三張表）：`cpuTime` 44 ms，`outcome` 為 `ok`，見最後一節 |
 
 1,400 列 × 11 欄，逐列或多列 `VALUES` 都會超過前兩條。所以整天的資料轉成一個 JSON 參數，
 用一條 `INSERT OR REPLACE … SELECT … FROM json_each(?1)` 寫入。
@@ -129,3 +129,42 @@
 - **對帳的限度。** 日期借用的假設是用上游「前日餘額」對我們存的前一日「今日餘額」驗證的；
   它驗證過的只是那幾個交易日，不保證三份上游永遠同步更新。若之後某天融資融券晚一天出來，
   那天的融資融券會被標成錯的日期——這是這個設計的已知風險，回應裡沒有逐日的提示。
+
+## 維運查詢
+
+這台機器的 `wrangler` 登入了兩個帳號，非互動模式不會替你選，直接報錯。查正式環境要先指定帳號：
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=5164de0801b523f919f7a9eac9bbf9bf   # 拓思科技股份有限公司，twse-mcp 在這個帳號
+```
+
+不要把它寫進 `wrangler.jsonc`：別的環境（CI、其他人的帳號）部署會跟著指到這個帳號。
+
+資料庫是 `twse-mcp-archive`。**只下唯讀的 SELECT**（讀取也計入免費額度的每日列數，見上面「讀取額度」；
+`--remote` 的寫入會動到正式資料）：
+
+```sh
+# 各表的筆數與日期範圍
+npx wrangler d1 execute twse-mcp-archive --remote --json --command \
+  "SELECT 'daily_quotes' t, COUNT(*) n, MIN(date) a, MAX(date) b FROM daily_quotes
+   UNION ALL SELECT 'pe_daily', COUNT(*), MIN(date), MAX(date) FROM pe_daily
+   UNION ALL SELECT 'margin_daily', COUNT(*), MIN(date), MAX(date) FROM margin_daily"
+```
+
+- 表還沒建（第一次排程之前）會報 `no such table`，這是正常的；`sqlite_master` 可以列出現有的表。
+- `--json` 的輸出前面有 wrangler 的訊息，解析時從第一個單獨成行的 `[` 開始（訊息裡也有 `[` 字元）。
+- 筆數查詢要掃整張表（`daily_quotes` 約 2 萬列），別放進迴圈或排程。
+- 看排程 log：`npx wrangler tail twse-mcp --format json`，只看得到開著期間發生的事件；排程是 UTC 22:30 與 01:30（台北 06:30、09:30），
+  要提前開。每個事件有 `outcome`（`exceededCpu` 表示超限）、`cpuTime` 與 `wallTime`（毫秒）；排程事件的 `event` 有 `cron` 欄位，`logs` 是三行存檔 log。
+  tail 是即時串流，用 `--format json` 輸出的是多行縮排的 JSON，解析時逐個物件讀（例如 Python 的 `raw_decode`），不是一行一筆。macOS 沒有 `timeout` 指令。
+- 驗證剛部署的工具回應：`npm run call -- snapshot.stock '{"code":"2330","history_days":5}' --prod`。
+
+### 2026-10-21 第一次三張表排程的實測
+
+台北 09:30（UTC 01:30）的排程，用 `wrangler tail` 取得：`outcome` 為 `ok`，`cpuTime` 44 ms，`wallTime` 5,833 ms，
+沒有例外；三行 log 都在：`daily_quotes` 1,383 列、`pe_daily` 1,084 列、`margin_daily` 1,302 列，日期都是 2026-10-20。
+
+- **44 ms 超過上面表格寫的 10 ms，卻沒有被判超限。** 所以那個 10 ms 不是這個觸發類型的硬上限，表格和「若 Cron 的 CPU 經常超過 10 ms」那句備案條件
+  是依 HTTP 請求的額度寫的。實際的上限沒有在官方文件核對過；備案的觸發條件改以 `outcome` 出現 `exceededCpu` 為準。
+- 這只是一次量測。資料量隨上市家數與當天交易日略有變化，之後排程若出現 `exceededCpu` 再回頭看。
+

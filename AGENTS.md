@@ -63,6 +63,11 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 預設不打正式環境：它跑在 Workers 免費方案，每個請求都在消耗 CPU 的寬容額度（#104）。
 例外是每天排程裡的正式環境存活檢查（`SMOKE_LIST_ONLY=1`）：只看工具清單、快捷指令與首頁，不呼叫工具。
 
+### 查正式環境
+
+打正式環境的工具呼叫用 `npm run call -- <工具> '<JSON 參數>' --prod`（不加 `--prod` 打本機 8787）；
+查正式 D1 的筆數與日期、看排程 log，見 `docs/adr/0003-d1-daily-archive.md` 的「維運查詢」。
+
 ### 介面契約快照
 
 工具名稱、參數名稱與型別、必填、enum，以及快捷指令的參數，存在 `test/__snapshots__/server.test.ts.snap`。
