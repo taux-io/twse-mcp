@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reconcileMargin, run, verdict } from "../scripts/check-margin-dates.mjs";
+import { d1Query, reconcileMargin, run, verdict } from "../scripts/check-margin-dates.mjs";
 
 // 上游 MI_MARGN 沒有日期欄位；「前日餘額」是上游那一天的前一個交易日的今日餘額。
 // 所以拿它去對 D1 每一個已存的日期：日期標對了，吻合的會是上游「前一天」對應的那一天。
@@ -147,6 +147,50 @@ describe("run（上游與 D1 讀取由外部注入）", () => {
     const h2 = harness();
     expect(await run({ ...h2.deps, fetchUpstream: async () => { throw new Error("上游 503"); } })).toBe(2);
     expect(h2.out()).toContain("上游 503");
+    // 接上真的 d1Query：wrangler 失敗時，stderr 要一路帶到 log，不能在中間被吃掉
+    const h3 = harness();
+    const exec = async () => { throw Object.assign(new Error("Command failed: npx wrangler"), { stderr: "✘ [ERROR] Authentication error [code: 10000]\n" }); };
+    expect(await run({ ...h3.deps, queryD1: d1Query(exec) })).toBe(2);
+    expect(h3.out()).toContain("Authentication error [code: 10000]");
   });
 });
 
+
+describe("d1Query（wrangler 由外部注入）", () => {
+  it("組出 wrangler d1 execute 指令，並從混有訊息的 stdout 解析出 results", async () => {
+    const calls: [string, string[]][] = [];
+    const exec = async (cmd: string, args: string[]) => {
+      calls.push([cmd, args]);
+      return { stdout: '⛅️ wrangler [update available]\n[\n  {"results": [{"code": "2330"}]}\n]\n', stderr: "" };
+    };
+    const rows = await d1Query(exec)("SELECT 1");
+    expect(rows).toEqual([{ code: "2330" }]);
+    expect(calls).toEqual([["npx", ["wrangler", "d1", "execute", "twse-mcp-archive", "--remote", "--json", "--command", "SELECT 1"]]]);
+  });
+
+  it("exec 失敗時，丟出的錯誤訊息帶出 stderr", async () => {
+    const exec = async () => {
+      throw Object.assign(new Error("Command failed: npx wrangler d1 execute"), { stderr: "✘ [ERROR] Authentication error [code: 10000]\n" });
+    };
+    await expect(d1Query(exec)("SELECT 1")).rejects.toThrow(/Authentication error \[code: 10000\]/);
+  });
+
+  it("錯誤沒有 stderr（例如 npx 不存在）時，訊息維持原樣，不出現 undefined", async () => {
+    const exec = async () => {
+      throw new Error("spawn npx ENOENT");
+    };
+    await expect(d1Query(exec)("SELECT 1")).rejects.toThrow(/^spawn npx ENOENT$/);
+  });
+
+  it("stderr 超過 20 行時，只帶出最後 20 行", async () => {
+    const lines = Array.from({ length: 30 }, (_, n) => `line ${n + 1}`);
+    const exec = async () => {
+      throw Object.assign(new Error("Command failed"), { stderr: lines.join("\n") + "\n" });
+    };
+    const err = await d1Query(exec)("SELECT 1").catch((e: Error) => e);
+    expect(err.message).toContain("line 30");
+    expect(err.message).toContain("line 11");
+    expect(err.message).not.toMatch(/line 10\b/);
+    expect(err.message).not.toContain("line 1\n");
+  });
+});

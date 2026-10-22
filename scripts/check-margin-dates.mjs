@@ -60,6 +60,20 @@ WHERE date IN (SELECT DISTINCT date FROM margin_daily ORDER BY date DESC LIMIT 3
 
 const pct = (r) => `${(r * 100).toFixed(1)}%`;
 
+/** 用 wrangler 唯讀查 D1；exec 由外部注入（簽名同 promisify(execFile)）。 */
+export function d1Query(exec) {
+  return async (sql) => {
+    let stdout;
+    try {
+      ({ stdout } = await exec("npx", ["wrangler", "d1", "execute", "twse-mcp-archive", "--remote", "--json", "--command", sql], { maxBuffer: 64 * 1024 * 1024 }));
+    } catch (e) {
+      throw new Error(e.stderr ? `${e.message}\n${e.stderr.trimEnd().split("\n").slice(-20).join("\n")}` : e.message);
+    }
+    // wrangler 的訊息裡也有 [ 字元，要找單獨成行的 [
+    return JSON.parse(stdout.slice(stdout.indexOf("[\n")))[0].results;
+  };
+}
+
 /** 讀 D1 與上游、印出對帳結果；回傳結束碼（0 通過、1 沒達門檻、2 無法對帳）。 */
 export async function run({ fetchUpstream, queryD1, log }) {
   let upstream, d1;
@@ -105,11 +119,7 @@ async function main() {
       if (!res.ok) throw new Error(`證交所 MI_MARGN 回 ${res.status}`);
       return res.json();
     },
-    queryD1: async (sql) => {
-      const { stdout } = await exec("npx", ["wrangler", "d1", "execute", "twse-mcp-archive", "--remote", "--json", "--command", sql], { maxBuffer: 64 * 1024 * 1024 });
-      // wrangler 的訊息裡也有 [ 字元，要找單獨成行的 [
-      return JSON.parse(stdout.slice(stdout.indexOf("[\n")))[0].results;
-    },
+    queryD1: d1Query(exec),
     log: (l) => console.log(l),
   });
 }
