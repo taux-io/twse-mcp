@@ -5,16 +5,18 @@
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，而不是
  * 一句 `Not Found`。另開 Pages 專案只會多一條部署管線與一個會漂移的副本。
  *
- * ## 只有一段腳本，而且被雜湊鎖死——這是安全決定，不是風格偏好
+ * ## 會執行的腳本只有兩段，而且各被雜湊鎖死——這是安全決定，不是風格偏好
  *
- * 原本是零 JavaScript，CSP 鎖成 `script-src 'none'`。後來為了「一鍵複製」加了唯一一段
- * 腳本（COPY_SCRIPT），CSP 只放行**這段腳本內容的 SHA-256**（啟動時從腳本本身算出，
- * 不是手抄的值）：任何被注入的其他腳本、外部腳本、inline 事件處理器都照樣被瀏覽器擋下，
- * 不需要 'unsafe-inline'。沒有腳本時複製按鈕保持隱藏，程式碼區塊點一下就會全選
- * （CSS `user-select: all`），手動複製照樣可行。
+ * 原本是零 JavaScript，CSP 鎖成 `script-src 'none'`。後來加了兩段 inline 腳本：
+ * 「一鍵複製」（COPY_SCRIPT）與 GA4 載入（GA_SCRIPT）。CSP 只放行**這兩段腳本內容的 SHA-256**
+ * （啟動時從腳本本身算出，不是手抄的值），外加 `https://www.googletagmanager.com`
+ * 讓 GA_SCRIPT 載入 gtag.js：任何被注入的其他腳本、inline 事件處理器都照樣被瀏覽器擋下，
+ * 不需要 'unsafe-inline'。img-src、connect-src 也只明列 GA4 的網域（見 server.ts 的 SITE_HEADERS）。
+ * 沒有腳本時複製按鈕保持隱藏，程式碼區塊點一下就會全選（CSS `user-select: all`），
+ * 手動複製照樣可行。
  *
  * 其餘仍維持無腳本：`<details>` 取代摺疊用的 JS，
- * `prefers-color-scheme` 取代主題切換的 JS。唯一的 `<script>` 是 JSON-LD，
+ * `prefers-color-scheme` 取代主題切換的 JS。另外的 `<script>` 是 JSON-LD，
  * 而依 HTML 規範它是 data block、永遠不會被執行（prepare-the-script 在型別檢查
  * 那一步就中止），所以它既不是 JavaScript 也不受 script-src 管轄。
  *
