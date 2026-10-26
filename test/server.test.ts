@@ -1762,6 +1762,14 @@ describe("英文版首頁", () => {
     expect(await (await get("/en")).text()).not.toContain("/datasets");
   });
 
+  it("/privacy 在 sitemap 裡只有一筆且不宣告語系", async () => {
+    const body = await (await get("/sitemap.xml")).text();
+    const block = body.split("<url>").find((b) => b.includes("<loc>https://twse-mcp.taux.io/privacy</loc>"));
+    expect(block).toBeDefined();
+    expect(block).not.toContain("xhtml:link");
+    expect(body.match(/\/privacy<\/loc>/g)).toHaveLength(1);
+  });
+
   it("sitemap 兩個語系都列", async () => {
     const body = await (await get("/sitemap.xml")).text();
     expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
@@ -1771,7 +1779,7 @@ describe("英文版首頁", () => {
   it("sitemap 每個網址都有 lastmod，且是合法的 YYYY-MM-DD", async () => {
     const body = await (await get("/sitemap.xml")).text();
     const dates = [...body.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
-    expect(dates).toHaveLength(3);
+    expect(dates).toHaveLength(4);
     for (const d of dates) {
       expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(Number.isNaN(Date.parse(d))).toBe(false);
