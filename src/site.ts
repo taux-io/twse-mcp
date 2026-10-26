@@ -60,6 +60,26 @@ export const COPY_SCRIPT =
 /** COPY_SCRIPT 的 SHA-256（base64），給 CSP 的 script-src 用。從腳本本身算，改了腳本不會忘記改雜湊。 */
 export const COPY_SCRIPT_HASH = createHash("sha256").update(COPY_SCRIPT).digest("base64");
 
+/**
+ * GA4（網頁分析）的載入腳本。只在 twse-mcp.taux.io 動作，所以本機、預覽網址不會污染資料。
+ *
+ * 為什麼是 inline：這個 Worker 不服務任何 JS 檔，CSP 的 script-src 也沒有 'self'，
+ * 所以跟複製腳本一樣，只放行這段**內容的 SHA-256**；gtag.js 本體再由 googletagmanager.com 載入。
+ * 只出現在網頁（首頁、/en、/datasets、/privacy）。/mcp 不是 HTML，不經過這段，MCP 呼叫不會進 GA。
+ * Google signals 與廣告個人化都關閉。不設同意橫幅、不用 Consent Mode：擁有者的決定，
+ * 同樣的做法見 taux.io 的 DESIGN.md 決策 #184；歐盟合規風險由擁有者承擔。
+ * 改了這段文字，雜湊會自己跟著算（見 GA_SCRIPT_HASH），CSP 不會忘記改。
+ */
+export const GA_MEASUREMENT_ID = "G-VSP1Z15BWV";
+export const GA_SCRIPT =
+  '(function(){if(location.hostname!=="twse-mcp.taux.io")return;' +
+  "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}" +
+  'gtag("js",new Date());' +
+  `gtag("config","${GA_MEASUREMENT_ID}",{allow_google_signals:false,allow_ad_personalization_signals:false});` +
+  'var s=document.createElement("script");s.async=true;' +
+  `s.src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}";document.head.appendChild(s)})();`;
+export const GA_SCRIPT_HASH = createHash("sha256").update(GA_SCRIPT).digest("base64");
+
 /** 對外正式網域。canonical、OG、sitemap 都以它為準，不從請求推導。 */
 const SITE_ORIGIN = "https://twse-mcp.taux.io";
 /** 使用者唯一需要複製的東西。 */
@@ -1011,6 +1031,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 </footer>
 </main>
 <script>${COPY_SCRIPT}</script>
+<script>${GA_SCRIPT}</script>
 </body>
 </html>
 `;
@@ -1031,7 +1052,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
  * 中繼資料，欄位是 2026-09-28 從 Observability API 實際取出一筆確認的，不含請求 body。
  * 改 wrangler.jsonc 的 logs 設定、或開始在程式裡記錄任何東西時，這一頁要一起改。
  */
-export const PRIVACY_UPDATED = "2026-09-28";
+export const PRIVACY_UPDATED = "2026-10-26";
 export const PRIVACY_HTML = `<!doctype html>
 <html lang="zh-Hant-TW">
 <head>
@@ -1045,6 +1066,7 @@ ${ICON_LINKS}
 <style>${CSS}</style>
 </head>
 <body>
+<script>${GA_SCRIPT}</script>
 <div class="wrap prose">
 <header>
 <h1>隱私權政策</h1>
@@ -1054,7 +1076,7 @@ ${ICON_LINKS}
 <h2>不會記錄的</h2>
 <ul>
 <li><strong>你問的內容與工具參數</strong>：AI 助理送來的請求內容（例如查詢的股票代號、資料集、條件）不會被記錄或保存。</li>
-<li>不需要帳號、不用登入、不設 cookie。</li>
+<li>MCP 連線不需要帳號、不用登入、不設 cookie。瀏覽本網站網頁時的 cookie 見下方「網頁分析」。</li>
 </ul>
 
 <h2>會記錄的</h2>
@@ -1069,7 +1091,17 @@ ${ICON_LINKS}
 <h2>交易所會看到什麼</h2>
 <p>我們向交易所取資料時，只送出查詢本身（資料集或代號）與可辨識本服務的 User-Agent，不會附上你的問題。但向臺灣證券交易所（OpenAPI 與基本市況報導站）發出的請求，Cloudflare 依其平台規則會在 <code>CF-Connecting-IP</code> 標頭附上連線來源的 IP 位址，本服務無法移除（<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare 說明</a>）；向臺灣期貨交易所的請求不會附上。資料集常直接取自快取（最多 1 小時），這時不會對交易所發出請求；即時報價不快取。</p>
 
+<h2>網頁分析（Google Analytics）</h2>
+<p>本網站的網頁（首頁、<code>/en</code>、<code>/datasets</code>、本頁）使用 Google Analytics 4 統計瀏覽量，由 Google LLC 提供。它會設定 cookie（<code>_ga</code>、<code>_ga_*</code>），並記錄瀏覽的網頁、大致的地區、裝置與瀏覽器類型，以及從哪個網站連過來。我們關閉了 Google signals 與廣告個人化。</p>
+<ul>
+<li><strong>只限網頁</strong>：MCP 端點（<code>/mcp</code>）不是網頁，AI 助理的工具呼叫與其參數不會進入 Google Analytics。</li>
+<li><strong>用途</strong>：了解哪些頁面有人看，用來改善網站內容。</li>
+<li><strong>保存與分享</strong>：資料由 Google 依其設定保存，適用 <a href="https://policies.google.com/privacy">Google 隱私權政策</a>。</li>
+<li><strong>不想被統計</strong>：可封鎖第三方 cookie 與追蹤，或安裝 <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics 停用附加元件</a>。本網站不顯示同意橫幅。</li>
+</ul>
+
 <h2>用途、保存與分享</h2>
+<p>以下三點針對上面「會記錄的」Cloudflare 連線紀錄，網頁分析見上一節。</p>
 <ul>
 <li><strong>用途</strong>：只用於排查服務問題（例如錯誤、逾時）與防止濫用。</li>
 <li><strong>保存期間</strong>：3 天，之後由 Cloudflare 自動刪除。</li>
@@ -1089,7 +1121,7 @@ ${ICON_LINKS}
 <h2>What we do not record</h2>
 <ul>
 <li><strong>What you ask, and tool arguments</strong>: the content of requests your AI assistant sends (for example the stock codes, datasets or filters) is not logged or stored.</li>
-<li>No account, no sign-in, no cookies.</li>
+<li>MCP connections need no account or sign-in and set no cookies. Cookies set when you browse the website pages are described under "Web analytics" below.</li>
 </ul>
 
 <h2>What is recorded</h2>
@@ -1104,7 +1136,17 @@ ${ICON_LINKS}
 <h2>What the exchanges see</h2>
 <p>When we fetch data from the exchanges we send only the query itself (a dataset or code) and a User-Agent that identifies this service, never your question. However, on requests to the Taiwan Stock Exchange (its OpenAPI and market information site), Cloudflare's platform adds the connecting IP address in a <code>CF-Connecting-IP</code> header, which this service cannot remove (<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare documentation</a>); requests to the Taiwan Futures Exchange do not carry it. Datasets are often served from cache (up to 1 hour), in which case no request reaches the exchange; live quotes are never cached.</p>
 
+<h2>Web analytics (Google Analytics)</h2>
+<p>The website's pages (the homepage, <code>/en</code>, <code>/datasets</code> and this page) use Google Analytics 4, provided by Google LLC, to count page views. It sets cookies (<code>_ga</code>, <code>_ga_*</code>) and records the pages viewed, approximate region, device and browser type, and the referring site. Google signals and ad personalization are turned off.</p>
+<ul>
+<li><strong>Web pages only</strong>: the MCP endpoint (<code>/mcp</code>) is not a web page. Your AI assistant's tool calls and their arguments do not go to Google Analytics.</li>
+<li><strong>Use</strong>: to see which pages are read, so the site can be improved.</li>
+<li><strong>Retention and sharing</strong>: the data is kept by Google under its own settings and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
+<li><strong>Opting out</strong>: block third-party cookies and tracking, or install the <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out add-on</a>. This site shows no consent banner.</li>
+</ul>
+
 <h2>Use, retention and sharing</h2>
+<p>The three points below are about the Cloudflare connection logs described above; web analytics is covered in the previous section.</p>
 <ul>
 <li><strong>Use</strong>: only to troubleshoot the service (errors, timeouts) and prevent abuse.</li>
 <li><strong>Retention</strong>: 3 days, after which Cloudflare deletes the logs automatically.</li>
@@ -1186,6 +1228,7 @@ ${ICON_LINKS}
 <style>${CSS}</style>
 </head>
 <body>
+<script>${GA_SCRIPT}</script>
 <div class="wrap prose">
 <header>
 <h1>台股與期貨公開資料集一覽</h1>

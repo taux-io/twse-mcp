@@ -14,7 +14,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import toolEval from "../evals/tool-selection.json";
 import catalogJson from "../src/catalog.generated.json";
-import { COPY_SCRIPT } from "../src/site";
+import { COPY_SCRIPT, GA_SCRIPT } from "../src/site";
 import { fetchDataset, fetchQuotes, UPSTREAM_USER_AGENT } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -1493,16 +1493,16 @@ describe("首頁", () => {
     expect(html).toContain("https://data.gov.tw/license");
   });
 
-  // 會被執行的腳本只有一段（一鍵複製），而且 CSP 只放行它的雜湊。
+  // 會被執行的 inline 腳本只有兩段（一鍵複製、GA4 載入），而且 CSP 只放行它們的雜湊。
   // `<script type="application/ld+json">` 依 HTML 規範是 data block，永遠不執行，不受 script-src 管轄。
-  it.each(["/", "/en"])("%s：唯一會執行的腳本就是 COPY_SCRIPT，沒有外部腳本與 inline 事件", async (path) => {
+  it.each(["/", "/en"])("%s：會執行的腳本只有 COPY_SCRIPT 與 GA_SCRIPT，沒有外部腳本與 inline 事件", async (path) => {
     const html = await (await get(path)).text();
     const executable = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(
       (m) => !m[1].includes('type="application/ld+json"'),
     );
-    expect(executable).toHaveLength(1);
-    expect(executable[0][1].trim()).toBe("");
-    expect(executable[0][2]).toBe(COPY_SCRIPT);
+    expect(executable).toHaveLength(2);
+    expect(executable.map((m) => m[1].trim())).toEqual(["", ""]);
+    expect(executable.map((m) => m[2])).toEqual([COPY_SCRIPT, GA_SCRIPT]);
     expect(html).not.toMatch(/<script\b[^>]*\ssrc=/i);
     expect(html).not.toMatch(/\son(click|load|error|mouse[a-z]+|focus|blur)\s*=/i);
     expect(html).not.toContain("javascript:");
@@ -1513,7 +1513,8 @@ describe("首頁", () => {
     const csp = res.headers.get("content-security-policy") ?? "";
     // 雜湊要真的對應頁面上那段腳本——這裡獨立重算一次，不信任 site.ts 匯出的值
     const expected = createHash("sha256").update(COPY_SCRIPT).digest("base64");
-    expect(csp).toContain(`script-src 'sha256-${expected}' https://www.googletagmanager.com`);
+    const expectedGa = createHash("sha256").update(GA_SCRIPT).digest("base64");
+    expect(csp).toContain(`script-src 'sha256-${expected}' 'sha256-${expectedGa}' https://www.googletagmanager.com`);
     expect(csp).toContain("default-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
@@ -1704,6 +1705,31 @@ describe("英文版首頁", () => {
     expect(await (await get("/en")).text()).toContain('href="https://twse-mcp.taux.io/"');
   });
 
+  it("GA4：只在 twse-mcp.taux.io 動作、關閉 Google signals；四個網頁都載入，/mcp 不經過", async () => {
+    expect(GA_SCRIPT).toContain('location.hostname!=="twse-mcp.taux.io"');
+    expect(GA_SCRIPT).toContain("G-VSP1Z15BWV");
+    expect(GA_SCRIPT).toContain("allow_google_signals:false");
+    expect(GA_SCRIPT).toContain("allow_ad_personalization_signals:false");
+    for (const path of ["/", "/en", "/datasets", "/privacy"]) {
+      const html = await (await get(path)).text();
+      expect(html, path).toContain(`<script>${GA_SCRIPT}</script>`);
+    }
+    // 圖示、sitemap 等非 HTML 的路由不帶腳本
+    expect(await (await get("/sitemap.xml")).text()).not.toContain("googletagmanager");
+  });
+
+  it("/privacy：說明 GA4 與 cookie（兩種語言），並說明 /mcp 的內容不進 GA", async () => {
+    const html = await (await get("/privacy")).text();
+    expect(html).toContain("網頁分析（Google Analytics）");
+    expect(html).toContain("Web analytics (Google Analytics)");
+    expect(html).toContain("_ga");
+    expect(html).toContain("https://tools.google.com/dlpage/gaoptout");
+    expect(html).toContain("<code>/mcp</code>");
+    // 舊的「不設 cookie」一句已改成只限 MCP 連線，不能再整站宣稱沒有 cookie
+    expect(html).not.toContain("<li>不需要帳號、不用登入、不設 cookie。</li>");
+    expect(html).not.toContain("<li>No account, no sign-in, no cookies.</li>");
+  });
+
   it("/datasets：繁中單頁，清單與 catalog 逐筆對應，沒有 hreflang", async () => {
     const res = await get("/datasets");
     expect(res.status).toBe(200);
@@ -1721,8 +1747,9 @@ describe("英文版首頁", () => {
     // 主題清單裡每個資料集一條 <li>；「這些資料的限制」另有 2 條。
     const main = html.split("<main>")[1].split("</main>")[0];
     expect(main.match(/<li>/g)).toHaveLength(DATASET_COUNT + 2);
-    // 頁面沒有腳本，CSP 的 script-src 仍只有複製按鈕那一段。
-    expect(html).not.toContain("<script");
+    // 頁面沒有複製按鈕，會執行的腳本只有 GA4 載入那一段。
+    expect(html.match(/<script/g)).toHaveLength(1);
+    expect(html).not.toContain(COPY_SCRIPT);
   });
 
   it("/datasets 在 sitemap 裡只有一筆且不宣告語系；繁中首頁頁尾連到它，英文首頁不連", async () => {
@@ -1764,7 +1791,7 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "d675acc68af380f8",
+      hash: "1ddbff8f6a07b816",
       lastmod: "2026-10-26",
     });
   });
@@ -1795,7 +1822,7 @@ describe("英文版首頁", () => {
     const [zh, en] = await Promise.all([get("/"), get("/en")]);
     expect(en.headers.get("content-security-policy")).toBe(zh.headers.get("content-security-policy"));
     expect(en.headers.get("content-security-policy")).toContain(
-      `script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT).digest("base64")}' https://www.googletagmanager.com`,
+      `script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT).digest("base64")}' 'sha256-${createHash("sha256").update(GA_SCRIPT).digest("base64")}' https://www.googletagmanager.com`,
     );
   });
 

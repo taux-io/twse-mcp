@@ -84,7 +84,7 @@ import {
   withRequestLimiter,
 } from "./twse";
 import { archiveDaily, stockHistory } from "./archive";
-import { COPY_SCRIPT_HASH, DATASET_COUNT, DATASETS_HTML, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { COPY_SCRIPT_HASH, DATASET_COUNT, GA_SCRIPT_HASH, DATASETS_HTML, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { APPLE_ICON_BASE64, FAVICON_ICO_BASE64, FAVICON_SVG } from "./icons";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
@@ -1031,7 +1031,7 @@ function textPrompt(text: string) {
 /** MCP 端點的路徑。必須跟 createMcpHandler 的預設 route 一致（我們沒有覆寫它）。 */
 const MCP_ROUTE = "/mcp";
 
-const GA_SCRIPT = "https://www.googletagmanager.com";
+const GA_SCRIPT_SRC = "https://www.googletagmanager.com";
 const GA_IMG = "https://*.google-analytics.com https://*.googletagmanager.com";
 const GA_CONNECT =
   "https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com";
@@ -1039,14 +1039,14 @@ const GA_CONNECT =
 /**
  * 首頁的安全標頭。
  *
- * 頁面內會被執行的腳本只有一段（一鍵複製，見 src/site.ts 的 COPY_SCRIPT），CSP 只放行
- * 它內容的 SHA-256。日後有人加了別的 inline script 或事件處理器，是瀏覽器擋下來，不是 review 漏看。
+ * 頁面內會被執行的 inline 腳本只有兩段（一鍵複製 COPY_SCRIPT、GA4 載入 GA_SCRIPT，都在 src/site.ts），
+ * CSP 只放行它們內容的 SHA-256。日後有人加了別的 inline script 或事件處理器，是瀏覽器擋下來，不是 review 漏看。
  *
  * 外連只開給 GA4（gtag.js）：script-src 放行 googletagmanager.com 載入 gtag.js，
  * img-src 與 connect-src 放行它回報用的 google-analytics.com／analytics.google.com
  * （清單依 Google 的 GA4 CSP 說明，尚未在 production 量過）。其餘仍是 `default-src 'none'`，
  * 連字型、XHR、框架都不允許外連。網站圖示由同一個 Worker 服務，所以 img-src 仍有 'self'。
- * 這些放行只是讓 gtag.js 能執行；頁面要載入它是另外一步，CSP 本身不會載入任何東西。
+ * 載入 gtag.js 的是 GA_SCRIPT（只在 twse-mcp.taux.io 動作）；CSP 本身不會載入任何東西。
  *
  * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。CSS 無法讀取任何東西，
  * 而 connect-src 只開給 GA 的網域，樣式也沒有辦法把資料送到別處。
@@ -1056,7 +1056,7 @@ const SITE_HEADERS: Record<string, string> = {
     "default-src 'none'; style-src 'unsafe-inline'; " +
     `img-src 'self' ${GA_IMG}; connect-src ${GA_CONNECT}; ` +
     `base-uri 'none'; form-action 'none'; frame-ancestors 'none'; ` +
-    `script-src 'sha256-${COPY_SCRIPT_HASH}' ${GA_SCRIPT}`,
+    `script-src 'sha256-${COPY_SCRIPT_HASH}' 'sha256-${GA_SCRIPT_HASH}' ${GA_SCRIPT_SRC}`,
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   // 靜態內容，改動只隨部署發生。邊緣快取久一點、瀏覽器短一點，
