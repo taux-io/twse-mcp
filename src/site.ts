@@ -999,7 +999,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 <footer>
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
 <p><a href="${REPO}/blob/main/${p.ui.changelogFile}">${esc(p.ui.changelog)}</a></p>
-<p><a href="${SITE_ORIGIN}/privacy">${loc === "zh" ? "隱私權政策" : "Privacy policy"}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
+<p>${loc === "zh" ? `<a href="${SITE_ORIGIN}/datasets">資料集一覽</a> · ` : ""}<a href="${SITE_ORIGIN}/privacy">${loc === "zh" ? "隱私權政策" : "Privacy policy"}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
 <p>${esc(p.ui.otherLangLabel)}${loc === "zh" ? "：" : ":"}</p>
 <ul class="langs">
 <li><a href="${REPO}/blob/main/README.md">繁體中文</a></li>
@@ -1119,6 +1119,109 @@ ${ICON_LINKS}
 </body>
 </html>`;
 
+/**
+ * 資料集一覽（/datasets）：繁中、單頁，把 catalog 全部列出來。
+ *
+ * 清單從 catalog 產生，不手寫：DATASET_COUNT 與清單是同一個來源，標題、簡介和清單三處的
+ * 數字不會分歧，catalog 重新產生時這頁跟著變。
+ *
+ * 沒有英文版：資料集名稱只有中文，英文頁列一排中文名稱沒有用處。所以這頁不宣告 hreflang、
+ * 不進 sitemap 的語系對，英文首頁的頁尾也不連到它。沒有腳本，CSP 與 /privacy 相同。
+ */
+export const DATASETS_LASTMOD = "2026-10-26";
+
+const DATASET_SOURCE_LABEL: Record<string, string> = { twse: "證交所", taifex: "期交所" };
+const DATASET_GROUP_ORDER = ["證券交易", "財務報表", "公司治理", "期貨與選擇權", "券商資料", "指數", "權證", "其他"];
+
+function datasetGroups(): { name: string; items: { source: string; summary: string }[] }[] {
+  const groups = new Map<string, { source: string; summary: string }[]>();
+  for (const d of Object.values(catalog) as { source: string; summary: string; tags?: string[] }[]) {
+    const g = d.tags?.[0] ?? "其他";
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g)!.push({ source: d.source, summary: d.summary });
+  }
+  // 已知的主題照固定順序，目錄日後多出來的主題接在後面，不會被丟掉。
+  const names = [...groups.keys()].sort((a, b) => {
+    const ia = DATASET_GROUP_ORDER.indexOf(a);
+    const ib = DATASET_GROUP_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, "zh-Hant");
+  });
+  return names.map((name) => ({
+    name,
+    items: groups.get(name)!.sort((x, y) => x.source.localeCompare(y.source) || x.summary.localeCompare(y.summary, "zh-Hant")),
+  }));
+}
+
+const DATASET_SOURCE_COUNT = (src: string) =>
+  (Object.values(catalog) as { source: string }[]).filter((d) => d.source === src).length;
+
+const DATASETS_TITLE = `台股與期貨 ${DATASET_COUNT} 個公開資料集一覽｜Taiwan Market Open Data（非官方）`;
+const DATASETS_DESCRIPTION =
+  `證交所與期交所共 ${DATASET_COUNT} 個公開資料集，依主題分成證券交易、財務報表、公司治理、期貨與選擇權等類。` +
+  `列出每一個資料集的名稱，並說明如何讓 AI 直接查詢。`;
+
+export const DATASETS_HTML = `<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(DATASETS_TITLE)}</title>
+<meta name="description" content="${esc(DATASETS_DESCRIPTION)}">
+<link rel="canonical" href="${SITE_ORIGIN}/datasets">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(DATASETS_TITLE)}">
+<meta property="og:description" content="${esc(DATASETS_DESCRIPTION)}">
+<meta property="og:url" content="${SITE_ORIGIN}/datasets">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="${SITE_ORIGIN}/og.png">
+<meta property="og:image:width" content="${OG_IMAGE_WIDTH}">
+<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${SITE_ORIGIN}/og.png">
+<meta name="twitter:title" content="${esc(DATASETS_TITLE)}">
+<meta name="twitter:description" content="${esc(DATASETS_DESCRIPTION)}">
+${ICON_LINKS}
+<style>${CSS}</style>
+</head>
+<body>
+<div class="wrap prose">
+<header>
+<h1>台股與期貨公開資料集一覽</h1>
+<p>證交所與期交所各自發布公開資料，合計 ${DATASET_COUNT} 個資料集：證交所 ${DATASET_SOURCE_COUNT("twse")} 個、期交所 ${DATASET_SOURCE_COUNT("taifex")} 個。名稱很難用關鍵字找到，例如 ETF 的主檔叫「基金基本資料彙總表」，搜「ETF」找不到它。這一頁把全部列出來，方便你知道 AI 查得到什麼。</p>
+<p>你不需要自己挑資料集。把 connector 加進 Claude 或 ChatGPT 之後，直接用中文問，AI 會自己搜尋、挑對的資料集。<a href="${SITE_ORIGIN}/#install">一分鐘設定</a></p>
+</header>
+<main>
+${datasetGroups()
+  .map(
+    (g) => `<section>
+<h2>${esc(g.name)}（${g.items.length} 個）</h2>
+<ul>
+${g.items.map((i) => `<li>${esc(i.summary)}（${DATASET_SOURCE_LABEL[i.source] ?? esc(i.source)}）</li>`).join("\n")}
+</ul>
+</section>`,
+  )
+  .join("\n")}
+<section>
+<h2>這些資料的限制</h2>
+<ul>
+<li>公開資料有各自的發布時間，不等於即時行情。</li>
+<li>本服務為非官方，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書；不構成投資建議。</li>
+</ul>
+<p class="attr">
+${ATTRIBUTION_ZH.map(esc).join("<br>\n")}<br>
+授權條款：<a href="https://data.gov.tw/license">https://data.gov.tw/license</a>
+</p>
+</section>
+</main>
+<footer>
+<p><a href="${SITE_ORIGIN}/">回首頁</a> · <a href="${SITE_ORIGIN}/privacy">隱私權政策</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
+</footer>
+</div>
+</body>
+</html>`;
+
 export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開資料（非官方）
 
 > Taiwan Market Open Data is a free remote MCP (Model Context Protocol) server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). It requires no installation, no account and no API key.
@@ -1167,6 +1270,7 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 - Homepage (Traditional Chinese) / 首頁：${SITE_ORIGIN}/
 - Homepage (English)：${SITE_ORIGIN}/en
+- Dataset list (Traditional Chinese only) / 資料集一覽（僅繁中）：${SITE_ORIGIN}/datasets
 - Source code and issue tracker / 原始碼與問題回報：${REPO}
 - Setup guide (Traditional Chinese)：${REPO}/blob/main/README.md
 - Setup guide (English)：${REPO}/blob/main/README.en.md
@@ -1213,11 +1317,12 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
  * 才採用它，每次部署都更新等於把它變成噪音。改動首頁文字或結構時手動更新；
  * test/server.test.ts 有一組內容雜湊斷言，內容變了而這個日期沒動，測試會失敗。
  */
-export const PAGES_LASTMOD = "2026-10-20";
+export const PAGES_LASTMOD = "2026-10-26";
 
 /**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
  * 而 Google 明確要求兩處宣告必須一致。
+ * /datasets 只有繁中版，另列一筆，不宣告 xhtml:link。
  */
 export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -1239,5 +1344,11 @@ ${(Object.keys(LOCALES) as Locale[])
   </url>`,
   )
   .join("\n")}
+  <url>
+    <loc>${SITE_ORIGIN}/datasets</loc>
+    <lastmod>${DATASETS_LASTMOD}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
 `;

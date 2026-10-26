@@ -261,6 +261,17 @@ async function main() {
     fails.push(`/privacy：${e.message}`);
   }
 
+  // 資料集一覽：繁中單頁，清單從 catalog 產生。
+  try {
+    const res = await fetch(SITE + "/datasets", { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const html = await res.text();
+    if (!res.ok) fails.push(`/datasets：HTTP ${res.status}`);
+    else if (!html.includes("公開資料集一覽")) fails.push("/datasets：找不到標題");
+    else log("✅ /datasets");
+  } catch (e) {
+    fails.push(`/datasets：${e.message}`);
+  }
+
   const report = [
     `端點：${ENDPOINT}${LIST_ONLY ? "（只看清單）" : ""}`,
     "",

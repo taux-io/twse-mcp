@@ -84,7 +84,7 @@ import {
   withRequestLimiter,
 } from "./twse";
 import { archiveDaily, stockHistory } from "./archive";
-import { COPY_SCRIPT_HASH, DATASET_COUNT, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
+import { COPY_SCRIPT_HASH, DATASET_COUNT, DATASETS_HTML, LLMS_TXT, PRIVACY_HTML, renderPage, ROBOTS_TXT, SITEMAP_XML } from "./site";
 import { APPLE_ICON_BASE64, FAVICON_ICO_BASE64, FAVICON_SVG } from "./icons";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
@@ -1076,6 +1076,8 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
   "/en": { body: renderPage("en"), type: "text/html; charset=utf-8" },
   // 隱私權政策：Claude Directory 送件必填。內容與實際記錄的欄位見 site.ts 的說明。
   "/privacy": { body: PRIVACY_HTML, type: "text/html; charset=utf-8" },
+  // 資料集一覽：繁中單頁，清單從 catalog 產生（見 src/site.ts）。沒有英文版，所以沒有 /en/datasets。
+  "/datasets": { body: DATASETS_HTML, type: "text/html; charset=utf-8" },
   "/robots.txt": { body: ROBOTS_TXT, type: "text/plain; charset=utf-8" },
   // 給大型語言模型讀的精簡版（llmstxt.org 的約定）。與首頁的分工見 src/site.ts。
   "/llms.txt": { body: LLMS_TXT, type: "text/markdown; charset=utf-8" },
