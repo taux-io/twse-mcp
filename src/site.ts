@@ -1365,7 +1365,8 @@ export const PAGES_LASTMOD = "2026-10-26";
 /**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
  * 而 Google 明確要求兩處宣告必須一致。
- * /datasets 只有繁中版，另列一筆，不宣告 xhtml:link。
+ * /datasets 與 /privacy 只有一個版本（隱私權頁中英同頁），各另列一筆，不宣告 xhtml:link。
+ * /privacy 的 lastmod 用 PRIVACY_UPDATED，內容改了就跟著動。
  */
 export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -1392,6 +1393,12 @@ ${(Object.keys(LOCALES) as Locale[])
     <lastmod>${DATASETS_LASTMOD}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${SITE_ORIGIN}/privacy</loc>
+    <lastmod>${PRIVACY_UPDATED}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
 `;
