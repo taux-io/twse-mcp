@@ -1045,7 +1045,7 @@ const GA_CONNECT =
  * 外連只開給 GA4（gtag.js）：script-src 放行 googletagmanager.com 載入 gtag.js，
  * img-src 與 connect-src 放行它回報用的 google-analytics.com／analytics.google.com
  * （清單依 Google 的 GA4 CSP 說明，尚未在 production 量過）。其餘仍是 `default-src 'none'`，
- * 連字型、XHR、框架都不允許外連。網站圖示由同一個 Worker 服務，所以 img-src 仍有 'self'。
+ * 連字型、框架與其他網域的請求都不允許。網站圖示由同一個 Worker 服務，所以 img-src 仍有 'self'。
  * 載入 gtag.js 的是 GA_SCRIPT（只在 twse-mcp.taux.io 動作）；CSP 本身不會載入任何東西。
  *
  * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。CSS 無法讀取任何東西，
