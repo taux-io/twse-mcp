@@ -1508,16 +1508,23 @@ describe("首頁", () => {
     expect(html).not.toContain("javascript:");
   });
 
-  it("安全標頭：CSP 只放行複製腳本的雜湊，不開 unsafe-inline、禁止被 iframe", async () => {
+  it("安全標頭：script-src 只有複製腳本的雜湊加 GA4 的 gtag.js 網域，不開 unsafe-inline、禁止被 iframe", async () => {
     const res = await get("/");
     const csp = res.headers.get("content-security-policy") ?? "";
     // 雜湊要真的對應頁面上那段腳本——這裡獨立重算一次，不信任 site.ts 匯出的值
     const expected = createHash("sha256").update(COPY_SCRIPT).digest("base64");
-    expect(csp).toContain(`script-src 'sha256-${expected}'`);
+    expect(csp).toContain(`script-src 'sha256-${expected}' https://www.googletagmanager.com`);
     expect(csp).toContain("default-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
     expect(csp).not.toContain("unsafe-eval");
+    // GA4 的放行只開在這三個指令，而且是明列網域：script-src 不能出現萬用字元，connect-src 不能是 *
+    expect(csp).toContain("img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com;");
+    expect(csp).toContain(
+      "connect-src https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;",
+    );
+    expect(csp).not.toMatch(/script-src[^;]*\*/);
+    expect(csp).not.toMatch(/connect-src[^;]*\s\*(\s|;|$)/);
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("referrer-policy")).toBeTruthy();
   });
@@ -1757,7 +1764,7 @@ describe("英文版首頁", () => {
     const [zh, en] = await Promise.all([get("/"), get("/en")]);
     expect(en.headers.get("content-security-policy")).toBe(zh.headers.get("content-security-policy"));
     expect(en.headers.get("content-security-policy")).toContain(
-      `script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT).digest("base64")}'`,
+      `script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT).digest("base64")}' https://www.googletagmanager.com`,
     );
   });
 

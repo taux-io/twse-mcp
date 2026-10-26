@@ -1031,22 +1031,32 @@ function textPrompt(text: string) {
 /** MCP 端點的路徑。必須跟 createMcpHandler 的預設 route 一致（我們沒有覆寫它）。 */
 const MCP_ROUTE = "/mcp";
 
+const GA_SCRIPT = "https://www.googletagmanager.com";
+const GA_IMG = "https://*.google-analytics.com https://*.googletagmanager.com";
+const GA_CONNECT =
+  "https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com";
+
 /**
  * 首頁的安全標頭。
  *
- * 這一頁只有一段會被執行的腳本（一鍵複製，見 src/site.ts 的 COPY_SCRIPT），CSP 只放行
- * 它內容的 SHA-256。所以這不是在收緊一個寬鬆的預設，而是把「只有這一段」寫成規則——
- * 日後有人加了別的 script、inline 事件處理器或外部腳本，是瀏覽器擋下來，不是 review 漏看。`default-src 'none'` 意味著連字型、圖片、XHR 都不允許外連；
- * 頁面確實一個外部資源都沒有（網站圖示由同一個 Worker 服務，所以 img-src 只放行 'self'）。
+ * 頁面內會被執行的腳本只有一段（一鍵複製，見 src/site.ts 的 COPY_SCRIPT），CSP 只放行
+ * 它內容的 SHA-256。日後有人加了別的 inline script 或事件處理器，是瀏覽器擋下來，不是 review 漏看。
  *
- * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。那在沒有腳本
- * 的頁面上不構成注入面：CSS 無法讀取或外送任何東西，而 default-src 'none' 已經
- * 擋掉所有連線。
+ * 外連只開給 GA4（gtag.js）：script-src 放行 googletagmanager.com 載入 gtag.js，
+ * img-src 與 connect-src 放行它回報用的 google-analytics.com／analytics.google.com
+ * （清單依 Google 的 GA4 CSP 說明，尚未在 production 量過）。其餘仍是 `default-src 'none'`，
+ * 連字型、XHR、框架都不允許外連。網站圖示由同一個 Worker 服務，所以 img-src 仍有 'self'。
+ * 這些放行只是讓 gtag.js 能執行；頁面要載入它是另外一步，CSP 本身不會載入任何東西。
+ *
+ * 樣式只能是 inline `<style>`，所以 style-src 需要 'unsafe-inline'。CSS 無法讀取任何東西，
+ * 而 connect-src 只開給 GA 的網域，樣式也沒有辦法把資料送到別處。
  */
 const SITE_HEADERS: Record<string, string> = {
   "content-security-policy":
-    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; " +
-    `base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'sha256-${COPY_SCRIPT_HASH}'`,
+    "default-src 'none'; style-src 'unsafe-inline'; " +
+    `img-src 'self' ${GA_IMG}; connect-src ${GA_CONNECT}; ` +
+    `base-uri 'none'; form-action 'none'; frame-ancestors 'none'; ` +
+    `script-src 'sha256-${COPY_SCRIPT_HASH}' ${GA_SCRIPT}`,
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   // 靜態內容，改動只隨部署發生。邊緣快取久一點、瀏覽器短一點，
