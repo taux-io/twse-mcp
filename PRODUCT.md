@@ -34,7 +34,8 @@ web
 - 安裝方式是把 connector URL 貼進 AI 用戶端（claude.ai、Claude Code、ChatGPT 等）。之後所有互動都發生在 AI 對話裡，首頁不提供查詢介面。
 - 首頁是 Worker 用 TypeScript 樣板字串產生的 HTML（`src/site.ts`）：
   - 繁中在 `/`，英文在 `/en`；
-  - 另有 `/privacy`、`/llms.txt`、`/og.png`。
+  - 另有 `/privacy`、`/llms.txt`、`/og.png`；
+  - `/datasets` 是繁中單頁的資料集一覽（清單從 catalog 產生），不是首頁，也不改變首頁的成功標準。
 - README 有五種語言，`npm run check-readmes` 會檢查各語言版本的結構是否一致。
 
 ## Capabilities and Constraints

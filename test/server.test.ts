@@ -1610,7 +1610,7 @@ describe("首頁", () => {
     expect([dv.getUint32(16), dv.getUint32(20)]).toEqual([180, 180]);
   });
 
-  it.each(["/", "/en", "/privacy"])("%s：宣告三個圖示，且 CSP 放行同源圖片", async (path) => {
+  it.each(["/", "/en", "/privacy", "/datasets"])("%s：宣告三個圖示，且 CSP 放行同源圖片", async (path) => {
     const res = await get(path);
     const html = await res.text();
     expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">');
@@ -1704,6 +1704,37 @@ describe("英文版首頁", () => {
     expect(await (await get("/en")).text()).toContain('href="https://twse-mcp.taux.io/"');
   });
 
+  it("/datasets：繁中單頁，清單與 catalog 逐筆對應，沒有 hreflang", async () => {
+    const res = await get("/datasets");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    const { DATASET_COUNT } = await import("../src/site");
+    expect(html).toContain('<html lang="zh-Hant-TW">');
+    expect(html).toContain('<link rel="canonical" href="https://twse-mcp.taux.io/datasets">');
+    expect(html).toContain(`${DATASET_COUNT} 個公開資料集`);
+    // 只有繁中版：不宣告任何語系對應。
+    expect(html).not.toContain("hreflang");
+    // OGDL 顯名聲明維持中文原文。
+    expect(html).toContain("臺灣證券交易所 2026 臺灣證券交易所 OpenAPI");
+    expect(html).toContain("金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS");
+    // 主題清單裡每個資料集一條 <li>；「這些資料的限制」另有 2 條。
+    const main = html.split("<main>")[1].split("</main>")[0];
+    expect(main.match(/<li>/g)).toHaveLength(DATASET_COUNT + 2);
+    // 頁面沒有腳本，CSP 的 script-src 仍只有複製按鈕那一段。
+    expect(html).not.toContain("<script");
+  });
+
+  it("/datasets 在 sitemap 裡只有一筆且不宣告語系；繁中首頁頁尾連到它，英文首頁不連", async () => {
+    const body = await (await get("/sitemap.xml")).text();
+    const block = body.split("<url>").find((b) => b.includes("<loc>https://twse-mcp.taux.io/datasets</loc>"));
+    expect(block).toBeDefined();
+    expect(block).not.toContain("xhtml:link");
+    expect(body.match(/\/datasets<\/loc>/g)).toHaveLength(1);
+    expect(await (await get("/")).text()).toContain('href="https://twse-mcp.taux.io/datasets"');
+    expect(await (await get("/en")).text()).not.toContain("/datasets");
+  });
+
   it("sitemap 兩個語系都列", async () => {
     const body = await (await get("/sitemap.xml")).text();
     expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
@@ -1713,7 +1744,7 @@ describe("英文版首頁", () => {
   it("sitemap 每個網址都有 lastmod，且是合法的 YYYY-MM-DD", async () => {
     const body = await (await get("/sitemap.xml")).text();
     const dates = [...body.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
-    expect(dates).toHaveLength(2);
+    expect(dates).toHaveLength(3);
     for (const d of dates) {
       expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(Number.isNaN(Date.parse(d))).toBe(false);
@@ -1733,8 +1764,8 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "55f7a44d9afd344a",
-      lastmod: "2026-10-20",
+      hash: "d675acc68af380f8",
+      lastmod: "2026-10-26",
     });
   });
 

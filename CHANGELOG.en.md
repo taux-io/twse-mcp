@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unreleased
 
+- New page `/datasets` (Traditional Chinese only): all 275 TWSE and TAIFEX open datasets listed by topic, so you can see what your AI can look up. It is linked from the footer of the Chinese homepage.
 - The stock snapshot's `history_days` now adds each day's P/E, dividend yield, P/B, margin balance and short balance (P/E and margin data are archived only from 2026-10-20; earlier days are null).
 - Added the site icon: `/favicon.ico`, `/favicon.svg` and an iOS home-screen icon, so browser tabs and bookmarks no longer show a blank icon.
 - Homepage redesign (English and Chinese): a new hero, an illustrative chat, a key-figures strip, "What you can ask" as cards, and better dark-mode and mobile reading. Content and URLs are unchanged.
