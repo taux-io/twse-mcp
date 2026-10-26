@@ -668,7 +668,7 @@ main>.s-ask>ul{max-width:none}
 .eyebrow::before{content:"";width:1.5rem;height:2px;background:var(--accent);border-radius:2px}
 h1{font-size:clamp(2.3rem,5.6vw,4.1rem);line-height:1.12;margin:0 0 1.4rem;letter-spacing:-.035em;font-weight:800;text-wrap:balance}
 html:lang(zh-Hant-TW) h1 .hl{display:inline-block}
-h1 .hl{background:linear-gradient(100deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--text)));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .hl{color:var(--accent)}
 .lede{font-size:clamp(1.02rem,1.6vw,1.18rem);color:var(--muted);margin:0 0 2rem;max-width:34rem}
 .lede strong{color:var(--text)}
 .endpoint-label{margin:0 0 .5rem;font-size:.82rem;font-weight:600;letter-spacing:.02em;color:var(--muted)}
