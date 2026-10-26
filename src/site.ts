@@ -1,5 +1,5 @@
 /**
- * site.ts — 首頁（`/` 與 `/en`）、`robots.txt`、`sitemap.xml`、`llms.txt`。
+ * site.ts — 首頁（`/` 與 `/en`）、`/datasets`、`/privacy`、`robots.txt`、`sitemap.xml`、`llms.txt`。
  * ========================================================================
  * 與 MCP 端點同一個 Worker、同一個網域。理由很簡單：貼給使用者的網址是
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，而不是
