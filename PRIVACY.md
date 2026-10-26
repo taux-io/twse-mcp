@@ -5,8 +5,10 @@ The full, current policy is served at **https://twse-mcp.taux.io/privacy** (Trad
 
 Summary / 摘要：
 
-- What you ask and tool arguments are not logged or stored. No account, no cookies.
-  不記錄你問的內容與工具參數；不需帳號、不設 cookie。
+- What you ask and tool arguments are not logged or stored. MCP connections need no account and set no cookies.
+  不記錄你問的內容與工具參數；MCP 連線不需帳號、不設 cookie。
+- The website's web pages (not the MCP endpoint) use Google Analytics 4, which sets cookies (`_ga`, `_ga_*`) to count page views. Google signals and ad personalization are off; there is no consent banner.
+  網站的網頁（不含 MCP 端點）使用 Google Analytics 4 統計瀏覽量，會設定 cookie（`_ga`、`_ga_*`）；已關閉 Google signals 與廣告個人化，不顯示同意橫幅。
 - Cloudflare Workers Logs keep per-request connection metadata (IP and derived location, network/ASN,
   User-Agent and request headers — which may include the MCP tool name — URL, status) for **3 days**,
   used only for troubleshooting and abuse prevention; never sold or shared.
