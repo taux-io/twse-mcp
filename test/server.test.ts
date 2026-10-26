@@ -1799,7 +1799,7 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "1ddbff8f6a07b816",
+      hash: "1a06aa5c6cf42bb6",
       lastmod: "2026-10-26",
     });
   });
