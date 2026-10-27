@@ -667,6 +667,7 @@ main>.s-ask>ul{max-width:none}
 .eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 1.25rem}
 .eyebrow::before{content:"";width:1.5rem;height:2px;background:var(--accent);border-radius:2px}
 h1{font-size:clamp(2.3rem,5.6vw,4.1rem);line-height:1.12;margin:0 0 1.4rem;letter-spacing:-.035em;font-weight:800;text-wrap:balance}
+/* 中文可在任何兩字間斷行；inline-block 讓強調詞整段不被拆開 */
 html:lang(zh-Hant-TW) h1 .hl{display:inline-block}
 h1 .hl{color:var(--accent)}
 .lede{font-size:clamp(1.02rem,1.6vw,1.18rem);color:var(--muted);margin:0 0 2rem;max-width:34rem}
@@ -1362,7 +1363,7 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
  * 才採用它，每次部署都更新等於把它變成噪音。改動首頁文字或結構時手動更新；
  * test/server.test.ts 有一組內容雜湊斷言，內容變了而這個日期沒動，測試會失敗。
  */
-export const PAGES_LASTMOD = "2026-10-26";
+export const PAGES_LASTMOD = "2026-10-27";
 
 /**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
