@@ -1799,8 +1799,8 @@ describe("英文版首頁", () => {
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "1a06aa5c6cf42bb6",
-      lastmod: "2026-10-26",
+      hash: "23449d8075ec36c3",
+      lastmod: "2026-10-27",
     });
   });
 
