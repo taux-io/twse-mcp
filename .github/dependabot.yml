@@ -12,6 +12,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    # agents@0.31.0 的 peerOptional 只接受 server@2.3.1，升到 2.4.0 會讓 npm clean-install
+    # 報 ERESOLVE（見 #197、#199）。等 agents 發新版放寬 peer 範圍後移除這段，
+    # 並把 package.json 的 server 版本跟著升上去。
+    ignore:
+      - dependency-name: "@modelcontextprotocol/server"
 
   - package-ecosystem: github-actions
     directory: /
