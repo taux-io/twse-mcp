@@ -162,5 +162,18 @@ describe("main（git 與 gh 由外部注入）", () => {
     expect(await main(h2.deps)).toBe(2);
     expect(h2.out()).toContain("gh auth login");
   });
+
+  it("指令失敗時，錯誤訊息帶出 stderr", async () => {
+    const e = Object.assign(new Error("Command failed: gh run list"), { stderr: "HTTP 401: Bad credentials\n" });
+    const h = harness({ ...ok, [LIST]: e });
+    expect(await main(h.deps)).toBe(2);
+    expect(h.out()).toContain("HTTP 401: Bad credentials");
+  });
+
+  it("錯誤沒有 stderr 時，訊息維持原樣，不出現 undefined", async () => {
+    const h = harness({ ...ok, "git fetch origin main": new Error("spawn git ENOENT") });
+    expect(await main(h.deps)).toBe(2);
+    expect(h.out()).toBe("無法確認 main 的 tests：spawn git ENOENT");
+  });
 });
 
