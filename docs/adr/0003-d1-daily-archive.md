@@ -33,18 +33,21 @@
 ## 免費方案的限制，以及它們決定的寫法
 
 > **2026-10-31 更新：帳戶已升級 Workers Paid。** 下表是升級前（免費方案）的限制與查證，寫法（單一 JSON 參數、讀取列數上限）照舊沿用。
-> Cron 的 10 ms CPU 上限與下面的 GitHub Actions 備案不再適用；付費方案的各項額度與免費方案不同，尚未重新查證。
+> 付費方案的 D1 額度已於同日查證，補在下表的第三欄。Cron 的 10 ms CPU 上限與下面的 GitHub Actions 備案不再適用；付費方案的 CPU 上限沒有重新查證。
 
 查證日期 2026-09-30（[D1 limits](https://developers.cloudflare.com/d1/platform/limits/)、
-[Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)）：
+[Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)）。
+付費方案欄為 2026-10-31 對照 [D1 limits](https://developers.cloudflare.com/d1/platform/limits/) 與
+[D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/) 查證：
 
-| 限制 | 免費方案 | 這裡的用量 |
-|---|---|---|
-| 每次 Worker 執行的 D1 查詢數 | 50 | 2（建表、寫入） |
-| 每個查詢的綁定參數 | 100 | 1 |
-| 每天寫入列數 | 10 萬 | 每次排程約 1,400，一天兩次 |
-| 單一資料庫大小 | 500 MB | 一年約 34 萬列 |
-| Cron 每次 CPU | 10 ms | 2026-10-21 第一次排程（三張表）：`cpuTime` 44 ms，`outcome` 為 `ok`，見最後一節 |
+| 限制 | 免費方案 | 付費方案 | 這裡的用量 |
+|---|---|---|---|
+| 每次 Worker 執行的 D1 查詢數 | 50 | 1,000 | 2（建表、寫入） |
+| 每個查詢的綁定參數 | 100 | 100（相同） | 1 |
+| 寫入列數 | 每天 10 萬 | 每月 5,000 萬內含，超過每百萬列 $1 | 每次排程約 1,400，一天兩次 |
+| 讀取列數 | 每天 500 萬 | 每月 250 億內含，超過每百萬列 $0.001 | 見「讀取路徑」 |
+| 單一資料庫大小 | 500 MB | 10 GB | 一年約 34 萬列 |
+| Cron 每次 CPU | 10 ms | 未查證 | 2026-10-21 第一次排程（三張表）：`cpuTime` 44 ms，`outcome` 為 `ok`，見最後一節 |
 
 1,400 列 × 11 欄，逐列或多列 `VALUES` 都會超過前兩條。所以整天的資料轉成一個 JSON 參數，
 用一條 `INSERT OR REPLACE … SELECT … FROM json_each(?1)` 寫入。
@@ -66,7 +69,7 @@
 - 只回原始價量與整段期間漲跌幅，不算技術指標——llms.txt 公開說本服務不做技術指標。
 - 比較模式（codes）不接受 `history_days`。
 - **讀取額度是可被耗盡的資源**：每次最多 250 列（2026-10-21 起 JOIN 本益比與融資融券，變成最多 750 列，見最後一節），約 2 萬次請求（現在約 6,700 次）就能用完每天 500 萬列的免費額度，
-  之後歷史查詢一律回「暫時無法取得」（其他功能不受影響）。擋這件事要靠 Cloudflare WAF 限速規則
+  之後歷史查詢一律回「暫時無法取得」（其他功能不受影響）。（2026-10-31 已升級付費：讀取額度改為每月 250 億列內含、超過依量計費，不再有硬上限，這段說的耗盡情境不會發生，但讀取量仍是用量成本，限速規則照舊有意義。）擋這件事要靠 Cloudflare WAF 限速規則
   （SUBMISSION_CHECKLIST 的用戶端限速一項）。2026-09-30 已建立：`/mcp` 同一 IP 10 秒內超過 100 次封鎖 10 秒；
   單一 IP 一天最多約 86 萬次請求，仍可能用完額度，但需要持續大量請求，屆時再視情況收緊。
 - 隱私不變：資料庫只有公開市場資料，查詢不存任何使用者資訊。
