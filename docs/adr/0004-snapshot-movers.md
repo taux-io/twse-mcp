@@ -54,6 +54,8 @@
 3. **資料量。** `tpex_mainboard_daily_close_quotes` 一次回約 5 MB、12,587 列（大多是權證），
    沒有伺服器端過濾。2026-10-18 實測前兩次下載傳到一半就中斷。Workers 免費方案每個請求 10 ms CPU
    （#104），解析這麼大的 JSON 很可能超過；這點沒有實測。
+   （2026-10-31 已升級 Workers Paid，HTTP 請求的 CPU 上限提高為預設 30 秒，見 [Workers limits](https://developers.cloudflare.com/workers/platform/limits/)，
+   CPU 不再是疑慮；下載中斷與沒有伺服器端過濾仍在。）
 
 要重新評估，至少需要：取得櫃買中心的書面同意或確認資料在政府資料開放平臺上，且線上版出口能連上。
 不建議想辦法繞過封鎖。若只是個人要用，本機 stdio 版的 MCP 工具不值得做：這個 repo 沒有 stdio 入口
