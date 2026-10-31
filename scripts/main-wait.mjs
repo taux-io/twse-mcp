@@ -71,7 +71,7 @@ export async function main({ exec, sleep, now, log }) {
       );
     return await waitForMain({ sha, readRuns, sleep, now, log });
   } catch (e) {
-    log(`無法確認 main 的 tests：${e instanceof Error ? e.message : e}`);
+    log(`無法確認 main 的 tests：${e instanceof Error ? e.message : e}${e?.stderr ? `\n${e.stderr}` : ""}`);
     return 2;
   }
 }
