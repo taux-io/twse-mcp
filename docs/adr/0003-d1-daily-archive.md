@@ -32,6 +32,9 @@
 
 ## 免費方案的限制，以及它們決定的寫法
 
+> **2026-10-31 更新：帳戶已升級 Workers Paid。** 下表是升級前（免費方案）的限制與查證，寫法（單一 JSON 參數、讀取列數上限）照舊沿用。
+> Cron 的 10 ms CPU 上限與下面的 GitHub Actions 備案不再適用；付費方案的各項額度與免費方案不同，尚未重新查證。
+
 查證日期 2026-09-30（[D1 limits](https://developers.cloudflare.com/d1/platform/limits/)、
 [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)）：
 
