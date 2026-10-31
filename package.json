@@ -26,13 +26,13 @@
     "eval:answers": "node scripts/eval-answers.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/server": "2.4.0",
     "agents": "0.31.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
-    "@cloudflare/workers-types": "^5.20261027.1",
+    "@cloudflare/workers-types": "^5.20261028.1",
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5",
