@@ -33,7 +33,7 @@
 ## 免費方案的限制，以及它們決定的寫法
 
 > **2026-10-31 更新：帳戶已升級 Workers Paid。** 下表是升級前（免費方案）的限制與查證，寫法（單一 JSON 參數、讀取列數上限）照舊沿用。
-> 付費方案的 D1 額度已於同日查證，補在下表的第三欄。Cron 的 10 ms CPU 上限與下面的 GitHub Actions 備案不再適用；付費方案的 CPU 上限沒有重新查證。
+> 付費方案的 D1 額度與 Cron 的 CPU 上限已於同日查證，補在下表的第三欄。Cron 的 10 ms CPU 上限與下面的 GitHub Actions 備案不再適用。
 
 查證日期 2026-09-30（[D1 limits](https://developers.cloudflare.com/d1/platform/limits/)、
 [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)）。
@@ -47,7 +47,7 @@
 | 寫入列數 | 每天 10 萬 | 每月 5,000 萬內含，超過每百萬列 $1 | 每次排程約 1,400，一天兩次 |
 | 讀取列數 | 每天 500 萬 | 每月 250 億內含，超過每百萬列 $0.001 | 見「讀取路徑」 |
 | 單一資料庫大小 | 500 MB | 10 GB | 一年約 34 萬列 |
-| Cron 每次 CPU | 10 ms | 未查證 | 2026-10-21 第一次排程（三張表）：`cpuTime` 44 ms，`outcome` 為 `ok`，見最後一節 |
+| Cron 每次 CPU | 10 ms | 15 分鐘（排程間隔 1 小時以上；不到 1 小時為 30 秒），出自 [Workers limits](https://developers.cloudflare.com/workers/platform/limits/)。本專案兩個排程（UTC 22:30、01:30）間隔都超過 1 小時 | 2026-10-21 第一次排程（三張表）：`cpuTime` 44 ms，`outcome` 為 `ok`，見最後一節 |
 
 1,400 列 × 11 欄，逐列或多列 `VALUES` 都會超過前兩條。所以整天的資料轉成一個 JSON 參數，
 用一條 `INSERT OR REPLACE … SELECT … FROM json_each(?1)` 寫入。
@@ -172,6 +172,7 @@ npx wrangler d1 execute twse-mcp-archive --remote --json --command \
 
 - **44 ms 超過上面表格寫的 10 ms，卻沒有被判超限。** 所以那個 10 ms 不是這個觸發類型的硬上限，表格和「若 Cron 的 CPU 經常超過 10 ms」那句備案條件
   是依 HTTP 請求的額度寫的。實際的上限沒有在官方文件核對過；備案的觸發條件改以 `outcome` 出現 `exceededCpu` 為準。
+  （2026-10-31 補記：已核對 [Workers limits](https://developers.cloudflare.com/workers/platform/limits/)，文件寫 Cron 免費方案是 10 ms，與這次免費方案下 44 ms 仍為 `ok` 的量測不符，文件沒說明原因。升級付費後上限為 15 分鐘，此量測不再有風險。）
 - 這只是一次量測。資料量隨上市家數與當天交易日略有變化，之後排程若出現 `exceededCpu` 再回頭看。
 
 ### 對帳腳本：`scripts/check-margin-dates.mjs`
