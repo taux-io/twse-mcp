@@ -17,15 +17,17 @@
  *
  * 預設打本機：CI（.github/workflows/smoke.yml）在 runner 上起 wrangler dev 來測，程式與
  * Workers 執行期和正式環境相同，也真的去抓證交所與期交所。抓不到的只有正式環境專屬的
- * 問題（部署、邊緣快取、免費方案的 CPU 上限）。不打正式環境，是因為它跑在免費方案，
- * 每個請求都在消耗 10 ms CPU 的寬容額度（#104）。
+ * 問題（部署、邊緣快取）。不打正式環境，是因為測試請求會混進真實流量、付費方案也依用量計費。
+ * （#104 當時跑在免費方案，每個請求都在消耗 10 ms CPU 的寬容額度；2026-10-31 已升級 Workers Paid。）
  *
  * 用法：
  *   npm run smoke                    # 8787 沒人用就自己起 wrangler dev，跑完關掉；已經有就直接用
  *   SMOKE_ENDPOINT 有設定時不會自己起（CI 的正式環境存活檢查、CI 自己先起好的 wrangler dev 都是）
  *   SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs   # 真的要測正式環境時
  *   SMOKE_LIST_ONLY=1 SMOKE_ENDPOINT=https://twse-mcp.taux.io/mcp node scripts/smoke.mjs
- *     # 正式環境存活檢查：只看工具清單、快捷指令與首頁，不呼叫工具（CI 每天一次，幾個請求）
+ *     # 正式環境存活檢查：工具清單、快捷指令與首頁，外加 modern 的 dataset.get 一次（PROBE）。
+ *     # 清單通過只能證明服務起來了；那一次呼叫證明工具真的查得到資料、回應也過得了 outputSchema。
+ *     # CI 每天一次，共 9 個請求。
  *
  * 只用 Node 內建模組：CI 的這個 job 拿的是 issues write token。
  */
@@ -157,6 +159,9 @@ const CASES = [
   },
 ];
 
+/** 正式環境存活檢查（LIST_ONLY）多跑的那一個查詢：只回一列，卻走完抓上游、轉換、outputSchema 驗證。 */
+const PROBE = CASES.find((c) => c.tool === "dataset.get");
+
 /** 工具結果轉成物件：有 structuredContent 用它，否則解析第一段文字。 */
 function body(result) {
   if (result.structuredContent) return result.structuredContent;
@@ -203,7 +208,7 @@ async function main() {
       fails.push(`[${era}] tools/list 或 prompts/list 失敗：${e.message}`);
     }
 
-    for (const c of LIST_ONLY ? [] : CASES) {
+    for (const c of LIST_ONLY ? (era === "modern" ? [PROBE] : []) : CASES) {
       const t0 = Date.now();
       let out;
       try {
@@ -273,7 +278,7 @@ async function main() {
   }
 
   const report = [
-    `端點：${ENDPOINT}${LIST_ONLY ? "（只看清單）" : ""}`,
+    `端點：${ENDPOINT}${LIST_ONLY ? "（清單加 dataset.get 一次）" : ""}`,
     "",
     fails.length ? `**失敗 ${fails.length} 項**` : "全部通過",
     ...fails.map((f) => `- ${f}`),
