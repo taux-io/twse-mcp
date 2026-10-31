@@ -97,6 +97,12 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
     expect(checkCatalog(mislabelled).problems.join()).toContain("taifex/Bogus");
   });
 
+  // 期交所 swagger 漏寫 AnnualTradingVolume 的 ProductCategory，實際資料每一列都有（issue #152）。
+  // refresh-catalog 的 TAIFEX_FIELD_OVERRIDES 會補回；這條防止有人拿掉覆寫或在沒有它的情況下重新產生目錄。
+  it("taifex/AnnualTradingVolume 保有 swagger 漏寫的 ProductCategory 欄位", () => {
+    expect(Object.keys(catalog["taifex/AnnualTradingVolume"].fields)).toContain("ProductCategory");
+  });
+
   // 逐筆成交端點單日 255 MB，抓進 128 MB 的 isolate 是把工具打爛而不是給出答案。
   // 它們在 refresh-catalog 被排除；這條確保排除清單沒有在某次刷新後被悄悄拿掉。
   it("刻意排除的逐筆成交端點不可以出現在目錄裡", () => {
