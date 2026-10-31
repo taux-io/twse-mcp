@@ -184,7 +184,7 @@ client 看得出是版本問題而不是服務故障。
 ### 重新開放一週後的驗證（issue #83，2026-10-05）
 
 過去 7 天 `POST /mcp` 共 49,070 次：200 有 36,490 次、202（通知）3,650 次、沒有回應的 5,420 次
-（多為被中斷的 `subscriptions/listen` 長連線或客戶端先關閉）、503 有 590 次（免費方案 CPU 上限，#104）。
+（多為被中斷的 `subscriptions/listen` 長連線或客戶端先關閉）、503 有 590 次（免費方案 CPU 上限，#104；2026-10-31 已升級 Workers Paid，這是升級前的數字）。
 
 - **Codex（`codex-mcp-client/*`）2,650 次全部 200 或 202**：legacy lane 對它是通的。
 - **400 共 1,930 次，全部來自監測 bot**：`SentinelOracle` 1,780、`rokmcp-collector` 120、`heldfast` 20、
