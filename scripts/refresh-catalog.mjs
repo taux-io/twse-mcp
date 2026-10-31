@@ -45,6 +45,21 @@ const TAIFEX_EXCLUDE = new Set([
 ]);
 
 /**
+ * swagger 漏寫、但實際資料有的欄位。refresh 時補回去，目錄才不會每週被「欄位消失」誤報
+ * （workflow 看的是產出的檔案有沒有變，不是 catalog-diff 的摘要）。
+ *
+ * 只補 swagger 沒有的鍵，放在欄位最後；swagger 日後補回來就以它的說明為準。
+ * key 是 swagger 路徑去掉開頭斜線（不含 `taifex/` 前綴）。
+ *
+ * 2026-10-31 確認：期交所 /v1/AnnualTradingVolume 的每一列都有 ProductCategory
+ * （例如 "指數期貨"），但 swagger 沒有（issue #152）。上游修好後可刪掉這一項。
+ * 風險：期交所若真的把欄位從資料裡拿掉，這個覆寫會蓋住它，刷新不會再提醒。
+ */
+const TAIFEX_FIELD_OVERRIDES = {
+  AnnualTradingVolume: { ProductCategory: "商品類別" },
+};
+
+/**
  * 排除清單比對的是**正規化後的最後一段路徑**，不是字面值。
  *
  * 它保護的是一個「大小」問題，而它的判準是一個「名字」。稽核實測
@@ -112,13 +127,17 @@ function buildTaifex(spec) {
     const ref = schema.$ref ?? schema.items?.$ref ?? "";
     const props = ref ? (schemas[ref.split("/").pop()]?.properties ?? {}) : {};
     const id = `taifex/${name}`;
+    const fields = Object.fromEntries(Object.entries(props).map(([k, v]) => [k, v?.description ?? ""]));
+    for (const [k, desc] of Object.entries(TAIFEX_FIELD_OVERRIDES[name] ?? {})) {
+      if (!Object.hasOwn(fields, k)) fields[k] = desc;
+    }
     out[id] = {
       id,
       source: "taifex",
       summary: op.summary ?? "",
       description: op.description ?? "",
       tags: ["期貨與選擇權"],
-      fields: Object.fromEntries(Object.entries(props).map(([k, v]) => [k, v?.description ?? ""])),
+      fields,
     };
   }
   return out;
