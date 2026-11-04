@@ -3666,7 +3666,7 @@
    "Date": "日期",
    "StockCode": "股票代號",
    "ContractName": "商品名稱",
-   "TickerSymbol": "商品代號",
+   "TickerSymbol": "商品契約代號",
    "DeliveryMonth": "月份",
    "ReferredOpeningPrice": "開盤參考價"
   }
@@ -3686,7 +3686,7 @@
    "CashDividend(CapitalRepayment)NTD/share": "現金股利(減資退還現金)元/股",
    "StockDividend": "股票股利股/股",
    "CorporateAction": "契約調整類別",
-   "AdjustmentDate": "契約調整日"
+   "AdjustmentDate": "契約調整日期"
   }
  },
  "taifex/DailyMarketReportFut": {
@@ -3827,8 +3827,8 @@
  "taifex/BlockTradeNegotiation": {
   "id": "taifex/BlockTradeNegotiation",
   "source": "taifex",
-  "summary": "鉅額交易議價申報成交",
-  "description": "鉅額交易議價申報成交",
+  "summary": "期貨市場鉅額交易議價申報成交",
+  "description": "期貨市場鉅額交易議價申報成交",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3849,8 +3849,8 @@
  "taifex/BlockTrade": {
   "id": "taifex/BlockTrade",
   "source": "taifex",
-  "summary": "鉅額交易各商品成交資訊",
-  "description": "鉅額交易各商品成交資訊",
+  "summary": "期貨市場鉅額交易各商品成交資訊",
+  "description": "期貨市場鉅額交易各商品成交資訊",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3869,8 +3869,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
   "source": "taifex",
-  "summary": "三大法人-總表-依日期",
-  "description": "三大法人-總表-依日期",
+  "summary": "期貨市場三大法人-總表-依日期",
+  "description": "期貨市場三大法人-總表-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3894,8 +3894,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek",
   "source": "taifex",
-  "summary": "三大法人-總表-依週別",
-  "description": "三大法人-總表-依週別",
+  "summary": "期貨市場三大法人-總表-依週別",
+  "description": "期貨市場三大法人-總表-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3920,8 +3920,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate",
   "source": "taifex",
-  "summary": "三大法人-區分期貨與選擇權二類-依日期",
-  "description": "三大法人-區分期貨與選擇權二類-依日期",
+  "summary": "期貨市場三大法人-區分期貨與選擇權二類-依日期",
+  "description": "期貨市場三大法人-區分期貨與選擇權二類-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3957,8 +3957,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek",
   "source": "taifex",
-  "summary": "三大法人-區分期貨與選擇權二類-依週別",
-  "description": "三大法人-區分期貨與選擇權二類-依週別",
+  "summary": "期貨市場三大法人-區分期貨與選擇權二類-依週別",
+  "description": "期貨市場三大法人-區分期貨與選擇權二類-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3995,8 +3995,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
   "source": "taifex",
-  "summary": "三大法人-區分各期貨契約-依日期",
-  "description": "三大法人-區分各期貨契約-依日期",
+  "summary": "期貨市場三大法人-區分各期貨契約-依日期",
+  "description": "期貨市場三大法人-區分各期貨契約-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4021,8 +4021,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek",
   "source": "taifex",
-  "summary": "三大法人-區分各期貨契約-依週別",
-  "description": "三大法人-區分各期貨契約-依週別",
+  "summary": "期貨市場三大法人-區分各期貨契約-依週別",
+  "description": "期貨市場三大法人-區分各期貨契約-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4048,8 +4048,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate",
   "source": "taifex",
-  "summary": "三大法人-區分各選擇權契約-依日期",
-  "description": "三大法人-區分各選擇權契約-依日期",
+  "summary": "期貨市場三大法人-區分各選擇權契約-依日期",
+  "description": "期貨市場三大法人-區分各選擇權契約-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4074,8 +4074,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek",
   "source": "taifex",
-  "summary": "三大法人-區分各選擇權契約-依週別",
-  "description": "三大法人-區分各選擇權契約-依週別",
+  "summary": "期貨市場三大法人-區分各選擇權契約-依週別",
+  "description": "期貨市場三大法人-區分各選擇權契約-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4101,8 +4101,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate",
   "source": "taifex",
-  "summary": "三大法人-選擇權買賣權分計-依日期",
-  "description": "三大法人-選擇權買賣權分計-依日期",
+  "summary": "期貨市場三大法人-選擇權買賣權分計-依日期",
+  "description": "期貨市場三大法人-選擇權買賣權分計-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4128,8 +4128,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek",
   "source": "taifex",
-  "summary": "三大法人-選擇權買賣權分計-依週別",
-  "description": "三大法人-選擇權買賣權分計-依週別",
+  "summary": "期貨市場三大法人-選擇權買賣權分計-依週別",
+  "description": "期貨市場三大法人-選擇權買賣權分計-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4167,10 +4167,10 @@
    "ContractName": "商品名稱(契約名稱)",
    "SettlementMonth": "到期月份(週別)",
    "TypeOfTraders": "交易人類別",
-   "Top5Buy": "前五大交易人買方",
-   "Top5Sell": "前五大交易人賣方",
-   "Top10Buy": "前十大交易人買方",
-   "Top10Sell": "前十大交易人賣方",
+   "Top5Buy": "前五大交易人買方數量",
+   "Top5Sell": "前五大交易人賣方數量",
+   "Top10Buy": "前十大交易人買方數量",
+   "Top10Sell": "前十大交易人賣方數量",
    "OIOfMarket": "全市場未沖銷部位數"
   }
  },
@@ -4189,10 +4189,10 @@
    "CallPut": "買賣權",
    "SettlementMonth": "到期月份(週別)",
    "TypeOfTraders": "交易人類別",
-   "Top5Buy": "前五大交易人買方",
-   "Top5Sell": "前五大交易人賣方",
-   "Top10Buy": "前十大交易人買方",
-   "Top10Sell": "前十大交易人賣方",
+   "Top5Buy": "前五大交易人買方數量",
+   "Top5Sell": "前五大交易人賣方數量",
+   "Top10Buy": "前十大交易人買方數量",
+   "Top10Sell": "前十大交易人賣方數量",
    "OIOfMarket": "全市場未沖銷部位數"
   }
  },
@@ -4206,16 +4206,16 @@
   ],
   "fields": {
    "Date": "日期",
-   "USD/NTD": "美元／新台幣",
-   "RMB/NTD": "人民幣／新台幣",
-   "EUR/USD": "歐元／美元",
-   "USD/JPY": "美元／日幣",
-   "GBP/USD": "英鎊／美元",
-   "AUD/USD": "澳幣／美元",
-   "USD/HKD": "美元／港幣",
-   "USD/RMB": "美元／人民幣",
-   "USD/ZAR": "美元／南非幣",
-   "NZD/USD": "紐幣／美元"
+   "USD/NTD": "美元／新台幣(匯率)",
+   "RMB/NTD": "人民幣／新台幣(匯率)",
+   "EUR/USD": "歐元／美元(匯率)",
+   "USD/JPY": "美元／日幣(匯率)",
+   "GBP/USD": "英鎊／美元(匯率)",
+   "AUD/USD": "澳幣／美元(匯率)",
+   "USD/HKD": "美元／港幣(匯率)",
+   "USD/RMB": "美元／人民幣(匯率)",
+   "USD/ZAR": "美元／南非幣(匯率)",
+   "NZD/USD": "紐幣／美元(匯率)"
   }
  },
  "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions": {
@@ -4272,8 +4272,8 @@
  "taifex/FinalSettlementPrice": {
   "id": "taifex/FinalSettlementPrice",
   "source": "taifex",
-  "summary": "最後結算價",
-  "description": "最後結算價",
+  "summary": "期貨商品最後結算價",
+  "description": "期貨商品最後結算價",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4294,8 +4294,8 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "DeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "DeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
    "Contract": "商品代號",
    "Long": "買方到期部位數",
@@ -4305,8 +4305,8 @@
  "taifex/IndexFuturesAndOptionsMargining": {
   "id": "taifex/IndexFuturesAndOptionsMargining",
   "source": "taifex",
-  "summary": "保證金一覽表-股價指數類",
-  "description": "保證金一覽表-股價指數類",
+  "summary": "期貨保證金一覽表-股價指數類",
+  "description": "期貨保證金一覽表-股價指數類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4337,8 +4337,8 @@
  "taifex/GoldFuturesAndOptionsMargining": {
   "id": "taifex/GoldFuturesAndOptionsMargining",
   "source": "taifex",
-  "summary": "保證金一覽表-商品類",
-  "description": "保證金一覽表-商品類",
+  "summary": "期貨保證金一覽表-商品類",
+  "description": "期貨保證金一覽表-商品類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4353,8 +4353,8 @@
  "taifex/SingleStockFuturesMargining": {
   "id": "taifex/SingleStockFuturesMargining",
   "source": "taifex",
-  "summary": "保證金一覽表-股票類",
-  "description": "保證金一覽表-股票類",
+  "summary": "期貨保證金一覽表-股票類",
+  "description": "期貨保證金一覽表-股票類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4373,8 +4373,8 @@
  "taifex/SingleStockFuturesETFMargining": {
   "id": "taifex/SingleStockFuturesETFMargining",
   "source": "taifex",
-  "summary": "保證金一覽表-股票類(ETF)",
-  "description": "保證金一覽表-股票類(ETF)",
+  "summary": "期貨保證金一覽表-股票類(ETF)",
+  "description": "期貨保證金一覽表-股票類(ETF)",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4392,8 +4392,8 @@
  "taifex/AcceptableCollateralGovernmentBonds": {
   "id": "taifex/AcceptableCollateralGovernmentBonds",
   "source": "taifex",
-  "summary": "有價證券保證金之可抵繳標的-公債",
-  "description": "有價證券保證金之可抵繳標的-公債",
+  "summary": "期貨市場有價證券保證金之可抵繳標的-公債",
+  "description": "期貨市場有價證券保證金之可抵繳標的-公債",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4407,8 +4407,8 @@
  "taifex/AcceptableCollateralInternationalBonds": {
   "id": "taifex/AcceptableCollateralInternationalBonds",
   "source": "taifex",
-  "summary": "有價證券保證金之可抵繳標的-國際債",
-  "description": "有價證券保證金之可抵繳標的-國際債",
+  "summary": "期貨市場有價證券保證金之可抵繳標的-國際債",
+  "description": "期貨市場有價證券保證金之可抵繳標的-國際債",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4422,8 +4422,8 @@
  "taifex/AcceptableCollateralStock": {
   "id": "taifex/AcceptableCollateralStock",
   "source": "taifex",
-  "summary": "有價證券保證金之可抵繳標的-股票(含ETF)",
-  "description": "有價證券保證金之可抵繳標的-股票(含ETF)",
+  "summary": "期貨市場有價證券保證金之可抵繳標的-股票(含ETF)",
+  "description": "期貨市場有價證券保證金之可抵繳標的-股票(含ETF)",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4695,9 +4695,9 @@
   "fields": {
    "Contract": "商品代號",
    "ContractName": "商品名稱",
-   "Individual": "自然人部位限制",
-   "Institution": "法人部位限制",
-   "ProprietaryTrader/MarketMaker": "期貨商部位限制"
+   "Individual": "自然人部位限制(數量)",
+   "Institution": "法人部位限制(數量)",
+   "ProprietaryTrader/MarketMaker": "期貨商部位限制(數量)"
   }
  },
  "taifex/PositionLimitEquity": {
@@ -4715,9 +4715,9 @@
    "StockCode": "證券代號",
    "StockFuturesFlag": "是否為股票期貨標的",
    "StockOptionsFlag": "是否為股票選擇權標的",
-   "Individual": "自然人部位限制",
-   "Institution/Proprietary": "法人/期貨自營商部位限制",
-   "MarketMaker": "造市者部位限制"
+   "Individual": "自然人部位限制(數量)",
+   "Institution/Proprietary": "法人/期貨自營商部位限制(數量)",
+   "MarketMaker": "造市者部位限制(數量)"
   }
  },
  "taifex/DailyVolumeReportOnCalendarSpreadOrders": {
@@ -4776,11 +4776,11 @@
   ],
   "fields": {
    "YYYY": "年度",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "ContractName": "商品名稱",
-   "Volume": "年度成交量",
-   "NumberOfTradingDays": "年度交易日數",
-   "AvgDailyTradingVolume": "日平均成交量",
+   "Volume": "年度成交數量",
+   "NumberOfTradingDays": "年度交易日數量",
+   "AvgDailyTradingVolume": "日平均成交數量",
    "ProductCategory": "商品類別"
   }
  },
@@ -4809,7 +4809,7 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "Contract": "股票期貨商品代碼",
+   "Contract": "股票期貨商品契約代碼",
    "UnderlyingStock": "標的證券",
    "StockCode": "證券代號",
    "StockName": "標的證券簡稱",
@@ -4957,8 +4957,8 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
    "Contract": "商品代號",
    "Long(lot)": "買方到期部位數",
@@ -4974,10 +4974,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Call/Put": "買賣權別",
    "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
    "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
@@ -5250,21 +5250,21 @@
   ],
   "fields": {
    "YYYYMM": "資料年月",
-   "ProprietaryTradersFCMsWithExclusiveFuturesTradingBusinessNoOfParticipatingFirms": "自營商專營家數",
-   "ProprietaryTradersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessNoOfParticipatingFirms": "自營商他業兼營家數",
-   "BrokersFuturesBrokersHeadOfficeNoOfParticipatingFirms": "經紀商專營總公司家數",
-   "BrokersFuturesBrokersBranchOfficeNoOfParticipatingFirms": "經紀商專營分總公司家數",
-   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessHeadOfficeNoOfParticipatingFirms": "經紀商他業兼營總公司家數",
-   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessBranchOfficeNoOfParticipatingFirms": "經紀商他業兼營分總公司家數",
-   "IntroducingBrokersHeadOfficeNoOfParticipatingFirms": "交易輔助人總公司家數",
-   "IntroducingBrokersBranchOfficeNoOfParticipatingFirms": "交易輔助人分公司家數",
-   "ClearingMembersGeneralClearingMembersNoOfParticipatingFirms": "一般結算會員家數",
-   "ClearingMembersIndividualClearingMembersNoOfParticipatingFirms": "個別結算會員家數",
-   "SettlementBanks": "結算銀行家數",
-   "TotalNoOfTradingAccountsIndividualsAccounts": "自然人交易人開戶數",
-   "TotalNoOfTradingAccountsInstitutionalInvestorsAccounts": "法人交易人開戶數",
-   "NumberOfActiveNoteAccountsIndividualsAccounts": "自然人交易戶數",
-   "NumberOfActiveNoteAccountsInstitutionalInvestorsAccounts": "法人交易戶數"
+   "ProprietaryTradersFCMsWithExclusiveFuturesTradingBusinessNoOfParticipatingFirms": "自營商專營家數量",
+   "ProprietaryTradersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessNoOfParticipatingFirms": "自營商他業兼營家數量",
+   "BrokersFuturesBrokersHeadOfficeNoOfParticipatingFirms": "經紀商專營總公司家數量",
+   "BrokersFuturesBrokersBranchOfficeNoOfParticipatingFirms": "經紀商專營分總公司家數量",
+   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessHeadOfficeNoOfParticipatingFirms": "經紀商他業兼營總公司家數量",
+   "BrokersSecuritiesFirmsWithConcurrentOperationsInFuturesBrokerageBusinessBranchOfficeNoOfParticipatingFirms": "經紀商他業兼營分總公司家數量",
+   "IntroducingBrokersHeadOfficeNoOfParticipatingFirms": "交易輔助人總公司家數量",
+   "IntroducingBrokersBranchOfficeNoOfParticipatingFirms": "交易輔助人分公司家數量",
+   "ClearingMembersGeneralClearingMembersNoOfParticipatingFirms": "一般結算會員家數量",
+   "ClearingMembersIndividualClearingMembersNoOfParticipatingFirms": "個別結算會員家數量",
+   "SettlementBanks": "結算銀行家數量",
+   "TotalNoOfTradingAccountsIndividualsAccounts": "自然人交易人開戶數量",
+   "TotalNoOfTradingAccountsInstitutionalInvestorsAccounts": "法人交易人開戶數量",
+   "NumberOfActiveNoteAccountsIndividualsAccounts": "自然人交易戶數量",
+   "NumberOfActiveNoteAccountsInstitutionalInvestorsAccounts": "法人交易戶數量"
   }
  },
  "taifex/MonthlyTradingStatisticsFutures": {
@@ -5279,21 +5279,21 @@
    "YYYYMM": "資料年月",
    "ContactName": "商品名稱",
    "TotalVolume": "交易量合計(單邊)",
-   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)",
-   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)",
-   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)",
-   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)",
-   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)",
-   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)",
-   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)",
-   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)",
-   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)",
-   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)",
-   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)",
-   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)",
-   "ProprietaryTraders(Buy)": "期貨自營商(買)",
-   "ProprietaryTraders(Sell)": "期貨自營商(賣)",
-   "MonthEndOpenInterest": "期末未沖銷量"
+   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)數量",
+   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)數量",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)數量",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)數量",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)數量",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)數量",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)數量",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)數量",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)數量",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)數量",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)數量",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)數量",
+   "ProprietaryTraders(Buy)": "期貨自營商(買)數量",
+   "ProprietaryTraders(Sell)": "期貨自營商(賣)數量",
+   "MonthEndOpenInterest": "期末未沖銷契約量"
   }
  },
  "taifex/MonthlyTradingStatisticsOptions": {
@@ -5308,21 +5308,21 @@
    "YYYYMM": "資料年月",
    "ContactName": "商品名稱",
    "TotalVolume": "交易量合計(單邊)",
-   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)",
-   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)",
-   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)",
-   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)",
-   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)",
-   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)",
-   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)",
-   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)",
-   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)",
-   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)",
-   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)",
-   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)",
-   "ProprietaryTraders(Buy)": "期貨自營商(買)",
-   "ProprietaryTraders(Sell)": "期貨自營商(賣)",
-   "MonthEndOpenInterest": "期末未沖銷量"
+   "Brokers-Individual(Buy)": "期貨經紀-自然人(買)數量",
+   "Brokers-Individual(Sell)": "期貨經紀-自然人(賣)數量",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Buy)": "期貨經紀-法人-證券自營(買)數量",
+   "Brokers-InstutionalInvestors-SecuritiesDealers(Sell)": "期貨經紀-法人-證券自營(賣)數量",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Buy)": "期貨經紀-法人-證券投信(買)數量",
+   "Brokers-InstutionalInvestors-SecuritiesInvestmentTrust(Sell)": "期貨經紀-法人-證券投信(賣)數量",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Buy)": "期貨經紀-法人-外資及陸資(買)數量",
+   "Brokers-InstutionalInvestors-Foreign&MainlandAreaInstitutionalInvestors(Sell)": "期貨經紀-法人-外資及陸資(賣)數量",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Buy)": "期貨經紀-法人-期貨經理及信託基金(買)數量",
+   "Brokers-InstutionalInvestors-ManagedFuturesEnterprisesAndFuturesTrustFunds(Sell)": "期貨經紀-法人-期貨經理及信託基金(賣)數量",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Buy)": "期貨經紀-法人-其他機構投資人(買)數量",
+   "Brokers-InstutionalInvestors-OtherInstitutionalInvesters(Sell)": "期貨經紀-法人-其他機構投資人(賣)數量",
+   "ProprietaryTraders(Buy)": "期貨自營商(買)數量",
+   "ProprietaryTraders(Sell)": "期貨自營商(賣)數量",
+   "MonthEndOpenInterest": "期末未沖銷契約量"
   }
  },
  "taifex/FinalSettlementPriceSSF": {
@@ -5446,10 +5446,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Long(lot)": "買方到期部位數",
    "Short(lot)": "賣方到期部位數"
   }
@@ -5463,10 +5463,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Call/Put": "買賣權別",
    "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
    "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
@@ -5483,10 +5483,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Long(lot)": "買方到期部位數",
    "Short(lot)": "賣方到期部位數"
   }
@@ -5500,10 +5500,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Call/Put": "買賣權別",
    "OIAtTheMaturityDate(Lot)": "到期未沖銷部位數",
    "OIOfIn-the-MoneyAtTheMaturityDate(Lot)": "到期價內未沖銷部位數",
@@ -5537,10 +5537,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Call/Put": "買賣權別",
    "CashSettlementLong(lot)": "期貨現金交割買方到期部位數",
    "CashSettlementShort(lot)": "期貨現金交割賣方到期部位數",
@@ -5560,10 +5560,10 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "TheFinalSettlementDay": "最後結算日期",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
-   "Contract": "商品代號",
+   "Contract": "商品代號(契約)",
    "Call/Put": "買賣權別",
    "Long(lot)": "買方到期部位數",
    "Short(lot)": "賣方到期部位數",
@@ -5730,11 +5730,11 @@
   ],
   "fields": {
    "TheFinalSettlementDay": "最後結算日",
-   "ContractDeliveryMonth": "契約月份",
+   "ContractDeliveryMonth": "契約月份(到期月份)",
    "ContractName": "商品名稱",
    "Contract": "商品代號",
-   "Long(lot)": "買方到期部位數",
-   "Short(lot)": "賣方到期部位數"
+   "Long(lot)": "買方到期部位數量",
+   "Short(lot)": "賣方到期部位數量"
   }
  },
  "taifex/FXFuturesAndOptionsMargining": {
@@ -5756,8 +5756,8 @@
  "taifex/AcceptableCollateralLogStock": {
   "id": "taifex/AcceptableCollateralLogStock",
   "source": "taifex",
-  "summary": "有價證券保證金之可抵繳標的增刪紀錄",
-  "description": "有價證券保證金之可抵繳標的增刪紀錄",
+  "summary": "有價證券保證金之可抵繳標的增刪紀錄(股票類含ETF)",
+  "description": "有價證券保證金之可抵繳標的增刪紀錄(股票類含ETF)",
   "tags": [
    "期貨與選擇權"
   ],
@@ -5778,9 +5778,9 @@
   ],
   "fields": {
    "Date": "日期",
-   "OpenInterest": "股價指數類選擇權未平倉量",
-   "PreviousDay": "前一日",
-   "PreviousDayOpenInterest": "前一日股價指數類選擇權未平倉量",
+   "OpenInterest": "股價指數類選擇權未沖銷契約量",
+   "PreviousDay": "前一日期",
+   "PreviousDayOpenInterest": "前一日股價指數類選擇權未沖銷契約量",
    "Change": "未平倉量增減"
   }
  },
@@ -5794,9 +5794,9 @@
   ],
   "fields": {
    "Date": "日期",
-   "ContractType": "股票/ETF選擇權",
+   "ContractType": "股票/ETF選擇權(契約)",
    "OpenInterest": "個股選擇權未平倉量",
-   "PreviousDay": "前一日",
+   "PreviousDay": "前一日期",
    "PreviousDayOpenInterest": "前一日個股選擇權未平倉量",
    "Change": "未平倉量增減"
   }
@@ -5812,7 +5812,7 @@
   "fields": {
    "Date": "日期",
    "OpenInterest": "商品類選擇權未平倉量",
-   "PreviousDay": "前一日",
+   "PreviousDay": "前一日期",
    "PreviousDayOpenInterest": "前一日商品類選擇權未平倉量",
    "Change": "未平倉量增減"
   }
@@ -5933,7 +5933,7 @@
   ],
   "fields": {
    "Date": "日期",
-   "ContractType": "股票期貨/ETF期貨",
+   "ContractType": "股票期貨/ETF期貨契約代號",
    "Volume": "交易量"
   }
  },
@@ -5947,7 +5947,7 @@
   ],
   "fields": {
    "YYYYMM": "資料年月",
-   "ContractType": "股票期貨/ETF期貨",
+   "ContractType": "股票期貨/ETF期貨契約代號",
    "Volume": "交易量"
   }
  },
@@ -5961,7 +5961,7 @@
   ],
   "fields": {
    "YYYY": "資料年度",
-   "ContractType": "股票期貨/ETF期貨",
+   "ContractType": "股票期貨/ETF期貨契約代號",
    "Volume": "交易量"
   }
  }
