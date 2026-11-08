@@ -1641,6 +1641,11 @@ ${JA.features.map((f) => `- ${f}`).join("\n")}
 - Every other report is current to the previous trading day and cached at the edge for one hour.
 - 盤中即時報價約每 5 秒更新，來源是證交所基本市況報導站，屬盡力而為；其餘報表最新到前一交易日，並在邊緣快取一小時。
 
+## 更新頻度
+
+- 取引時間中の株価は、およそ5秒ごとに更新されます。取得元は証券取引所の市況情報サイトで、ベストエフォートです。
+- それ以外のレポートは前営業日までのデータで、エッジで1時間キャッシュされます。
+
 ## Licence / 資料來源與授權
 
 - 臺灣證券交易所 2026 臺灣證券交易所 OpenAPI
