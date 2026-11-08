@@ -1931,6 +1931,8 @@ describe("英文版首頁", () => {
     expect(body).toContain("https://twse-mcp.taux.io/ja");
     expect(body).toMatch(/Taiwan Market Open Data is a free/);
     expect(body).toContain("Taiwan Market Open Data 是一個免費的");
+    expect(body).toContain("非公式・無料・読み取り専用のリモートMCPサーバー");
+    expect(body).toContain("## 調べられること");
   });
 });
 
