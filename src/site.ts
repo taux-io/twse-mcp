@@ -1604,6 +1604,13 @@ export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開�
 - Authentication / 認證：none required / 不需要
 - Cost / 費用：free; Claude's free plan can add it as a custom connector. 免費，Claude 免費方案即可加入。
 
+## 接続方法
+
+- エンドポイント：${MCP_ENDPOINT}
+- 通信方式：Streamable HTTP（リモートMCP）。2025年版と2026年版のプロトコルの両方に対応しています。JSON-RPCのバッチには対応していません。
+- 認証：不要です。トークンやヘッダーの設定も要りません。
+- 費用：無料です。Claudeの無料プランでも、カスタムコネクタとして追加できます。
+
 ## What it can answer
 
 ${EN.features.map((f) => `- ${f}`).join("\n")}
@@ -1622,6 +1629,11 @@ ${JA.features.map((f) => `- ${f}`).join("\n")}
 - 上櫃（OTC）股票只有盤中即時報價；歷史與統計報表取不到，因為證券櫃檯買賣中心的開放資料主機會拒絕來自雲端的連線。
 - Taiwan Market Open Data does not provide technical indicators, stock picks or investment advice, and computes no forecasts of its own. It can filter and sort by figures the exchange publishes (P/E, dividend yield).
 - Taiwan Market Open Data 不提供技術指標、選股建議或投資建議，也不做任何自行計算的預測；可以依交易所公布的數字（本益比、殖利率）篩選與排序。
+
+## 調べられないもの
+
+- 店頭市場（上櫃）の株式は、取引時間中のリアルタイム株価のみです。過去データと統計レポートは、証券櫃檯買賣中心（台北エクスチェンジ）のオープンデータのサーバーがクラウドからの接続を拒否するため、取得できません。
+- Taiwan Market Open Data は、テクニカル指標、銘柄の推奨、投資助言を提供せず、独自の予測も計算しません。取引所が公表する数値（PER、配当利回りなど）での絞り込みと並べ替えはできます。
 
 ## Freshness / 資料新鮮度
 
