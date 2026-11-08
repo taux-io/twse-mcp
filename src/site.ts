@@ -1673,6 +1673,18 @@ ${JA.features.map((f) => `- ${f}`).join("\n")}
 - Setup guide (English)：${REPO}/blob/main/README.en.md
 - Changelog / 更新紀錄：${REPO}/blob/main/CHANGELOG.en.md ｜ ${REPO}/blob/main/CHANGELOG.md
 - Licence verification record / 授權查證紀錄：${REPO}/blob/main/docs/licensing-taifex.md
+
+## 関連ページ
+
+- ホームページ（日本語）：${SITE_ORIGIN}/ja
+- ホームページ（繁体字中国語）：${SITE_ORIGIN}/
+- ホームページ（英語）：${SITE_ORIGIN}/en
+- データセット一覧（繁体字中国語のみ）：${SITE_ORIGIN}/datasets
+- ソースコードと問題報告：${REPO}
+- 導入ガイド（英語）：${REPO}/blob/main/README.en.md
+- 導入ガイド（繁体字中国語）：${REPO}/blob/main/README.md
+- ${JA.ui.changelog}：${REPO}/blob/main/CHANGELOG.en.md
+- ライセンス確認記録（繁体字中国語）：${REPO}/blob/main/docs/licensing-taifex.md
 `;
 
 /**
