@@ -1933,6 +1933,8 @@ describe("英文版首頁", () => {
     expect(body).toContain("Taiwan Market Open Data 是一個免費的");
     expect(body).toContain("非公式・無料・読み取り専用のリモートMCPサーバー");
     expect(body).toContain("## 調べられること");
+    expect(body).toContain("## 接続方法");
+    expect(body).toContain("## 調べられないもの");
   });
 });
 
