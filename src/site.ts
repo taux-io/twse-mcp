@@ -1363,8 +1363,9 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
  * 與 HTML 首頁的分工是「人 vs 機器」：首頁有排版與漸進揭露，這份每一行都自帶主詞、
  * 沒有指代、沒有「見上文」，答案引擎抽走任何一段都仍然完整。
  *
- * **雙語並列，不是選一種。** 答案引擎回答中文問題時需要中文句子可引用，回答英文問題
- * 時需要英文句子。這是機器讀的檔案，多一份的成本只是位元組。
+ * **多語並列，不是選一種。** 答案引擎回答中文問題時需要中文句子可引用，回答英文問題
+ * 時需要英文句子，回答日文問題時需要日文句子。這是機器讀的檔案，多一份的成本只是位元組。
+ * 日文段落直接引用 JA 頁面的字串（摘要、免責聲明、功能清單），不另寫一份，所以不會與 /ja 漂移。
  */
 /**
  * 隱私權政策（/privacy）。Claude Directory 送件必填，內容必須與實際行為一致：
@@ -1592,6 +1593,9 @@ export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開�
 >
 > Unofficial: built and run by taux.io; not affiliated with, or endorsed by, TWSE or TAIFEX. Not investment advice.
 > 非官方服務：由 taux.io 開發維運，與臺灣證券交易所、臺灣期貨交易所無隸屬關係，也未經其背書；不構成投資建議。
+>
+> ${JA.description}
+> ${JA.ui.disclaimer}
 
 ## Connection / 連線方式
 
@@ -1607,6 +1611,10 @@ ${EN.features.map((f) => `- ${f}`).join("\n")}
 ## 能查什麼
 
 ${ZH.features.map((f) => `- ${f}`).join("\n")}
+
+## 調べられること
+
+${JA.features.map((f) => `- ${f}`).join("\n")}
 
 ## Limits / 查不到什麼
 
