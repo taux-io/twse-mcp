@@ -1600,7 +1600,7 @@ export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開�
 ## Connection / 連線方式
 
 - Endpoint / 端點：${MCP_ENDPOINT}
-- Transport / 傳輸：Streamable HTTP (remote MCP). Both the 2025 and 2026 protocol revisions are supported; JSON-RPC batches are not.
+- Transport / 傳輸：Streamable HTTP (remote MCP). Both the 2025 and 2026 protocol revisions are supported; JSON-RPC batches are not. 採 Streamable HTTP（遠端 MCP），支援 2025 與 2026 兩版協定，不支援 JSON-RPC 批次。
 - Authentication / 認證：none required / 不需要
 - Cost / 費用：free; Claude's free plan can add it as a custom connector. 免費，Claude 免費方案即可加入。
 
