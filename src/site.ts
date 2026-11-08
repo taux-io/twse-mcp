@@ -1586,7 +1586,7 @@ ${ATTRIBUTION_ZH.map(esc).join("<br>\n")}<br>
 </body>
 </html>`;
 
-export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開資料（非官方）
+export const LLMS_TXT = `# Taiwan Market Open Data (Unofficial) / 台股公開資料（非官方） / AIが台湾株の公開データを検索
 
 > Taiwan Market Open Data is a free remote MCP (Model Context Protocol) server that lets Claude and other AI assistants query open data published by the Taiwan Stock Exchange (TWSE) and the Taiwan Futures Exchange (TAIFEX). It requires no installation, no account and no API key.
 > Taiwan Market Open Data 是一個免費的遠端 MCP 伺服器，讓 Claude 等 AI 助理直接查詢臺灣證券交易所（TWSE）與臺灣期貨交易所（TAIFEX）的公開資料。使用者不需要安裝軟體、不需要註冊帳號、也不需要 API key。
