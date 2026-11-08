@@ -1084,6 +1084,7 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
   "/": { body: renderPage("zh"), type: "text/html; charset=utf-8" },
   // 英文版。MCP 生態的搜尋幾乎都是英文，而只有一個語系時 hreflang 無從設起。
   "/en": { body: renderPage("en"), type: "text/html; charset=utf-8" },
+  "/ja": { body: renderPage("ja"), type: "text/html; charset=utf-8" },
   // 隱私權政策：Claude Directory 送件必填。內容與實際記錄的欄位見 site.ts 的說明。
   "/privacy": { body: PRIVACY_HTML, type: "text/html; charset=utf-8" },
   // 資料集一覽：繁中單頁，清單從 catalog 產生（見 src/site.ts）。沒有英文版，所以沒有 /en/datasets。

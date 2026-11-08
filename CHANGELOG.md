@@ -9,6 +9,8 @@
 
 ## 尚未編號
 
+- 首頁新增日文版 `/ja`，頁首的語言切換改成同時列出繁體中文、English、日本語，隨時可以切換。
+- 首頁（中文、英文、日文）的安裝區新增「一句話請 AI 幫你安裝」：複製一句話貼給你正在用的 AI 助理，它會依你的工具找出安裝方式，動手前會先問你。另有 Claude Code、Claude 網頁版與桌面版、Cursor、VS Code（GitHub Copilot）、Codex CLI、Gemini CLI，以及只支援 stdio 的客戶端各自的安裝方式，每一項都可以一鍵複製指令或設定。
 - 網站的網頁（首頁、`/en`、`/datasets`、`/privacy`）加上 Google Analytics 4 統計瀏覽量，會設定 `_ga` cookie；隱私權政策已補說明。MCP 連線不受影響：AI 助理的工具呼叫與參數不會進 Google Analytics，也不設 cookie。
 - 新增 `/datasets`（僅繁體中文）：把 275 個證交所與期交所公開資料集依主題列成一頁，方便知道 AI 查得到什麼。連到它的入口在繁中首頁頁尾。
 - 個股快照的 `history_days` 每一天多附本益比、殖利率、股價淨值比、融資餘額與融券餘額（本益比與融資融券自 2026-10-20 才開始存檔，更早的日子是 null）。

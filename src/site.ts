@@ -1,5 +1,5 @@
 /**
- * site.ts — 首頁（`/` 與 `/en`）、`/datasets`、`/privacy`、`robots.txt`、`sitemap.xml`、`llms.txt`。
+ * site.ts — 首頁（`/`、`/en`、`/ja`）、`/datasets`、`/privacy`、`robots.txt`、`sitemap.xml`、`llms.txt`。
  * ========================================================================
  * 與 MCP 端點同一個 Worker、同一個網域。理由很簡單：貼給使用者的網址是
  * `https://twse-mcp.taux.io/mcp`，那個網域的根目錄本來就該有東西可看，而不是
@@ -20,10 +20,10 @@
  * 而依 HTML 規範它是 data block、永遠不會被執行（prepare-the-script 在型別檢查
  * 那一步就中止），所以它既不是 JavaScript 也不受 script-src 管轄。
  *
- * ## 兩個語系共用版型，各自寫文案
+ * ## 各語系共用版型，各自寫文案
  *
  * 英文版不是翻譯層，是第二份文案——中文版對台灣散戶說話，英文版對 MCP 生態的
- * 開發者說話，兩者該強調的重點不同。共用的是**結構**：章節 id、FAQ 則數、安裝步驟、
+ * 開發者說話，兩者該強調的重點不同。日文版對日本的投資人與開發者說話，同樣自己寫。共用的是**結構**：章節 id、FAQ 則數、安裝步驟、
  * 快捷指令都必須對齊，而 test/server.test.ts 有一組斷言守著。五份 README 已經
  * 證明過內容會悄悄漂移，`check-readmes` 就是為此存在的，這裡用同一招。
  *
@@ -88,12 +88,31 @@ const SITE_ORIGIN = "https://twse-mcp.taux.io";
 export const MCP_ENDPOINT = `${SITE_ORIGIN}/mcp`;
 const REPO = "https://github.com/taux-io/twse-mcp";
 
-export type Locale = "zh" | "en";
+export type Locale = "zh" | "en" | "ja";
 
-/** 語系表。hreflang、語言切換連結、sitemap 都從這裡長出來，不各寫一份。 */
-const LOCALES: Record<Locale, { path: string; lang: string; hreflang: string; label: string }> = {
-  zh: { path: "/", lang: "zh-Hant-TW", hreflang: "zh-Hant", label: "繁體中文" },
-  en: { path: "/en", lang: "en", hreflang: "en", label: "English" },
+/**
+ * 語系表，唯一的語系來源。hreflang、語言切換器、sitemap、og:locale、JSON-LD 的 inLanguage、
+ * 頁尾連結都從這裡長出來，新增語系只改這一張表（外加一份 Page 文案與 server.ts 的路由）。
+ * `lang` 同時是 `<html lang>` 與 JSON-LD 的 inLanguage。`datasets` 為 null 表示頁尾不連 /datasets：
+ * 那頁只有繁中，連給其他語系的讀者沒有用處。
+ */
+const LOCALES: Record<
+  Locale,
+  {
+    path: string;
+    lang: string;
+    hreflang: string;
+    label: string;
+    ogLocale: string;
+    /** 切換器上的小字樣。 */
+    mark: string;
+    privacy: string;
+    datasets: string | null;
+  }
+> = {
+  zh: { path: "/", lang: "zh-Hant-TW", hreflang: "zh-Hant", label: "繁體中文", ogLocale: "zh_TW", mark: "中A", privacy: "隱私權政策", datasets: "資料集一覽" },
+  en: { path: "/en", lang: "en", hreflang: "en", label: "English", ogLocale: "en_US", mark: "文A", privacy: "Privacy policy", datasets: null },
+  ja: { path: "/ja", lang: "ja", hreflang: "ja", label: "日本語", ogLocale: "ja_JP", mark: "あ", privacy: "プライバシーポリシー", datasets: null },
 };
 
 /**
@@ -150,6 +169,37 @@ const ATTRIBUTION_ZH = [
     "使用者於遵守本條款各項規定之前提下，得利用之。",
 ];
 
+/**
+ * 安裝工具表。指令與設定 JSON 是語言無關的共用字串，各語系的 Page 只寫標題與說明，
+ * 不各複製一份指令。伺服器名稱一律 `twse`。
+ * 語法出處：Claude Code 與 Codex 沿用先前頁面上的指令；Cursor 的 `url`（cursor.com/docs/context/mcp）、
+ * VS Code 的 `servers` + `type:"http"`（code.visualstudio.com/docs/agents/reference/mcp-configuration，
+ * `code --add-mcp` 是依官方 stdio 範例改成 http 的寫法）、`gemini mcp add --transport http`
+ * （Gemini CLI 文件）、`mcp-remote`（其 README）。
+ */
+const TOOL_IDS = ["claudeCode", "claudeWeb", "cursor", "vscode", "codex", "gemini", "stdio"] as const;
+type ToolId = (typeof TOOL_IDS)[number];
+
+const json = (o: unknown) => JSON.stringify(o, null, 2);
+const CURSOR_FILE = ".cursor/mcp.json";
+const VSCODE_FILE = ".vscode/mcp.json";
+const TOOL_BLOCKS: Record<ToolId, string[]> = {
+  claudeCode: [`claude mcp add twse --transport http ${MCP_ENDPOINT}`],
+  // 網頁版與桌面版沒有指令，內容就是 installSteps。
+  claudeWeb: [],
+  cursor: [json({ mcpServers: { twse: { url: MCP_ENDPOINT } } })],
+  vscode: [
+    json({ servers: { twse: { type: "http", url: MCP_ENDPOINT } } }),
+    `code --add-mcp '${JSON.stringify({ name: "twse", type: "http", url: MCP_ENDPOINT })}'`,
+  ],
+  codex: [`codex mcp add twse --url ${MCP_ENDPOINT}`],
+  gemini: [`gemini mcp add --transport http twse ${MCP_ENDPOINT}`],
+  stdio: [
+    `npx -y mcp-remote ${MCP_ENDPOINT}`,
+    json({ mcpServers: { twse: { command: "npx", args: ["-y", "mcp-remote", MCP_ENDPOINT] } } }),
+  ],
+};
+
 interface Page {
   title: string;
   description: string;
@@ -176,7 +226,12 @@ interface Page {
     troubleshoot: string;
     /** ChatGPT 的安裝說明（HTML）。只在 Claude 上完整測過，方案與選單以 OpenAI 官方為準。 */
     chatgpt: string;
-    otherTools: string;
+    /** 「一句話請 AI 幫你安裝」：prompt 是貼給 AI 的那一句（純文字），內含端點網址。 */
+    aiInstall: { title: string; intro: string; prompt: string };
+    /** 「其他 AI 工具的安裝方式」的小標。 */
+    toolsTitle: string;
+    /** 各工具的標題與說明（HTML）。指令與設定是語言無關的，在 TOOL_BLOCKS。 */
+    tools: Record<ToolId, { title: string; text: string }>;
     copy: string;
     copied: string;
     transportNote: string;
@@ -193,6 +248,7 @@ interface Page {
     changelogFile: string;
     howToName: string;
     howToDesc: string;
+    /** 含結尾的冒號：全形或半形隨語系。 */
     otherLangLabel: string;
     troubleshootTitle: string;
     /** h1 裡要上強調色的那一段（必須是 h1 的子字串）。 */
@@ -341,7 +397,21 @@ const ZH: Page = {
       "再用上面同一個網址新增連接器，驗證方式選 No authentication。哪些方案開放、選單放在哪裡，OpenAI 改過好幾次，" +
       '請以<a href="https://developers.openai.com/api/docs/guides/developer-mode">官方說明</a>為準。' +
       "這個服務目前只在 Claude 上完整測過。",
-    otherTools: "Claude Code、Codex 或其他支援遠端 MCP 的工具",
+    aiInstall: {
+      title: "一句話請 AI 幫你安裝",
+      intro: "用的不是 Claude 網頁版？把下面這句話複製，貼給你正在用的 AI 助理（Claude、ChatGPT、Cursor 等），它會依你的工具找出安裝方式。",
+      prompt: `請幫我安裝一個遠端 MCP 伺服器，名稱 twse，網址是 ${MCP_ENDPOINT} （Streamable HTTP、無狀態，不需要 token 或任何 headers）。請依我正在使用的工具找出對應的安裝方式；實際執行或修改任何設定之前，先告訴我你打算做什麼，等我同意。`,
+    },
+    toolsTitle: "其他 AI 工具的安裝方式",
+    tools: {
+      claudeCode: { title: "Claude Code", text: "在終端機執行這行指令：" },
+      claudeWeb: { title: "Claude 網頁版與桌面版", text: "這是上面「一分鐘設定好」的同一組步驟，在自訂連接器裡新增即可：" },
+      cursor: { title: "Cursor", text: `把這段設定加進 <code>${CURSOR_FILE}</code>（專案內）或 <code>~/${CURSOR_FILE}</code>（所有專案），然後重新載入 Cursor：` },
+      vscode: { title: "VS Code（GitHub Copilot）", text: `把第一段設定放進專案的 <code>${VSCODE_FILE}</code>；或在終端機執行第二行，直接加到你的使用者設定：` },
+      codex: { title: "Codex CLI", text: "在終端機執行這行指令：" },
+      gemini: { title: "Gemini CLI", text: "在終端機執行這行指令：" },
+      stdio: { title: "只支援 stdio 的客戶端", text: "有些工具只能啟動本機程式、不能直接連遠端網址。用 <code>mcp-remote</code> 當橋接（需要 Node.js）：指令是第一行，或把第二段設定放進該工具的 MCP 設定檔：" },
+    },
     copy: "複製",
     copied: "已複製",
     transportNote:
@@ -371,7 +441,7 @@ const ZH: Page = {
     changelogFile: "CHANGELOG.md",
     howToName: "如何在 Claude 裡安裝 Taiwan Market Open Data",
     howToDesc: "把 Taiwan Market Open Data 加進 Claude 的自訂連接器，約需一分鐘，不需要帳號或付費。",
-    otherLangLabel: "其他語言的完整說明",
+    otherLangLabel: "其他語言的完整說明：",
     troubleshootTitle: "沒成功？",
     h1Accent: "真正的台股資料",
     cta: ["一分鐘，讓你的 AI 開始查交易所的原始資料", "回到頂端複製網址"],
@@ -529,7 +599,21 @@ const EN: Page = {
       "then add a connector with the same URL and choose No authentication. OpenAI has changed which plans qualify " +
       'and where the menus live several times, so follow <a href="https://developers.openai.com/api/docs/guides/developer-mode">its official guide</a>. ' +
       "This service has only been fully tested with Claude.",
-    otherTools: "Claude Code, Codex, or any other tool that supports remote MCP",
+    aiInstall: {
+      title: "Ask your AI to install it in one sentence",
+      intro: "Not using Claude on the web? Copy this sentence and paste it to the AI assistant you already use (Claude, ChatGPT, Cursor and so on). It will work out the install method for your tool.",
+      prompt: `Please install a remote MCP server named twse at ${MCP_ENDPOINT} (Streamable HTTP, stateless, no token or headers needed). Find the right way to install it for the tool I am using, and before you run anything or change any settings, tell me what you plan to do and wait for my approval.`,
+    },
+    toolsTitle: "Install in other AI tools",
+    tools: {
+      claudeCode: { title: "Claude Code", text: "Run this in a terminal:" },
+      claudeWeb: { title: "Claude on the web and desktop", text: 'These are the same steps as "Set up in a minute" above: add a custom connector.' },
+      cursor: { title: "Cursor", text: `Add this to <code>${CURSOR_FILE}</code> (this project) or <code>~/${CURSOR_FILE}</code> (all projects), then reload Cursor:` },
+      vscode: { title: "VS Code (GitHub Copilot)", text: `Put the first block in the project's <code>${VSCODE_FILE}</code>, or run the second line to add it to your user settings:` },
+      codex: { title: "Codex CLI", text: "Run this in a terminal:" },
+      gemini: { title: "Gemini CLI", text: "Run this in a terminal:" },
+      stdio: { title: "Clients that only support stdio", text: "Some tools can only launch a local program, not connect to a remote URL. Bridge with <code>mcp-remote</code> (needs Node.js): use the command on the first line, or put the second block in that tool's MCP config:" },
+    },
     copy: "Copy",
     copied: "Copied",
     transportNote:
@@ -564,7 +648,7 @@ const EN: Page = {
     howToName: "How to install Taiwan Market Open Data in Claude",
     howToDesc:
       "Add Taiwan Market Open Data as a custom connector in Claude. It takes about a minute and needs no account or payment.",
-    otherLangLabel: "Full documentation in other languages",
+    otherLangLabel: "Full documentation in other languages:",
     troubleshootTitle: "Did not work?",
     h1Accent: "real Taiwan market data",
     cta: ["One minute to let your AI read the exchange's own data", "Copy the URL"],
@@ -585,7 +669,208 @@ const EN: Page = {
   },
 };
 
-const PAGES: Record<Locale, Page> = { zh: ZH, en: EN };
+const JA: Page = {
+  title: "Taiwan Market Open Data（非公式）｜AIが台湾株の公開データを検索",
+  description:
+    "非公式・無料・読み取り専用のリモートMCPサーバー。ClaudeなどのAIが台湾株のリアルタイム株価、ETF、" +
+    `先物・オプション、取引所の公開データセット${DATASET_COUNT}件を検索できます。登録不要、URLを貼るだけ。`,
+  h1: "AIに、本物の台湾株データを",
+  lede:
+    "<strong>Taiwan Market Open Data</strong>（非公式）は、ClaudeなどのAIアシスタントが臺灣證券交易所（台湾証券取引所、TWSE）と" +
+    "臺灣期貨交易所（台湾先物取引所、TAIFEX）の公開データを直接検索できる、無料のAIコネクタ（技術的にはリモートMCPサーバー）です。" +
+    "インストールも登録もAPIキーも不要。URLを1つコピーするだけです。",
+  features: [
+    "台湾証券取引所に上場する株式とETFの、取引時間中のリアルタイム株価",
+    "前営業日の始値・高値・安値・終値・出来高",
+    "上場企業1社の概況：PER、配当利回り、最新の月次売上高の前年同月比、直近1年の配当、権利落ち・処置銘柄の状況。決算サマリー、コーポレートガバナンス、信用取引、ESGも付けられます",
+    "市場全体と先物ポジションの概況：加権指数、出来高ランキング、三大法人の先物建玉、プット/コール比。あわせて直近のイベント（権利落ち、株主総会、注意銘柄・処置銘柄）",
+    "上場株式の前営業日の値上がり率・値下がり率ランキング（騰落率%ベース）とストップ高・ストップ安の銘柄数（ETFと店頭市場は除く）",
+    "ETF1本の基本情報、連動指数、積立投資の人気度",
+    "PERや配当利回りなど取引所が公表する数値での絞り込みと並べ替え、名称からの銘柄コード検索",
+    "先物1契約（台指先物、ミニ台指、個別株先物など）の限月別の相場、三大法人と大口取引者のポジション、および先物取引所のその他の日次レポート",
+    `台湾証券取引所と先物取引所を合わせた${DATASET_COUNT}件の公開データセットの検索と照会`,
+  ],
+  installSteps: [
+    {
+      name: "コネクタの設定を開く",
+      text: "ClaudeのWeb版またはデスクトップ版で、左下の自分の名前をクリックし、Settings（設定）を選んで、左のメニューから Connectors（コネクタ）を開きます。",
+    },
+    {
+      name: "カスタムコネクタを追加する",
+      text: `「+ Add custom connector」を押します。名前は自由で、URLに ${MCP_ENDPOINT} を入力し、認証方式は初期設定の No sign-in（APIキー不要）のまま、Add を押します。`,
+    },
+    {
+      name: "会話で有効にする",
+      text: "チャット画面に戻って新しい会話を開き、入力欄の横の「+」から Connectors を選び、追加したコネクタをオンにします。",
+    },
+  ],
+  shortcuts: {
+    find_dataset: {
+      what: "どのデータを見ればよいか分からないとき、キーワードで適切なデータセットを探す",
+      arg: "キーワード（例：「三大法人」）",
+    },
+    etf_overview: {
+      what: "上場ETF1本の基本情報、前営業日の価格と出来高、積立投資の人気度をまとめて確認する",
+      arg: "ETFのコード（例：0056）",
+    },
+    futures_quote: { what: "先物やオプションの日次相場を調べる", arg: "契約コード（例：TX）" },
+  },
+  faq: [
+    {
+      q: "有料ですか？登録やAPIキーは必要ですか？",
+      a: "どれも不要です。サービスは公開・無料で、アカウントも要りません。Claudeの無料プランでも追加できます。データは台湾政府のオープンデータ・プラットフォームのもので、このサービスはそれをAIが読める形に変換しているだけです。",
+    },
+    {
+      q: "店頭市場（上櫃）の株式も調べられますか？",
+      a: "取引時間中のリアルタイム株価だけ可能で、市場区分に otc を指定します。店頭市場の過去データや統計レポートは現在取得できません。証券櫃檯買賣中心（台北エクスチェンジ）のオープンデータのサーバーが、クラウドからの接続を拒否するためです。既知の制限であり、作り忘れではありません。興櫃（エマージング）銘柄は対象外です。",
+    },
+    {
+      q: "データはリアルタイムですか？",
+      a: "取引時間中の株価はおよそ5秒ごとに更新されます。取得元は証券取引所の市況情報サイトで、タイミングは保証されません。それ以外のレポートは前営業日までで、取引所への負荷を避けるため1時間キャッシュされます。",
+    },
+    {
+      q: "先物・オプションも調べられますか？",
+      a: "はい。臺灣期貨交易所のデータセットはすべて含まれており、日次相場、三大法人、大口取引者の未決済ポジション、証拠金、契約仕様を調べられます。",
+    },
+    {
+      q: "これは投資助言ですか？",
+      a: "いいえ。数値には誤りや遅れがあったり、提供元で変更されたりすることがあります。取引の前に、取引所や証券会社で必ずご確認ください。損益はご自身の責任となります。",
+    },
+    {
+      q: "質問の内容は記録されますか？",
+      a: "質問の内容やクエリのパラメータは記録しません。このサービスは、あなたの代わりに公開データを取得するだけです。ただし Cloudflare が、リクエストごとの接続ログ（IPアドレス、User-Agent など）を、問題調査のために3日間保存します。詳しくは /privacy のプライバシーポリシーをご覧ください（中国語・英語）。",
+    },
+  ],
+  headings: {
+    problem: "解決する課題",
+    install: "1分で設定",
+    shortcuts: "すぐ使える3つのショートカット",
+    ask: "聞けること",
+    scope: "調べられるもの、調べられないもの",
+    caveats: "ご利用の前に",
+    faq: "よくある質問",
+    license: "データの出典とライセンス",
+  },
+  body: {
+    problem: `
+<p><strong>AIは台湾株の数字を作り話で答えがちです。</strong>学習データには時点があり、取引所にもつながっていません。「0050の昨日の終値は？」と聞くと、もっともらしいけれど実は作られた価格が返ってくることがあり、見分ける手段もありません。Taiwan Market Open Dataは、AIに<strong>取引所が公表した元のオープンデータ</strong>を取りに行かせるので、答えに出典が付きます。</p>
+<p><strong>データが分散していて、名前から探せません。</strong>台湾証券取引所と先物取引所はそれぞれ別のOpenAPIを公開しており、合わせて${DATASET_COUNT}件のレポートがあります。名前がキーワード検索に向かず、たとえばETFのマスター表は「基金基本資料彙總表」という名前なので、「ETF」で検索しても見つかりません。Taiwan Market Open Dataは両方を1つの検索できるカタログにまとめ、AIが自分で適切な表を見つけられるようにします。</p>
+<p><strong>コードも手続きも不要です。</strong>APIキーも登録もSDKもありません。URLを貼って、普通の言葉で（日本語でも）質問するだけです。</p>`,
+    ask: `
+<ul>
+<li>「TSMCは今いくら？」：取引時間中の株価。複数銘柄をまとめて聞けます。</li>
+<li>「0050の昨日の終値と出来高は？」：前営業日の始値・高値・安値・終値と出来高。</li>
+<li>「TSMCの最近の売上の伸びは？PERと配当利回りは？」：上場企業の1ページ概況。月次売上の前年同月比と、処置銘柄かどうかも含みます。</li>
+<li>「配当利回り6%以上でPER10倍未満の銘柄は？」：取引所が公表する数値で絞り込みと並べ替え。1ページずつ探す必要はありません。</li>
+<li>「TSMCの上半期の売上総利益率は？負債比率は高い？」：最新四半期の決算サマリー。業種に合った表を自動で選び、損益は年初からの累計値であることも補足します。</li>
+<li>「この会社の取締役は株式を大量に担保に入れている？」：コーポレートガバナンス。役員の株式担保、会長とCEOの兼任、金融監督管理委員会の処分歴など。</li>
+<li>「昨日の相場は？外国人投資家の先物はロング？ショート？」：加権指数、値上がり・値下がり銘柄数、出来高ランキング、三大法人の先物建玉とプット/コール比。</li>
+<li>「前営業日に最も上がった銘柄は？ストップ高は何銘柄？」：上場株式の値上がり・値下がりランキング。上昇額ではなく騰落率%で並べ、ストップ高・ストップ安の銘柄数も数えます（推計値で、ETFと店頭市場は除く）。</li>
+<li>「隴華の銘柄コードは？」：会社名やETF名しか分からないとき、先にコードを調べます。</li>
+<li>「ETFの0056っていったい何？」：どの指数に連動するか、積立投資をしている人の多さに加え、そのまま信じてはいけない数値も注意してくれます。</li>
+<li>「台指先物は昨日いくらで終わった？」：先物・オプションの日次相場、三大法人、建玉。</li>
+<li>「取引所に……のデータはある？」：${DATASET_COUNT}件の公開レポートの中から適切なものを探します。</li>
+</ul>`,
+    scope: `
+<div class="note">
+<p><strong>店頭市場（上櫃）の株式は、今のところリアルタイム株価のみです。</strong>過去データと統計レポートは、証券櫃檯買賣中心のオープンデータのサーバーがクラウドからの接続を拒否するため取得できません。これは既知の制限です。質問の仕方が悪いのだと誤解されないよう、ここに書いておきます。</p>
+</div>
+<ul>
+<li><strong>上場株式とETF</strong>：リアルタイム株価、前営業日の価格と出来高、基本情報、積立投資の人気度、決算とガバナンスの開示。</li>
+<li><strong>先物・オプション</strong>：日次相場、三大法人、大口取引者の未決済ポジション、証拠金、契約仕様。</li>
+<li><strong>提供しないもの</strong>：テクニカル指標、銘柄の推奨、投資助言、およびこのサービスが独自に計算する予測。取引所が公表する数値（PER、配当利回りなど）での絞り込みと並べ替えはできますが、どの銘柄を選ぶかはあなたの判断です。</li>
+</ul>`,
+    caveats: `
+<ul>
+<li><strong>これは個人が作った無料のプロジェクトです。</strong>できるだけ動かし続けますが、まれにアクセス制限や臨時メンテナンスがあったり、将来URLが変わったりする可能性があります。</li>
+<li><strong>リアルタイム株価は「できるだけ即時」です。</strong>取引所のウェブ画面から取得しており、数秒から数分の遅れや、証券会社の画面とのわずかな差が出ることがあります。</li>
+<li><strong>それ以外のデータは最大1時間遅れる</strong>場合があり（キャッシュ）、最新でも前営業日までです。</li>
+<li><strong>参考情報であり、投資助言ではありません。</strong>取引の前に、取引所や証券会社でご自身で確認してください。損益はご自身の責任となります。</li>
+</ul>`,
+    install: "",
+    shortcuts: "",
+    faq: "",
+    license: "",
+  },
+  ui: {
+    shortcutCols: ["コマンド", "できること", "渡す内容"],
+    installPrimary: "Claude（Web版・デスクトップ版）",
+    endpointLabel: "このURLをAIのコネクタ設定に貼り付けます：",
+    safety: `
+<p><strong>お金には触れません。</strong>このコネクタは取引所の公開データを読むだけです。注文は出せず、証券口座にもつながりません。AIが送ってくるのは検索条件（銘柄コードやキーワードなど）だけで、会話の全文は送られません。使うのをやめるときは、同じ Connectors の画面から削除してください。</p>
+<p>これは taux.io の個人プロジェクトで、臺灣證券交易所・臺灣期貨交易所とは無関係です。</p>`,
+    chatgpt:
+      "ChatGPTにも追加できますが、有料プランが必要です。まずWeb版の設定で「開発者モード」（Developer mode）をオンにし、" +
+      "上と同じURLでコネクタを追加して、認証方式は No authentication を選びます。対象プランやメニューの場所はOpenAIが何度か変更しているため、" +
+      '<a href="https://developers.openai.com/api/docs/guides/developer-mode">公式の説明</a>に従ってください。' +
+      "このサービスは現在、Claudeでのみ十分に動作確認しています。",
+    aiInstall: {
+      title: "一文でAIにインストールを頼む",
+      intro: "Claudeのウェブ版以外をお使いですか？下の一文をコピーして、普段使っているAIアシスタント（Claude、ChatGPT、Cursorなど）に貼り付けてください。お使いのツールに合ったインストール方法をAIが調べてくれます。",
+      prompt: `リモートMCPサーバー twse をインストールしてください。URLは ${MCP_ENDPOINT} です（Streamable HTTP、ステートレス、トークンやヘッダーは不要）。私が使っているツールに合ったインストール方法を調べて、コマンドの実行や設定の変更をする前に、何をするつもりかを私に伝えて、承認を待ってください。`,
+    },
+    toolsTitle: "その他のAIツールでのインストール方法",
+    tools: {
+      claudeCode: { title: "Claude Code", text: "ターミナルで次のコマンドを実行します。" },
+      claudeWeb: { title: "Claudeのウェブ版・デスクトップ版", text: "上の「1分で設定」と同じ手順です。カスタムコネクタとして追加します。" },
+      cursor: { title: "Cursor", text: `次の設定を <code>${CURSOR_FILE}</code>（このプロジェクトのみ）または <code>~/${CURSOR_FILE}</code>（すべてのプロジェクト）に追加し、Cursorを再読み込みします。` },
+      vscode: { title: "VS Code（GitHub Copilot）", text: `1つ目の設定をプロジェクトの <code>${VSCODE_FILE}</code> に置くか、2行目をターミナルで実行してユーザー設定に追加します。` },
+      codex: { title: "Codex CLI", text: "ターミナルで次のコマンドを実行します。" },
+      gemini: { title: "Gemini CLI", text: "ターミナルで次のコマンドを実行します。" },
+      stdio: { title: "stdio にしか対応していないクライアント", text: "ローカルのプログラムしか起動できず、リモートURLに直接つなげないツールもあります。その場合は <code>mcp-remote</code> で橋渡しします（Node.js が必要）。1行目のコマンドを使うか、2つ目の設定をそのツールのMCP設定ファイルに入れてください。" },
+    },
+    copy: "コピー",
+    copied: "コピーしました",
+    transportNote:
+      "その他のツールでは、古い SSE ではなく <strong>Streamable HTTP</strong>（リモートMCP）を選んでください。認証は不要です。",
+    verify:
+      "無料プランで使えます。設定したら「Taiwan Market Open Data で 0050 の直近の営業日の終値を調べて」と聞いてみてください。" +
+      "回答にツール呼び出し（開くとクエリの内容が見えます）とデータの日付が出ていれば成功です。" +
+      "ツール呼び出しがなく数字だけが返ってきた場合は、コネクタがオフで、その価格はAIの推測です。",
+    mobileNote: "スマートフォンでこのページを見ていますか？まずパソコンでClaudeのWeb版から一度設定すれば、スマホアプリでも同じコネクタが使えます。",
+    troubleshoot: `
+<li><strong>AIがコネクタを使わずに答える</strong>：会話の「+」→ Connectors でオンになっているか確認するか、質問の頭に「Taiwan Market Open Data で調べて」と付けてください。</li>
+<li><strong>追加時にエラーになる</strong>：URLは省略せず、末尾を <code>/mcp</code> にして、前後に空白を入れないでください。認証方式は No sign-in を選びます。</li>
+<li><strong>ChatGPTで追加する場所が見つからない</strong>：無料プランではカスタムコネクタを追加できません。有料プランで開発者モードをオンにしてください。</li>
+<li><strong>それでも動かない</strong>：<a href="mailto:dev@taux.io">dev@taux.io</a> にメールするか、<a href="${REPO}/issues">GitHub</a> で報告してください。</li>`,
+    shortcutIntro:
+      "コネクタと一緒に自動で表示されるので、別途インストールする必要はありません。Claude Desktop では「+」メニューに、Claude Code では <code>/</code> を入力すると一覧に出ます。",
+    shortcutOutro: "使わなくても大丈夫です。よくある聞き方をあらかじめ書いてあるだけで、普通に日本語で聞いても同じように動きます。",
+    licenceLabel: "政府資料開放授權條款（政府データ開放ライセンス）",
+    attributionKeptInChinese:
+      "上記の表示は、原文の中国語（繁体字）のまま掲載しています。政府資料開放授權條款（Open Government Data License）はこの文言での表示を求めており、日本語に訳すと義務を果たしたことになりません。",
+    exception:
+      "<strong>例外が1つあります</strong>：取引時間中の株価は、証券取引所の市況情報サイト（<code>mis.twse.com.tw</code>）から取得しています。このサイトは政府のオープンデータ・プラットフォームに登録されておらず、上記のライセンスの対象外です。",
+    disclaimer:
+      "非公式サービス：本サービスは taux.io が開発・運用しており、臺灣證券交易所・臺灣期貨交易所とは無関係で、その承認も受けていません。本サービスは中継と変換を行うだけで、データの正確性を保証せず、情報は参考用であり投資助言ではありません。引用する際は、上記の出典を併記してください。",
+    footerLead: "オープンソースです。コードと問題報告は",
+    footerIssue: "にあります。動作がおかしい、欲しいデータが見つからないといったときは、お気軽にissueを立ててください。",
+    changelog: "更新履歴：各バージョンの変更点（英語）",
+    changelogFile: "CHANGELOG.en.md",
+    howToName: "Claudeに Taiwan Market Open Data をインストールする方法",
+    howToDesc: "Taiwan Market Open Data をClaudeのカスタムコネクタとして追加します。所要時間は約1分で、アカウントも支払いも不要です。",
+    otherLangLabel: "他の言語の詳しい説明：",
+    troubleshootTitle: "うまくいかないときは",
+    h1Accent: "本物の台湾株データ",
+    cta: ["1分で、あなたのAIに取引所の元データを読ませる", "ページ上部に戻ってURLをコピー"],
+    eyebrow: "非公式 · 無料 · 読み取り専用",
+    demo: {
+      label: "イメージ",
+      q: "0050の昨日の終値は？",
+      tool: "取引所のオープンデータを検索中",
+      a: "終値とデータの日付は、AIの記憶ではなく、取引所が公表した元データから直接取得します。",
+      src: "出典：臺灣證券交易所 OpenAPI",
+    },
+    stats: [
+      [String(DATASET_COUNT), "件の公開データセットを検索可能"],
+      ["0", "登録・APIキー・インストール"],
+      ["3", "ステップ、約1分で設定完了"],
+      ["読み取り専用", "注文不可・口座にもつながらない"],
+    ],
+  },
+};
+
+const PAGES: Record<Locale, Page> ={ zh: ZH, en: EN, ja: JA };
 
 /** HTML 逸出。內容全是靜態常數，但逸出讓「日後有人接上動態資料」不會變成漏洞。 */
 function esc(s: string): string {
@@ -650,10 +935,12 @@ main>.s-ask>ul{max-width:none}
 .nav{display:flex;gap:1.4rem;margin-left:auto;font-size:.88rem}
 .nav a{color:var(--muted);text-decoration:none}
 .nav a:hover{color:var(--text)}
-.switch{font-size:.82rem}
-.switch a{display:inline-flex;gap:.4rem;border:1px solid var(--line);border-radius:999px;padding:.2rem .75rem;text-decoration:none;color:var(--muted);background:var(--surface);transition:border-color .2s,color .2s}
+.switch{font-size:.82rem;display:flex;gap:.35rem}
+.switch a,.switch .cur{display:inline-flex;gap:.4rem;border:1px solid var(--line);border-radius:999px;padding:.2rem .75rem;text-decoration:none;color:var(--muted);background:var(--surface);transition:border-color .2s,color .2s}
 .switch a:hover{border-color:var(--accent);color:var(--accent)}
+.switch .cur{color:var(--text);border-color:var(--accent)}
 @media (max-width:44rem){.nav{display:none}.switch{margin-left:auto}}
+@media (max-width:36rem){.switch .lbl{display:none}.switch a,.switch .cur{padding:.2rem .6rem}.top .wide{gap:.75rem}.brand{font-size:.85rem}}
 
 /* 首屏 */
 .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
@@ -668,7 +955,8 @@ main>.s-ask>ul{max-width:none}
 .eyebrow::before{content:"";width:1.5rem;height:2px;background:var(--accent);border-radius:2px}
 h1{font-size:clamp(2.3rem,5.6vw,4.1rem);line-height:1.12;margin:0 0 1.4rem;letter-spacing:-.035em;font-weight:800;text-wrap:balance}
 /* 中文可在任何兩字間斷行；inline-block 讓強調詞整段不被拆開 */
-html:lang(zh-Hant-TW) h1 .hl{display:inline-block}
+html:lang(zh-Hant-TW) h1 .hl,html:lang(ja) h1 .hl{display:inline-block}
+html:lang(ja) body{font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif}
 h1 .hl{color:var(--accent)}
 .lede{font-size:clamp(1.02rem,1.6vw,1.18rem);color:var(--muted);margin:0 0 2rem;max-width:34rem}
 .lede strong{color:var(--text)}
@@ -763,6 +1051,8 @@ summary::-webkit-details-marker{display:none}
 summary::after{content:"";position:absolute;right:.3rem;top:50%;width:.6rem;height:.6rem;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .25s var(--ease)}
 details[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
 details p,details ul{margin:0 0 1.1rem;color:var(--muted)}
+details .copyable,details .steps{margin:0 0 1rem}
+details .steps>li{color:var(--muted)}
 
 /* 結尾行動區 */
 .cta{margin-top:clamp(4rem,9vw,6.5rem);text-align:center;padding:clamp(2.5rem,6vw,4rem) 1.5rem;border:1px solid var(--line);border-radius:24px;background:radial-gradient(40rem 16rem at 50% 0,var(--glow),transparent 70%),var(--surface);box-shadow:var(--shadow)}
@@ -810,7 +1100,7 @@ function ldSoftware(loc: Locale, p: Page) {
     license: "https://opensource.org/licenses/MIT",
     codeRepository: REPO,
     sameAs: [REPO],
-    inLanguage: loc === "zh" ? "zh-Hant-TW" : "en",
+    inLanguage: LOCALES[loc].lang,
     featureList: p.features,
     mentions: ENTITIES,
   };
@@ -887,10 +1177,27 @@ ${p.installSteps
 <h3>ChatGPT</h3>
 <p>${p.ui.chatgpt}</p>
 
-<h3>${esc(p.ui.otherTools)}</h3>
-${copyable(p, `claude mcp add twse --transport http ${MCP_ENDPOINT}`)}
-${copyable(p, `codex mcp add twse --url ${MCP_ENDPOINT}`)}
+<h3>${esc(p.ui.aiInstall.title)}</h3>
+<p>${esc(p.ui.aiInstall.intro)}</p>
+${copyable(p, esc(p.ui.aiInstall.prompt))}
+
+<h3>${esc(p.ui.toolsTitle)}</h3>
+<div class="tools">
+${TOOL_IDS.map((id) => toolHtml(p, id)).join("\n")}
+</div>
 <p>${p.ui.transportNote}</p>`;
+}
+
+/** 單一工具的摺疊區塊。沒有腳本：<details> 原生展開。 */
+function toolHtml(p: Page, id: ToolId): string {
+  const t = p.ui.tools[id];
+  // 網頁版與桌面版的步驟就是主安裝步驟，這裡不再放複製按鈕（網址已在上方）。
+  const steps =
+    id === "claudeWeb"
+      ? `<ol class="steps">${p.installSteps.map((st) => `<li>${esc(st.text)}</li>`).join("")}</ol>`
+      : "";
+  const blocks = TOOL_BLOCKS[id].map((b) => copyable(p, esc(b))).join("\n");
+  return `<details class="inst" id="tool-${id}"><summary>${esc(t.title)}</summary><p>${t.text}</p>${steps}${blocks}</details>`;
 }
 
 function shortcutsHtml(p: Page): string {
@@ -945,7 +1252,6 @@ function sectionHtml(p: Page, id: SectionId): string {
 export function renderPage(loc: Locale): string {
   const p = PAGES[loc];
   const me = LOCALES[loc];
-  const other: Locale = loc === "zh" ? "en" : "zh";
   const canonical = `${SITE_ORIGIN}${me.path}`;
   // hreflang 要把**全部**版本列出來（含自己）並指定 x-default，否則搜尋引擎只看到
   // 單向宣告而不採信。x-default 給中文版：主要使用者在台灣。
@@ -956,6 +1262,17 @@ export function renderPage(loc: Locale): string {
     )
     .concat(`<link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}/">`)
     .join("\n");
+
+  // 列出全部語系；目前這一頁不是連結（連到自己沒有意義），但仍在列中，讀者才知道有幾種。
+  const switcher = (Object.keys(LOCALES) as Locale[])
+    .map((l) => {
+      const o = LOCALES[l];
+      const inner = `<b aria-hidden="true">${o.mark}</b><span class="lbl">${esc(o.label)}</span>`;
+      return l === loc
+        ? `<span class="cur" lang="${o.lang}" aria-current="page">${inner}</span>`
+        : `<a href="${SITE_ORIGIN}${o.path}" hreflang="${o.hreflang}" lang="${o.lang}" title="${esc(o.label)}">${inner}</a>`;
+    })
+    .join("");
 
   return `<!doctype html>
 <html lang="${me.lang}">
@@ -970,7 +1287,7 @@ ${alternates}
 <meta property="og:title" content="${esc(p.title)}">
 <meta property="og:description" content="${esc(p.description)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:locale" content="${loc === "zh" ? "zh_TW" : "en_US"}">
+<meta property="og:locale" content="${me.ogLocale}">
 <meta property="og:image" content="${SITE_ORIGIN}/og.png">
 <meta property="og:image:width" content="${OG_IMAGE_WIDTH}">
 <meta property="og:image:height" content="${OG_IMAGE_HEIGHT}">
@@ -991,7 +1308,7 @@ ${ICON_LINKS}
 <header class="top"><div class="wide">
 <a class="brand" href="#top"><span class="mark" aria-hidden="true"><i></i><i></i></span>Taiwan Market Open Data</a>
 <nav class="nav" aria-label="${esc(p.ui.eyebrow)}"><a href="#ask">${esc(p.headings.ask)}</a><a href="#install">${esc(p.headings.install)}</a><a href="#faq">${esc(p.headings.faq)}</a></nav>
-<div class="switch"><a href="${SITE_ORIGIN}${LOCALES[other].path}" hreflang="${LOCALES[other].hreflang}">${loc === "zh" ? "文" : "中"}A　${esc(LOCALES[other].label)}</a></div>
+<div class="switch">${switcher}</div>
 </div></header>
 
 <div class="hero" id="top"><div class="wide">
@@ -1022,8 +1339,8 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
 <footer>
 <p>${esc(p.ui.footerLead)} <a href="${REPO}">GitHub</a>${esc(p.ui.footerIssue)}</p>
 <p><a href="${REPO}/blob/main/${p.ui.changelogFile}">${esc(p.ui.changelog)}</a></p>
-<p>${loc === "zh" ? `<a href="${SITE_ORIGIN}/datasets">資料集一覽</a> · ` : ""}<a href="${SITE_ORIGIN}/privacy">${loc === "zh" ? "隱私權政策" : "Privacy policy"}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
-<p>${esc(p.ui.otherLangLabel)}${loc === "zh" ? "：" : ":"}</p>
+<p>${me.datasets ? `<a href="${SITE_ORIGIN}/datasets">${esc(me.datasets)}</a> · ` : ""}<a href="${SITE_ORIGIN}/privacy">${esc(me.privacy)}</a> · <a href="mailto:dev@taux.io">dev@taux.io</a></p>
+<p>${esc(p.ui.otherLangLabel)}</p>
 <ul class="langs">
 <li><a href="${REPO}/blob/main/README.md">繁體中文</a></li>
 <li><a href="${REPO}/blob/main/README.en.md">English</a></li>
@@ -1055,7 +1372,7 @@ ${SECTION_IDS.map((id) => sectionHtml(p, id)).join("\n")}
  * 中繼資料，欄位是 2026-09-28 從 Observability API 實際取出一筆確認的，不含請求 body。
  * 改 wrangler.jsonc 的 logs 設定、或開始在程式裡記錄任何東西時，這一頁要一起改。
  */
-export const PRIVACY_UPDATED = "2026-10-26";
+export const PRIVACY_UPDATED = "2026-11-08";
 export const PRIVACY_HTML = `<!doctype html>
 <html lang="zh-Hant-TW">
 <head>
@@ -1095,7 +1412,7 @@ ${ICON_LINKS}
 <p>我們向交易所取資料時，只送出查詢本身（資料集或代號）與可辨識本服務的 User-Agent，不會附上你的問題。但向臺灣證券交易所（OpenAPI 與基本市況報導站）發出的請求，Cloudflare 依其平台規則會在 <code>CF-Connecting-IP</code> 標頭附上連線來源的 IP 位址，本服務無法移除（<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare 說明</a>）；向臺灣期貨交易所的請求不會附上。資料集常直接取自快取（最多 1 小時），這時不會對交易所發出請求；即時報價不快取。</p>
 
 <h2>網頁分析（Google Analytics）</h2>
-<p>本網站的網頁（首頁、<code>/en</code>、<code>/datasets</code>、本頁）使用 Google Analytics 4 統計瀏覽量，由 Google LLC 提供。它會設定 cookie（<code>_ga</code>、<code>_ga_*</code>），並記錄瀏覽的網頁、大致的地區、裝置與瀏覽器類型，以及從哪個網站連過來。我們關閉了 Google signals 與廣告個人化。</p>
+<p>本網站的網頁（首頁、<code>/en</code>、<code>/ja</code>、<code>/datasets</code>、本頁）使用 Google Analytics 4 統計瀏覽量，由 Google LLC 提供。它會設定 cookie（<code>_ga</code>、<code>_ga_*</code>），並記錄瀏覽的網頁、大致的地區、裝置與瀏覽器類型，以及從哪個網站連過來。我們關閉了 Google signals 與廣告個人化。</p>
 <ul>
 <li><strong>只限網頁</strong>：MCP 端點（<code>/mcp</code>）不是網頁，AI 助理的工具呼叫與其參數不會進入 Google Analytics。</li>
 <li><strong>用途</strong>：了解哪些頁面有人看，用來改善網站內容。</li>
@@ -1140,7 +1457,7 @@ ${ICON_LINKS}
 <p>When we fetch data from the exchanges we send only the query itself (a dataset or code) and a User-Agent that identifies this service, never your question. However, on requests to the Taiwan Stock Exchange (its OpenAPI and market information site), Cloudflare's platform adds the connecting IP address in a <code>CF-Connecting-IP</code> header, which this service cannot remove (<a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">Cloudflare documentation</a>); requests to the Taiwan Futures Exchange do not carry it. Datasets are often served from cache (up to 1 hour), in which case no request reaches the exchange; live quotes are never cached.</p>
 
 <h2>Web analytics (Google Analytics)</h2>
-<p>The website's pages (the homepage, <code>/en</code>, <code>/datasets</code> and this page) use Google Analytics 4, provided by Google LLC, to count page views. It sets cookies (<code>_ga</code>, <code>_ga_*</code>) and records the pages viewed, approximate region, device and browser type, and the referring site. Google signals and ad personalization are turned off.</p>
+<p>The website's pages (the homepage, <code>/en</code>, <code>/ja</code>, <code>/datasets</code> and this page) use Google Analytics 4, provided by Google LLC, to count page views. It sets cookies (<code>_ga</code>, <code>_ga_*</code>) and records the pages viewed, approximate region, device and browser type, and the referring site. Google signals and ad personalization are turned off.</p>
 <ul>
 <li><strong>Web pages only</strong>: the MCP endpoint (<code>/mcp</code>) is not a web page. Your AI assistant's tool calls and their arguments do not go to Google Analytics.</li>
 <li><strong>Use</strong>: to see which pages are read, so the site can be improved.</li>
@@ -1316,6 +1633,7 @@ ${ZH.features.map((f) => `- ${f}`).join("\n")}
 
 - Homepage (Traditional Chinese) / 首頁：${SITE_ORIGIN}/
 - Homepage (English)：${SITE_ORIGIN}/en
+- Homepage (Japanese) / ホームページ（日本語）：${SITE_ORIGIN}/ja
 - Dataset list (Traditional Chinese only) / 資料集一覽（僅繁中）：${SITE_ORIGIN}/datasets
 - Source code and issue tracker / 原始碼與問題回報：${REPO}
 - Setup guide (Traditional Chinese)：${REPO}/blob/main/README.md
@@ -1363,7 +1681,7 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
  * 才採用它，每次部署都更新等於把它變成噪音。改動首頁文字或結構時手動更新；
  * test/server.test.ts 有一組內容雜湊斷言，內容變了而這個日期沒動，測試會失敗。
  */
-export const PAGES_LASTMOD = "2026-10-27";
+export const PAGES_LASTMOD = "2026-11-08";
 
 /**
  * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
