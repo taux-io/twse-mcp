@@ -1936,6 +1936,7 @@ describe("英文版首頁", () => {
     expect(body).toContain("## 接続方法");
     expect(body).toContain("不支援 JSON-RPC 批次");
     expect(body).toContain("## 調べられないもの");
+    expect(body).toContain("## 更新頻度");
   });
 });
 
