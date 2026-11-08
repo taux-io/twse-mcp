@@ -1495,7 +1495,7 @@ describe("首頁", () => {
 
   // 會被執行的 inline 腳本只有兩段（一鍵複製、GA4 載入），而且 CSP 只放行它們的雜湊。
   // `<script type="application/ld+json">` 依 HTML 規範是 data block，永遠不執行，不受 script-src 管轄。
-  it.each(["/", "/en"])("%s：會執行的腳本只有 COPY_SCRIPT 與 GA_SCRIPT，沒有外部腳本與 inline 事件", async (path) => {
+  it.each(["/", "/en", "/ja"])("%s：會執行的腳本只有 COPY_SCRIPT 與 GA_SCRIPT，沒有外部腳本與 inline 事件", async (path) => {
     const html = await (await get(path)).text();
     const executable = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(
       (m) => !m[1].includes('type="application/ld+json"'),
@@ -1533,18 +1533,21 @@ describe("首頁", () => {
   it.each([
     ["/", "複製", "已複製"],
     ["/en", "Copy", "Copied"],
-  ])("%s：端點、安裝步驟裡的網址與兩行安裝指令都有右上角的複製圖示（預設隱藏、語系標籤）", async (path, label, done) => {
+    ["/ja", "コピー", "コピーしました"],
+  ])("%s：每個可複製區塊（端點、安裝步驟網址、一句話、各工具指令）都有語系標籤的複製圖示，預設隱藏", async (path, label, done) => {
     const html = await (await get(path)).text();
     const buttons = [
       ...html.matchAll(/<button type="button" class="copy" aria-label="([^"]+)" title="([^"]+)" data-done="([^"]+)" hidden>/g),
     ];
-    expect(buttons).toHaveLength(4);
+    // 端點、安裝步驟的網址、一句話請 AI 安裝，再加各工具的指令與設定，至少 8 個
+    expect(buttons.length).toBeGreaterThanOrEqual(8);
+    expect(buttons).toHaveLength(html.match(/class="copyable"/g)!.length);
     for (const b of buttons) {
       expect([b[1], b[2], b[3]]).toEqual([label, label, done]);
     }
     // 圖示按鈕：複製與完成兩個圖示都在，文字只在 aria-label／title（給螢幕閱讀器與滑鼠提示）
-    expect(html.match(/class="i-copy"/g)).toHaveLength(4);
-    expect(html.match(/class="i-done"/g)).toHaveLength(4);
+    expect(html.match(/class="i-copy"/g)).toHaveLength(buttons.length);
+    expect(html.match(/class="i-done"/g)).toHaveLength(buttons.length);
     // 沒有腳本時的退路：點程式碼區塊就全選
     expect(html).toContain("user-select:all");
   });
@@ -1686,23 +1689,93 @@ describe("英文版首頁", () => {
   });
 
   // hreflang 要互指才成立：兩個語系各自宣告全部替代版本，外加 x-default。
-  it("兩個語系互相宣告 hreflang，且都有 x-default", async () => {
+  it("各語系互相宣告 hreflang，且都有 x-default", async () => {
     const pairs: [string, string][] = [
       ["/", "https://twse-mcp.taux.io/"],
       ["/en", "https://twse-mcp.taux.io/en"],
+      ["/ja", "https://twse-mcp.taux.io/ja"],
     ];
     for (const [path, canonical] of pairs) {
       const html = await (await get(path)).text();
       expect(html, path).toContain('hreflang="zh-Hant"');
       expect(html, path).toContain('hreflang="en"');
+      expect(html, path).toContain('hreflang="ja"');
       expect(html, path).toContain('hreflang="x-default"');
       expect(html, path).toContain(`<link rel="canonical" href="${canonical}">`);
     }
   });
 
-  it("兩個語系互相看得見對方（人也要找得到，不只爬蟲）", async () => {
-    expect(await (await get("/")).text()).toContain('href="https://twse-mcp.taux.io/en"');
-    expect(await (await get("/en")).text()).toContain('href="https://twse-mcp.taux.io/"');
+  it("每個語系的切換器都列出全部語系：別的語系是連結，自己是目前頁（人也要找得到，不只爬蟲）", async () => {
+    const all: [string, string][] = [
+      ["/", "繁體中文"],
+      ["/en", "English"],
+      ["/ja", "日本語"],
+    ];
+    for (const [path] of all) {
+      const html = await (await get(path)).text();
+      const sw = html.match(/<div class="switch">([\s\S]*?)<\/div>/)![1];
+      for (const [other, label] of all) {
+        expect(sw, `${path} 切換器`).toContain(label);
+        const url = `https://twse-mcp.taux.io${other}`;
+        if (other === path) {
+          expect(sw, path).toContain('aria-current="page"');
+          expect(sw, path).not.toContain(`href="${url}"`);
+        } else {
+          expect(sw, `${path} → ${other}`).toContain(`href="${url}"`);
+        }
+      }
+    }
+  });
+
+  it("日文頁：lang=ja、og:locale、結構化資料的語言，頁尾不連只有繁中的 /datasets", async () => {
+    const res = await get("/ja");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    expect(html).toContain('<html lang="ja">');
+    expect(html).toContain('property="og:locale" content="ja_JP"');
+    expect(html).toContain('<link rel="canonical" href="https://twse-mcp.taux.io/ja">');
+    expect(html).toContain('<span class="hl">本物の台湾株データ</span>');
+    expect(html).not.toContain("/datasets");
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((b) => JSON.parse(b[1]));
+    expect(ld.find((o) => o["@type"] === "SoftwareApplication").inLanguage).toBe("ja");
+    // 顯名聲明維持中文原文，並用日文說明為什麼不翻
+    expect(html).toContain("臺灣證券交易所 2026 臺灣證券交易所 OpenAPI");
+    expect(html).toContain("金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS");
+    expect(html).toContain("中国語（繁体字）のまま");
+  });
+
+  // 一句話請 AI 安裝與各工具的安裝方式：三個語系都要有，指令是共用的。
+  it.each(["/", "/en", "/ja"])("%s：有一句話安裝區塊與七個工具的安裝方式，指令可用", async (path) => {
+    const html = await (await get(path)).text();
+    // 一句話：內含端點、Streamable HTTP、不需 token／headers、執行前先問，且可複製
+    const prompt = [...html.matchAll(/<div class="copyable"><pre><code>([^<]*twse[^<]*)<\/code>/g)]
+      .map((m) => m[1])
+      .find((t) => t.includes("Streamable HTTP"))!;
+    expect(prompt, path).toContain("https://twse-mcp.taux.io/mcp");
+    expect(prompt, path).toMatch(/token|トークン/);
+    expect(prompt, path).toMatch(/headers|ヘッダー/);
+    // 七個工具，順序固定
+    const tools = [...html.matchAll(/<details class="inst" id="tool-([A-Za-z]+)">/g)].map((m) => m[1]);
+    expect(tools, path).toEqual(["claudeCode", "claudeWeb", "cursor", "vscode", "codex", "gemini", "stdio"]);
+    const detail = (id: string) => html.match(new RegExp(`<details class="inst" id="tool-${id}">[\\s\\S]*?</details>`))![0];
+    const code = (id: string) =>
+      [...detail(id).matchAll(/<pre><code>([\s\S]*?)<\/code><\/pre>/g)].map((m) =>
+        m[1].replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+      );
+    expect(code("claudeCode")).toEqual(["claude mcp add twse --transport http https://twse-mcp.taux.io/mcp"]);
+    expect(code("codex")).toEqual(["codex mcp add twse --url https://twse-mcp.taux.io/mcp"]);
+    expect(code("gemini")).toEqual(["gemini mcp add --transport http twse https://twse-mcp.taux.io/mcp"]);
+    expect(JSON.parse(code("cursor")[0])).toEqual({ mcpServers: { twse: { url: "https://twse-mcp.taux.io/mcp" } } });
+    const vs = code("vscode");
+    expect(JSON.parse(vs[0])).toEqual({ servers: { twse: { type: "http", url: "https://twse-mcp.taux.io/mcp" } } });
+    expect(vs[1]).toMatch(/^code --add-mcp '(.*)'$/);
+    expect(JSON.parse(vs[1].match(/'(.*)'/)![1])).toEqual({ name: "twse", type: "http", url: "https://twse-mcp.taux.io/mcp" });
+    const st = code("stdio");
+    expect(st[0]).toBe("npx -y mcp-remote https://twse-mcp.taux.io/mcp");
+    expect(JSON.parse(st[1]).mcpServers.twse.args).toEqual(["-y", "mcp-remote", "https://twse-mcp.taux.io/mcp"]);
+    // Claude 網頁版與桌面版沿用安裝步驟，不重複放指令
+    expect(detail("claudeWeb")).toContain("Add custom connector");
   });
 
   it("GA4：只在 twse-mcp.taux.io 動作、關閉 Google signals；四個網頁都載入，/mcp 不經過", async () => {
@@ -1710,7 +1783,7 @@ describe("英文版首頁", () => {
     expect(GA_SCRIPT).toContain("G-VSP1Z15BWV");
     expect(GA_SCRIPT).toContain("allow_google_signals:false");
     expect(GA_SCRIPT).toContain("allow_ad_personalization_signals:false");
-    for (const path of ["/", "/en", "/datasets", "/privacy"]) {
+    for (const path of ["/", "/en", "/ja", "/datasets", "/privacy"]) {
       const html = await (await get(path)).text();
       expect(html, path).toContain(`<script>${GA_SCRIPT}</script>`);
     }
@@ -1770,16 +1843,18 @@ describe("英文版首頁", () => {
     expect(body.match(/\/privacy<\/loc>/g)).toHaveLength(1);
   });
 
-  it("sitemap 兩個語系都列", async () => {
+  it("sitemap 每個語系都列，且每筆都宣告全部語系", async () => {
     const body = await (await get("/sitemap.xml")).text();
     expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
     expect(body).toContain("<loc>https://twse-mcp.taux.io/en</loc>");
+    expect(body).toContain("<loc>https://twse-mcp.taux.io/ja</loc>");
+    expect(body.match(/hreflang="ja" href="https:\/\/twse-mcp.taux.io\/ja"\/>/g)).toHaveLength(3);
   });
 
   it("sitemap 每個網址都有 lastmod，且是合法的 YYYY-MM-DD", async () => {
     const body = await (await get("/sitemap.xml")).text();
     const dates = [...body.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
-    expect(dates).toHaveLength(4);
+    expect(dates).toHaveLength(5);
     for (const d of dates) {
       expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(Number.isNaN(Date.parse(d))).toBe(false);
@@ -1796,11 +1871,12 @@ describe("英文版首頁", () => {
     const hash = createHash("sha256")
       .update(renderPage("zh"))
       .update(renderPage("en"))
+      .update(renderPage("ja"))
       .digest("hex")
       .slice(0, 16);
     expect({ hash, lastmod: PAGES_LASTMOD }).toEqual({
-      hash: "23449d8075ec36c3",
-      lastmod: "2026-10-27",
+      hash: "92c5705706cd2715",
+      lastmod: "2026-11-08",
     });
   });
 
@@ -1838,7 +1914,7 @@ describe("英文版首頁", () => {
   // 超過的部分不是「多寫一點」，是白寫——而且沒有任何回饋告訴你被截了。
   // 英文版第一版寫了 251 字元的 description，就是這條守衛抓出來的。
   it("兩個語系的 title 與 description 都在搜尋片段的長度內", async () => {
-    for (const path of ["/", "/en"]) {
+    for (const path of ["/", "/en", "/ja"]) {
       const html = await (await get(path)).text();
       const title = html.match(/<title>(.*?)<\/title>/)![1];
       const desc = html.match(/name="description" content="(.*?)"/)![1];
@@ -1852,6 +1928,7 @@ describe("英文版首頁", () => {
   it("llms.txt 兩種語言的查詢都服務得到，並指出兩個語系頁面", async () => {
     const body = await (await get("/llms.txt")).text();
     expect(body).toContain("https://twse-mcp.taux.io/en");
+    expect(body).toContain("https://twse-mcp.taux.io/ja");
     expect(body).toMatch(/Taiwan Market Open Data is a free/);
     expect(body).toContain("Taiwan Market Open Data 是一個免費的");
   });
@@ -1880,12 +1957,14 @@ describe("兩個語系不會漂移", () => {
 
   it("章節、FAQ、步驟、功能、快捷指令的數量與識別都對齊", async () => {
     const zh = await parse("/");
-    const en = await parse("/en");
-    expect(en.sections).toEqual(zh.sections);
-    expect(en.faq).toBe(zh.faq);
-    expect(en.steps).toBe(zh.steps);
-    expect(en.features).toBe(zh.features);
-    expect(en.shortcuts).toEqual(zh.shortcuts);
+    for (const path of ["/en", "/ja"]) {
+      const other = await parse(path);
+      expect(other.sections, path).toEqual(zh.sections);
+      expect(other.faq, path).toBe(zh.faq);
+      expect(other.steps, path).toBe(zh.steps);
+      expect(other.features, path).toBe(zh.features);
+      expect(other.shortcuts, path).toEqual(zh.shortcuts);
+    }
   });
 });
 
@@ -2228,7 +2307,7 @@ describe("og:image", () => {
   });
 
   it("兩個語系都用絕對網址指向它，並宣告大圖卡片", async () => {
-    for (const p of ["/", "/en"]) {
+    for (const p of ["/", "/en", "/ja"]) {
       const html = await (await get(p)).text();
       expect(html, p).toContain('property="og:image" content="https://twse-mcp.taux.io/og.png"');
       expect(html, p).toContain('name="twitter:image" content="https://twse-mcp.taux.io/og.png"');

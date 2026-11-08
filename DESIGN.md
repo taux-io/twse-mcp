@@ -189,7 +189,7 @@ components:
 
 ### Named Rules
 
-**The System Font Rule.** 不載入任何網頁字型。首頁要輕（見 PRODUCT.md），字型檔也算重量。
+**The System Font Rule.** 不載入任何網頁字型。首頁要輕（見 PRODUCT.md），字型檔也算重量。日文版（`html:lang(ja)`）改用系統內建的日文字體（Hiragino Sans、Noto Sans JP、Yu Gothic、Meiryo），否則漢字會落到繁中字形。
 
 **The Generous Leading Rule.** 正文行高維持 1.75。中文段落壓緊了就難讀。
 
