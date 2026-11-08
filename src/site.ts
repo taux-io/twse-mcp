@@ -1654,6 +1654,14 @@ ${JA.features.map((f) => `- ${f}`).join("\n")}
 - The attribution above is kept in its original Chinese wording because the licence requires that exact form of notice.
 - Exception / 例外：intraday quotes come from mis.twse.com.tw, which is not registered on the government open-data platform and falls outside the licence above.
 
+## データの出典とライセンス
+
+- 臺灣證券交易所 2026 臺灣證券交易所 OpenAPI
+- 金融監督管理委員會證券期貨局 2026 臺灣期貨交易所 OAS
+- このオープンデータは、政府資料開放授權條款（Open Government Data License）に基づいて公開されています：https://data.gov.tw/license
+- ${JA.ui.attributionKeptInChinese}
+- 例外：取引時間中の株価は mis.twse.com.tw から取得しています。このサイトは政府のオープンデータ・プラットフォームに登録されておらず、上記のライセンスの対象外です。
+
 ## Pages / 延伸資料
 
 - Homepage (Traditional Chinese) / 首頁：${SITE_ORIGIN}/
