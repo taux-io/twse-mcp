@@ -79,12 +79,16 @@ export function parseDate(v) {
   return null;
 }
 
+/** CSV 的表頭列。健檢與目錄刷新（scripts/refresh-catalog.mjs）共用，兩邊看到的表頭才一樣。 */
+export function csvHeader(body) {
+  return body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].split(",");
+}
+
 /** 上游的 CSV 程式讀不讀得了：與執行期（src/twse.ts 的 csvSpecFor）同一個判準。 */
 function readableCsv(id, body, catalog) {
   const fields = catalog[id]?.fields;
   if (!fields) return false;
-  const header = body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].split(",");
-  return headerMatches(header, Object.values(fields));
+  return headerMatches(csvHeader(body), Object.values(fields));
 }
 
 /**
@@ -140,7 +144,7 @@ export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_
   return null;
 }
 
-async function fetchBody(id) {
+export async function fetchBody(id) {
   let last;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {

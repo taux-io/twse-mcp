@@ -21,9 +21,11 @@
  * `taifex/` 前綴有兩個好處：永遠不可能與證交所的 id 相撞（實測目前 0 相撞，但那是
  * 觀測值不是保證），而且看到 id 就知道來源。
  */
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
+import { headerMatches } from "../src/csv-header.mjs";
+import { csvHeader, fetchBody } from "./check-upstream.mjs";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.generated.json");
 
@@ -204,6 +206,62 @@ async function fetchSpec(url) {
   throw new Error(`swagger fetch failed after ${attempts} attempts: ${lastErr.message}`);
 }
 
+/**
+ * swagger 的欄位說明變了，但實際的 CSV 表頭只對得上舊說明時，保留舊說明。
+ *
+ * 欄位說明是 CSV 備援對表頭的依據（src/csv-header.mjs），而 swagger 的說明與 CSV 表頭不保證一致。
+ * 2026-11-13 排程抓到的 swagger 把「期末未沖銷契約量」寫成「期末未沖銷量」（同一天從別處抓到的
+ * 仍是前者），照單收下會讓 4 個讀得到的資料集讀不到，其中兩個正是 #214 修過的。
+ *
+ * 只處理欄位鍵與順序都沒變、只有說明不同的資料集；欄位有增減是要人看的變動，照新的走。
+ * 整個資料集的說明一起保留，不逐欄混用：混出來的清單沒有被任何表頭驗證過。
+ * 上游回 JSON 時沒有表頭可對，照新的走。抓不到資料時也保留舊說明：舊的是已知讀得到的那一份，
+ * 下次刷新會再驗一次。
+ *
+ * 直接改 `next`，回傳保留了哪些資料集與原因（header：表頭只對得上舊的；unverified：抓不到資料）。
+ */
+export async function keepReadableFields(previous, next, fetchDataset = fetchBody) {
+  const kept = [];
+  for (const [id, ds] of Object.entries(next)) {
+    if (!Object.hasOwn(previous, id)) continue;
+    const before = previous[id].fields ?? {};
+    const keys = Object.keys(ds.fields);
+    if (keys.join("\n") !== Object.keys(before).join("\n")) continue;
+    if (keys.every((k) => before[k] === ds.fields[k])) continue;
+    const { status, body } = await fetchDataset(id);
+    let reason = null;
+    if (status < 200 || status >= 300) {
+      reason = "unverified";
+    } else {
+      let isJson = true;
+      try {
+        JSON.parse(body);
+      } catch {
+        isJson = false;
+      }
+      const header = csvHeader(body);
+      if (!isJson && headerMatches(header, Object.values(before)) && !headerMatches(header, Object.values(ds.fields))) {
+        reason = "header";
+      }
+    }
+    if (reason) {
+      ds.fields = { ...before };
+      kept.push({ id, reason });
+    }
+  }
+  return kept;
+}
+
+/** 目前簽入的目錄。第一次產生時還沒有檔案，當成空的。 */
+async function readPrevious() {
+  try {
+    return JSON.parse(await readFile(OUT, "utf-8"));
+  } catch (err) {
+    if (err?.code === "ENOENT") return {};
+    throw err;
+  }
+}
+
 async function main() {
   // null 原型：上游路徑若是 __proto__，普通物件的指派會改到原型而不是新增鍵。
   const catalog = Object.create(null);
@@ -231,6 +289,13 @@ async function main() {
       catalog[id] = ds;
     }
     process.stderr.write(`  ${src.source}: ${n} datasets\n`);
+  }
+  for (const { id, reason } of await keepReadableFields(await readPrevious(), catalog)) {
+    process.stderr.write(
+      reason === "header"
+        ? `  ${id}: 保留原本的欄位說明（實際的 CSV 表頭對得上原本的，對不上 swagger 的新說明）\n`
+        : `  ${id}: 保留原本的欄位說明（抓不到實際資料，無法驗證 swagger 的新說明）\n`,
+    );
   }
   const count = Object.keys(catalog).length;
   await writeFile(OUT, JSON.stringify(catalog, null, 1) + "\n", "utf-8");
