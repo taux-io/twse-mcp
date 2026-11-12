@@ -811,7 +811,7 @@ export function buildEtfSnapshot(code: string, src: EtfSnapshotSources): Record<
     ? null
     : !!f && (ETF_TYPE_MARK.test(fundType) || fundType.toUpperCase().includes("ETF"));
   if (f && !isEtf) {
-    caveats.push(`${code} 的基金類型是「${f["基金類型"]}」，不是 ETF`);
+    caveats.push(`${code} 的基金類型是「${inlineUpstreamText(f["基金類型"])}」，不是 ETF`);
   }
 
   // --- 2. 當日（前一交易日）價量 ---
@@ -902,6 +902,17 @@ export function rocToIso(v: unknown): string | null {
   return m[3] ? `${year}-${m[2]}-${m[3]}` : `${year}-${m[2]}`;
 }
 
+/**
+ * 把上游的一段文字放進我們自己寫的句子（caveats、錯誤訊息）之前：控制字元與換行換成空白、
+ * 連續空白壓成一個、超過 max 個字就截斷。caveats 是伺服器用自己的口吻說話的地方，
+ * 上游的文字在這裡只能是一小段引文，不能是好幾行。
+ */
+export function inlineUpstreamText(v: unknown, max = 40): string {
+  const text = String(v ?? "").replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, " ").replace(/\s+/g, " ").trim();
+  const chars = [...text];
+  return chars.length > max ? `${chars.slice(0, max).join("")}…` : text;
+}
+
 const addDays = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 const weekdayOf = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 const isWeekday = (iso: string) => weekdayOf(iso) % 6 !== 0;
@@ -941,7 +952,7 @@ function closedDates(holidays: Row[]): Map<string, string> {
   const closed = new Map<string, string>();
   for (const r of holidays) {
     const d = rocToIso(r["Date"]);
-    const name = String(r["Name"] ?? "").trim();
+    const name = inlineUpstreamText(r["Name"]);
     if (d && !/開始交易|最後交易/.test(name)) closed.set(d, name);
   }
   return closed;
@@ -1218,7 +1229,7 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
     };
     // 上游對虧損公司的本益比給 "-"。null 是「不適用」，不是「查不到」，要說清楚。
     if (valuation["本益比"] === null) {
-      caveats.push(`${code} 的本益比為空（上游給「${String(v["PEratio"] ?? "")}」），通常代表近四季虧損，本益比不適用`);
+      caveats.push(`${code} 的本益比為空（上游給「${inlineUpstreamText(v["PEratio"])}」），通常代表近四季虧損，本益比不適用`);
     }
   } else {
     absent(STOCK_SOURCE_LABELS.valuation, `${code} 不在本益比與殖利率資料中。`);
