@@ -1367,6 +1367,48 @@ describe("對上游的禮貌：User-Agent 與重試", () => {
   });
 });
 
+/**
+ * 2026-11-12 實測：證交所前面的 CDN 快取過期時，源站吐完 14–16 MiB 的資料集要 58–85 秒。
+ * dataset.get 一次只抓一份，所以等到 150 秒；快照一次抓很多份，維持 60 秒。
+ * 逾時的訊息要讓模型知道這不是「沒有資料」，而且該怎麼辦。
+ */
+describe("上游逾時", () => {
+  const timeoutSpy = () => vi.spyOn(AbortSignal, "timeout");
+  const waited = (spy: ReturnType<typeof timeoutSpy>) => spy.mock.calls.map(([ms]) => ms);
+  const timesOut = () =>
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new DOMException("timed out", "TimeoutError"))));
+  const callTool = async (name: string, args: Record<string, unknown>) =>
+    readPayload(await send(eraRequest("modern", "tools/call", { name, arguments: args })));
+
+  it("dataset.get 等上游 150 秒；快照維持 60 秒", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(DAY)));
+    const spy = timeoutSpy();
+    await callTool("dataset.get", { dataset_id: "exchangeReport/FMNPTK_ALL", limit: 1 });
+    expect(waited(spy)).toEqual([150_000]);
+
+    spy.mockClear();
+    await callTool("snapshot.movers", {});
+    expect(new Set(waited(spy))).toEqual(new Set([60_000]));
+  });
+
+  it("資料集逾時的訊息說明原因與下一步，而且不會被讀成沒有資料", async () => {
+    timesOut();
+    const payload = await callTool("dataset.get", { dataset_id: "exchangeReport/FMNPTK_ALL", limit: 1 });
+    expect(payload.result.isError).toBe(true);
+    const text = payload.result.content[0].text as string;
+    expect(text).toContain("上游逾時（150 秒");
+    expect(text).toContain("這不代表沒有資料");
+    expect(text).toContain("稍後重試通常會成功");
+  });
+
+  it("即時報價逾時不附資料集的說明", async () => {
+    timesOut();
+    const err = await fetchQuotes(["2330"]).catch((e: Error) => e);
+    expect((err as Error).message).toContain("上游逾時（8 秒");
+    expect((err as Error).message).not.toContain("稍後重試");
+  });
+});
+
 describe("扇出上限與並行上限", () => {
   function batch(n: number) {
     const arr = Array.from({ length: n }, (_, i) => ({

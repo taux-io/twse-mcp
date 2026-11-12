@@ -298,8 +298,11 @@ async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
   return (requestLimiter.getStore() ?? new FetchLimiter()).run(fn);
 }
 
-/** 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。 */
-export async function fetchDataset(datasetId: string): Promise<Row[]> {
+/**
+ * 取整份資料集（兩邊的每個資料集都是一次回整份）。走邊緣快取。
+ * timeoutMs 只有一次只抓一份的呼叫端（dataset.get）才放寬，見 SINGLE_DATASET_TIMEOUT_MS。
+ */
+export async function fetchDataset(datasetId: string, timeoutMs = DATASET_TIMEOUT_MS): Promise<Row[]> {
   const csv = csvSpecFor(datasetId);
   const data = await withFetchSlot(() =>
     fetchJson(
@@ -309,8 +312,12 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
       // CSV 退路只在表頭對得上目錄時成立（見 csvSpecFor）。
       csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
       datasetId,
+      timeoutMs,
     ),
-  );
+  ).catch((e: unknown) => {
+    if (e instanceof UpstreamTimeoutError) throw new Error(`${e.message}。${COLD_UPSTREAM_HINT}`);
+    throw e;
+  });
   const rows = Array.isArray(data) ? (data as Row[]) : [data as Row];
   // 必定有資料的資料集回 0 筆 = 上游故障。拋錯讓上層的 errors/failed 機制接手
   // （snapshot.etf 走第三態、dataset.get 回錯誤），而不是把假的空結果
@@ -577,6 +584,18 @@ export const UPSTREAM_USER_AGENT = `TaiwanMarketOpenData/${pkg.version} (+https:
  */
 const DATASET_TIMEOUT_MS = 60_000;
 const QUOTE_TIMEOUT_MS = 8_000;
+/**
+ * dataset.get 一次只抓一份，可以等比較久。2026-11-12 實測：證交所前面的 CDN 快取過期時，
+ * 源站吐完 14–16 MiB 的資料集要 58–85 秒，60 秒一定逾時；而中途放棄的請求不會留下快取，
+ * 馬上重試只是重來一次。150 秒加上之後查休市日表的 60 秒，仍在 240 秒上限內。
+ */
+export const SINGLE_DATASET_TIMEOUT_MS = 150_000;
+
+/** 逾時與其他上游錯誤分開，fetchDataset 才能只替逾時補上說明。 */
+class UpstreamTimeoutError extends Error {}
+
+const COLD_UPSTREAM_HINT =
+  "交易所的快取過期時，源站要重新產生這份資料，大型資料集可能要一兩分鐘；這不代表沒有資料，稍後重試通常會成功";
 const RETRY_DELAY_MS = 500;
 
 /**
@@ -592,7 +611,7 @@ async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number)
       await res.body?.cancel();
     } catch (e) {
       if ((e as Error)?.name === "TimeoutError") {
-        throw new Error(`上游逾時（${timeoutMs / 1000} 秒沒有回應）for ${url}`);
+        throw new UpstreamTimeoutError(`上游逾時（${timeoutMs / 1000} 秒沒有回應）for ${url}`);
       }
       if (last) throw e;
     }
@@ -634,7 +653,7 @@ async function fetchJson(
   // timeout 的 signal 也涵蓋讀 body：標頭回來了、內容還沒讀完就逾時，同樣給看得懂的訊息。
   const body = await readCapped(res, label).catch((e: unknown) => {
     if ((e as Error)?.name === "TimeoutError") {
-      throw new Error(`上游逾時（${timeoutMs / 1000} 秒內沒有傳完）for ${url}`);
+      throw new UpstreamTimeoutError(`上游逾時（${timeoutMs / 1000} 秒內沒有傳完）for ${url}`);
     }
     throw e;
   });
