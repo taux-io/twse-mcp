@@ -175,11 +175,11 @@ client 看得出是版本問題而不是服務故障。
 
 重新比較代價後改變決定。收斂當初換到的東西是三項：批次扇出守衛、探針、`cacheHints` 對半數流量
 無效。探針已完成任務、不會回來；`cacheHints` 只是效能好處，而主要 client 已是 modern；只剩批次。
-批次改成**一律拒絕**（`src/server.ts` 的 `rejectBatch`，進 SDK 前、回 `-32600`）：MCP 從
+批次改成**一律拒絕**（`src/server.ts` 的 `guardMcpBody`，進 SDK 前、回 `-32600`）：MCP 從
 `2025-06-18` 起就把批次移出規範，現存 client 都不送，全擋比 #70 的「最多 8 個」更簡單、
 最壞情況從 8 份並行下載降到 0。為了這三項把真實使用者擋在外面，不划算。
 
-實作：`legacy: "stateless"`（`agents` 的預設）＋ `rejectBatch`。
+實作：`legacy: "stateless"`（`agents` 的預設）＋ `guardMcpBody`。
 
 ### 重新開放一週後的驗證（issue #83，2026-10-05）
 
@@ -196,7 +196,7 @@ client 看得出是版本問題而不是服務故障。
 
 ### 若要再收斂
 
-改回 `legacy: "reject"` 即可，`rejectBatch` 留著無害。前提是 Codex 等仍只會 legacy 的主流
+改回 `legacy: "reject"` 即可，`guardMcpBody` 留著無害。前提是 Codex 等仍只會 legacy 的主流
 client 已支援 `2026-07-28`——先用 Workers Observability 依 user agent 確認，不要只看比例：
 這次的教訓是「約半數是 bot」掩蓋了「有一個是依文件操作的真實 client」。
 

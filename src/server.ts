@@ -1111,23 +1111,62 @@ const STATIC_ROUTES: Record<string, { body: string | Uint8Array; type: string; c
  * 現存的用戶端（Claude、Codex）都不送。#70 當時留了「最多 8 個」給舊用戶端，但沒有證據
  * 顯示有人用；全擋更簡單，而且把最壞情況從 8 份並行下載降到 0。
  *
- * 讀 body 用 clone，不動到交給 SDK 的那一份；只看第一個非空白字元，不解析。
+ * 只看第一個非空白字元，不解析。
  */
-async function rejectBatch(request: Request): Promise<Response | null> {
-  if (request.method !== "POST" || new URL(request.url).pathname !== MCP_ROUTE) return null;
-  const body = await request.clone().text();
-  if (!body.trimStart().startsWith("[")) return null;
-  return Response.json(
-    {
-      jsonrpc: "2.0",
-      id: null,
-      error: {
-        code: -32600,
-        message: "不支援 JSON-RPC 批次（MCP 2025-06-18 起已移出規範）。請一次送一個請求。",
-      },
-    },
-    { status: 400 },
-  );
+const BATCH_REJECTED = {
+  status: 400,
+  message: "不支援 JSON-RPC 批次（MCP 2025-06-18 起已移出規範）。請一次送一個請求。",
+};
+
+/**
+ * `/mcp` 請求 body 的上限。最大的合法請求（`dataset.get` 帶 100 個 `fields`）只有幾 KB；
+ * 沒有上限時，一個匿名的超大 POST 會被整份讀進 128 MB 的 isolate，而且不只一份。
+ */
+const MAX_REQUEST_BYTES = 256 * 1024;
+const TOO_LARGE = {
+  status: 413,
+  message: `請求過大：/mcp 的請求 body 上限是 ${MAX_REQUEST_BYTES / 1024} KB。`,
+};
+
+function rejection({ status, message }: { status: number; message: string }): Response {
+  return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32600, message } }, { status });
+}
+
+/**
+ * `/mcp` 的 POST 在進 SDK 之前過兩道：body 大小上限，然後拒絕批次。回傳拒絕的回應，
+ * 或交給 SDK 的請求。
+ *
+ * 宣告的 content-length 先擋一次（不必讀任何 body），然後邊讀邊數——分塊傳輸沒有那個
+ * 標頭，它也可以說謊，第二道才是真正的守衛（與 twse.ts 的 readCapped 同一個理由）。
+ * body 只讀這一次：讀到的位元組原樣放進新的 Request 交給 SDK，記憶體裡不會有第二份串流。
+ */
+async function guardMcpBody(request: Request): Promise<Response | Request> {
+  if (request.method !== "POST" || new URL(request.url).pathname !== MCP_ROUTE || !request.body) return request;
+  if (Number(request.headers.get("content-length")) > MAX_REQUEST_BYTES) return rejection(TOO_LARGE);
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let seen = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    seen += value.byteLength;
+    if (seen > MAX_REQUEST_BYTES) {
+      await reader.cancel();
+      return rejection(TOO_LARGE);
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(seen);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  if (new TextDecoder().decode(bytes).trimStart().startsWith("[")) return rejection(BATCH_REJECTED);
+  // signal 要帶過去：SDK 靠它在用戶端斷線時中止進行中的工作。
+  return new Request(request.url, { method: "POST", headers: request.headers, body: bytes, signal: request.signal });
 }
 
 type Env = { ENABLE_REALTIME_QUOTE?: string; UPSTREAM_MAX_CONCURRENCY?: string; ARCHIVE?: D1Database };
@@ -1157,12 +1196,12 @@ export default {
     //
     // dual-era：modern（2026-07-28）與 legacy（2025 系列）都服務。收斂過一次又重新開放，
     // 因為 Codex 等仍只會 legacy 的用戶端被擋在外面——依據見 ADR-0001 §三。
-    // legacy 唯一的危險是批次扇出，由 rejectBatch 在進 SDK 前擋掉。
-    const batch = await rejectBatch(request);
-    if (batch) return batch;
+    // legacy 唯一的危險是批次扇出，由 guardMcpBody 在進 SDK 前擋掉。
+    const guarded = await guardMcpBody(request);
+    if (guarded instanceof Response) return guarded;
     // 每個請求一份抓取限制器（見 twse.ts 的 withRequestLimiter）：跨請求共用在 workerd 上會卡死。
     return withRequestLimiter(
-      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false", archive: env.ARCHIVE }), { legacy: "stateless" })(request, env, ctx),
+      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false", archive: env.ARCHIVE }), { legacy: "stateless" })(guarded, env, ctx),
       Number(env.UPSTREAM_MAX_CONCURRENCY ?? NaN),
     );
   },
