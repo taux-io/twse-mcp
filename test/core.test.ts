@@ -23,6 +23,7 @@ import {
   buildMovers,
   buildStockMarket,
   buildStockSnapshot,
+  findPledge,
   lookupSecurities,
   parseRocPeriod,
   rocToIso,
@@ -1218,5 +1219,26 @@ describe("buildMovers — 漲跌幅排行", () => {
     expect(r.漲停家數).toBe(2);
     expect(r.跌停家數).toBe(2);
     expect(r.跌幅排行[0].漲跌停).toBe("跌停");
+  });
+});
+
+/**
+ * 董監質押表把公司清單整包塞在一個欄位裡，一行一家。真實資料每行最長 24 字（2026-11-12 實測）。
+ * 拆行的 regex 對「一個字、一長串空白、結尾不是數字」的行會平方級回溯：十萬字要 11 秒。
+ */
+describe("findPledge", () => {
+  const rows = [{ 出表日期: "1150819", 百分比: "20 以下", 公司名稱: "2303      聯電  3.10\r\n2330      台積電  0.00" }];
+
+  it("從欄位文字裡找出代號那一行", () => {
+    expect(findPledge(rows, "2303")).toEqual({ ratio: 3.1, bucket: "20 以下", date: "2026-08-19" });
+    expect(findPledge(rows, "9999")).toBeNull();
+  });
+
+  it("異常長的一行直接跳過，不會把 CPU 時間耗盡；同一欄其他行照常找得到", () => {
+    const evil = "a" + " ".repeat(100_000) + "x";
+    const t0 = performance.now();
+    expect(findPledge([{ ...rows[0], 公司名稱: evil }], "2303")).toBeNull();
+    expect(findPledge([{ ...rows[0], 公司名稱: `${evil}\n${rows[0].公司名稱}` }], "2303")?.ratio).toBe(3.1);
+    expect(performance.now() - t0).toBeLessThan(1000);
   });
 });

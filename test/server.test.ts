@@ -868,6 +868,17 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect((await callTool("snapshot.futures", { contract: "台積電期貨" })).contract).toBe("CDF");
   });
 
+  // 契約名稱去掉結尾括號的 regex 原本是 /\(.*\)$/，對一長串左括號會平方級回溯：十萬字要 12 秒。
+  it("snapshot.futures：上游的契約名稱異常長時，用代號或名稱查都不會把 CPU 時間耗盡", async () => {
+    const evil = "台積電期貨" + "(".repeat(100_000);
+    overrideFetch((u) => u.includes("DailyMarketReportFut"), () => jsonResponse([...FUT_DAILY, futRow("ZZF", "202610", "一般", "1", "1", "1", "1")]));
+    overrideFetch((u) => u.includes("OpenInterestOfLargeTradersFutures"), () => jsonResponse([...LARGE, { ...LARGE[0], Contract: "ZZ", ContractName: evil }]));
+    const t0 = performance.now();
+    expect((await callTool("snapshot.futures", { contract: "ZZF" })).contract).toBe("ZZF");
+    await callTool("snapshot.futures", { contract: "台積電期貨" });
+    expect(performance.now() - t0).toBeLessThan(2000);
+  });
+
   // 契約的中文名稱來自大額交易人表。那張表抓失敗時，名稱對不到任何契約，
   // 但這是「不知道」，不是「沒有這個契約」。
   it("snapshot.futures：大額交易人表抓失敗時，用名稱查是「無法判斷」，不說找不到", async () => {
