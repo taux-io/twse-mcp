@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unreleased
 
+- Fixed TWSE data sometimes failing to load: the TWSE daily trading dataset for listed stocks switches between JSON and CSV, and while it served CSV the price and volume in the stock, ETF, market and movers snapshots showed a fetch failure. Both formats are now read.
 - The homepage now has a Japanese version at `/ja`, and the language switcher at the top lists Traditional Chinese, English and Japanese so you can switch at any time.
 - `llms.txt` (the summary file read by AI search and answer tools) now has Japanese: the summary and unofficial notice, how to connect, what it can and cannot answer, how often data updates, data sources and licence, related pages, and the title all have a Japanese counterpart. The connection section also gains the transport details in Chinese (Streamable HTTP, both the 2025 and 2026 protocol revisions, no JSON-RPC batches).
 - The install section of the homepage (Chinese, English and Japanese) gains "Ask your AI to install it in one sentence": copy one sentence, paste it to the AI assistant you already use, and it works out the install method for your tool, asking you before it acts. There are also separate instructions for Claude Code, Claude on the web and desktop, Cursor, VS Code (GitHub Copilot), Codex CLI, Gemini CLI and clients that only support stdio, each with a one-click copy of the command or config.
