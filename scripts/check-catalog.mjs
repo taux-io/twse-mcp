@@ -119,6 +119,9 @@ function normalisePath(id) {
   return out;
 }
 
+/** 目錄文字的長度上限（字數）。 */
+export const TEXT_LIMITS = { summary: 200, description: 500, fieldName: 200, fieldDescription: 300 };
+
 export function checkCatalog(catalog) {
   const problems = [];
   const ids = Object.keys(catalog);
@@ -192,6 +195,28 @@ export function checkCatalog(catalog) {
     problems.push(
       `${traversal.length} 個資料集 id 含有路徑穿越或空片段（會改變實際請求的路徑）：` +
         traversal.slice(0, 3).join(", "),
+    );
+  }
+
+  // 目錄的文字會原樣進 dataset.search 與 dataset.describe 的回應。上限遠高於現況
+  // （2026-11-12：summary 最長 60 字、description 62 字、欄位說明 127 字、欄位名 127 字），
+  // 只擋異常長的內容；欄位名的上限與工具參數的上限相同，超過就查不到那個欄位。
+  const len = (v) => [...String(v ?? "")].length;
+  const tooLong = [];
+  for (const id of ids) {
+    const d = catalog[id];
+    if (!d) continue;
+    if (len(d.summary) > TEXT_LIMITS.summary) tooLong.push(`${id} 的 summary（${len(d.summary)} 字）`);
+    if (len(d.description) > TEXT_LIMITS.description) tooLong.push(`${id} 的 description（${len(d.description)} 字）`);
+    for (const [k, v] of Object.entries(d.fields ?? {})) {
+      if (len(k) > TEXT_LIMITS.fieldName) tooLong.push(`${id} 的欄位名（${len(k)} 字）`);
+      if (len(v) > TEXT_LIMITS.fieldDescription) tooLong.push(`${id} 的欄位說明（${len(v)} 字）`);
+    }
+  }
+  if (tooLong.length) {
+    problems.push(
+      `${tooLong.length} 處文字超過長度上限（上游的 API 文件可能被改動，合併前先看內容）：` +
+        tooLong.slice(0, 3).join("、"),
     );
   }
 

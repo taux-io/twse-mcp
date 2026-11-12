@@ -16,6 +16,7 @@ import catalogJson from "./catalog.generated.json";
 import pkg from "../package.json";
 import {
   buildEtfSnapshot,
+  CATALOG_SOURCE_NOTE,
   buildFuturesMarket,
   buildMarketEvents,
   esgLabel,
@@ -224,6 +225,7 @@ const FUTURES_OUTPUT = z.looseObject({
 // 查資料類的三支：外層欄位固定，但資料列就是上游那張表的欄位，每張表都不一樣——
 // 所以 data 的每一列、搜尋結果的每一筆都是開放物件，上游多一個欄位不會讓呼叫失敗。
 const SEARCH_OUTPUT = z.looseObject({
+  source: z.string(),
   total_matched: z.number(),
   results: z.array(z.looseObject({ dataset_id: z.string(), summary: z.string(), tags: z.array(z.string()) })),
 });
@@ -234,6 +236,7 @@ const DESCRIBE_OUTPUT = z.looseObject({
   summary: z.string(),
   tags: z.array(z.string()),
   fields: z.record(z.string(), z.string()),
+  source_note: z.string(),
 });
 
 const GET_DATASET_OUTPUT = z.looseObject({
@@ -414,7 +417,8 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
     },
     async ({ dataset_id }) => {
       const r = describeDataset(catalog, dataset_id);
-      return "error" in r ? toolError(r) : structured({ ...r });
+      // Dataset 自己有 source 欄位（來源代號 twse／taifex），所以這句話放在 source_note。
+      return "error" in r ? toolError(r) : structured({ ...r, source_note: CATALOG_SOURCE_NOTE });
     },
   );
 
