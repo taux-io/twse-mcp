@@ -1542,10 +1542,15 @@ export interface GovernanceSources {
  * 董監質押表的格式很特別：一列是一個比率級距（「90 以上」「20 以下」），公司清單整包塞在
  * 「公司名稱」欄位的文字裡，一行一家：`3040      遠見  99.36`。這裡把那段文字拆開找代號。
  */
+const MAX_PLEDGE_LINE = 200;
+
 export function findPledge(rows: Row[], code: string): { ratio: number; bucket: string; date: string | null } | null {
   const c = norm(code);
   for (const r of rows) {
     for (const line of String(r["公司名稱"] ?? "").split(/\r?\n/)) {
+      // 真實資料每行最長 24 字。下面的 regex 對一長串空白會平方級回溯（十萬字要 11 秒），
+      // 所以不像資料的長行直接跳過。
+      if (line.length > MAX_PLEDGE_LINE) continue;
       const m = /^\s*(\S+)\s+.*?\s([\d.]+)\s*$/.exec(line);
       if (m && norm(m[1]) === c) {
         return { ratio: Number(m[2]), bucket: String(r["百分比"] ?? ""), date: rocToIso(r["出表日期"]) };
@@ -2173,6 +2178,12 @@ export interface FuturesSnapshotSources {
  * 這四個熱門契約的名稱只能寫死；名稱與三大法人表的寫法相同，兩邊才對得起來。
  */
 // ponytail: 只寫死四個大額表沒有的契約名稱，期交所新增這類契約（check-upstream 或使用者回報查不到名稱）時補上
+/**
+ * 契約名稱結尾的括號註記，例如「臺股期貨(TX+MTX/4)」。括號裡不含括號，regex 才不會為了找結尾的
+ * ")" 從每一個 "(" 重新掃到行尾（原本的 /\(.*\)$/ 對十萬個 "(" 要 12 秒）。
+ */
+const TRAILING_PARENS = /\([^()]*\)$/;
+
 const FUTURES_NAMES: Record<string, string> = {
   MTX: "小型臺指期貨",
   TMF: "微型臺指期貨",
@@ -2226,7 +2237,7 @@ export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources)
       const n = nameOf(c);
       return n !== null && normQuery(n).includes(q);
     });
-    const exact = hits.filter((c) => normQuery(nameOf(c)!).replace(/\(.*\)$/, "") === q);
+    const exact = hits.filter((c) => normQuery(nameOf(c)!).replace(TRAILING_PARENS, "") === q);
     if (exact.length === 1) code = exact[0];
     else if (hits.length === 1) code = hits[0];
     else candidates = hits.slice(0, MAX_CODE_CANDIDATES).map((c) => ({ code: c, name: nameOf(c) }));
@@ -2278,7 +2289,7 @@ export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources)
   }
 
   // 三大法人只公布指數類期貨各契約與「股票期貨」合計，名稱要與行情契約的中文名完全相同。
-  const plain = name?.replace(/\(.*\)$/, "") ?? null;
+  const plain = name?.replace(TRAILING_PARENS, "") ?? null;
   const instRows = plain ? src.inst.filter((r) => normQuery(String(r["ContractCode"] ?? "")) === normQuery(plain)) : [];
   const institutional = failed(L.inst)
     ? null
