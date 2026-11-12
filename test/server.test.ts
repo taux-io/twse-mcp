@@ -2431,7 +2431,7 @@ describe("上游回應的大小上限", () => {
 });
 
 /**
- * 期交所的端點會在 JSON 與 CSV 之間來回切換，CSV 退路對整個 `taifex/` 前綴開，
+ * 兩個交易所的端點都會在 JSON 與 CSV 之間來回切換，CSV 退路對每個資料集都開，
  * 表頭對應規則見 src/csv-header.mjs。下面這組以 `/v1/DailyMarketReportOpt` 為代表測
  * 共用的解析與守衛；實測過的真實表頭另有一組測試。
  *
@@ -2439,15 +2439,15 @@ describe("上游回應的大小上限", () => {
  *
  * 1. **那個端點會變格式。** 同一天實測到 877,988 bytes 的 CSV 與 4,188,322 bytes
  *    的 JSON。所以 JSON 優先不是「將來的保險」，是現在就會交替發生的事。
- * 2. **退路一旦對整個 `taifex/` 前綴打開，就等於刪掉「上游回非 JSON 要大聲失敗」
- *    這道守衛**（#29／#31 加的，證交所那邊還有測試鎖著）。上游維護時回一個空的
+ * 2. **退路一旦打開，就等於刪掉「上游回非 JSON 要大聲失敗」
+ *    這道守衛**（#29／#31 加的）。上游維護時回一個空的
  *    200，parseCsv 會安靜地回 0 筆，而 `cf.cacheTtl` 把那個假的「查無資料」
  *    釘在邊緣一小時。所以退路只在表頭對得上目錄時才成立，其餘照樣大聲失敗。
  * 3. **只比對欄位「數量」的守衛不是守衛。** 上游把 18 欄的順序調換，數量仍是 18，
  *    於是每一列的最高價變成最低價——正是 docblock 說要防的「安靜給錯答案」。
  *    所以連表頭的**內容**一起比對。
  */
-describe("期交所的 CSV 端點", () => {
+describe("上游的 CSV 端點", () => {
   // 從目錄推導，不自帶一份表頭。守衛比對的就是目錄的欄位說明，測試若自帶副本，
   // 目錄改了測試不會紅——那守衛就沒有人守。
   const CSV_ID = "taifex/DailyMarketReportOpt";
@@ -2533,6 +2533,27 @@ describe("期交所的 CSV 端點", () => {
   it("證交所回非 JSON 仍是錯誤", async () => {
     respond("<html><title>503</title>");
     await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow(/上游回的不是 JSON/);
+  });
+
+  // 2026-11-12 實測：證交所的 STOCK_DAY_ALL 在 JSON 與 CSV 之間來回切換，同一分鐘內兩種都拿得到。
+  // 表頭與第一列照抄當時的回應；同一時間的 JSON 共 1,390 列，逐列與 CSV 相同。
+  const TWSE_HEADER = "日期,證券代號,證券名稱,成交股數,成交金額,開盤價,最高價,最低價,收盤價,漲跌價差,成交筆數";
+  const TWSE_ROW = '"1151111","00400A","主動國泰動能高息","34272552","436767696","12.71","12.99","12.51","12.99","0.4900","6045"';
+
+  it("證交所回表頭對得上目錄的 CSV 時，讀出來與 JSON 那一列相同", async () => {
+    respond(`${TWSE_HEADER}\r\n${TWSE_ROW}\r\n`);
+    expect(await fetchDataset("exchangeReport/STOCK_DAY_ALL")).toEqual([
+      {
+        Date: "1151111", Code: "00400A", Name: "主動國泰動能高息", TradeVolume: "34272552", TradeValue: "436767696",
+        OpeningPrice: "12.71", HighestPrice: "12.99", LowestPrice: "12.51", ClosingPrice: "12.99", Change: "0.4900", Transaction: "6045",
+      },
+    ]);
+  });
+
+  it("證交所的 CSV 欄位被調換時大聲失敗，不做部分對應", async () => {
+    const swapped = TWSE_HEADER.replace("最高價,最低價", "最低價,最高價");
+    respond(`${swapped}\r\n${TWSE_ROW}\r\n`);
+    await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow(/表頭/);
   });
 
   // 上游可以塞任意長度的表頭。錯誤訊息是 MCP 的 text block，而且是唯一沒有

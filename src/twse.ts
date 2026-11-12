@@ -158,22 +158,20 @@ export const ALWAYS_POPULATED: ReadonlySet<string> = new Set([
 const MIS_BASE = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 /**
- * 期交所 CSV 退路的表頭契約：直接取目錄宣告的欄位（英文 key）與欄位說明（中文，對應 CSV 表頭）。
+ * CSV 退路的表頭契約：直接取目錄宣告的欄位（英文 key）與欄位說明（中文，對應 CSV 表頭）。
  *
- * 為什麼退路對整個 `taifex/` 前綴開，而不是只對指名的幾個：期交所會讓端點在 JSON 與 CSV
- * 之間來回切換，2026-09-26 一天內就觀察到五個。指名清單追不上，清單外的端點一切成 CSV，
- * 工具就壞到有人補清單為止。
+ * 為什麼退路對每個資料集都開，而不是只對指名的幾個：兩個交易所都會讓端點在 JSON 與 CSV
+ * 之間來回切換。期交所 2026-09-26 一天內觀察到五個；證交所的 `exchangeReport/STOCK_DAY_ALL`
+ * 在 2026-11-12 同一分鐘內兩種都回過，內容逐列相同。指名清單追不上，清單外的端點一切成
+ * CSV，工具就壞到有人補清單為止。
  *
  * 為什麼這樣不會解除「上游回非 JSON 要大聲失敗」的守衛（#29／#31）：
  *   - 退路只在表頭通過 `headerMatches`（src/csv-header.mjs）時才成立。空 body、HTML 錯誤頁、
  *     欄位被調換的 CSV 都過不了，照樣大聲失敗；上游維護時回的空 200 不會變成「查無資料」。
  *   - 目錄若被上游 schema 變動清空（稽核指出過這條路），欄位數是 0，`headerMatches`
  *     一律不成立——目錄壞掉不會連帶把守衛拆掉。
- *
- * 證交所那邊沒有這個退路：證交所沒有回過 CSV，非 JSON 一律視為上游故障。
  */
 function csvSpecFor(datasetId: string): { fields: string[]; descriptions: string[] } | null {
-  if (!datasetId.startsWith(TAIFEX_PREFIX)) return null;
   const ds = (catalogJson as Record<string, { fields?: Record<string, string> }>)[datasetId];
   if (!ds?.fields) return null;
   return { fields: Object.keys(ds.fields), descriptions: Object.values(ds.fields) };
@@ -308,7 +306,7 @@ export async function fetchDataset(datasetId: string): Promise<Row[]> {
       datasetUrl(datasetId),
       { Accept: "application/json" },
       DATA_TTL_SECONDS,
-      // CSV 退路只給期交所、且只在表頭對得上目錄時成立（見 csvSpecFor）。
+      // CSV 退路只在表頭對得上目錄時成立（見 csvSpecFor）。
       csv ? (body) => parseCsv(body, csv, datasetId) : undefined,
       datasetId,
     ),
@@ -405,7 +403,7 @@ export async function fetchFinancials(
 }
 
 /**
- * 把期交所的 CSV 解析成物件陣列，key 換成目錄宣告的英文欄位。
+ * 把上游的 CSV 解析成物件陣列，key 換成目錄宣告的英文欄位。
  *
  * 為什麼要換：目錄的 `fields` 來自 swagger，是英文；CSV 表頭是中文。若直接用中文
  * 當 key，`dataset.describe` 說有 `Contract` 而 `dataset.get` 回的是
