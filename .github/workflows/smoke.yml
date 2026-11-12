@@ -49,7 +49,7 @@ jobs:
           WRANGLER_SEND_METRICS: "false"
         run: |
           npx wrangler dev --port 8787 --test-scheduled > wrangler.log 2>&1 &
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             grep -q "Ready on http://localhost:8787" wrangler.log && exit 0
             sleep 2
           done
