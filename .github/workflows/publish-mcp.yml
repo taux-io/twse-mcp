@@ -5,8 +5,12 @@
 # 所以這裡唯一的工作是把 server.json 送上去。
 #
 # 用 OIDC 而非 PAT：不需要任何長期 secret，`id-token: write` 換來的是一次性的憑證。
-# 官方文件的 PAT 版本要求把 token 放進受保護的 Environment，那對這個規模的專案是
-# 沒必要的維護負擔。
+# 兩個 job 都放在 `mcp-registry` environment 底下：要 required reviewer 核准，而且只有
+# `v*` tag 能部署（從 main 手動觸發會被 environment 拒絕）。
+#
+# 這道閘門管的是「這支 workflow 的正常路徑」，不是那張憑證本身：environment 的規則只對
+# 宣告了它的 job 生效。所以另外有一道偵測——smoke.yml 每天比對 registry 上的條目與
+# repo 的 server.json（scripts/check-registry.mjs），不一致就開 issue。
 #
 # Registry 成功後，第二個 job 在 Smithery（taux/twse）重新發布，讓它重新掃描工具與分數。
 # 那一步用的是長期的 SMITHERY_API_KEY，存在 `mcp-registry` 的 environment secret 裡。
@@ -34,10 +38,10 @@ jobs:
   publish:
     if: ${{ !inputs.smithery_only }}
     runs-on: ubuntu-latest
-    # 這個 environment 掛 required reviewer，是唯一同時蓋住 tag 路徑與
-    # `workflow_dispatch`-from-any-ref 路徑的閘門——它閘門化的是 OIDC 憑證的鑄造
-    # 本身，而不是某一條進入路徑。沒有它，單一個被盜的 write 權限帳號就能無聲地把
+    # 這個 environment 掛 required reviewer，同時蓋住這支 workflow 的 tag 路徑與
+    # `workflow_dispatch` 路徑。沒有它，單一個被盜的 write 權限帳號打一個 tag 就能無聲地把
     # `server.json` 的 `remotes[0].url` 改掉，所有 registry 安裝跟著改連線目標。
+    # 它管不到不宣告這個 environment 的 job，那一段由 smoke.yml 的每日比對補上（見檔頭）。
     #
     # ⚠️ 光有這一行不構成保護：GitHub 會在第一次執行時自動建出不帶任何規則的
     # environment。必須在 repo Settings → Environments 裡替 `mcp-registry` 掛上

@@ -62,6 +62,7 @@ commit 前、接手或重構前、每週或階段結束，各跑一個 ponytail 
 `outputSchema` 時在本機跑一次；CI（`.github/workflows/smoke.yml`）在每個 PR 與每天定時跑，定時的失敗會開 issue。
 預設不打正式環境：測試請求會混進真實流量，付費方案也依用量計費。（#104 當時跑在 Workers 免費方案，每個請求都在消耗 10ms CPU 的寬容額度；2026-10-31 已升級付費。）
 例外是每天排程裡的正式環境存活檢查（`SMOKE_LIST_ONLY=1`）：看工具清單、快捷指令與首頁，外加 modern 的 `dataset.get` 一次（證明工具真的查得到資料），其餘工具不呼叫。
+排程同時跑 `npm run check-registry`：比對官方 MCP Registry 上的條目與 `server.json` 的 `remotes`，不一致就失敗並開 issue（條目被改指到別的主機時的偵測）。
 
 ### 查正式環境
 
