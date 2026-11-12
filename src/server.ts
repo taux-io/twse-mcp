@@ -1203,6 +1203,9 @@ async function guardMcpBody(request: Request): Promise<Response | Request> {
   return new Request(request.url, { method: "POST", headers: request.headers, body: bytes, signal: request.signal });
 }
 
+/** CORS 預檢只宣告實際受理的方法。SDK 的預設值還列了 GET 與 DELETE，但那兩個一律回 405。 */
+const MCP_CORS = { methods: "POST, OPTIONS" };
+
 type Env = { ENABLE_REALTIME_QUOTE?: string; UPSTREAM_MAX_CONCURRENCY?: string; ARCHIVE?: D1Database };
 
 export default {
@@ -1235,7 +1238,7 @@ export default {
     if (guarded instanceof Response) return guarded;
     // 每個請求一份抓取限制器（見 twse.ts 的 withRequestLimiter）：跨請求共用在 workerd 上會卡死。
     return withRequestLimiter(
-      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false", archive: env.ARCHIVE }), { legacy: "stateless" })(guarded, env, ctx),
+      () => createMcpHandler(() => createServer({ realtime: env.ENABLE_REALTIME_QUOTE !== "false", archive: env.ARCHIVE }), { legacy: "stateless", corsOptions: MCP_CORS })(guarded, env, ctx),
       Number(env.UPSTREAM_MAX_CONCURRENCY ?? NaN),
     );
   },

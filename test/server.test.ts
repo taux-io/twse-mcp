@@ -14,7 +14,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import toolEval from "../evals/tool-selection.json";
 import catalogJson from "../src/catalog.generated.json";
-import { COPY_SCRIPT, GA_SCRIPT } from "../src/site";
+import { COPY_SCRIPT, GA_SCRIPT, jsonForScript } from "../src/site";
 import { fetchDataset, fetchQuotes, UPSTREAM_USER_AGENT } from "../src/twse";
 
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
@@ -2895,6 +2895,44 @@ describe("上游的 CSV 端點", () => {
  * 這裡驗的是「兩條 lane 確實是不同的 era」——否則 describe.each 可能只是把同一條
  * lane 跑了兩遍，什麼都沒守到。
  */
+/**
+ * 兩個防止之後的改動變成問題的小強化。現在 JSON-LD 的內容全是檔案裡的常數，CORS 宣告的
+ * GET、DELETE 實際上回 405，所以今天都不可利用。
+ */
+describe("首頁與 /mcp 的小強化", () => {
+  it("放進 <script> 的 JSON 不會出現字面的 <，內容解析後不變", () => {
+    const value = { text: "</script><script>alert(1)</script>", nested: ["<!--", "a<b"] };
+    const out = jsonForScript(value);
+    expect(out).not.toContain("<");
+    expect(JSON.parse(out)).toEqual(value);
+  });
+
+  it.each(["/", "/en", "/ja"])("%s 的每個 JSON-LD 區塊都沒有字面的 <，而且是合法的 JSON", async (path) => {
+    const html = await (await send(new Request(`http://localhost${path}`))).text();
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    expect(blocks.length).toBeGreaterThanOrEqual(3);
+    for (const block of blocks) {
+      expect(block).not.toContain("<");
+      expect(() => JSON.parse(block)).not.toThrow();
+    }
+  });
+
+  it("CORS 預檢只宣告實際受理的方法", async () => {
+    const res = await send(
+      new Request("http://localhost/mcp", {
+        method: "OPTIONS",
+        headers: { origin: "http://localhost", "access-control-request-method": "POST", host: "localhost" },
+      }),
+    );
+    expect(res.headers.get("access-control-allow-methods")).toBe("POST, OPTIONS");
+  });
+
+  it.each(["GET", "DELETE"])("%s /mcp 仍然是 405", async (method) => {
+    const res = await send(new Request("http://localhost/mcp", { method, headers: { accept: "application/json, text/event-stream", host: "localhost" } }));
+    expect(res.status).toBe(405);
+  });
+});
+
 describe("協定 era", () => {
   it("modern 的 tools/list 帶結果型別、快取欄位與 serverInfo", async () => {
     const payload = await rpcFor("modern")("tools/list", {});
