@@ -36,6 +36,7 @@ import {
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
 import { diffCatalogs, formatDiff } from "../scripts/catalog-diff.mjs";
+import { keepReadableFields } from "../scripts/refresh-catalog.mjs";
 import { findProblems, jobNames, readWorkflows, REQUIRED_CHECKS } from "../scripts/check-required-checks.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
@@ -737,5 +738,70 @@ describe("報告裡引用的上游文字", () => {
   });
   it("smoke 的報告：沒有失敗時寫全部通過", () => {
     expect(buildReport({ endpoint: "x", listOnly: true, fails: [], warns: [] })).toContain("全部通過");
+  });
+});
+
+/**
+ * 欄位說明是 CSV 備援對表頭的依據，而 swagger 的說明與 CSV 表頭不保證一致：
+ * 2026-11-13 的刷新把「期末未沖銷契約量」改回「期末未沖銷量」，會讓 #214 修好的兩個資料集再度讀不到。
+ */
+describe("刷新目錄時，欄位說明要對得上實際的 CSV 表頭", () => {
+  const ds = (fields: Record<string, string>, summary = "摘要") => ({
+    id: "taifex/X", source: "taifex", summary, description: summary, tags: [], fields,
+  });
+  const OLD = { Date: "日期", OpenInterest: "期末未沖銷契約量" };
+  const NEW = { Date: "日期", OpenInterest: "期末未沖銷量" };
+  const csv = (header: string) => ({ status: 200, body: `\uFEFF${header}\r\n20261112,5\r\n` });
+  const run = async (prev: Record<string, string>, next: Record<string, string>, response: { status: number; body: string }) => {
+    const previous = { "taifex/X": ds(prev, "舊摘要") };
+    const fresh = { "taifex/X": ds(next, "新摘要") };
+    const calls: string[] = [];
+    const kept = await keepReadableFields(previous, fresh, async (id: string) => { calls.push(id); return response; });
+    return { fields: fresh["taifex/X"].fields, summary: fresh["taifex/X"].summary, kept, calls };
+  };
+
+  it("表頭對得上舊說明、對不上新說明：保留舊說明，摘要仍用新的", async () => {
+    const r = await run(OLD, NEW, csv("日期,期末未沖銷契約量"));
+    expect(r.fields).toEqual(OLD);
+    expect(r.summary).toBe("新摘要");
+    expect(r.kept).toEqual([{ id: "taifex/X", reason: "header" }]);
+  });
+  it("新舊說明都對得上表頭：用新說明", async () => {
+    const r = await run({ Date: "日期", Contract: "契約月份(到期月份)" }, { Date: "日期", Contract: "契約月份" }, csv("日期,契約月份(到期月份)"));
+    expect(r.fields).toEqual({ Date: "日期", Contract: "契約月份" });
+    expect(r.kept).toEqual([]);
+  });
+  it("新舊說明都對不上表頭：用新說明（舊的也讀不到，沒有理由留）", async () => {
+    const r = await run(OLD, NEW, csv("日期,完全不同的欄"));
+    expect(r.fields).toEqual(NEW);
+    expect(r.kept).toEqual([]);
+  });
+  it("上游回 JSON：沒有表頭可對，用新說明", async () => {
+    const r = await run(OLD, NEW, { status: 200, body: JSON.stringify([{ Date: "20261112", OpenInterest: "5" }]) });
+    expect(r.fields).toEqual(NEW);
+    expect(r.kept).toEqual([]);
+  });
+  it("抓不到實際資料：保留舊說明並標成未驗證", async () => {
+    for (const response of [{ status: 0, body: "fetch failed" }, { status: 503, body: "<html>" }]) {
+      const r = await run(OLD, NEW, response);
+      expect(r.fields).toEqual(OLD);
+      expect(r.kept).toEqual([{ id: "taifex/X", reason: "unverified" }]);
+    }
+  });
+  it("說明沒變、欄位有增減或順序不同、新資料集：不抓資料，直接用新的", async () => {
+    const cases: Array<[Record<string, string> | null, Record<string, string>]> = [
+      [OLD, { ...OLD }],
+      [OLD, { ...NEW, Extra: "新欄位" }],
+      [OLD, { OpenInterest: "期末未沖銷量", Date: "日期" }],
+      [null, NEW],
+    ];
+    for (const [prev, next] of cases) {
+      const fresh = { "taifex/X": ds(next) };
+      let calls = 0;
+      const kept = await keepReadableFields(prev ? { "taifex/X": ds(prev) } : {}, fresh, async () => { calls++; return csv("日期,期末未沖銷契約量"); });
+      expect(calls).toBe(0);
+      expect(kept).toEqual([]);
+      expect(fresh["taifex/X"].fields).toEqual(next);
+    }
   });
 });
