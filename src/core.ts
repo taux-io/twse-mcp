@@ -1321,13 +1321,13 @@ export function buildStockSnapshot(code: string, src: StockSnapshotSources): Rec
           "處置內容": punishes.map(({ r, status }) => ({
             "狀態": status,
             "處置期間": r["DispositionPeriod"],
-            "處置原因": r["ReasonsOfDisposition"],
-            "處置措施": r["DispositionMeasures"],
+            "處置原因": clipText(r["ReasonsOfDisposition"]),
+            "處置措施": clipText(r["DispositionMeasures"]),
           })),
         }
       : {}),
     ...(noticeRows.length
-      ? { "注意原因": noticeRows.map((r) => r["TradingInfoForAttention"]) }
+      ? { "注意原因": noticeRows.map((r) => clipText(r["TradingInfoForAttention"])) }
       : {}),
   };
   if (alerts["注意股"] === null) absent(STOCK_SOURCE_LABELS.notice);
@@ -1586,8 +1586,8 @@ function buildGovernance(
     ? unknown(L.penalties)
     : pen.map((r) => ({
         "發函日期": rocToIso(r["發函日期"]),
-        "違規事由": r["違規事由"],
-        "裁處情形": r["裁處情形"],
+        "違規事由": clipText(r["違規事由"]),
+        "裁處情形": clipText(r["裁處情形"]),
       }));
 
   const sf = firstRow(g.shortfall, "公司代號", code);
@@ -2027,6 +2027,18 @@ const EVENT_WINDOW_DAYS = 14;
 const MAX_EVENTS = 50;
 
 /**
+ * 上游的自由文字欄位（處置原因、處置措施、注意原因、違規事由、裁處情形）最長留幾個字。
+ * 2026-11-12 實測這幾個欄位最長 285 字；上限只擋異常長的內容，它會把回應撐到用戶端收不下，
+ * 也是把一長段文字帶進模型上下文的載體。截斷時標明原文長度，讓模型知道內容不完整。
+ */
+const MAX_FREE_TEXT = 500;
+function clipText(v: unknown): unknown {
+  if (typeof v !== "string") return v;
+  const chars = [...v];
+  return chars.length <= MAX_FREE_TEXT ? v : `${chars.slice(0, MAX_FREE_TEXT).join("")}…（已截斷，原文 ${chars.length} 字）`;
+}
+
+/**
  * 全市場（上市）近期事件：除權除息、股東會、今天公布的注意股、處置中與即將處置的股票。
  *
  * 與個股快照同一套原則：抓失敗的那一類標 null 並說明，**不說「沒有」**；
@@ -2038,8 +2050,8 @@ export function buildMarketEvents(src: MarketEventsSources, today: string, error
   const L = MARKET_SOURCE_LABELS;
   const end = new Date(Date.parse(today) + EVENT_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
   const inWindow = (d: string | null) => d !== null && d >= today && d <= end;
-  const cap = <T>(label: string, rows: T[]) => {
-    if (rows.length > MAX_EVENTS) caveats.push(`${label}共 ${rows.length} 筆，只列日期最近的 ${MAX_EVENTS} 筆`);
+  const cap = <T>(label: string, rows: T[], which = "日期最近的") => {
+    if (rows.length > MAX_EVENTS) caveats.push(`${label}共 ${rows.length} 筆，只列${which} ${MAX_EVENTS} 筆`);
     return rows.slice(0, MAX_EVENTS);
   };
   const byDate = (k: string) => (a: Record<string, unknown>, b: Record<string, unknown>) =>
@@ -2083,33 +2095,41 @@ export function buildMarketEvents(src: MarketEventsSources, today: string, error
   // 當日沒有注意股時上游回一列 Code 為空的佔位資料。
   const notice = failed(L.notice)
     ? null
-    : src.notice
-        .filter((r) => String(r["Code"] ?? "").trim())
-        .map((r) => ({
-          "代號": r["Code"],
-          "名稱": r["Name"],
-          "累計次數": num(r["NumberOfAnnouncement"]),
-          "注意原因": r["TradingInfoForAttention"],
-          "公布日期": rocToIso(r["Date"]),
-        }));
+    : cap(
+        "今日注意股",
+        src.notice
+          .filter((r) => String(r["Code"] ?? "").trim())
+          .map((r) => ({
+            "代號": r["Code"],
+            "名稱": r["Name"],
+            "累計次數": num(r["NumberOfAnnouncement"]),
+            "注意原因": clipText(r["TradingInfoForAttention"]),
+            "公布日期": rocToIso(r["Date"]),
+          })),
+        "前",
+      );
 
   // 已結束的處置不列；「尚未開始」要列，而且要標清楚，理由同個股快照。
   const punish = failed(L.punish)
     ? null
-    : src.punish
-        .map((r) => {
-          const p = parseRocPeriod(r["DispositionPeriod"]);
-          const status = !p ? "期間無法解析" : today < p.start ? "尚未開始" : today > p.end ? "已結束" : "處置中";
-          return {
-            "狀態": status,
-            "代號": r["Code"],
-            "名稱": r["Name"],
-            "處置期間": r["DispositionPeriod"],
-            "處置原因": r["ReasonsOfDisposition"],
-            "處置措施": r["DispositionMeasures"],
-          };
-        })
-        .filter((x) => x["狀態"] !== "已結束");
+    : cap(
+        "處置股",
+        src.punish
+          .map((r) => {
+            const p = parseRocPeriod(r["DispositionPeriod"]);
+            const status = !p ? "期間無法解析" : today < p.start ? "尚未開始" : today > p.end ? "已結束" : "處置中";
+            return {
+              "狀態": status,
+              "代號": r["Code"],
+              "名稱": r["Name"],
+              "處置期間": r["DispositionPeriod"],
+              "處置原因": clipText(r["ReasonsOfDisposition"]),
+              "處置措施": clipText(r["DispositionMeasures"]),
+            };
+          })
+          .filter((x) => x["狀態"] !== "已結束"),
+        "前",
+      );
 
   for (const [v, label] of [[exRights, L.exRights], [agm, L.agm], [notice, L.notice], [punish, L.punish]] as const) {
     if (v === null) caveats.push(`因為上游取得失敗，無法取得${label}——這**不代表**沒有。`);
