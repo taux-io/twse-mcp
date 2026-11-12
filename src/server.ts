@@ -80,6 +80,7 @@ import {
   errorText,
   fetchDataset,
   fetchQuotes,
+  SINGLE_DATASET_TIMEOUT_MS,
   fetchSources,
   withRequestLimiter,
 } from "./twse";
@@ -475,7 +476,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       const resolved = resolveDataset(catalog, dataset_id);
       if ("error" in resolved) return toolError(resolved);
       const { ds } = resolved;
-      const rows = await fetchDataset(ds.id);
+      const rows = await fetchDataset(ds.id, SINGLE_DATASET_TIMEOUT_MS);
       const out = getDataset(ds, rows, { code, match, where, sortBy: sort_by, order, fields, limit, offset });
       if ("error" in out) return toolError(out);
       // 證交所的日報表（STOCK_DAY_ALL 等）是模型查「某天收盤價」最常走的路，也要說明休市。
