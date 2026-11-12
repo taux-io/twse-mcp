@@ -32,6 +32,7 @@
  * 只用 Node 內建模組：CI 的這個 job 拿的是 issues write token。
  */
 import { writeFile } from "node:fs/promises";
+import { quoted } from "./report-text.mjs";
 
 const ENDPOINT = process.env.SMOKE_ENDPOINT ?? "http://localhost:8787/mcp";
 const SITE = new URL(ENDPOINT).origin;
@@ -188,6 +189,24 @@ async function runCase(era, c) {
   return { warn: degraded };
 }
 
+/** 失敗與降級的訊息裡有工具回應與上游的文字，進報告與 log 前最多留這麼多字。 */
+const FAIL_ECHO_LIMIT = 400;
+
+/**
+ * 組出貼進 issue 的報告。每一項失敗與降級都過 quoted()：訊息裡有上游的原始文字，
+ * 原樣放進去可以提及別人、放連結，或用換行跳出清單。
+ */
+export function buildReport({ endpoint, listOnly, fails, warns }) {
+  const item = (text) => `- ${quoted(text, FAIL_ECHO_LIMIT)}`;
+  return [
+    `端點：${endpoint}${listOnly ? "（清單加 dataset.get 一次）" : ""}`,
+    "",
+    fails.length ? `**失敗 ${fails.length} 項**` : "全部通過",
+    ...fails.map(item),
+    ...(warns.length ? ["", `上游降級 ${warns.length} 項（不算失敗；上游故障由每日上游健檢追蹤）：`, ...warns.map(item)] : []),
+  ].join("\n");
+}
+
 async function main() {
   const fails = [];
   const warns = [];
@@ -219,7 +238,7 @@ async function main() {
       const ms = Date.now() - t0;
       if (out.fail) {
         fails.push(`[${era}] ${c.tool}：${out.fail}`);
-        log(`❌ [${era}] ${c.tool} ${ms}ms — ${out.fail}`);
+        log(`❌ [${era}] ${c.tool} ${ms}ms — ${quoted(out.fail, FAIL_ECHO_LIMIT)}`);
       } else {
         for (const w of out.warn) warns.push(`[${era}] ${c.tool}：${w}`);
         log(`${out.warn.length ? "⚠️ " : "✅"} [${era}] ${c.tool} ${ms}ms`);
@@ -277,13 +296,7 @@ async function main() {
     fails.push(`/datasets：${e.message}`);
   }
 
-  const report = [
-    `端點：${ENDPOINT}${LIST_ONLY ? "（清單加 dataset.get 一次）" : ""}`,
-    "",
-    fails.length ? `**失敗 ${fails.length} 項**` : "全部通過",
-    ...fails.map((f) => `- ${f}`),
-    ...(warns.length ? ["", `上游降級 ${warns.length} 項（不算失敗；上游故障由每日上游健檢追蹤）：`, ...warns.map((w) => `- ${w}`)] : []),
-  ].join("\n");
+  const report = buildReport({ endpoint: ENDPOINT, listOnly: LIST_ONLY, fails, warns });
   await writeFile(REPORT, report + "\n");
   console.log("\n" + report);
   if (fails.length) process.exitCode = 1;

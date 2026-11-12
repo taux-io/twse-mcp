@@ -22,6 +22,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { headerMatches } from "../src/csv-header.mjs";
+import { quoted } from "./report-text.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -92,6 +93,8 @@ function readableCsv(id, body, catalog) {
  * `maxBodyBytes` 可以換掉，測試才不必造一份幾十 MB 的 body。
  */
 export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
+  // status 0 是 fetchBody 重試後仍連不上，body 是錯誤訊息。
+  if (status === 0) return { kind: "http", detail: `連線失敗：${quoted(body, 200)}` };
   if (status < 200 || status >= 300) return { kind: "http", detail: `HTTP ${status}` };
   let data;
   try {
@@ -99,13 +102,12 @@ export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_
   } catch {
     if (readableCsv(id, body, catalog)) return null;
     // 完整表頭與欄數：要判斷是該刷新目錄還是補規則，就得看得到整行；截斷的話只能確認「有不符」。
-    // 上限 500 字，免得 HTML 錯誤頁整頁灌進 issue。
+    // 上限 500 字，免得 HTML 錯誤頁整頁灌進 issue。表頭是上游的文字，包成行內程式碼才進報告。
     const first = body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].trim();
-    const head = first.slice(0, 500) + (first.length > 500 ? "…" : "");
     const want = Object.keys(catalog[id]?.fields ?? {}).length;
     return {
       kind: "format",
-      detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：「${head}」`,
+      detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：${quoted(first, 500)}`,
     };
   }
   const rows = Array.isArray(data) ? data : [data];
@@ -166,8 +168,7 @@ async function main() {
       while (next < ids.length) {
         const id = ids[next++];
         const r = await fetchBody(id);
-        const p =
-          r.status === 0 ? { kind: "http", detail: `連線失敗：${r.body}` } : classify(id, r, new Date(), catalog);
+        const p = classify(id, r, new Date(), catalog);
         if (p) problems.push({ id, ...p });
       }
     }),

@@ -24,6 +24,8 @@ import { headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
 import { summarize } from "../scripts/pr-wait.mjs";
 import { registryProblems } from "../scripts/check-registry.mjs";
+import { quoted } from "../scripts/report-text.mjs";
+import { buildReport } from "../scripts/smoke.mjs";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
@@ -450,6 +452,20 @@ describe("上游健檢腳本", () => {
     const day = '日期,證券代號,證券名稱,成交股數,成交金額,開盤價,最高價,最低價,收盤價,漲跌價差,成交筆數\r\n"1150924","2330","台積電","1","2","3","4","5","6","7","8"';
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: day }, now)).toBeNull();
   });
+  // 這份報告會由機器人貼進公開 issue。上游的文字要包在行內程式碼裡，提及與連結才不會生效。
+  it("format 的 detail 把上游表頭包成行內程式碼，提及與連結不會生效", () => {
+    const body = "@octocat [x](https://evil.example) `跳出`\r\n1,2";
+    const d = classifyAt("taifex/PutCallRatio", { status: 200, body }, now);
+    expect(d?.kind).toBe("format");
+    expect(d?.detail).toContain("`＠octocat [x](https://evil.example) 跳出`");
+    expect(d?.detail).not.toContain("@");
+  });
+  it("連線失敗的訊息壓成一行，不會帶出 workflow command", () => {
+    const d = classifyAt("taifex/PutCallRatio", { status: 0, body: "fetch failed\n::add-mask::secret" }, now);
+    expect(d?.kind).toBe("http");
+    expect(d?.detail).not.toContain("\n");
+    expect(d?.detail).toContain("`fetch failed ::add-mask::secret`");
+  });
   it("format 的 detail 附完整表頭與欄數，不截在 80 字", () => {
     const header = Array.from({ length: 20 }, (_, i) => `欄位名稱第${i}號`).join(",");
     const d = classifyAt("taifex/PutCallRatio", { status: 200, body: `\uFEFF${header}\r\n1,2` }, now);
@@ -648,5 +664,34 @@ describe("pr-wait 的檢查彙整", () => {
     const r = summarize([{ name: "a", bucket: "fail" }, { name: "b", bucket: "cancel" }, { name: "c", bucket: "pass" }]);
     expect(r.bad.map((c: { name: string }) => c.name)).toEqual(["a", "b"]);
     expect(r.done).toBe(true);
+  });
+});
+
+/**
+ * 排程的機器人會把報告貼進公開 issue，也會印到 Actions log。報告裡引用的上游文字不是我們寫的：
+ * 不清理的話，上游可以讓機器人提及別人、放連結，或在 log 裡下 workflow command。
+ */
+describe("報告裡引用的上游文字", () => {
+  it("quoted：去掉反引號與控制字元、換行壓成空白、@ 換成全形、包成行內程式碼", () => {
+    expect(quoted("a`b\r\nc\u0000d\t@e")).toBe("`a b c d ＠e`");
+    expect(quoted("  多個   空白  ")).toBe("`多個 空白`");
+    expect(quoted(undefined)).toBe("``");
+  });
+  it("quoted：超過上限就截斷並加省略號", () => {
+    const out = quoted("x".repeat(1000), 50);
+    expect(out).toBe("`" + "x".repeat(50) + "…`");
+  });
+
+  it("smoke 的報告：每一項失敗與降級都是一行行內程式碼，跳不出清單", () => {
+    const evil = "isError：上游回的不是 JSON。開頭：@octocat [點我](https://evil.example)\n::add-mask::x\n- 假的清單項目 `code`";
+    const report = buildReport({ endpoint: "http://localhost:8787/mcp", listOnly: false, fails: [evil], warns: [evil] });
+    const lines = report.split("\n");
+    expect(lines.filter((l) => l.startsWith("- "))).toHaveLength(2);
+    expect(lines.some((l) => l.startsWith("::"))).toBe(false);
+    expect(report).not.toContain("@");
+    for (const l of lines.filter((x) => x.startsWith("- "))) expect(l).toMatch(/^- `[^`]*`$/);
+  });
+  it("smoke 的報告：沒有失敗時寫全部通過", () => {
+    expect(buildReport({ endpoint: "x", listOnly: true, fails: [], warns: [] })).toContain("全部通過");
   });
 });
