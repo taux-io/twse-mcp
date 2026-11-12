@@ -831,6 +831,21 @@ describe("buildStockSnapshot — 相對今天的判斷", () => {
   });
   const punish = (period: string) => [{ Code: "2330", DispositionPeriod: period }];
 
+  it("處置內容與注意原因的自由文字超過 500 字會截斷", () => {
+    const long = "原".repeat(1500);
+    const r = buildStockSnapshot(
+      "2330",
+      base({
+        punish: [{ Code: "2330", DispositionPeriod: "115/09/18～115/09/30", ReasonsOfDisposition: long, DispositionMeasures: long }],
+        notice: [{ Code: "2330", TradingInfoForAttention: long }],
+      }),
+    ) as any;
+    for (const text of [r.alerts.處置內容[0].處置原因, r.alerts.處置內容[0].處置措施, r.alerts.注意原因[0]]) {
+      expect([...text].length).toBeLessThan(530);
+      expect(text).toContain("原文 1500 字");
+    }
+  });
+
   it("處置期間還沒開始：不是處置股，但內容標「尚未開始」", () => {
     const r = buildStockSnapshot("2330", base({ punish: punish("115/09/29～115/10/05") })) as any;
     expect(r.alerts.處置股).toBe(false);
@@ -989,6 +1004,40 @@ describe("buildMarketEvents", () => {
     const r = buildMarketEvents({ ...src, exRights: many }, today, [], caveats) as any;
     expect(r.除權除息).toHaveLength(50);
     expect(caveats.join()).toContain("共 60 筆");
+  });
+
+  // 注意股與處置股在波動大的日子可以有上百筆，每筆還帶一段自由文字。
+  it("注意股與處置股超過上限也只列 50 筆並說明總數", () => {
+    const notice = Array.from({ length: 120 }, (_, i) => ({ Code: String(2000 + i), Name: "x", Date: "1150926", TradingInfoForAttention: "漲幅異常" }));
+    const punish = Array.from({ length: 80 }, (_, i) => ({ Code: String(3000 + i), Name: "y", DispositionPeriod: "115/09/18～115/09/30" }));
+    const caveats: string[] = [];
+    const r = buildMarketEvents({ ...src, notice, punish }, today, [], caveats) as any;
+    expect(r.今日注意股).toHaveLength(50);
+    expect(r.處置股).toHaveLength(50);
+    expect(caveats.join()).toContain("今日注意股共 120 筆");
+    expect(caveats.join()).toContain("處置股共 80 筆");
+  });
+
+  it("自由文字超過 500 字會截斷並標明原文長度；500 字以內原樣保留", () => {
+    const long = "處".repeat(2000);
+    const caveats: string[] = [];
+    const r = buildMarketEvents(
+      {
+        ...src,
+        notice: [{ Code: "2330", Name: "台積電", Date: "1150926", TradingInfoForAttention: long }],
+        punish: [
+          { Code: "2305", Name: "全友", DispositionPeriod: "115/09/18～115/09/30", ReasonsOfDisposition: long, DispositionMeasures: "措".repeat(500) },
+        ],
+      },
+      today,
+      [],
+      caveats,
+    ) as any;
+    for (const text of [r.今日注意股[0].注意原因, r.處置股[0].處置原因]) {
+      expect([...text].length).toBeLessThan(530);
+      expect(text).toContain("原文 2000 字");
+    }
+    expect(r.處置股[0].處置措施).toBe("措".repeat(500));
   });
 
   it("抓失敗的那一類是 null 並說明，不當成沒有", () => {
