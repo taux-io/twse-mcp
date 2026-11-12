@@ -103,15 +103,22 @@ const MUST_NOT_EXIST = [
 const MAX_NO_FIELDS_RATIO = 0.2;
 
 /** 把 dataset id 正規化成上游實際會收到的路徑，用來做等價比對。 */
+/** 資料集 id 的形狀：英數字、底線、連字號組成的片段，以 / 分段。 */
+const ID_SHAPE = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
+
+/** 解碼一個路徑片段；解不開（孤立的 %）就原樣回傳。 */
+function decodeSegment(seg) {
+  try {
+    return decodeURIComponent(seg);
+  } catch {
+    return seg;
+  }
+}
+
 function normalisePath(id) {
   const out = [];
   for (const seg of id.split("/")) {
-    let s;
-    try {
-      s = decodeURIComponent(seg);
-    } catch {
-      s = seg;
-    }
+    const s = decodeSegment(seg);
     if (s === "" || s === ".") continue;
     if (s === "..") { out.pop(); continue; }
     out.push(s);
@@ -190,11 +197,24 @@ export function checkCatalog(catalog) {
   }
 
   // 路徑穿越：id 帶 .. 或空片段會讓請求跳出 /v1，或產生與其他 id 等價的路徑。
-  const traversal = ids.filter((id) => id.split("/").some((s) => s === ".." || s === "." || s === ""));
+  // 比對的是解碼後的片段：URL 解析會把 %2e%2e 當成 ..，只看字面值擋不住。
+  const traversal = ids.filter((id) => id.split("/").some((s) => ["..", ".", ""].includes(decodeSegment(s))));
   if (traversal.length) {
     problems.push(
       `${traversal.length} 個資料集 id 含有路徑穿越或空片段（會改變實際請求的路徑）：` +
         traversal.slice(0, 3).join(", "),
+    );
+  }
+
+  // 執行期把 id 直接接在 /v1/ 後面當 URL，所以 id 裡任何對 URL 有意義的字元都會改變實際請求：
+  // ? 與 # 會把後面的部分從路徑拿掉（刻意排除的巨量端點可以這樣回到目錄），% 能藏住任何字元，
+  // \ 會被當成 /，@ 與 : 會被讀成帳號或 scheme。現行目錄的 id 只用到英數字、底線與 /，
+  // 所以用允許清單，不逐一列舉危險字元。
+  const oddChars = ids.filter((id) => !ID_SHAPE.test(id));
+  if (oddChars.length) {
+    problems.push(
+      `${oddChars.length} 個資料集 id 含有不允許的字元（只接受英數字、底線、連字號，以 / 分段）：` +
+        oddChars.slice(0, 3).map((id) => JSON.stringify(id.slice(0, 80))).join(", "),
     );
   }
 
