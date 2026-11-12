@@ -14,6 +14,9 @@ name: smoke
 # 排程時另外對正式環境做存活檢查：工具清單、快捷指令與首頁，外加 modern 的 dataset.get
 # 一次（共 9 個請求），其餘工具不呼叫。
 # 本機測不到部署失敗、網域設定跑掉、正式環境跑的不是 main 這類問題。
+#
+# 排程時也比對官方 MCP Registry 上的條目（scripts/check-registry.mjs）：它的連線位址必須與
+# repo 的 server.json 相同。發布憑證在 repo 這一側鎖不住，所以每天看一次結果。
 
 on:
   pull_request:
@@ -73,6 +76,12 @@ jobs:
           SMOKE_REPORT: prod-report.md
         run: node scripts/smoke.mjs
 
+      - name: registry 條目沒有被改指到別處
+        if: always() && github.event_name != 'pull_request'
+        env:
+          REGISTRY_REPORT: registry-report.md
+        run: node scripts/check-registry.mjs
+
       - name: wrangler log（失敗時看）
         if: failure()
         run: tail -100 wrangler.log || true
@@ -87,13 +96,13 @@ jobs:
           LABEL: smoke
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
-          REPORT=$(cat smoke-report.md prod-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
+          REPORT=$(cat smoke-report.md prod-report.md registry-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
           BODY=$(printf '%s\n' \
-            "每日冒煙測試（本機 wrangler dev + 真實上游資料，加上正式環境存活檢查）發現問題：" \
+            "每日冒煙測試（本機 wrangler dev + 真實上游資料，加上正式環境存活檢查與 registry 條目比對）發現問題：" \
             "" \
             "$REPORT" \
             "" \
-            "常見原因：上游資料多了程式沒預期的值，讓回應不符 outputSchema（SDK 會讓整個呼叫失敗）；或上游格式改變。先用 \`npm run smoke\` 在本機重現。正式環境那段失敗、本機通過時，看 Cloudflare 的部署與網域設定。" \
+            "常見原因：上游資料多了程式沒預期的值，讓回應不符 outputSchema（SDK 會讓整個呼叫失敗）；或上游格式改變。先用 \`npm run smoke\` 在本機重現。正式環境那段失敗、本機通過時，看 Cloudflare 的部署與網域設定。registry 條目不一致而且不是自己發布的，視為條目被竄改：先重新發布正確的 server.json，再查是誰發布的。" \
             "" \
             "[查看這次 run](${RUN_URL})")
           gh label create "$LABEL" --description "Daily smoke test against real upstream data" --color D93F0B --force

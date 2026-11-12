@@ -22,6 +22,7 @@ import {
 import { headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
 import { summarize } from "../scripts/pr-wait.mjs";
+import { registryProblems } from "../scripts/check-registry.mjs";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
@@ -377,6 +378,39 @@ describe("server.json — 對外端點不可被無聲改掉", () => {
   // registry 上的版本就會與線上實際回報的不同，而沒有任何東西會提醒。
   it("version 與 package.json 一致", () => {
     expect(serverJson.version).toBe(pkg.version);
+  });
+});
+
+/**
+ * 發布憑證在 repo 這一側鎖不住，所以每天比對一次官方 registry 上的條目
+ * （scripts/check-registry.mjs，由 smoke.yml 的排程執行）。這裡守的是比對規則本身。
+ */
+describe("registry 條目與 server.json 的比對", () => {
+  const entry = (remotes: unknown, name = serverJson.name) => ({ name, version: "9.9.9", remotes });
+
+  it("remotes 相同時沒有問題", () => {
+    expect(registryProblems(entry(serverJson.remotes), serverJson)).toEqual([]);
+  });
+
+  it.each([
+    ["url 被改指到別的主機", [{ type: "streamable-http", url: "https://evil.example/mcp" }]],
+    ["多了一個 remote", [...serverJson.remotes, { type: "streamable-http", url: "https://evil.example/mcp" }]],
+    ["type 被改掉", [{ ...serverJson.remotes[0], type: "sse" }]],
+    ["remotes 不見了", undefined],
+  ])("%s 時回報不一致", (_label, remotes) => {
+    expect(registryProblems(entry(remotes), serverJson)).toHaveLength(1);
+  });
+
+  it("registry 回的不是這個專案的條目時回報問題", () => {
+    expect(registryProblems(entry(serverJson.remotes, "io.github.someone/else"), serverJson)).toHaveLength(1);
+    expect(registryProblems(undefined, serverJson)).toHaveLength(1);
+  });
+
+  // registry 的內容會進公開 issue：反引號與換行要去掉，才跳不出行內程式碼。
+  it("報告裡引用的 registry 文字跳不出行內程式碼", () => {
+    const [problem] = registryProblems(entry([{ type: "x", url: "https://e.example/`\n@octocat [x](https://e.example)" }]), serverJson);
+    expect(problem).not.toContain("\n");
+    expect(problem).toContain("`https://e.example/  @octocat [x](https://e.example)`");
   });
 });
 
