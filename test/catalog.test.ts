@@ -169,6 +169,35 @@ describe("catalog 健檢腳本 — 守衛自己的破口", () => {
     expect(checkCatalog(c).problems).toEqual([]);
   });
 
+  // 執行期把 id 直接接在 /v1/ 後面當 URL。URL 解析會把 %2e%2e 當成 ..，也會把 ? 與 # 之後的部分
+  // 從路徑拿掉，所以健檢要看的是「解析之後」的路徑，不是字面值。
+  const withId = (id: string) => ({ ...catalog, [id]: { ...catalog["taifex/PutCallRatio"], id } });
+
+  it.each(["taifex/%2e%2e/%2e%2e/evil", "taifex/%2E%2E/evil", "taifex/a/%2e/b"])(
+    "編碼過的路徑穿越 %s 要抓出來",
+    (id) => {
+      expect(checkCatalog(withId(id)).problems.join("\n")).toContain("路徑穿越");
+    },
+  );
+
+  it.each([
+    "taifex/TimeAndSalesData?x=1",
+    "taifex/TimeAndSalesData#x",
+    "taifex/a%2Fb",
+    "taifex/a\\b",
+    "taifex/user@host",
+    "taifex/http:evil",
+    "taifex/a b",
+  ])("id 含有英數字、底線、連字號以外的字元 %s 要抓出來", (id) => {
+    const text = checkCatalog(withId(id)).problems.join("\n");
+    expect(text).toContain("不允許的字元");
+    expect(text).toContain(id);
+  });
+
+  it("帶 ? 的巨量端點不會因為字面值不同而回到目錄", () => {
+    expect(checkCatalog(withId("taifex/TimeAndSalesData?x=1")).problems.length).toBeGreaterThan(0);
+  });
+
   // 排除清單是字串比對，但它保護的是 URL 路徑，而 URL 會被正規化。
   // 實測 /v1/./TimeAndSalesData 與 /v1//TimeAndSalesData 都回 255,751,505 bytes。
   it("巨量端點的等價拼法也要擋掉，不能只擋字面值", () => {
