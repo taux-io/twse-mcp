@@ -2432,9 +2432,9 @@ describe("og:image", () => {
  * **只看 content-length 不夠。** 分塊傳輸沒有那個標頭，而它也可以說謊。所以宣告值
  * 先擋一次，然後邊讀邊數——第二道才是真正的守衛。
  *
- * 上限取 48 MB：目錄裡最大的資料集實測 36.1 MB（`opendata/t187ap37_L`，在真的
- * 128 MB production isolate 上回 200），留三成成長空間；而被排除的逐筆成交端點是
- * 255 MB，遠在界線之外。
+ * 上限取 64 MiB：目錄裡最大的資料集是 `opendata/t187ap37_L`，每天在 43–45 MiB 之間變動；
+ * production 探針實測單份與多份的記憶體餘裕（依據寫在 src/twse.ts 的 MAX_BODY_BYTES）。
+ * 被排除的逐筆成交端點是 255 MB，遠在界線之外。
  */
 describe("上游回應的大小上限", () => {
   const bigHeaders = (n: number) => ({
@@ -2446,6 +2446,19 @@ describe("上游回應的大小上限", () => {
   // undici 的 Response 一建構就會自己開始抽取底層串流，所以在 Node 這一層
   // 觀測到的 pull 來自平台而非本程式；能守住的是我們自己的行為。
   // （在 workers runtime 上，提前拒絕才真的省下傳輸——那一點這裡驗不到。）
+  // `t187ap37_L` 在 2026-11 是 43–45 MiB。它再長大一些（這裡用 50 MiB）仍要讀得到，
+  // 超過 64 MiB 才拒絕。
+  it("50 MiB 的資料集讀得到；超過 64 MiB 一個位元組就拒絕", async () => {
+    const declare = (n: number) =>
+      vi.stubGlobal("fetch", vi.fn(async () => new Response("[]", { status: 200, headers: bigHeaders(n) })));
+    declare(50 * 1024 * 1024);
+    await expect(fetchDataset("taifex/PutCallRatio")).resolves.toEqual([]);
+    declare(64 * 1024 * 1024);
+    await expect(fetchDataset("taifex/PutCallRatio")).resolves.toEqual([]);
+    declare(64 * 1024 * 1024 + 1);
+    await expect(fetchDataset("taifex/PutCallRatio")).rejects.toThrow(/過大.*64\.0 MB/);
+  });
+
   it("content-length 宣告超標時直接拒絕，不去讀 body", async () => {
     let gotReader = false;
     vi.stubGlobal(
@@ -2489,7 +2502,7 @@ describe("上游回應的大小上限", () => {
     );
     await expect(fetchDataset("taifex/PutCallRatio")).rejects.toThrow(/過大|too large/i);
     // 中止在上限附近，不是把 200 MB 全部讀完
-    expect(sent).toBeLessThan(60);
+    expect(sent).toBeLessThan(80);
   });
 
   it("錯誤訊息說得出是哪個資料集、多大、上限多少", async () => {
@@ -2501,7 +2514,7 @@ describe("上游回應的大小上限", () => {
     const msg = (err as Error).message;
     expect(msg).toContain("taifex/PutCallRatio");
     expect(msg).toMatch(/99|94/); // 位元組或 MB 任一種呈現
-    expect(msg).toMatch(/48/);
+    expect(msg).toMatch(/64/);
   });
 
   it("正常大小不受影響", async () => {
