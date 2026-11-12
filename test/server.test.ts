@@ -855,6 +855,21 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect((await callTool("snapshot.futures", { contract: "台積電期貨" })).contract).toBe("CDF");
   });
 
+  // 契約的中文名稱來自大額交易人表。那張表抓失敗時，名稱對不到任何契約，
+  // 但這是「不知道」，不是「沒有這個契約」。
+  it("snapshot.futures：大額交易人表抓失敗時，用名稱查是「無法判斷」，不說找不到", async () => {
+    overrideFetch((u) => u.includes("OpenInterestOfLargeTradersFutures"), () => new Response("down", { status: 502 }));
+    const byName = await callTool("snapshot.futures", { contract: "台積電期貨" });
+    expect(byName.contract).toBeNull();
+    expect(byName.caveats.join()).toContain("無法判斷");
+    expect(byName.caveats.join()).toContain("不代表");
+    expect(byName.caveats.join()).toContain("改用代號");
+    expect(byName.caveats.join()).not.toContain("找不到");
+    // 代號與寫死的別名不靠那張表，照常查得到
+    expect((await callTool("snapshot.futures", { contract: "CDF" })).contract).toBe("CDF");
+    expect((await callTool("snapshot.futures", { contract: "小台" })).contract).toBe("MTX");
+  });
+
   it("snapshot.futures：口語名稱與別名；小台沒有單獨的大額交易人", async () => {
     for (const q of ["小台", "MXF", "mtx"]) {
       const out = await callTool("snapshot.futures", { contract: q });
