@@ -872,6 +872,14 @@ const JA: Page = {
 
 const PAGES: Record<Locale, Page> ={ zh: ZH, en: EN, ja: JA };
 
+/**
+ * 要放進 <script> 區塊的 JSON。JSON.stringify 不會處理 <，內容裡只要有一個 </script>
+ * 就會提早結束區塊。現在的內容全是檔案裡的常數，這是為了之後有人把目錄文字放進來時不出事。
+ */
+export function jsonForScript(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 /** HTML 逸出。內容全是靜態常數，但逸出讓「日後有人接上動態資料」不會變成漏洞。 */
 function esc(s: string): string {
   return s
@@ -1299,9 +1307,9 @@ ${alternates}
 <meta name="robots" content="index,follow">
 ${ICON_LINKS}
 <link rel="alternate" type="text/markdown" href="${SITE_ORIGIN}/llms.txt" title="Plain-text summary for AI">
-<script type="application/ld+json">${JSON.stringify(ldSoftware(loc, p))}</script>
-<script type="application/ld+json">${JSON.stringify(ldHowTo(loc, p))}</script>
-<script type="application/ld+json">${JSON.stringify(ldFaq(p))}</script>
+<script type="application/ld+json">${jsonForScript(ldSoftware(loc, p))}</script>
+<script type="application/ld+json">${jsonForScript(ldHowTo(loc, p))}</script>
+<script type="application/ld+json">${jsonForScript(ldFaq(p))}</script>
 <style>${CSS}</style>
 </head>
 <body>
