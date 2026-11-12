@@ -911,10 +911,25 @@ const isWeekday = (iso: string) => weekdayOf(iso) % 6 !== 0;
  * 週一早上看到週五的資料是正常的。只有這時才去抓休市日表，平常不多一次外呼。
  */
 export function isStaleDataDate(dataDate: string, today: string): boolean {
+  // 格式對不代表是真的日期：上游的 "1150099" 會被 rocToIso 轉成 "2026-00-99"。
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dataDate) || Number.isNaN(Date.parse(`${dataDate}T00:00:00Z`))) return false;
   let prev = addDays(today, -1);
   while (!isWeekday(prev)) prev = addDays(prev, -1);
-  return /^\d{4}-\d{2}-\d{2}$/.test(dataDate) && dataDate < prev;
+  return dataDate < prev;
 }
+
+/** 落後超過這個天數就不逐日說明。最長的連假不到兩週；60 天以上不是休市能解釋的。 */
+export const MAX_EXPLAINED_GAP_DAYS = 60;
+
+/** 資料日期落後今天幾天；日期解析不了回 null。 */
+export function dataGapDays(dataDate: string, today: string): number | null {
+  const days = (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${dataDate}T00:00:00Z`)) / 86_400_000;
+  return Number.isFinite(days) ? Math.round(days) : null;
+}
+
+/** 落後太久時的說明：只說舊了幾天，不列出中間的每一個平日（幾十年就是幾萬個日期）。 */
+export const longGapNote = (dataDate: string, days: number) =>
+  `資料日期是 ${dataDate}，比今天舊 ${days} 天，不是休市能解釋的落差，上游可能已停止更新這份資料`;
 
 /**
  * 說明資料日期與今天之間的平日為什麼沒有資料。休市日表（holidaySchedule）也列了「開始交易日」
@@ -952,6 +967,9 @@ export function tradingCalendar(today: string, holidays: Row[]): { calendar: Rec
 }
 
 export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
+  const days = dataGapDays(dataDate, today);
+  if (days === null) return `資料日期「${dataDate.slice(0, 20)}」不是有效的日期，無法說明它與今天之間的落差`;
+  if (days > MAX_EXPLAINED_GAP_DAYS) return longGapNote(dataDate, days);
   if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
   const closed = closedDates(holidays);
   const closedDays: string[] = [];

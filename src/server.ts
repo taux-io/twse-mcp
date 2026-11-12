@@ -20,11 +20,14 @@ import {
   buildMarketEvents,
   esgLabel,
   buildFuturesSnapshot,
+  dataGapDays,
   dataGapNote,
   tradingCalendar,
   isDailyDataset,
   rocToIso,
   isStaleDataDate,
+  longGapNote,
+  MAX_EXPLAINED_GAP_DAYS,
   FUTURES_SOURCE_LABELS,
   buildMovers,
   LISTED_STOCK_SCOPE,
@@ -1027,8 +1030,18 @@ async function compareStocks(codes: string[]): Promise<Record<string, unknown>> 
 async function explainDataGap(dataDate: unknown, caveats: string[]): Promise<void> {
   const today = taipeiToday();
   if (typeof dataDate !== "string" || !isStaleDataDate(dataDate, today)) return;
-  const { rows, errors } = await fetchSources({ holidays: { dataset: DS_HOLIDAYS, label: "休市日表" } });
-  caveats.push(dataGapNote(dataDate, today, errors.length ? null : rows.holidays));
+  // 這只是替已經組好的回應補一句說明。它出任何錯都不該讓整次工具呼叫失敗。
+  try {
+    const days = dataGapDays(dataDate, today);
+    if (days !== null && days > MAX_EXPLAINED_GAP_DAYS) {
+      caveats.push(longGapNote(dataDate, days));
+      return;
+    }
+    const { rows, errors } = await fetchSources({ holidays: { dataset: DS_HOLIDAYS, label: "休市日表" } });
+    caveats.push(dataGapNote(dataDate, today, errors.length ? null : rows.holidays));
+  } catch {
+    caveats.push(`資料日期是 ${dataDate}，比前一個工作日舊；無法說明中間為什麼沒有資料`);
+  }
 }
 
 /**
