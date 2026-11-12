@@ -191,7 +191,7 @@ const UPSTREAM_ECHO_LIMIT = 200;
  * 128 MB production isolate 上回 200、耗時 2.15 秒），留約三成成長空間；而被排除的
  * 逐筆成交端點是 255.8 MB，遠在界線之外。上限落在「已知會動的」與「已知會爆的」之間。
  */
-const MAX_BODY_BYTES = 48 * 1024 * 1024;
+export const MAX_BODY_BYTES = 48 * 1024 * 1024;
 
 /**
  * 讀取回應本文，超過上限就中止。

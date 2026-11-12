@@ -17,6 +17,7 @@ import {
   DS_DAY,
   DS_FUND,
   DS_RANK,
+  MAX_BODY_BYTES,
   SNAPSHOT_DATASETS,
 } from "../src/twse";
 import { headerMatches } from "../src/csv-header.mjs";
@@ -28,6 +29,7 @@ import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
   classify,
+  MAX_BODY_BYTES as SCRIPT_MAX_BODY_BYTES,
   FRESHNESS,
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
@@ -459,6 +461,23 @@ describe("上游健檢腳本", () => {
     const d = classifyAt("taifex/PutCallRatio", { status: 200, body: "<html>" + "x".repeat(2000) }, now);
     expect(d?.detail).toContain("…");
     expect(d!.detail.length).toBeLessThan(700);
+  });
+  it("回應超過執行期上限的 85% 是 size，訊息帶大小與百分比；85% 以內不算", () => {
+    const body = JSON.stringify([{ a: "x".repeat(841) }]); // 851 bytes
+    expect(classify("announcement/notice", { status: 200, body }, now, catalog, 1002)).toBeNull();
+    const warn = classify("announcement/notice", { status: 200, body }, now, catalog, 1000);
+    expect(warn?.kind).toBe("size");
+    expect(warn?.detail).toContain("851 bytes");
+    expect(warn?.detail).toContain("85.1%");
+    expect(warn?.detail).toContain("會失敗");
+    expect(classify("announcement/notice", { status: 200, body }, now, catalog, 800)?.detail).toContain("正在失敗");
+  });
+  it("大小以位元組計，不是字元數：中文一個字三個位元組", () => {
+    const body = JSON.stringify([{ a: "股".repeat(300) }]); // 310 個字元、910 bytes
+    expect(classify("announcement/notice", { status: 200, body }, now, catalog, 1000)?.kind).toBe("size");
+  });
+  it("執行期上限與 src/twse.ts 一致", () => {
+    expect(SCRIPT_MAX_BODY_BYTES).toBe(MAX_BODY_BYTES);
   });
   it("必定有資料的主檔回 0 筆是 empty；其他表 0 筆不算", () => {
     expect(classifyAt("opendata/t187ap03_L", ok([]), now)?.kind).toBe("empty");
