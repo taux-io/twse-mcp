@@ -12,9 +12,13 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
-    # agents@0.31.0 的 peerOptional 只接受 server@2.3.1，升到 2.4.0 會讓 npm clean-install
-    # 報 ERESOLVE（見 #197、#199）。等 agents 發新版放寬 peer 範圍後移除這段，
-    # 並把 package.json 的 server 版本跟著升上去。
+    # agents 的 peerOptional 把 server 釘在一個精確版本（agents@0.32.0 釘 server@2.4.0，
+    # 之前 0.31.0 釘 2.3.1）。Dependabot 單獨升 server 會讓 npm clean-install 報 ERESOLVE
+    # （見 #197、#199），所以不讓它開 server 的 PR。
+    #
+    # 代價：server 處理所有未認證的輸入，卻不會有版本更新的提醒。agents 的升版 PR 要手動把
+    # package.json 的 server 一起升到新版 agents 的 peer 指定的版本（做法見 AGENTS.md
+    # 的「依賴升級」）。等 agents 把 peer 放寬成範圍，再移除這段。
     ignore:
       - dependency-name: "@modelcontextprotocol/server"
 
