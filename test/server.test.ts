@@ -1312,7 +1312,7 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
  *
  * 稽核實測過 legacy lane 會把 JSON-RPC 批次的每個元素**同時**分派：275 元素的批次 →
  * 275 次並行 fetch → 放大 5973 倍，足以 OOM 一個 128 MB isolate。批次在進 SDK 前
- * 就被整批拒絕（server.ts 的 rejectBatch），這組測試守的是那個「零出站」。
+ * 就被整批拒絕（server.ts 的 guardMcpBody），這組測試守的是那個「零出站」。
  *
  * 另一道守衛是 fetchDataset 的並行上限（twse.ts），它管的是同一個 isolate 裡
  * 同時在跑的多個 modern 請求。常數寫死在這裡而非 import——值被改動時測試會紅。
@@ -1389,6 +1389,53 @@ describe("扇出上限與並行上限", () => {
     const body = (await res.json()) as { error: { code: number } };
     expect(body.error.code).toBe(-32600);
     expect(state.calls).toBe(0);
+  });
+
+  // 前面墊空白仍是合法 JSON：沒有上限的話，這個請求會被照常處理並向上游抓資料。
+  function padded(bytes: number, init: { stream?: boolean; headers?: Record<string, string> } = {}) {
+    const call = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name: "dataset.get", arguments: { dataset_id: "exchangeReport/STOCK_DAY_AVG_ALL", limit: 1 } },
+    });
+    const text = " ".repeat(bytes - call.length) + call;
+    const body = init.stream
+      ? new ReadableStream<Uint8Array>({
+          start(c) {
+            const all = new TextEncoder().encode(text);
+            for (let i = 0; i < all.length; i += 16_384) c.enqueue(all.subarray(i, i + 16_384));
+            c.close();
+          },
+        })
+      : text;
+    return new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream", host: "localhost", ...init.headers },
+      body,
+      ...(init.stream ? { duplex: "half" } : {}),
+    } as RequestInit);
+  }
+
+  it.each([
+    ["宣告的 content-length 超過上限", () => padded(1024, { headers: { "content-length": String(256 * 1024 + 1) } })],
+    ["沒有 content-length 的串流 body 超過上限", () => padded(256 * 1024 + 1, { stream: true })],
+    ["content-length 謊報偏小、實際超過上限", () => padded(256 * 1024 + 1, { stream: true, headers: { "content-length": "10" } })],
+  ])("請求 body 上限 256 KB：%s → 413，且完全不發出出站請求", async (_label, make) => {
+    const state = countingFetchStub();
+    const res = await send(make());
+    expect(res.status).toBe(413);
+    const body = (await res.json()) as { error: { code: number } };
+    expect(body.error.code).toBe(-32600);
+    expect(state.calls).toBe(0);
+  });
+
+  it.each([false, true])("剛好 256 KB 的請求照常處理（串流：%s）", async (stream) => {
+    const state = countingFetchStub();
+    const res = await send(padded(256 * 1024, { stream }));
+    expect(res.status).toBe(200);
+    await res.text();
+    expect(state.calls).toBe(1);
   });
 
   it("單一請求內的並行出站 fetch 數不超過上限（個股快照選項全開）", async () => {

@@ -243,7 +243,7 @@ function tooLarge(label: string, bytes: number, partial = false): string {
  *
  * `MAX_BODY_BYTES` 是**每次** fetch 的上限，擋不住「同時有 N 次 fetch」。這道閘門把一個請求
  * 的並行抓取數固定住：一個請求最壞是 MAX_CONCURRENT_FETCHES × MAX_BODY_BYTES。
- * JSON-RPC 批次（一次分派很多個請求）由 server.ts 的 rejectBatch 在進 SDK 前整個擋掉。
+ * JSON-RPC 批次（一次分派很多個請求）由 server.ts 的 guardMcpBody 在進 SDK 前整個擋掉。
  *
  * 為什麼是每個請求一份，而不是整個 isolate 共用一份：原本是模組層級的計數加等待佇列，
  * 在 workerd 上會出兩個問題（2026-09-27 由端到端 eval 在 wrangler dev 重現）：
