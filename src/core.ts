@@ -2172,12 +2172,15 @@ export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources)
   const largeNames = new Map<string, string>();
   for (const r of src.largeTraders) largeNames.set(String(r["Contract"] ?? ""), String(r["ContractName"] ?? ""));
   const codes = [...new Set(src.daily.map((r) => String(r["Contract"] ?? "")))].filter(Boolean);
+  // 查詢字與上游的契約代號都不是我們控制的字串：直接取值會撈到 Object.prototype 上的東西
+  // （"constructor" 取到的是函式，不是 undefined）。
+  const own = (table: Record<string, string>, key: string) => (Object.hasOwn(table, key) ? table[key] : undefined);
   const nameOf = (c: string) =>
-    FUTURES_NAMES[c] ?? largeNames.get(c) ?? (c.endsWith("F") ? largeNames.get(c.slice(0, -1)) : undefined) ?? null;
+    own(FUTURES_NAMES, c) ?? largeNames.get(c) ?? (c.endsWith("F") ? largeNames.get(c.slice(0, -1)) : undefined) ?? null;
 
   const q = normQuery(query.trim()).replace(/\s+/g, "");
   const upper = query.trim().toUpperCase();
-  const alias = FUTURES_ALIASES[q] ?? FUTURES_ALIASES[upper];
+  const alias = own(FUTURES_ALIASES, q) ?? own(FUTURES_ALIASES, upper);
   let code: string | null = alias ?? (codes.includes(upper) ? upper : null);
   let candidates: { code: string; name: string | null }[] = [];
   if (!code && q) {
