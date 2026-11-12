@@ -25,6 +25,10 @@
 ## 依賴升級
 
 Dependabot 的 PR 都改 `package-lock.json`，合併一個後其他的會衝突：留言 `@dependabot rebase`，一次重建一個。
+`agents` 升版的 PR 要手動把 `@modelcontextprotocol/server` 一起升：`agents` 把它釘在一個精確的 peer 版本，
+而 Dependabot 被設定成不開 `server` 的 PR（`.github/dependabot.yml`）。先看新版 `agents` 要哪一版
+（`npm view agents@<新版> peerDependencies`），把 `package.json` 的 `server` 改成同一版，再 `npm install`。
+三個正式相依（`server`、`agents`、`zod`）都用精確版本，升版只走 PR。
 `smoke` 在 push 到 `main` 時不跑，合併後要驗就 `gh workflow run smoke.yml`。
 驗證做法與新舊回應比對的結果見 [docs/dependency-upgrade-2026-10-17.md](docs/dependency-upgrade-2026-10-17.md)。
 
