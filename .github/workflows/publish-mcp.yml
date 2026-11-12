@@ -106,8 +106,12 @@ jobs:
         run: ./mcp-publisher publish
 
   # 分成獨立的 job，而不是在上面加一步：上面的 job 握有 id-token: write，同一個 job 裡的
-  # 任何程式都能換到改寫 registry 條目的憑證。npx 會裝進 smithery 與它沒有釘版本的相依，
+  # 任何程式都能換到改寫 registry 條目的憑證。smithery CLI 與它的相依是第三方程式，
   # 那不該和那張憑證待在一起。這裡只拿得到 SMITHERY_API_KEY。
+  #
+  # SMITHERY_API_KEY 是長期金鑰，這個 job 裡跑的每一段程式都讀得到它，所以比照上面的 job：
+  # action 釘到 commit SHA；smithery CLI 由 .github/smithery-cli 的 lockfile 鎖住整棵相依樹
+  # （含 integrity），用 `npm ci --ignore-scripts` 安裝，不在執行時才解析版本。
   #
   # 同一個 environment：key 只在 required reviewer 核准後才讀得到。
   smithery:
@@ -119,14 +123,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "22"
+      - name: install smithery CLI
+        working-directory: .github/smithery-cli
+        run: npm ci --ignore-scripts
       - name: publish to Smithery
         env:
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
-        run: npx --yes smithery@1.2.0 mcp publish https://twse-mcp.taux.io/mcp -n taux/twse
+        run: .github/smithery-cli/node_modules/.bin/smithery mcp publish https://twse-mcp.taux.io/mcp -n taux/twse
       # 顯示名稱與說明只在 .github/smithery.json 維護，每次發布都同步過去，網頁上改的會被覆蓋。
       - name: sync Smithery listing metadata
         env:
