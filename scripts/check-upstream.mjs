@@ -58,7 +58,7 @@ export const FRESHNESS = [
 export const MAX_AGE_DAYS = 12;
 
 /** 與 src/twse.ts 的 MAX_BODY_BYTES 一致。 */
-export const MAX_BODY_BYTES = 48 * 1024 * 1024;
+export const MAX_BODY_BYTES = 64 * 1024 * 1024;
 /** 預警門檻。資料集每天在長，留一段時間在真的失敗之前處理。 */
 export const SIZE_WARN_RATIO = 0.85;
 
