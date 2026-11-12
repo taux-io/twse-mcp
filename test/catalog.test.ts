@@ -51,6 +51,21 @@ describe("catalog 健檢腳本", () => {
     expect(total).toBeGreaterThan(MIN_DATASETS);
   });
 
+  // 目錄的文字來自上游的 API 文件，每週刷新後原樣進 dataset.search 與 dataset.describe 的回應。
+  // 真實目錄最長的 summary 是 60 字、description 62 字、欄位說明 127 字（2026-11-12）。
+  it.each([
+    ["summary", (d: any) => ({ ...d, summary: "摘".repeat(201) }), "summary"],
+    ["description", (d: any) => ({ ...d, description: "述".repeat(501) }), "description"],
+    ["欄位說明", (d: any) => ({ ...d, fields: { ...d.fields, Code: "說".repeat(301) } }), "欄位說明"],
+    ["欄位名", (d: any) => ({ ...d, fields: { ...d.fields, ["名".repeat(201)]: "x" } }), "欄位名"],
+  ])("%s 異常長時要抓出來", (_label, mutate, word) => {
+    const broken = { ...catalog, [DS_DAY]: mutate(catalog[DS_DAY]) };
+    const text = checkCatalog(broken).problems.join("\n");
+    expect(text).toContain(DS_DAY);
+    expect(text).toContain(word);
+    expect(text.length).toBeLessThan(400);
+  });
+
   it("目錄缺了 snapshot.etf 依賴的資料集時要抓出來", () => {
     const broken = { ...catalog };
     delete (broken as Record<string, unknown>)[DS_FUND];
