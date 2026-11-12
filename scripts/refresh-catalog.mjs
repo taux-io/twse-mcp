@@ -22,7 +22,7 @@
  * 觀測值不是保證），而且看到 id 就知道來源。
  */
 import { writeFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "catalog.generated.json");
@@ -237,7 +237,9 @@ async function main() {
   process.stderr.write(`wrote ${count} datasets -> ${OUT}\n`);
 }
 
-main().catch((err) => {
-  process.stderr.write(String(err?.stack ?? err) + "\n");
-  process.exit(1);
-});
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((err) => {
+    process.stderr.write(String(err?.stack ?? err) + "\n");
+    process.exit(1);
+  });
+}
