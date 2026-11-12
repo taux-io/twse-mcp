@@ -10,6 +10,7 @@ your AI uses it on its next connection.
 
 ## Unreleased
 
+- Text parameters now have format and length limits, and a call that exceeds them is rejected with the reason. `code` in `snapshot.etf` and `snapshot.stock` accepts only letters and digits, up to 10 characters (surrounding spaces are trimmed); a company name is rejected, so look the code up with `quote.lookup` first. `contract` in `snapshot.futures` is limited to 40 characters, `query` in `quote.lookup` to 60, and in `dataset.get` `code` to 64, field names (`sort_by`, `fields`, the `field` in `where`, keys in `match`) to 200, and `match` values to 100. Normal queries are well inside these limits, so nothing needs to change on your side.
 - Fixed `dataset.get` sometimes failing on large datasets (for example yearly trading data for listed stocks, or the warrant summary tables): TWSE can take over a minute to regenerate them, and the server used to give up after 60 seconds. It now waits up to 150 seconds, and if that is still not enough the error explains why and suggests retrying later.
 - Fixed TWSE data sometimes failing to load: the TWSE daily trading dataset for listed stocks switches between JSON and CSV, and while it served CSV the price and volume in the stock, ETF, market and movers snapshots showed a fetch failure. Both formats are now read.
 - The homepage now has a Japanese version at `/ja`, and the language switcher at the top lists Traditional Chinese, English and Japanese so you can switch at any time.
