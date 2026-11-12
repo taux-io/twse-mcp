@@ -10,10 +10,12 @@
  *   - http：狀態碼不是 2xx，或連線失敗（重試後仍然）
  *   - empty：必定有資料的主檔回 0 筆
  *   - stale：每日更新的表，最新日期落後超過容許天數
+ *   - size：回應大小超過執行期上限（src/twse.ts 的 MAX_BODY_BYTES）的 85%。超過上限時
+ *     讀那個資料集的呼叫會失敗，而上游照樣回 200，其他檢查看不出來（#212）
  *
  * 端點在 JSON 與 CSV 之間切換不算問題（期交所與證交所都發生過）：程式 JSON 優先、CSV 照規則讀，兩種都讀得了。
  *
- * ALWAYS_POPULATED 與 src/twse.ts 各有一份，由 test/catalog.test.ts 斷言一致——腳本是
+ * ALWAYS_POPULATED、MAX_BODY_BYTES 與 src/twse.ts 各有一份，由 test/catalog.test.ts 斷言一致——腳本是
  * .mjs、程式是 .ts，這是 repo 既有的作法（見 check-catalog.mjs 的 REQUIRED）。
  */
 import { readFile, writeFile } from "node:fs/promises";
@@ -55,6 +57,11 @@ export const FRESHNESS = [
 ];
 export const MAX_AGE_DAYS = 12;
 
+/** 與 src/twse.ts 的 MAX_BODY_BYTES 一致。 */
+export const MAX_BODY_BYTES = 48 * 1024 * 1024;
+/** 預警門檻。資料集每天在長，留一段時間在真的失敗之前處理。 */
+export const SIZE_WARN_RATIO = 0.85;
+
 export function datasetUrl(id) {
   return id.startsWith("taifex/")
     ? `https://openapi.taifex.com.tw/v1/${id.slice("taifex/".length)}`
@@ -82,8 +89,9 @@ function readableCsv(id, body, catalog) {
 /**
  * 純函式：依回應判定問題。回傳 null 代表健康，否則 { kind, detail }。
  * `now` 與 `catalog` 由呼叫端給，測試才不會隨執行日期或目錄內容改變。
+ * `maxBodyBytes` 可以換掉，測試才不必造一份幾十 MB 的 body。
  */
-export function classify(id, { status, body }, now, catalog) {
+export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
   if (status < 200 || status >= 300) return { kind: "http", detail: `HTTP ${status}` };
   let data;
   try {
@@ -113,6 +121,19 @@ export function classify(id, { status, body }, now, catalog) {
     if (age > MAX_AGE_DAYS) {
       return { kind: "stale", detail: `最新日期 ${latest.toISOString().slice(0, 10)}，落後 ${age} 天` };
     }
+  }
+  // 排在最後：其他幾種是「現在就壞了」，這一項多半是預警。
+  const bytes = Buffer.byteLength(body, "utf8");
+  if (bytes > maxBodyBytes * SIZE_WARN_RATIO) {
+    const pct = ((bytes / maxBodyBytes) * 100).toFixed(1);
+    const limit = `${(maxBodyBytes / 1024 / 1024).toFixed(0)} MiB`;
+    return {
+      kind: "size",
+      detail:
+        bytes > maxBodyBytes
+          ? `回應 ${bytes.toLocaleString("en-US")} bytes，已超過執行期上限 ${limit}（${pct}%），讀這個資料集的呼叫正在失敗`
+          : `回應 ${bytes.toLocaleString("en-US")} bytes，是執行期上限 ${limit} 的 ${pct}%，超過上限後讀這個資料集的呼叫會失敗`,
+    };
   }
   return null;
 }
