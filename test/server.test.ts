@@ -835,6 +835,26 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.final_settlement).toEqual([{ 最後結算日: "2026-09-23", 契約月份: "202609W4", 最後結算價: 48075 }]);
   });
 
+  // 別名表與名稱表是純物件。用查詢字或上游的契約代號直接取值，會撈到 Object.prototype 上的東西。
+  it.each(["constructor", "__proto__", "toString", "hasOwnProperty", "valueOf"])(
+    "snapshot.futures：contract 是 %s 時回找不到，不丟錯",
+    async (contract) => {
+      const payload = await rpc("tools/call", { name: "snapshot.futures", arguments: { contract } });
+      expect(payload.result.isError).toBeFalsy();
+      const out = JSON.parse(payload.result.content[0].text);
+      expect(out.contract).toBeNull();
+      expect(out.caveats.join()).toContain("找不到");
+    },
+  );
+
+  it("snapshot.futures：上游出現叫 constructor 的契約代號時，用名稱查仍然找得到", async () => {
+    overrideFetch(
+      (u) => u.includes("DailyMarketReportFut"),
+      () => jsonResponse([...FUT_DAILY, futRow("constructor", "202610", "一般", "1", "1", "1", "1")]),
+    );
+    expect((await callTool("snapshot.futures", { contract: "台積電期貨" })).contract).toBe("CDF");
+  });
+
   it("snapshot.futures：口語名稱與別名；小台沒有單獨的大額交易人", async () => {
     for (const q of ["小台", "MXF", "mtx"]) {
       const out = await callTool("snapshot.futures", { contract: q });
