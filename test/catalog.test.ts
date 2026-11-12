@@ -404,13 +404,15 @@ describe("上游健檢腳本", () => {
   it("非 2xx 是 http", () => {
     expect(classifyAt("x", { status: 503, body: "" }, now)?.kind).toBe("http");
   });
-  it("讀不了的 CSV 是 format；讀得了的期交所 CSV 與改回 JSON 都不算問題", () => {
+  it("讀不了的 CSV 是 format；表頭對得上目錄的 CSV 與改回 JSON 都不算問題", () => {
     expect(classifyAt("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2" }, now)?.kind).toBe("format");
     const fsp = "\uFEFF最後結算日,契約月份,商品代號,商品名稱,最後結算價\r\n20251205,202512F1,TXO,臺指選擇權,27892";
     expect(classifyAt("taifex/FinalSettlementPrice", { status: 200, body: fsp }, now)).toBeNull();
     expect(classifyAt("taifex/FinalSettlementPrice", ok([{ a: 1 }]), now)).toBeNull();
-    // 證交所沒有 CSV 退路：同樣的 CSV 在證交所端點就是格式錯誤
+    // 別張表的 CSV 對不上這個資料集的目錄，在證交所端點一樣是格式錯誤
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: fsp }, now)?.kind).toBe("format");
+    const day = '日期,證券代號,證券名稱,成交股數,成交金額,開盤價,最高價,最低價,收盤價,漲跌價差,成交筆數\r\n"1150924","2330","台積電","1","2","3","4","5","6","7","8"';
+    expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: day }, now)).toBeNull();
   });
   it("format 的 detail 附完整表頭與欄數，不截在 80 字", () => {
     const header = Array.from({ length: 20 }, (_, i) => `欄位名稱第${i}號`).join(",");

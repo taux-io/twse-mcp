@@ -2535,6 +2535,27 @@ describe("期交所的 CSV 端點", () => {
     await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow(/上游回的不是 JSON/);
   });
 
+  // 2026-11-12 實測：證交所的 STOCK_DAY_ALL 在 JSON 與 CSV 之間來回切換，同一分鐘內兩種都拿得到。
+  // 表頭與第一列照抄當時的回應；同一時間的 JSON 共 1,390 列，逐列與 CSV 相同。
+  const TWSE_HEADER = "日期,證券代號,證券名稱,成交股數,成交金額,開盤價,最高價,最低價,收盤價,漲跌價差,成交筆數";
+  const TWSE_ROW = '"1151111","00400A","主動國泰動能高息","34272552","436767696","12.71","12.99","12.51","12.99","0.4900","6045"';
+
+  it("證交所回表頭對得上目錄的 CSV 時，讀出來與 JSON 那一列相同", async () => {
+    respond(`${TWSE_HEADER}\r\n${TWSE_ROW}\r\n`);
+    expect(await fetchDataset("exchangeReport/STOCK_DAY_ALL")).toEqual([
+      {
+        Date: "1151111", Code: "00400A", Name: "主動國泰動能高息", TradeVolume: "34272552", TradeValue: "436767696",
+        OpeningPrice: "12.71", HighestPrice: "12.99", LowestPrice: "12.51", ClosingPrice: "12.99", Change: "0.4900", Transaction: "6045",
+      },
+    ]);
+  });
+
+  it("證交所的 CSV 欄位被調換時大聲失敗，不做部分對應", async () => {
+    const swapped = TWSE_HEADER.replace("最高價,最低價", "最低價,最高價");
+    respond(`${swapped}\r\n${TWSE_ROW}\r\n`);
+    await expect(fetchDataset("exchangeReport/STOCK_DAY_ALL")).rejects.toThrow(/表頭/);
+  });
+
   // 上游可以塞任意長度的表頭。錯誤訊息是 MCP 的 text block，而且是唯一沒有
   // SOURCE_NOTE 防注入框架的通道——稽核在真 workerd 上量到 3.3 MB 的單一 block。
   it("錯誤訊息不會把整份上游 body 倒進模型的 context", async () => {
