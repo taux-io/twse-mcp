@@ -624,7 +624,8 @@ async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number)
   for (let attempt = 0; ; attempt++) {
     const last = attempt >= 1;
     try {
-      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      // 不跟隨重導：上游的網址是固定的兩個主機，3xx 由 fetchJson 當成錯誤處理。
+      const res = await fetch(url, { ...init, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
       if (last || (res.status !== 429 && res.status < 500)) return res;
       await res.body?.cancel();
     } catch (e) {
@@ -634,6 +635,19 @@ async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number)
       if (last) throw e;
     }
     await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+  }
+}
+
+/**
+ * 重導的目的地，只取主機名：Location 是上游給的文字，整段放進錯誤訊息等於把它回給模型。
+ * 相對路徑會解析成原本的主機；解析不了就說不出目的地。
+ */
+function redirectTarget(location: string | null, from: string): string {
+  if (!location) return "別處（沒有 Location）";
+  try {
+    return ` ${new URL(location, from).hostname}`;
+  } catch {
+    return "別處（Location 不是有效的網址）";
   }
 }
 
@@ -657,6 +671,13 @@ async function fetchJson(
     };
   }
   const res = await fetchWithRetry(url, init, timeoutMs);
+  if (res.status >= 300 && res.status < 400) {
+    await res.body?.cancel();
+    throw new Error(
+      `上游把請求重導到${redirectTarget(res.headers.get("location"), url)}（HTTP ${res.status}）for ${url}。` +
+        "本服務只從交易所的固定主機取資料，不跟隨重導；這通常是上游設定異常，請稍後重試。",
+    );
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   // res.ok 擋不住「2xx + HTML」：證交所前面那層 nginx 擋流量或維護時，會用 2xx
   // 送出一張裸錯誤頁（2026-08-03 的 refresh-catalog 排程就是這樣掛的）。
