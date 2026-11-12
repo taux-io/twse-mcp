@@ -11,9 +11,13 @@ on:
     - cron: "17 1 * * 1" # 每週一 01:17 UTC（台北時間 09:17）
   workflow_dispatch: # 也可手動觸發
 
+# 預設唯讀。三個 job 的分工：
+#   refresh         唯讀。跑 npm 工具鏈重抓 swagger、驗證，把新目錄交給下一個 job。
+#   publish         contents: write、issues: write。只做 git push 與開 issue，不裝任何相依。
+#   report-failure  issues: write。前兩個 job 任何一個失敗就開 issue。
+# 寫入權限不放在跑 npm 工具鏈的 job：那裡執行的是幾百個套件的程式。
 permissions:
-  contents: write
-  issues: write
+  contents: read
 
 # 兩次執行同時跑會互相 force-push，後者覆蓋前者。排隊而非取消，
 # 因為每一次都代表證交所的一個真實狀態，不該被丟掉。
@@ -30,6 +34,8 @@ env:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -37,7 +43,6 @@ jobs:
           node-version: "22"
           cache: npm
       # --ignore-scripts：與 test.yml 同理，本專案不需要相依套件的安裝腳本。
-      # 這個 job 拿的是 contents/issues write token，能少跑一段別人的程式就少跑。
       - run: npm ci --ignore-scripts
 
       - name: 重抓證交所 swagger
@@ -74,9 +79,40 @@ jobs:
           npm test
           npm run dry-run
 
-      - name: 推上分支
+      # 驗證過的目錄與異動摘要交給 publish。兩個檔案放進同一個目錄再上傳，artifact 的結構才固定。
+      - name: 交給 publish
         if: steps.diff.outputs.changed == 'true'
         run: |
+          mkdir -p "$RUNNER_TEMP/handoff"
+          cp "$CATALOG" "$RUNNER_TEMP/handoff/catalog.generated.json"
+          cp "$RUNNER_TEMP/catalog-diff.md" "$RUNNER_TEMP/handoff/catalog-diff.md"
+      - uses: actions/upload-artifact@v7
+        if: steps.diff.outputs.changed == 'true'
+        with:
+          name: catalog-refresh
+          path: ${{ runner.temp }}/handoff
+          if-no-files-found: error
+
+  # 只做兩件事：把上一個 job 驗證過的目錄檔推上機器人分支，然後開 issue。
+  # 不跑 npm、不執行 repo 裡的任何腳本；用到的 action 釘到 commit SHA（理由見 publish-mcp.yml）。
+  publish:
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: catalog-refresh
+          path: ${{ runner.temp }}/handoff
+
+      - name: 推上分支
+        run: |
+          # 只拿那一個目錄檔，其餘的工作目錄內容都來自這個 job 自己的 checkout。
+          cp "$RUNNER_TEMP/handoff/catalog.generated.json" "$CATALOG"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
@@ -86,14 +122,13 @@ jobs:
           git push --force origin "$BRANCH"
 
       - name: 開 issue 通知（已存在就補一則留言）
-        if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TITLE: "catalog: 證交所目錄有變動待審"
           LABEL: catalog-drift
         run: |
           COMPARE="${{ github.server_url }}/${{ github.repository }}/compare/main...${BRANCH}?expand=1"
-          SUMMARY=$(cat "$RUNNER_TEMP/catalog-diff.md")
+          SUMMARY=$(cat "$RUNNER_TEMP/handoff/catalog-diff.md")
           BODY=$(printf '%s\n' \
             "每週自動刷新發現證交所或期交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
             "" \
@@ -130,13 +165,21 @@ jobs:
             gh issue create --title "$TITLE" --label "$LABEL" --body "$BODY"
           fi
 
+  report-failure:
+    needs: [refresh, publish]
+    # failure() 一定要寫：沒有狀態函式的話會被隱含的 success() 蓋掉，這個 job 永遠被跳過。
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
       # 沒有這一步的話，執行失敗只會留下一個紅色的 run，不會有人看到——
       # 一週跑一次的排程沒人盯，等於整整一週沒有目錄漂移偵測而不自知。
       # 2026-08-03 就是這樣過去的（證交所回了 2xx + HTML，腳本掛掉，無人知曉）。
       - name: 執行失敗時開 issue
-        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TITLE: "catalog: 每週刷新執行失敗"
           LABEL: catalog-refresh-failed
         run: |

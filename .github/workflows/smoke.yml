@@ -24,9 +24,9 @@ on:
     - cron: "7 2 * * *" # 每天 02:07 UTC（台北 10:07），在上游健檢（09:37）之後
   workflow_dispatch:
 
+# 預設唯讀。要寫入的那個 job（report）自己宣告權限。
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: smoke-${{ github.ref }}
@@ -86,12 +86,41 @@ jobs:
         if: failure()
         run: tail -100 wrangler.log || true
 
+      # 開 issue 的是另一個 job，沒有這個工作目錄，報告用 artifact 傳過去。
+      - name: 保留報告給開 issue 的 job
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-reports
+          path: |
+            smoke-report.md
+            prod-report.md
+            registry-report.md
+          if-no-files-found: ignore
+
+  # 開 issue 需要 issues: write。上面的 job 在 PR 上會執行分支裡的程式，還跑整套 npm 相依，
+  # 所以寫入權限不放在那裡：這個 job 不 checkout、不裝任何東西，只讀報告並呼叫 gh。
+  # 用到的 action 釘到 commit SHA，理由與 publish-mcp.yml 相同。
+  report:
+    needs: smoke
+    # failure() 一定要寫：只寫 needs.smoke.result 的話會被隱含的 success() 蓋掉，這個 job 永遠被跳過。
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      # 腳本在產出報告前就掛掉時沒有 artifact，下一步有對應的說明文字。
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        continue-on-error: true
+        with:
+          name: smoke-reports
+
       # 只有排程的失敗開 issue；PR 的失敗留在 PR 上看。作法與 upstream-health 相同：
       # 標籤先確保存在，查找綁作者與標籤，已存在就留言。
       - name: 排程失敗就開 issue
-        if: failure() && github.event_name == 'schedule'
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TITLE: "smoke: 工具在真實資料上失敗"
           LABEL: smoke
         run: |
