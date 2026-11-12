@@ -1027,6 +1027,26 @@ describe("資料日期落後的說明（休市日表）", () => {
   it("休市日表取得失敗：說無法確認，不說沒有休市", () => {
     expect(dataGapNote("2026-09-24", "2026-09-28", null)).toContain("無法確認中間是否休市");
   });
+  // 上游的日期欄位可能是壞的（rocToIso 不檢查月與日的範圍）或異常舊。兩種都不能讓說明函式丟錯，
+  // 也不能產生一句列出幾萬個日期的 caveat。
+  it("格式對但不是真的日期：不算落後，說明函式也不丟錯", () => {
+    expect(isStaleDataDate("2026-00-99", "2026-09-28")).toBe(false);
+    expect(isStaleDataDate("2026-13-01", "2026-09-28")).toBe(false);
+    expect(() => dataGapNote("2026-00-99", "2026-09-28", holidays)).not.toThrow();
+  });
+  it("落後超過 60 天：仍然提醒，但只說舊了幾天，不逐日列舉", () => {
+    expect(isStaleDataDate("2026-06-01", "2026-09-28")).toBe(true);
+    const note = dataGapNote("2026-06-01", "2026-09-28", holidays);
+    expect(note).toContain("2026-06-01");
+    expect(note).toContain("119 天");
+    expect(note).toContain("停止更新");
+    expect(note).not.toContain("（一）");
+    const ancient = dataGapNote("1921-01-03", "2026-09-28", holidays);
+    expect(ancient.length).toBeLessThan(200);
+  });
+  it("落後 60 天以內照舊逐日說明", () => {
+    expect(dataGapNote("2026-08-03", "2026-09-28", holidays)).toContain("不在證交所休市日表上");
+  });
 });
 
 describe("getDataset — 回應大小上限", () => {
