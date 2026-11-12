@@ -128,6 +128,18 @@ function toolError(value: Record<string, unknown>) {
  */
 const section = z.looseObject({});
 const notQueried = z.literal("未查詢");
+/**
+ * 字串參數的格式與長度上限。這些值會被原樣放進 caveats 與錯誤訊息回給模型，沒有上限的話，
+ * 別人塞給模型的一長段文字會換一個「工具伺服器說的」身分再出現一次。
+ *
+ * 欄位名的上限取 200：目錄裡最長的欄位名有 127 個字。
+ */
+const SECURITY_CODE = z
+  .string()
+  .trim()
+  .regex(/^[0-9A-Za-z]{1,10}$/, "代號只能是英數字，最多 10 碼；只知道名稱時先用 quote.lookup");
+const FIELD_NAME = z.string().max(200);
+
 const common = { caveats: z.array(z.string()), source: z.string() };
 
 // 單檔（code）與比較（codes）兩種模式共用這份 schema：單檔的欄位在比較模式不出現，所以都是 optional。
@@ -420,6 +432,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
         dataset_id: z.string().describe('資料集代號，例如 "exchangeReport/STOCK_DAY_ALL"。'),
         code: z
           .string()
+          .max(64)
           .default("")
           .describe(
             '證券／基金／契約代號，例如 "0050"、"TX"。一律精確比對（不分大小寫），' +
@@ -436,16 +449,22 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
         match: z
           .record(z.string(), z.string())
           .refine((m) => Object.keys(m).length <= 20, "match 最多 20 個欄位")
+          // 鍵與值的長度在整個物件上一次檢查，不交給各自的 schema：逐項驗證的錯誤路徑會帶上鍵名，
+          // 等於把過長的輸入原樣回給模型。
+          .refine(
+            (m) => Object.entries(m).every(([k, v]) => k.length <= 200 && v.length <= 100),
+            "match 的欄位名最長 200 字，值最長 100 字",
+          )
           .optional()
           // refine 在 JSON Schema 裡表達不出來（沒有 maxProperties），tools/list
           // 不會帶上這個上限，所以寫進 description，免得又是一個「說了卻沒守」
           // 或「守了卻沒說」的落差。fields 的 .max() 則會轉成 maxItems。
-          .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。最多 20 個欄位。'),
+          .describe('其他欄位的子字串過濾，例如 {"基金類型": "ETF"}。最多 20 個欄位，值最長 100 字。'),
         // where 與 match 一樣，每個元素是整份資料集上的一輪 filter，所以一樣給上限。
         where: z
           .array(
             z.object({
-              field: z.string().describe('欄位鍵名（dataset.describe 列出的鍵名），例如 "PEratio"。'),
+              field: FIELD_NAME.describe('欄位鍵名（dataset.describe 列出的鍵名），例如 "PEratio"。'),
               op: z
                 .enum(["gt", "gte", "lt", "lte", "eq", "ne"])
                 .describe("比較方式：gt 大於、gte 大於等於、lt 小於、lte 小於等於、eq 等於、ne 不等於。"),
@@ -459,15 +478,13 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
               '[{"field":"PEratio","op":"lt","value":10},{"field":"DividendYield","op":"gte","value":5}]。' +
               "欄位值會去逗號轉數字；空值或非數字（例如虧損公司的本益比）無法比較，會被排除並回報筆數。",
           ),
-        sort_by: z
-          .string()
-          .default("")
+        sort_by: FIELD_NAME.default("")
           .describe(
             "依這個欄位排序，在分頁之前做——要「前 N 名」就用它配 limit。" +
               "多數值是數字就依數值排，否則依字串排；空值與非數字一律排最後。",
           ),
         order: z.enum(["desc", "asc"]).default("desc").describe('"desc"（大到小，預設）或 "asc"。'),
-        fields: z.array(z.string()).max(100).optional().describe("只回傳這些欄位。"),
+        fields: z.array(FIELD_NAME).max(100).optional().describe("只回傳這些欄位。"),
         limit: z.number().int().min(0).default(30).describe("回傳筆數上限（硬上限 200）。"),
         offset: z.number().int().min(0).default(0).describe("分頁位移。"),
       },
@@ -502,7 +519,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       annotations: { ...REMOTE_READ, title: "ETF snapshot" },
       outputSchema: ETF_SNAPSHOT_OUTPUT,
       inputSchema: {
-        code: z.string().describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
+        code: SECURITY_CODE.describe('ETF 代號，例如 "0056"、"0050"、"00878"。'),
         ...(realtime
           ? {
               include_realtime: z
@@ -556,7 +573,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       outputSchema: LOOKUP_OUTPUT,
       inputSchema: {
         // trim 在 min 之前：只有空白的查詢在 core 裡等同空查詢，只會回一句沒有意義的「找不到「」」。
-        query: z.string().trim().min(1).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
+        query: z.string().trim().min(1).max(60).describe('名稱或代號，例如 "台積電"、"TSMC"、"高股息"、"2330"。'),
         limit: z
           .number()
           .int()
@@ -594,12 +611,11 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       annotations: { ...REMOTE_READ, title: "Stock snapshot" },
       outputSchema: STOCK_SNAPSHOT_OUTPUT,
       inputSchema: {
-        code: z
-          .string()
-          .optional()
-          .describe('上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。與 codes 擇一。'),
+        code: SECURITY_CODE.optional().describe(
+          '上市公司股票代號，例如 "2330"、"2317"。只知道名稱時先用 quote.lookup。與 codes 擇一。',
+        ),
         codes: z
-          .array(z.string().trim().regex(/^[0-9A-Za-z]{1,10}$/, "代號只能是英數字，最多 10 碼"))
+          .array(SECURITY_CODE)
           .min(2)
           .max(5)
           .optional()
@@ -852,7 +868,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       annotations: { ...REMOTE_READ, title: "Futures contract snapshot" },
       outputSchema: FUTURES_OUTPUT,
       inputSchema: {
-        contract: z.string().describe('期貨契約代號或名稱，例如 "TX"、"小台"、"台積電期貨"。'),
+        contract: z.string().trim().min(1).max(40).describe('期貨契約代號或名稱，例如 "TX"、"小台"、"台積電期貨"。'),
       },
     },
     async ({ contract }) => {
@@ -882,7 +898,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       inputSchema: {
         codes: z
           // trim 在前，維持既有對前後空白的容忍（fetchQuotes 本來就會 trim）。
-          .array(z.string().trim().regex(/^[0-9A-Za-z]{1,10}$/, "代號只能是英數字，最多 10 碼"))
+          .array(SECURITY_CODE)
           .max(50)
           .describe('代號清單，例如 ["0050", "0056", "2330"]。'),
         market: z.enum(["tse", "otc"]).default("tse").describe('"tse"（上市）或 "otc"（上櫃）。'),
@@ -920,7 +936,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
     "find_dataset",
     {
       description: "不知道該用哪個資料集時，用關鍵字找出對的那一個",
-      argsSchema: { query: z.string().describe('關鍵字，例如 "三大法人"、"融資"、"ESG"。') },
+      argsSchema: { query: z.string().max(60).describe('關鍵字，例如 "三大法人"、"融資"、"ESG"。') },
     },
     ({ query }) => textPrompt(
       `請用 dataset.search 以「${query}」搜尋可用的資料集，` +
@@ -933,7 +949,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
     "etf_overview",
     {
       description: "一次看完一檔上市 ETF 的基本資料、前一交易日價量與定期定額熱度",
-      argsSchema: { code: z.string().describe('ETF 代號，例如 "0050"、"0056"、"00878"。') },
+      argsSchema: { code: SECURITY_CODE.describe('ETF 代號，例如 "0050"、"0056"、"00878"。') },
     },
     ({ code }) => textPrompt(
       `請用 snapshot.etf 查 ${code} 的完整概況，並把 caveats 裡的提醒一併轉述給我` +
@@ -947,7 +963,7 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
     {
       description: "查期貨或選擇權的每日行情（臺灣期貨交易所）",
       argsSchema: {
-        contract: z.string().describe('契約代號或商品名，例如 "TX"、"TXO"、"臺股期貨"。'),
+        contract: z.string().trim().min(1).max(40).describe('契約代號或商品名，例如 "TX"、"TXO"、"臺股期貨"。'),
       },
     },
     ({ contract }) => textPrompt(

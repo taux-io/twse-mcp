@@ -73,6 +73,7 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
         "properties": {
           "code": {
             "default": "",
+            "maxLength": 64,
             "type": "string",
           },
           "dataset_id": {
@@ -80,6 +81,7 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
           },
           "fields": {
             "items": {
+              "maxLength": 200,
               "type": "string",
             },
             "maxItems": 100,
@@ -116,12 +118,14 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
           },
           "sort_by": {
             "default": "",
+            "maxLength": 200,
             "type": "string",
           },
           "where": {
             "items": {
               "properties": {
                 "field": {
+                  "maxLength": 200,
                   "type": "string",
                 },
                 "op": {
@@ -161,6 +165,7 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "code": {
+            "pattern": "^[0-9A-Za-z]{1,10}$",
             "type": "string",
           },
           "include_realtime": {
@@ -185,6 +190,7 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
             "type": "integer",
           },
           "query": {
+            "maxLength": 60,
             "minLength": 1,
             "type": "string",
           },
@@ -200,6 +206,7 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "code": {
+            "pattern": "^[0-9A-Za-z]{1,10}$",
             "type": "string",
           },
           "codes": {
@@ -299,6 +306,8 @@ exports[`MCP handler seam（legacy era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "contract": {
+            "maxLength": 40,
+            "minLength": 1,
             "type": "string",
           },
         },
@@ -413,6 +422,7 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
         "properties": {
           "code": {
             "default": "",
+            "maxLength": 64,
             "type": "string",
           },
           "dataset_id": {
@@ -420,6 +430,7 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
           },
           "fields": {
             "items": {
+              "maxLength": 200,
               "type": "string",
             },
             "maxItems": 100,
@@ -456,12 +467,14 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
           },
           "sort_by": {
             "default": "",
+            "maxLength": 200,
             "type": "string",
           },
           "where": {
             "items": {
               "properties": {
                 "field": {
+                  "maxLength": 200,
                   "type": "string",
                 },
                 "op": {
@@ -501,6 +514,7 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "code": {
+            "pattern": "^[0-9A-Za-z]{1,10}$",
             "type": "string",
           },
           "include_realtime": {
@@ -525,6 +539,7 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
             "type": "integer",
           },
           "query": {
+            "maxLength": 60,
             "minLength": 1,
             "type": "string",
           },
@@ -540,6 +555,7 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "code": {
+            "pattern": "^[0-9A-Za-z]{1,10}$",
             "type": "string",
           },
           "codes": {
@@ -639,6 +655,8 @@ exports[`MCP handler seam（modern era） > 工具與快捷指令的介面契約
       "input": {
         "properties": {
           "contract": {
+            "maxLength": 40,
+            "minLength": 1,
             "type": "string",
           },
         },
