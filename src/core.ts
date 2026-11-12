@@ -2200,6 +2200,12 @@ export function buildFuturesSnapshot(query: string, src: FuturesSnapshotSources)
       caveats.push(`因為上游取得失敗，無法判斷「${query}」對應哪一個期貨契約——這**不代表**沒有這個契約。請稍後重試。`);
     } else if (candidates.length) {
       caveats.push("查詢字對到不只一個契約。candidates 是候選不是答案：請向使用者確認要哪一個，再用它的代號重查。");
+    } else if (failed(L.largeTraders)) {
+      // 契約的中文名稱來自大額交易人表。它抓失敗時名稱對不到任何契約，那是不知道，不是沒有。
+      caveats.push(
+        `契約名稱的對照表（${L.largeTraders}）取得失敗，無法判斷「${query}」對應哪一個期貨契約——這**不代表**沒有這個契約。` +
+          "請改用代號查（例如 TX、MTX、CDF），或稍後重試。",
+      );
     } else {
       caveats.push(
         `找不到「${query}」對應的期貨契約。可用代號（例如 TX、MTX、TMF、CDF）或名稱（例如「台積電期貨」）查；` +
