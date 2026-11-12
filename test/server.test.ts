@@ -1169,6 +1169,32 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.units).toContain("bid");
   });
 
+  it("quote.realtime：一檔的日期是壞的，其他檔照樣回，不整個失敗", async () => {
+    overrideFetch(
+      (u) => u.includes("getStockInfo"),
+      () =>
+        misResponse({
+          msgArray: [
+            { c: "2330", z: "1000", d: "20260099", t: "13:30:00" },
+            { c: "2317", z: "200", d: "20260925", t: "13:30:00" },
+          ],
+        }),
+    );
+    const payload = await rpc("tools/call", { name: "quote.realtime", arguments: { codes: ["2330", "2317"] } });
+    expect(payload.result.isError).toBeFalsy();
+    expect(JSON.parse(payload.result.content[0].text).count).toBe(2);
+  });
+
+  it("quote.realtime：報價日期異常舊時提醒一句，不列出幾萬個日期", async () => {
+    overrideFetch(
+      (u) => u.includes("getStockInfo"),
+      () => misResponse({ msgArray: [{ c: "2330", z: "1000", d: "19210103", t: "13:30:00" }] }),
+    );
+    const out = await callTool("quote.realtime", { codes: ["2330"] });
+    expect(out.caveats.join()).toContain("停止更新");
+    expect(out.caveats.join().length).toBeLessThan(400);
+  });
+
   it("quote.realtime：沒有委託時 bid／ask 是 null", async () => {
     overrideFetch((u) => u.includes("getStockInfo"), () => misResponse({ msgArray: [{ c: "0050", b: "-", a: "" }] }));
     const out = await callTool("quote.realtime", { codes: ["0050"] });
