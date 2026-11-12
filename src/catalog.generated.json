@@ -1324,8 +1324,8 @@
  "exchangeReport/TWT53U": {
   "id": "exchangeReport/TWT53U",
   "source": "twse",
-  "summary": "集中市場零股交易行情單",
-  "description": "集中市場零股交易行情單",
+  "summary": "集中市場盤後零股交易行情單",
+  "description": "集中市場盤後零股交易行情單",
   "tags": [
    "證券交易"
   ],
