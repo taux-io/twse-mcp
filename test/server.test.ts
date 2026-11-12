@@ -766,6 +766,19 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(out.caveats.join()).toContain("無法判斷 2330 的損益表");
   });
 
+  it("snapshot.stock：裁罰案件的違規事由與裁處情形超過 500 字會截斷", async () => {
+    const long = "違".repeat(3000);
+    overrideFetch(
+      (u) => u.includes("t187ap22_L"),
+      () => jsonResponse([{ 發函日期: "1150902", 股票代號: "2303", 違規事由: long, 裁處情形: long }]),
+    );
+    const umc = await callTool("snapshot.stock", { code: "2303", include_governance: true });
+    for (const text of [umc.governance.裁罰案件[0].違規事由, umc.governance.裁罰案件[0].裁處情形]) {
+      expect([...text].length).toBeLessThan(530);
+      expect(text).toContain("原文 3000 字");
+    }
+  });
+
   it("snapshot.stock：include_governance 回兼任、質押、裁罰與持股不足", async () => {
     const tsmc = await callTool("snapshot.stock", { code: "2330", include_governance: true });
     expect(tsmc.governance).toMatchObject({
