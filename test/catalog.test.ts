@@ -191,7 +191,7 @@ describe("catalog 健檢腳本 — 守衛自己的破口", () => {
   ])("id 含有英數字、底線、連字號以外的字元 %s 要抓出來", (id) => {
     const text = checkCatalog(withId(id)).problems.join("\n");
     expect(text).toContain("不允許的字元");
-    expect(text).toContain(id);
+    expect(text).toContain(JSON.stringify(id)); // 訊息裡的 id 以 JSON 字串呈現，反斜線與控制字元看得出來
   });
 
   it("帶 ? 的巨量端點不會因為字面值不同而回到目錄", () => {
