@@ -1241,10 +1241,10 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
     expect(caveats).toContain("副本");
     expect(caveats).not.toContain("無法確認");
   });
-  it("snapshot.stock：上游的休市日表已是下一年度時，落差說明仍然說得出 9/25 是中秋節", async () => {
+  it("quote.realtime：上游的休市日表已是下一年度時，落差說明仍然說得出 9/25 是中秋節", async () => {
     pinToday(); // 週六 9/26；報價是週四 9/24
     overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse(NEXT_YEAR_ONLY));
-    const out = await callTool("snapshot.stock", { code: "2330" });
+    const out = await callTool("quote.realtime", { codes: ["0050"] });
     const gap = out.caveats.find((c: string) => c.includes("資料日期是"));
     expect(gap).toContain("2026-09-25（五）中秋節");
     expect(gap).toContain("證交所休市（休市日表）");

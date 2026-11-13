@@ -13,6 +13,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 
 import catalogJson from "./catalog.generated.json";
+import storedHolidaysJson from "./holidays.generated.json";
 import pkg from "../package.json";
 import {
   buildEtfSnapshot,
@@ -24,6 +25,8 @@ import {
   dataGapDays,
   dataGapNote,
   tradingCalendar,
+  withStoredHolidays,
+  type StoredHolidays,
   isDailyDataset,
   rocToIso,
   isStaleDataDate,
@@ -94,6 +97,8 @@ import { APPLE_ICON_BASE64, FAVICON_ICO_BASE64, FAVICON_SVG } from "./icons";
 import { OG_IMAGE_BASE64 } from "./og-image";
 
 const catalog = catalogJson as unknown as Catalog;
+/** 本服務保存的休市日副本，由 `npm run refresh-holidays` 更新。上游的休市日表不涵蓋的年度才用它。 */
+const STORED_HOLIDAYS = storedHolidaysJson as unknown as StoredHolidays;
 
 /**
  * 工具回應一律是 JSON 字串。**不縮排**：這段文字整段進模型的 context，
@@ -791,7 +796,8 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       let calendar: Record<string, unknown> | null = null;
       if (cal.errors.length) caveats.push("休市日表取得失敗，無法確認今天是否開盤與下一個交易日");
       else {
-        const t = tradingCalendar(taipeiToday(), cal.rows.holidays);
+        const table = withStoredHolidays(cal.rows.holidays, STORED_HOLIDAYS);
+        const t = tradingCalendar(taipeiToday(), table.rows, table);
         calendar = t.calendar;
         if (t.caveat) caveats.push(t.caveat);
       }
@@ -1052,7 +1058,9 @@ async function explainDataGap(dataDate: unknown, caveats: string[]): Promise<voi
       return;
     }
     const { rows, errors } = await fetchSources({ holidays: { dataset: DS_HOLIDAYS, label: "休市日表" } });
-    caveats.push(dataGapNote(dataDate, today, errors.length ? null : rows.holidays));
+    // 休市日表取得失敗時維持原本的說法（無法確認），不拿副本頂替：副本可能比上游舊。
+    const table = errors.length ? null : withStoredHolidays(rows.holidays, STORED_HOLIDAYS);
+    caveats.push(dataGapNote(dataDate, today, table?.rows ?? null, table ?? undefined));
   } catch {
     caveats.push(`資料日期是 ${dataDate}，比前一個工作日舊；無法說明中間為什麼沒有資料`);
   }

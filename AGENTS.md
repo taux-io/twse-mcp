@@ -49,6 +49,16 @@
 - 這道保護只管 tag。有 write 權限的人仍然可以另外寫一支 workflow 拿到同一張 registry 憑證，
   那一側靠 `smoke.yml` 每天比對 registry 條目（`scripts/check-registry.mjs`）來偵測。
 
+## 休市日副本
+
+證交所的休市日表只列一個年度，而且年底前就換成下一年度（2026-11-13 觀察到已是 2027 年）。
+`src/holidays.generated.json` 是本服務保存的副本，一個年度一份。執行期以上游為準，上游不涵蓋的年度才用副本，
+並在說明裡交代依據是副本。`dataset.get` 查休市日表仍然回上游原文。
+
+- `npm run refresh-holidays` 從 OpenAPI 把上游目前列的那一年併進副本，從不刪掉年度。每年至少跑一次並簽入：
+  下一次上游換年時，副本裡要有當年度的那一份。它還沒有接進每週的目錄刷新。
+- 2026 年那一份取自證交所網站的查詢（當時 OpenAPI 已經不列 2026 年），來源寫在檔案裡。
+
 ## 依賴升級
 
 Dependabot 的 PR 都改 `package-lock.json`，合併一個後其他的會衝突：留言 `@dependabot rebase`，一次重建一個。
