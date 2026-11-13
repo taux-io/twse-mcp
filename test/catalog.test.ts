@@ -134,6 +134,8 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
   it.each([
     ["taifex/FuturesAndOptionsFeeSchedule", "商品,交易經手費,結算手續費,交割手續費,期貨交易稅比率"],
     ["taifex/SSOLists", "股票選擇權商品契約代碼,標的證券,證券代號,標的證券簡稱,標的證券種類"],
+    // 2026-11-13 本機健檢記錄的表頭。七個年度統計資料集裡只有這一個用「…數量」，其餘回 CSV 的四個都是「…量」。
+    ["taifex/AnnualTradingFX", "年度,商品代號,商品名稱,年度成交數量,年度交易日數量,日平均成交數量"],
     // 2026-11-13 上游健檢在 GitHub runner 上記錄的表頭：幣別之間是底線，swagger 寫的是全形斜線。
     [
       "taifex/DailyForeignExchangeRates",

@@ -69,6 +69,9 @@ const TAIFEX_FIELD_OVERRIDES = {
  *   SSOLists：swagger 寫「股票期貨商品契約代碼」，是從股票期貨那一份抄來的；表頭是「股票選擇權…」。
  *   TotalMarketPositionLimit…：swagger 把一個含頓號的說明從頓號切成兩段，後半段落到下一欄，
  *     「比例」的說明因此不見。
+ *   AnnualTradingFX：swagger 寫「年度成交量」「日平均成交量」，表頭是「年度成交數量」「日平均成交數量」，互不包含。
+ *     七個年度統計資料集共用同一組 swagger 說明，但只有這一個的表頭多了「數」；2026-11-13 量到其餘回 CSV 的
+ *     四個（IndexFutures、IR、SSF、SSO）表頭都是「…量」，所以只更正這一個。
  *   DailyForeignExchangeRates：swagger 寫「美元／新台幣(匯率)」（全形斜線），表頭是「美元_新台幣(匯率)」。
  *     表頭是 GitHub runner 上的每日健檢記錄的；同一天從台灣抓到的是 JSON。
  *
@@ -76,6 +79,11 @@ const TAIFEX_FIELD_OVERRIDES = {
  * 每日健檢會回報 format，那時再改這張表。
  */
 const TAIFEX_DESCRIPTION_CORRECTIONS = {
+  AnnualTradingFX: {
+    TotalVolume: "年度成交數量",
+    NumberOfTradingDays: "年度交易日數量",
+    AvgDailyTradingVolume: "日平均成交數量",
+  },
   DailyForeignExchangeRates: {
     "USD/NTD": "美元_新台幣(匯率)",
     "RMB/NTD": "人民幣_新台幣(匯率)",

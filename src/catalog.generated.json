@@ -5715,9 +5715,9 @@
    "YYYY": "年度",
    "Contract": "商品代號",
    "ContractName": "商品名稱",
-   "TotalVolume": "年度成交量",
-   "NumberOfTradingDays": "年度交易日數",
-   "AvgDailyTradingVolume": "日平均成交量"
+   "TotalVolume": "年度成交數量",
+   "NumberOfTradingDays": "年度交易日數量",
+   "AvgDailyTradingVolume": "日平均成交數量"
   }
  },
  "taifex/SettledPositionsFXFutures": {
