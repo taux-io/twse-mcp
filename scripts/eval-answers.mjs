@@ -432,16 +432,27 @@ export const CASES = [
   {
     id: "holiday-close",
     question: "2026 年 9 月 25 日台積電的收盤價是多少？",
-    // 2026-09-25 是中秋節，證交所休市（休市日表 holidaySchedule 有 1150925）。答案要說那天沒開盤，
-    // 不能給一個收盤價，也不該只說「查不到那天的資料」——使用者會以為是資料缺漏。
-    // ponytail: 寫死一個已知休市日，休市日表換年、不再列 1150925 時改成表上的下一個休市日
+    // 2026-09-25 是中秋節，證交所休市。工具有那一天休市的依據時，答案要說那天沒開盤，不能只說
+    // 「查不到那天的資料」——使用者會以為是資料缺漏。
+    //
+    // 依據要來自同一次對話的工具結果（休市日表的那一列，或落差說明裡的那一天），不是寫死在這裡的事實。
+    // 2026-11-13：證交所的休市日表已換成民國 116 年的內容，工具拿不到 115 年的任何一天，
+    // 這一題從那時起只會是「沒驗到」。表上現在都是未來的日期，換一個日期問的就不是同一件事了，所以沒有換。
+    // 沒驗到不等於放行：沒有依據時，答案要照實說查不到；給出一個收盤價仍然是失敗。
     check(run) {
       const table = results(run, "dataset.get", (c) => c.input.dataset_id === "holidaySchedule/holidaySchedule")
         .flatMap((c) => c.result.data ?? []);
-      if (table.length && !table.some((r) => r.Date === "1150925")) return skip("休市日表已不含 2026-09-25，換一個休市日");
-      return /休市|中秋|沒有開盤|未開盤|沒開盤|非交易日|不是交易日|沒有交易|放假/.test(run.answer)
-        ? pass()
-        : fail("沒有說 9/25 休市（中秋節）");
+      const notes = run.calls.flatMap((c) =>
+        c.result && typeof c.result === "object" ? [...(c.result.caveats ?? []), c.result.note ?? ""] : [],
+      );
+      const known =
+        table.some((r) => r.Date === "1150925") || notes.some((x) => /2026-09-25/.test(String(x)) && /休市/.test(String(x)));
+      const saysClosed = /休市|中秋|沒有開盤|未開盤|沒開盤|非交易日|不是交易日|沒有交易|放假/.test(run.answer);
+      if (known) return saysClosed ? pass() : fail("工具結果有 9/25 休市的依據，答案沒有說");
+      if (saysClosed) return review("答案說 9/25 休市，但工具結果裡沒有依據（可能是憑記憶）");
+      return /查不到|查無|找不到|無法(查|取得|提供|確認)|沒有(這一天|那一天|那天|這天|.{0,12}資料)|不在.{0,12}範圍|沒有涵蓋|涵蓋不到/.test(run.answer)
+        ? skip("工具結果裡沒有 9/25 休市的依據（休市日表已換成下一年度），答案照實說查不到")
+        : fail("工具結果沒有 9/25 的資料，答案卻沒有說查不到");
     },
   },
 ];
