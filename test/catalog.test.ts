@@ -27,7 +27,7 @@ import { registryProblems } from "../scripts/check-registry.mjs";
 import { quoted } from "../scripts/report-text.mjs";
 import { buildReport } from "../scripts/smoke.mjs";
 import { archiveReport } from "../scripts/archive-report.mjs";
-import { mergeHolidayYear } from "../scripts/refresh-holidays.mjs";
+import { holidaysDiff, mergeHolidayYear } from "../scripts/refresh-holidays.mjs";
 import storedHolidays from "../src/holidays.generated.json";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
@@ -971,6 +971,31 @@ describe("休市日副本", () => {
   it("刷新：內容沒變時不改取得日期，檔案才不會每週都有差異", () => {
     const before = mergeHolidayYear({}, rows("116"), "2026-11-13");
     expect(mergeHolidayYear(before, rows("116"), "2026-11-20")).toEqual(before);
+  });
+  // 每週刷新的 issue 內文用：副本變了什麼。名稱是上游的文字，要包成行內程式碼。
+  describe("差異摘要", () => {
+    const year = (rs: Array<[string, string]>) => ({ source: "s", fetched: "2026-11-13", rows: rs.map(([Date, Name]) => ({ Date, Name })) });
+    const base = { "2027": year([["1160101", "開國紀念日"], ["1160609", "端午節"]]) };
+    it("沒有變動時是空字串", () => {
+      expect(holidaysDiff(base, structuredClone(base))).toBe("");
+    });
+    it("新增一個年度：寫出年度與列數", () => {
+      const text = holidaysDiff(base, { ...base, "2028": year([["1170101", "開國紀念日"]]) });
+      expect(text).toBe("- 休市日副本新增 `2028` 年（1 列）");
+    });
+    it("同一年度裡新增、移除、改名的日子各列一項", () => {
+      const after = { "2027": year([["1160101", "中華民國開國紀念日"], ["1160915", "中秋節"]]) };
+      const lines = holidaysDiff(base, after).split("\n");
+      expect(lines).toEqual([
+        "- 休市日副本 `2027` 年：新增 `1160915 中秋節`；移除 `1160609 端午節`；改名 `1160101 開國紀念日 → 中華民國開國紀念日`",
+      ]);
+    });
+    it("上游的名稱跳不出行內程式碼", () => {
+      const text = holidaysDiff(base, { "2027": year([["1160101", "開國紀念日"], ["1160609", "端午節"], ["1160915", "中`秋\n@x"]]) });
+      expect(text.split("\n")).toHaveLength(1);
+      expect(text).not.toContain("@");
+      expect(text).toContain("`1160915 中 秋 ＠x`");
+    });
   });
   it("刷新：上游的表跨兩個年度、太短或日期認不出來就拒絕，不覆寫副本", () => {
     expect(() => mergeHolidayYear({}, [...rows("115"), ...rows("116")], "2026-11-13")).toThrow(/年度/);
