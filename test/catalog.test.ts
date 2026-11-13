@@ -536,6 +536,14 @@ describe("上游健檢腳本", () => {
   it("非 2xx 是 http", () => {
     expect(classifyAt("x", { status: 503, body: "" }, now)?.kind).toBe("http");
   });
+  // 與執行期（src/twse.ts 的 fetchDataset）同一個判準：JSON 不是陣列就是上游的錯誤回應。
+  it("上游回的 JSON 不是陣列（錯誤物件、null）是 format", () => {
+    for (const body of ['{"message":"Service Unavailable"}', "null", '"maintenance"']) {
+      const p = classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body }, now);
+      expect(p?.kind).toBe("format");
+      expect(p?.detail).toContain("不是陣列");
+    }
+  });
   it("讀不了的 CSV 是 format；表頭對得上目錄的 CSV 與改回 JSON 都不算問題", () => {
     expect(classifyAt("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2" }, now)?.kind).toBe("format");
     const fsp = "\uFEFF最後結算日,契約月份,商品代號,商品名稱,最後結算價\r\n20251205,202512F1,TXO,臺指選擇權,27892";
