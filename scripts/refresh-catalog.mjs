@@ -62,6 +62,28 @@ const TAIFEX_FIELD_OVERRIDES = {
 };
 
 /**
+ * swagger 寫錯的欄位說明。欄位說明是 CSV 備援對表頭的依據（src/csv-header.mjs），寫錯的那一欄
+ * 對不上表頭，整份資料就讀不到。這裡改成實際 CSV 表頭的文字（2026-11-13 記錄）。
+ *
+ *   FuturesAndOptionsFeeSchedule：swagger 寫「期貨交易稅率」，表頭是「期貨交易稅比率」，互不包含。
+ *   SSOLists：swagger 寫「股票期貨商品契約代碼」，是從股票期貨那一份抄來的；表頭是「股票選擇權…」。
+ *   TotalMarketPositionLimit…：swagger 把一個含頓號的說明從頓號切成兩段，後半段落到下一欄，
+ *     「比例」的說明因此不見。
+ *
+ * 只改 swagger 有的鍵。與 TAIFEX_FIELD_OVERRIDES 相反，這裡蓋過 swagger：上游改了 CSV 表頭的話，
+ * 每日健檢會回報 format，那時再改這張表。
+ */
+const TAIFEX_DESCRIPTION_CORRECTIONS = {
+  FuturesAndOptionsFeeSchedule: { FuturesTransactionTaxRate: "期貨交易稅比率" },
+  SSOLists: { Contract: "股票選擇權商品契約代碼" },
+  TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions: {
+    NumberOfSharesOutstandingOfUnderlyingStockOrNumberOfUnitsOutstandingOfETF:
+      "標的證券在外流通股數或已發行(募集、銷售)單位數)(B)",
+    Ratio: "比例(=A/B)%",
+  },
+};
+
+/**
  * 排除清單比對的是**正規化後的最後一段路徑**，不是字面值。
  *
  * 它保護的是一個「大小」問題，而它的判準是一個「名字」。稽核實測
@@ -132,6 +154,9 @@ function buildTaifex(spec) {
     const fields = Object.fromEntries(Object.entries(props).map(([k, v]) => [k, v?.description ?? ""]));
     for (const [k, desc] of Object.entries(TAIFEX_FIELD_OVERRIDES[name] ?? {})) {
       if (!Object.hasOwn(fields, k)) fields[k] = desc;
+    }
+    for (const [k, desc] of Object.entries(TAIFEX_DESCRIPTION_CORRECTIONS[name] ?? {})) {
+      if (Object.hasOwn(fields, k)) fields[k] = desc;
     }
     out[id] = {
       id,

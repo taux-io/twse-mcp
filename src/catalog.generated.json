@@ -4232,8 +4232,8 @@
    "CodeOfUnderlyingStock": "代號",
    "NameOfUnderlyingStock": "名稱",
    "TotalOpenInterestOfSingleStockFuturesAndEquityOptions": "股票期貨與股票選擇權未沖銷部位表彰股數或單位數(A)",
-   "NumberOfSharesOutstandingOfUnderlyingStockOrNumberOfUnitsOutstandingOfETF": "標的證券在外流通股數或已發行(募集",
-   "Ratio": "銷售)單位數)(B)"
+   "NumberOfSharesOutstandingOfUnderlyingStockOrNumberOfUnitsOutstandingOfETF": "標的證券在外流通股數或已發行(募集、銷售)單位數)(B)",
+   "Ratio": "比例(=A/B)%"
   }
  },
  "taifex/SingleStockFuturesContractReferredOpeningPrice": {
@@ -4266,7 +4266,7 @@
    "TransactionFee": "交易經手費",
    "ClearingFee": "結算手續費",
    "SettlementFee": "交割手續費",
-   "FuturesTransactionTaxRate": "期貨交易稅率"
+   "FuturesTransactionTaxRate": "期貨交易稅比率"
   }
  },
  "taifex/FinalSettlementPrice": {
@@ -4809,7 +4809,7 @@
    "期貨與選擇權"
   ],
   "fields": {
-   "Contract": "股票期貨商品契約代碼",
+   "Contract": "股票選擇權商品契約代碼",
    "UnderlyingStock": "標的證券",
    "StockCode": "證券代號",
    "StockName": "標的證券簡稱",
