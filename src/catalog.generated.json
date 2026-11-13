@@ -4206,16 +4206,16 @@
   ],
   "fields": {
    "Date": "日期",
-   "USD/NTD": "美元／新台幣(匯率)",
-   "RMB/NTD": "人民幣／新台幣(匯率)",
-   "EUR/USD": "歐元／美元(匯率)",
-   "USD/JPY": "美元／日幣(匯率)",
-   "GBP/USD": "英鎊／美元(匯率)",
-   "AUD/USD": "澳幣／美元(匯率)",
-   "USD/HKD": "美元／港幣(匯率)",
-   "USD/RMB": "美元／人民幣(匯率)",
-   "USD/ZAR": "美元／南非幣(匯率)",
-   "NZD/USD": "紐幣／美元(匯率)"
+   "USD/NTD": "美元_新台幣(匯率)",
+   "RMB/NTD": "人民幣_新台幣(匯率)",
+   "EUR/USD": "歐元_美元(匯率)",
+   "USD/JPY": "美元_日幣(匯率)",
+   "GBP/USD": "英鎊_美元(匯率)",
+   "AUD/USD": "澳幣_美元(匯率)",
+   "USD/HKD": "美元_港幣(匯率)",
+   "USD/RMB": "美元_人民幣(匯率)",
+   "USD/ZAR": "美元_南非幣(匯率)",
+   "NZD/USD": "紐幣_美元(匯率)"
   }
  },
  "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions": {
