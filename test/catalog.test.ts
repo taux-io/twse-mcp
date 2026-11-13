@@ -125,6 +125,20 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
   });
 
   // 逐筆成交端點單日 255 MB，抓進 128 MB 的 isolate 是把工具打爛而不是給出答案。
+  // 這三個資料集的 swagger 欄位說明寫錯，對不上實際的 CSV 表頭（2026-11-13 記錄的表頭）。
+  // refresh-catalog 的 TAIFEX_DESCRIPTION_CORRECTIONS 會更正；這條防止有人拿掉更正或在沒有它的情況下重新產生目錄。
+  it.each([
+    ["taifex/FuturesAndOptionsFeeSchedule", "商品,交易經手費,結算手續費,交割手續費,期貨交易稅比率"],
+    ["taifex/SSOLists", "股票選擇權商品契約代碼,標的證券,證券代號,標的證券簡稱,標的證券種類"],
+    [
+      "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions",
+      "資料日期,標的證券類別,代號,名稱,股票期貨與股票選擇權未沖銷部位表彰股數或單位數(A),標的證券在外流通股數或已發行(募集、銷售)單位數)(B),比例(=A/B)%",
+    ],
+  ])("%s 的欄位說明對得上實際的 CSV 表頭", (id, header) => {
+    const fields = (catalogJson as Record<string, { fields: Record<string, string> }>)[id].fields;
+    expect(headerMatches(header.split(","), Object.values(fields))).toBe(true);
+  });
+
   // 它們在 refresh-catalog 被排除；這條確保排除清單沒有在某次刷新後被悄悄拿掉。
   it("刻意排除的逐筆成交端點不可以出現在目錄裡", () => {
     const withTick = structuredClone(catalog);
