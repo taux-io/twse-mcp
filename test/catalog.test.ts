@@ -534,7 +534,7 @@ describe("上游健檢腳本", () => {
   });
 
   const now = new Date("2026-09-26T02:00:00Z");
-  const classifyAt = (id: string, r: { status: number; body: string }, at: Date) => classify(id, r, at, catalog);
+  const classifyAt = (id: string, r: { status: number; body: string; contentType?: string }, at: Date) => classify(id, r, at, catalog);
   const ok = (body: unknown) => ({ status: 200, body: JSON.stringify(body) });
   it("健康的回應回 null", () => {
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", ok([{ Date: "1150924" }]), now)).toBeNull();

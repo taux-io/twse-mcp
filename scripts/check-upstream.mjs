@@ -79,6 +79,9 @@ export function parseDate(v) {
   return null;
 }
 
+/** HTML 頁面在報告裡留多少字。夠看出是哪一種頁面，又不會把整頁灌進公開的 issue。 */
+const HTML_ECHO_LIMIT = 600;
+
 /** CSV 的表頭列。健檢與目錄刷新（scripts/refresh-catalog.mjs）共用，兩邊看到的表頭才一樣。 */
 export function csvHeader(body) {
   return body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].split(",");
@@ -97,12 +100,12 @@ function readableCsv(id, body, catalog) {
  * `maxBodyBytes` 可以換掉，測試才不必造一份幾十 MB 的 body。
  *
  * @param {string} id
- * @param {{ status: number, body: string, rechecked?: boolean }} response
+ * @param {{ status: number, body: string, rechecked?: boolean, contentType?: string }} response
  * @param {Date} now
  * @param {Record<string, any>} catalog
  * @param {number} [maxBodyBytes]
  */
-export function classify(id, { status, body, rechecked }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
+export function classify(id, { status, body, rechecked, contentType }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
   // status 0 是 fetchBody 重試後仍連不上，body 是錯誤訊息。rechecked 是 sweep 掃完後重抓過、仍然逾時。
   if (status === 0) {
     return { kind: "http", detail: `連線失敗：${quoted(body, 200)}${rechecked ? "（全部掃完後重抓一次，仍然逾時）" : ""}` };
@@ -113,13 +116,25 @@ export function classify(id, { status, body, rechecked }, now, catalog, maxBodyB
     data = JSON.parse(body);
   } catch {
     if (readableCsv(id, body, catalog)) return null;
+    const type = contentType ? `content-type ${quoted(contentType, 80)}` : "沒有 content-type";
+    // HTTP 200 加一張 HTML 頁面：不是表頭不符，是上游根本沒有回資料。2026-11 的排程健檢有 11 筆這種回應，
+    // 當時只留了第一行（每一筆都是同一個 <html><head><meta …>），看不出是維護頁、擋機器人的頁面還是別的。
+    // 所以留下狀態碼、content-type、大小與開頭一段（不只第一行）。上游的文字經過 quoted() 才進報告。
+    if (/^\s*</.test(body.replace(/^\uFEFF/, ""))) {
+      return {
+        kind: "format",
+        detail:
+          `HTTP ${status} 卻回 HTML 頁面，不是資料（${type}，${Buffer.byteLength(body, "utf8")} bytes）。` +
+          `開頭：${quoted(body.slice(0, 4000), HTML_ECHO_LIMIT)}`,
+      };
+    }
     // 完整表頭與欄數：要判斷是該刷新目錄還是補規則，就得看得到整行；截斷的話只能確認「有不符」。
-    // 上限 500 字，免得 HTML 錯誤頁整頁灌進 issue。表頭是上游的文字，包成行內程式碼才進報告。
+    // 上限 500 字。表頭是上游的文字，包成行內程式碼才進報告。
     const first = body.replace(/^\uFEFF/, "").split(/\r?\n/)[0].trim();
     const want = Object.keys(catalog[id]?.fields ?? {}).length;
     return {
       kind: "format",
-      detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：${quoted(first, 500)}`,
+      detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄；${type}）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：${quoted(first, 500)}`,
     };
   }
   // 與執行期（src/twse.ts 的 fetchDataset）同一個判準：不是陣列就是上游的錯誤回應。
@@ -161,6 +176,10 @@ export function classify(id, { status, body, rechecked }, now, catalog, maxBodyB
  * 5xx 多半是交易所的 CDN 快取過期、源站來不及回（504）；第一次請求會把快取暖起來，再抓通常就好。
  * 健檢不重試這個的話，工具實際上讀得到的資料集也會被回報成異常。
  * 三次都是 5xx 就照實回最後的狀態碼；4xx 不會自己好，不重試。`wait` 可以換掉，測試才不必真的等。
+ *
+ * @param {string} id
+ * @param {{ wait?: (ms: number) => Promise<unknown> }} [options]
+ * @returns {Promise<{ status: number, body: string, contentType?: string, timedOut?: boolean }>}
  */
 export async function fetchBody(id, { wait = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   let last;
@@ -174,7 +193,7 @@ export async function fetchBody(id, { wait = (ms) => new Promise((r) => setTimeo
       // 與執行期（src/twse.ts 的 readCapped）同一個編碼判準，只看開頭一小段。
       const bytes = new Uint8Array(await res.arrayBuffer());
       const body = new TextDecoder(bodyEncoding(bytes.subarray(0, 4096))).decode(bytes);
-      response = { status: res.status, body };
+      response = { status: res.status, body, contentType: res.headers.get("content-type") ?? "" };
       if (res.status !== 429 && res.status < 500) return response;
     } catch (e) {
       last = e;
