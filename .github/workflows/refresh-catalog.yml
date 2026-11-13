@@ -2,6 +2,7 @@ name: refresh catalog
 
 # 證交所偶爾會新增／調整資料集與欄位。catalog 是建置期烘進 bundle 的靜態檔，
 # 不會自己更新，所以每週重抓一次 swagger，有變動就備好分支並開 issue 通知。
+# 同一趟也更新休市日副本（src/holidays.generated.json）：證交所的休市日表只列一個年度，要趁它還列著時存下來。
 #
 # 注意：本組織政策禁止 GitHub Actions 開 PR，所以這裡改成「推分支 + 開 issue
 # （內含一鍵開 PR 的連結）」。若日後組織開放該權限，可改成直接 gh pr create。
@@ -30,6 +31,8 @@ env:
   # 不要在這個分支上直接修東西——下次執行就沒了；要改請另開分支。
   BRANCH: chore/catalog-refresh
   CATALOG: src/catalog.generated.json
+  # 本服務保存的休市日副本（見 AGENTS.md）。與目錄一起刷新、一起交給 publish。
+  HOLIDAYS: src/holidays.generated.json
 
 jobs:
   refresh:
@@ -48,18 +51,33 @@ jobs:
       - name: 重抓證交所 swagger
         run: npm run refresh-catalog
 
+      - name: 重抓休市日表
+        run: npm run refresh-holidays
+
+      # 兩個檔案任何一個有變動就往下走。摘要分兩段，各自只在那個檔案有變動時才寫。
       - name: 有變動嗎
         id: diff
         run: |
-          if git diff --quiet "$CATALOG"; then
+          if git diff --quiet "$CATALOG" "$HOLIDAYS"; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "證交所目錄無變動，收工。"
+            echo "目錄與休市日副本都沒有變動，收工。"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git --no-pager diff --stat "$CATALOG"
-            # 資料集與欄位的增減，給 issue 內文用（commit 之前，HEAD 還是舊的目錄）
-            git show "HEAD:$CATALOG" > "$RUNNER_TEMP/catalog-old.json"
-            node scripts/catalog-diff.mjs "$RUNNER_TEMP/catalog-old.json" "$CATALOG" | tee "$RUNNER_TEMP/catalog-diff.md"
+            git --no-pager diff --stat "$CATALOG" "$HOLIDAYS"
+            # commit 之前，HEAD 還是舊的檔案
+            {
+              if git diff --quiet "$CATALOG"; then
+                echo "資料集目錄沒有變動。"
+              else
+                git show "HEAD:$CATALOG" > "$RUNNER_TEMP/catalog-old.json"
+                node scripts/catalog-diff.mjs "$RUNNER_TEMP/catalog-old.json" "$CATALOG"
+              fi
+              if ! git diff --quiet "$HOLIDAYS"; then
+                git show "HEAD:$HOLIDAYS" > "$RUNNER_TEMP/holidays-old.json"
+                echo
+                node scripts/refresh-holidays.mjs --diff "$RUNNER_TEMP/holidays-old.json" "$HOLIDAYS"
+              fi
+            } | tee "$RUNNER_TEMP/catalog-diff.md"
           fi
 
       # 推分支不會觸發既有的 tests workflow，所以在這裡就把驗證做完，
@@ -85,6 +103,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/handoff"
           cp "$CATALOG" "$RUNNER_TEMP/handoff/catalog.generated.json"
+          cp "$HOLIDAYS" "$RUNNER_TEMP/handoff/holidays.generated.json"
           cp "$RUNNER_TEMP/catalog-diff.md" "$RUNNER_TEMP/handoff/catalog-diff.md"
       - uses: actions/upload-artifact@v7
         if: steps.diff.outputs.changed == 'true'
@@ -111,12 +130,14 @@ jobs:
 
       - name: 推上分支
         run: |
-          # 只拿那一個目錄檔，其餘的工作目錄內容都來自這個 job 自己的 checkout。
+          # 只拿這兩個產生的檔案，其餘的工作目錄內容都來自這個 job 自己的 checkout。
+          # 沒有變動的那一個複製過來內容相同，git add 不會把它算進 commit。
           cp "$RUNNER_TEMP/handoff/catalog.generated.json" "$CATALOG"
+          cp "$RUNNER_TEMP/handoff/holidays.generated.json" "$HOLIDAYS"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add "$CATALOG"
+          git add "$CATALOG" "$HOLIDAYS"
           git commit -m "chore: refresh TWSE/TAIFEX catalog"
           # force：這是機器人專用的暫存分支，每次都以最新結果覆寫（見上方 env 註解）
           git push --force origin "$BRANCH"
@@ -130,14 +151,14 @@ jobs:
           COMPARE="${{ github.server_url }}/${{ github.repository }}/compare/main...${BRANCH}?expand=1"
           SUMMARY=$(cat "$RUNNER_TEMP/handoff/catalog-diff.md")
           BODY=$(printf '%s\n' \
-            "每週自動刷新發現證交所或期交所的 swagger 有變動，已把新的 \`${CATALOG}\` 推到 \`${BRANCH}\`。" \
+            "每週自動刷新發現資料集目錄（\`${CATALOG}\`）或休市日副本（\`${HOLIDAYS}\`）有變動，已把新的檔案推到 \`${BRANCH}\`。" \
             "" \
             "**異動**（資料集 id 的 \`taifex/\` 前綴是期交所，其餘是證交所）：" \
             "" \
             "${SUMMARY}" \
             "" \
             "**已驗證**：catalog 健檢（規模、結構、snapshot.etf 依賴的資料集仍在）、" \
-            "typecheck、測試（其中有數項直接對真實目錄斷言）、\`wrangler deploy --dry-run\` 全數通過。" \
+            "typecheck、測試（其中有數項直接對真實目錄與休市日副本斷言）、\`wrangler deploy --dry-run\` 全數通過。" \
             "" \
             "[點此開 PR 檢視 diff](${COMPARE})" \
             "" \

@@ -16,6 +16,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { fetchBody } from "./check-upstream.mjs";
+import { quoted } from "./report-text.mjs";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "holidays.generated.json");
 const DATASET = "holidaySchedule/holidaySchedule";
@@ -44,6 +45,35 @@ export function mergeHolidayYear(stored, rows, fetched, source = OPENAPI_SOURCE)
   return Object.fromEntries(Object.keys(merged).sort().map((y) => [y, merged[y]]));
 }
 
+/**
+ * 純函式：兩份副本的差異，給每週刷新的 issue 內文用。沒有變動回空字串。
+ * 一個年度一行。名稱是上游的文字，經過 quoted() 才進報告。
+ */
+export function holidaysDiff(before, after) {
+  const lines = [];
+  for (const year of Object.keys(after).sort()) {
+    const was = before[year]?.rows;
+    const now = after[year].rows;
+    if (!was) {
+      lines.push(`- 休市日副本新增 ${quoted(year, 8)} 年（${now.length} 列）`);
+      continue;
+    }
+    const old = new Map(was.map((r) => [r.Date, r.Name]));
+    const cur = new Map(now.map((r) => [r.Date, r.Name]));
+    const added = now.filter((r) => !old.has(r.Date)).map((r) => quoted(`${r.Date} ${r.Name}`, 80));
+    const removed = was.filter((r) => !cur.has(r.Date)).map((r) => quoted(`${r.Date} ${r.Name}`, 80));
+    const renamed = now
+      .filter((r) => old.has(r.Date) && old.get(r.Date) !== r.Name)
+      .map((r) => quoted(`${r.Date} ${old.get(r.Date)} → ${r.Name}`, 120));
+    const parts = [];
+    if (added.length) parts.push(`新增 ${added.join("、")}`);
+    if (removed.length) parts.push(`移除 ${removed.join("、")}`);
+    if (renamed.length) parts.push(`改名 ${renamed.join("、")}`);
+    if (parts.length) lines.push(`- 休市日副本 ${quoted(year, 8)} 年：${parts.join("；")}`);
+  }
+  return lines.join("\n");
+}
+
 async function main() {
   const stored = JSON.parse(await readFile(OUT, "utf-8").catch((e) => (e?.code === "ENOENT" ? "{}" : Promise.reject(e))));
   const { status, body } = await fetchBody(DATASET);
@@ -58,7 +88,17 @@ async function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  main().catch((err) => {
+  // `--diff <舊.json> <新.json>`：只印差異摘要，不抓上游、不寫檔。
+  const [flag, oldPath, newPath] = process.argv.slice(2);
+  const run =
+    flag === "--diff"
+      ? async () => {
+          if (!oldPath || !newPath) throw new Error("用法：node scripts/refresh-holidays.mjs --diff <舊.json> <新.json>");
+          const [o, n] = await Promise.all([oldPath, newPath].map(async (f) => JSON.parse(await readFile(f, "utf-8"))));
+          process.stdout.write(holidaysDiff(o, n) + "\n");
+        }
+      : main;
+  run().catch((err) => {
     process.stderr.write(String(err?.stack ?? err) + "\n");
     process.exit(1);
   });
