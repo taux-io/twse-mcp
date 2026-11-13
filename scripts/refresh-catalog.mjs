@@ -69,11 +69,25 @@ const TAIFEX_FIELD_OVERRIDES = {
  *   SSOLists：swagger 寫「股票期貨商品契約代碼」，是從股票期貨那一份抄來的；表頭是「股票選擇權…」。
  *   TotalMarketPositionLimit…：swagger 把一個含頓號的說明從頓號切成兩段，後半段落到下一欄，
  *     「比例」的說明因此不見。
+ *   DailyForeignExchangeRates：swagger 寫「美元／新台幣(匯率)」（全形斜線），表頭是「美元_新台幣(匯率)」。
+ *     表頭是 GitHub runner 上的每日健檢記錄的；同一天從台灣抓到的是 JSON。
  *
  * 只改 swagger 有的鍵。與 TAIFEX_FIELD_OVERRIDES 相反，這裡蓋過 swagger：上游改了 CSV 表頭的話，
  * 每日健檢會回報 format，那時再改這張表。
  */
 const TAIFEX_DESCRIPTION_CORRECTIONS = {
+  DailyForeignExchangeRates: {
+    "USD/NTD": "美元_新台幣(匯率)",
+    "RMB/NTD": "人民幣_新台幣(匯率)",
+    "EUR/USD": "歐元_美元(匯率)",
+    "USD/JPY": "美元_日幣(匯率)",
+    "GBP/USD": "英鎊_美元(匯率)",
+    "AUD/USD": "澳幣_美元(匯率)",
+    "USD/HKD": "美元_港幣(匯率)",
+    "USD/RMB": "美元_人民幣(匯率)",
+    "USD/ZAR": "美元_南非幣(匯率)",
+    "NZD/USD": "紐幣_美元(匯率)",
+  },
   FuturesAndOptionsFeeSchedule: { FuturesTransactionTaxRate: "期貨交易稅比率" },
   SSOLists: { Contract: "股票選擇權商品契約代碼" },
   TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions: {
