@@ -35,6 +35,7 @@ import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
   classify,
   fetchBody,
+  sweep,
   MAX_BODY_BYTES as SCRIPT_MAX_BODY_BYTES,
   FRESHNESS,
   MAX_AGE_DAYS,
@@ -1144,6 +1145,65 @@ describe("上游健檢抓取時的重試", () => {
     expect((await fetchBody("opendata/t187ap21", { wait: noWait })).status).toBe(200);
     expect(calls).toHaveLength(2);
     stub([new Error("fetch failed")]);
-    expect(await fetchBody("opendata/t187ap21", { wait: noWait })).toEqual({ status: 0, body: "fetch failed" });
+    expect(await fetchBody("opendata/t187ap21", { wait: noWait })).toEqual({ status: 0, body: "fetch failed", timedOut: false });
+    const timeout = Object.assign(new Error("The operation was aborted due to timeout"), { name: "TimeoutError" });
+    stub([timeout]);
+    expect((await fetchBody("opendata/t187ap21", { wait: noWait })).timedOut).toBe(true);
+  });
+});
+
+/**
+ * 大型資料集在交易所的 CDN 快取過期時傳得很慢，健檢第一次去抓會逾時。排程的健檢因此幾乎每天都是紅的
+ *（2026-11-02 到 11-13 的 12 次裡 11 次失敗），而正式環境同一時間讀得到。逾時的資料集在全部掃完後重抓一次，
+ * 仍然逾時才回報。
+ */
+describe("上游健檢：逾時的資料集掃完後重抓一次", () => {
+  const TIMEOUT = { status: 0, body: "The operation was aborted due to timeout", timedOut: true };
+  const OK = { status: 200, body: '[{"a":1}]' };
+  const run = async (ids: string[], script: Record<string, Array<{ status: number; body: string; timedOut?: boolean }>>) => {
+    const calls: string[] = [];
+    let clock = 0;
+    const result = await sweep(ids, {
+      fetchDataset: async (id: string) => {
+        calls.push(id);
+        clock += 10_000;
+        const seq = script[id] ?? [OK];
+        return seq[Math.min(calls.filter((c) => c === id).length - 1, seq.length - 1)];
+      },
+      now: () => clock,
+      concurrency: 1,
+    });
+    return { ...result, calls };
+  };
+  it("第一次逾時、重抓成功：用重抓的結果，並記下隔了多久才恢復", async () => {
+    const r = await run(["a", "big", "c"], { big: [TIMEOUT, OK] });
+    expect(r.responses.get("big")).toEqual(OK);
+    expect(r.rechecked).toEqual([{ id: "big", recovered: true, seconds: 20 }]);
+  });
+  it("重抓仍然逾時：照實回報，並註明重抓過", async () => {
+    const r = await run(["big"], { big: [TIMEOUT] });
+    expect(r.rechecked).toEqual([{ id: "big", recovered: false, seconds: 10 }]);
+    const problem = classify("big", r.responses.get("big")!, new Date(), {});
+    expect(problem?.kind).toBe("http");
+    expect(problem?.detail).toContain("重抓");
+  });
+  it("重抓要等所有資料集的第一次都抓完才開始", async () => {
+    const r = await run(["big", "b", "c"], { big: [TIMEOUT, OK] });
+    expect(r.calls).toEqual(["big", "b", "c", "big"]);
+  });
+  it("格式錯誤、504、連線失敗不重抓：只有逾時才重抓", async () => {
+    const r = await run(["html", "gw", "down", "ok"], {
+      html: [{ status: 200, body: "<html>" }],
+      gw: [{ status: 504, body: "gateway timeout" }],
+      down: [{ status: 0, body: "fetch failed" }],
+    });
+    expect(r.calls).toEqual(["html", "gw", "down", "ok"]);
+    expect(r.rechecked).toEqual([]);
+    expect(classify("down", r.responses.get("down")!, new Date(), {})?.detail).not.toContain("重抓");
+  });
+  it("重抓拿到的回應照常分類：200 但讀不了的內容仍然是 format", async () => {
+    const r = await run(["big"], { big: [TIMEOUT, { status: 200, body: "<html>maintenance</html>" }] });
+    expect(r.rechecked[0].recovered).toBe(true);
+    expect(classify("big", r.responses.get("big")!, new Date(), { big: { fields: { a: "欄" } } })?.kind).toBe("format");
   });
 });
