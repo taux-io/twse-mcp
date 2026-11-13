@@ -12,7 +12,7 @@ web
 來首頁是為了照著步驟，把這個 connector（`https://twse-mcp.taux.io/mcp`）加進自己用的 AI。
 之後他們用中文向 AI 提問，不會再回到首頁。
 
-次要讀者是開發者，從 README、`llms.txt` 或 MCP 目錄（Smithery、MCP Registry、Claude Directory）找到這裡。首頁不以他們為主。
+次要讀者是開發者，從 README、`llms.txt` 或 MCP 目錄（MCP Registry、Claude Directory）找到這裡。首頁不以他們為主。
 
 ## Product Purpose
 
@@ -71,7 +71,6 @@ web
 ## Evidence on Hand
 
 - **已上架或送審的目錄**：
-  - Smithery（taux/twse，品質分數 100）；
   - MCP Registry（`io.github.taux-io/twse-mcp`）；
   - awesome-remote-mcp-servers（PR #729 已合併）；
   - Claude Directory 審核中。
