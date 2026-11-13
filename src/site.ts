@@ -1737,26 +1737,19 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
 export const PAGES_LASTMOD = "2026-11-08";
 
 /**
- * 兩個語系都列，並互相宣告 xhtml:link——sitemap 是 hreflang 的第二個載體，
- * 而 Google 明確要求兩處宣告必須一致。
- * /datasets 與 /privacy 只有一個版本（隱私權頁中英同頁），各另列一筆，不宣告 xhtml:link。
+ * 每個語系的首頁各列一筆。語系宣告（hreflang）只放在各頁的 <head>，這裡不重複：
+ * 瀏覽器只要在 XML 文件裡看到 XHTML 命名空間的元素（<xhtml:link>），就把整份文件當網頁排版，
+ * sitemap 會顯示成一行擠在一起的文字，而不是 XML 樹。
+ * /datasets 與 /privacy 只有一個版本（隱私權頁中英同頁），各另列一筆。
  * /privacy 的 lastmod 用 PRIVACY_UPDATED，內容改了就跟著動。
  */
 export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${(Object.keys(LOCALES) as Locale[])
   .map(
     (l) => `  <url>
     <loc>${SITE_ORIGIN}${LOCALES[l].path}</loc>
     <lastmod>${PAGES_LASTMOD}</lastmod>
-${(Object.keys(LOCALES) as Locale[])
-  .map(
-    (o) =>
-      `    <xhtml:link rel="alternate" hreflang="${LOCALES[o].hreflang}" href="${SITE_ORIGIN}${LOCALES[o].path}"/>`,
-  )
-  .join("\n")}
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}/"/>
     <changefreq>monthly</changefreq>
     <priority>${l === "zh" ? "1.0" : "0.9"}</priority>
   </url>`,
