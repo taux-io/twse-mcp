@@ -245,21 +245,32 @@ async function fetchSpec(url) {
   throw new Error(`swagger fetch failed after ${attempts} attempts: ${lastErr.message}`);
 }
 
+/** @type {(id: string) => Record<string, string>} */
+const NO_CORRECTIONS = () => ({});
+
 /**
- * swagger 的欄位說明變了，但實際的 CSV 表頭只對得上舊說明時，保留舊說明。
+ * swagger 的欄位說明變了的資料集：只有新說明對得上實際的 CSV 表頭時才採用，否則保留原本的。
  *
  * 欄位說明是 CSV 備援對表頭的依據（src/csv-header.mjs），而 swagger 的說明與 CSV 表頭不保證一致。
- * 2026-11-13 排程抓到的 swagger 把「期末未沖銷契約量」寫成「期末未沖銷量」（同一天從別處抓到的
- * 仍是前者），照單收下會讓 4 個讀得到的資料集讀不到，其中兩個正是 #214 修過的。
+ * 期交所的 swagger 會在較長與較短的說明之間變動；較短的那一份會讓 4 個資料集在上游回 CSV 時讀不到，
+ * 其中兩個正是 #214 修過的。
+ *
+ * 為什麼是「沒有證據就不換」：原本的說明是已知讀得到的那一份。同一個端點的格式在不同次抓取之間會變，
+ * 刷新當下拿到 JSON 不代表它之後不回 CSV。第一版的規則在上游回 JSON 時照新的走，2026-11-13 的 runner
+ * 執行（run 43376653807）就這樣把那 4 個資料集全部換掉了。
  *
  * 只處理欄位鍵與順序都沒變、只有說明不同的資料集；欄位有增減是要人看的變動，照新的走。
  * 整個資料集的說明一起保留，不逐欄混用：混出來的清單沒有被任何表頭驗證過。
- * 上游回 JSON 時沒有表頭可對，照新的走。抓不到資料時也保留舊說明：舊的是已知讀得到的那一份，
- * 下次刷新會再驗一次。
+ * 例外是 `corrections`：那是我們刻意蓋過 swagger 的更正，只出現在新產生的那一份，保留時要再套回去。
  *
- * 直接改 `next`，回傳保留了哪些資料集與原因（header：表頭只對得上舊的；unverified：抓不到資料）。
+ * 直接改 `next`，回傳保留了哪些資料集與原因：
+ *   header      上游回 CSV，表頭對不上新說明
+ *   no-header   上游回 JSON，沒有表頭可對
+ *   unverified  抓不到資料
+ *
+ * @param {(id: string) => Record<string, string>} [corrections]
  */
-export async function keepReadableFields(previous, next, fetchDataset = fetchBody) {
+export async function keepReadableFields(previous, next, fetchDataset = fetchBody, corrections = NO_CORRECTIONS) {
   const kept = [];
   for (const [id, ds] of Object.entries(next)) {
     if (!Object.hasOwn(previous, id)) continue;
@@ -268,7 +279,7 @@ export async function keepReadableFields(previous, next, fetchDataset = fetchBod
     if (keys.join("\n") !== Object.keys(before).join("\n")) continue;
     if (keys.every((k) => before[k] === ds.fields[k])) continue;
     const { status, body } = await fetchDataset(id);
-    let reason = null;
+    let reason;
     if (status < 200 || status >= 300) {
       reason = "unverified";
     } else {
@@ -278,18 +289,29 @@ export async function keepReadableFields(previous, next, fetchDataset = fetchBod
       } catch {
         isJson = false;
       }
-      const header = csvHeader(body);
-      if (!isJson && headerMatches(header, Object.values(before)) && !headerMatches(header, Object.values(ds.fields))) {
-        reason = "header";
-      }
+      if (isJson) reason = "no-header";
+      else if (!headerMatches(csvHeader(body), Object.values(ds.fields))) reason = "header";
     }
     if (reason) {
-      ds.fields = { ...before };
+      const fields = { ...before };
+      for (const [k, desc] of Object.entries(corrections(id))) {
+        if (Object.hasOwn(fields, k)) fields[k] = desc;
+      }
+      ds.fields = fields;
       kept.push({ id, reason });
     }
   }
   return kept;
 }
+
+const KEPT_REASON = {
+  header: "上游回 CSV，表頭對不上 swagger 的新說明",
+  "no-header": "上游回 JSON，沒有 CSV 表頭可以證實 swagger 的新說明",
+  unverified: "抓不到實際資料，無法驗證 swagger 的新說明",
+};
+
+/** 資料集 id → 我們刻意蓋過 swagger 的欄位說明。目前只有期交所有。 */
+const correctionsFor = (id) => (id.startsWith("taifex/") ? (TAIFEX_DESCRIPTION_CORRECTIONS[id.slice("taifex/".length)] ?? {}) : {});
 
 /** 目前簽入的目錄。第一次產生時還沒有檔案，當成空的。 */
 async function readPrevious() {
@@ -329,12 +351,8 @@ async function main() {
     }
     process.stderr.write(`  ${src.source}: ${n} datasets\n`);
   }
-  for (const { id, reason } of await keepReadableFields(await readPrevious(), catalog)) {
-    process.stderr.write(
-      reason === "header"
-        ? `  ${id}: 保留原本的欄位說明（實際的 CSV 表頭對得上原本的，對不上 swagger 的新說明）\n`
-        : `  ${id}: 保留原本的欄位說明（抓不到實際資料，無法驗證 swagger 的新說明）\n`,
-    );
+  for (const { id, reason } of await keepReadableFields(await readPrevious(), catalog, fetchBody, correctionsFor)) {
+    process.stderr.write(`  ${id}: 保留原本的欄位說明（${KEPT_REASON[reason]}）\n`);
   }
   const count = Object.keys(catalog).length;
   await writeFile(OUT, JSON.stringify(catalog, null, 1) + "\n", "utf-8");
