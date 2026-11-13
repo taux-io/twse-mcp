@@ -24,7 +24,7 @@
 
 ## 發版
 
-發版是推一個 `v*` tag，`publish-mcp.yml` 會把 `server.json` 發布到官方 MCP Registry，再更新 Smithery。
+發版是推一個 `v*` tag，`publish-mcp.yml` 會把 `server.json` 發布到官方 MCP Registry。
 
 `v*` tag 受 repo ruleset `v* release tags` 保護：建立、更新、刪除都被拒絕，沒有任何人可以繞過，admin 也一樣。
 所以打 tag 之前要先停用它，推完立刻啟用。停用與啟用都會留在 repo 的稽核紀錄裡，這是刻意的：

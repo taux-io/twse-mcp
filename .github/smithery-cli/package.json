@@ -1,8 +1,0 @@
-{
-  "name": "twse-mcp-smithery-cli",
-  "private": true,
-  "description": "publish-mcp.yml 的 smithery job 用的 CLI。版本與整棵相依樹由 package-lock.json 鎖住。",
-  "dependencies": {
-    "smithery": "1.2.0"
-  }
-}

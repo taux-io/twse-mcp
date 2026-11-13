@@ -5,7 +5,7 @@
 # 所以這裡唯一的工作是把 server.json 送上去。
 #
 # 用 OIDC 而非 PAT：不需要任何長期 secret，`id-token: write` 換來的是一次性的憑證。
-# 兩個 job 都放在 `mcp-registry` environment 底下：要 required reviewer 核准，而且只有
+# 這個 job 放在 `mcp-registry` environment 底下：要 required reviewer 核准，而且只有
 # `v*` tag 能部署（從 main 手動觸發會被 environment 拒絕）。
 #
 # 這道閘門管的是「這支 workflow 的正常路徑」，不是那張憑證本身：environment 的規則只對
@@ -17,9 +17,7 @@
 #   gh api -X PUT repos/taux-io/twse-mcp/rulesets/27170715 -f enforcement=disabled
 #   git tag vX.Y.Z origin/main && git push origin vX.Y.Z
 #   gh api -X PUT repos/taux-io/twse-mcp/rulesets/27170715 -f enforcement=active
-#
-# Registry 成功後，第二個 job 在 Smithery（taux/twse）重新發布，讓它重新掃描工具與分數。
-# 那一步用的是長期的 SMITHERY_API_KEY，存在 `mcp-registry` 的 environment secret 裡。
+
 name: publish to mcp registry
 
 on:
@@ -27,14 +25,7 @@ on:
     tags: ["v*"]
   # 手動重發：registry 標示為 preview，官方明說可能有資料重置，
   # 屆時不必為了重發而硬打一個新 tag。
-  # smithery_only：只重跑 Smithery（例如改了 .github/smithery.json），不動 registry——
-  # 同一個版本不能在 registry 重發，那一步會失敗而把 Smithery 擋掉。
   workflow_dispatch:
-    inputs:
-      smithery_only:
-        description: "只更新 Smithery（不發布到 registry）"
-        type: boolean
-        default: false
 
 concurrency:
   group: publish-mcp
@@ -42,7 +33,6 @@ concurrency:
 
 jobs:
   publish:
-    if: ${{ !inputs.smithery_only }}
     runs-on: ubuntu-latest
     # 這個 environment 掛 required reviewer，同時蓋住這支 workflow 的 tag 路徑與
     # `workflow_dispatch` 路徑。沒有它，單一個被盜的 write 權限帳號打一個 tag 就能無聲地把
@@ -114,42 +104,3 @@ jobs:
 
       - name: publish
         run: ./mcp-publisher publish
-
-  # 分成獨立的 job，而不是在上面加一步：上面的 job 握有 id-token: write，同一個 job 裡的
-  # 任何程式都能換到改寫 registry 條目的憑證。smithery CLI 與它的相依是第三方程式，
-  # 那不該和那張憑證待在一起。這裡只拿得到 SMITHERY_API_KEY。
-  #
-  # SMITHERY_API_KEY 是長期金鑰，這個 job 裡跑的每一段程式都讀得到它，所以比照上面的 job：
-  # action 釘到 commit SHA；smithery CLI 由 .github/smithery-cli 的 lockfile 鎖住整棵相依樹
-  # （含 integrity），用 `npm ci --ignore-scripts` 安裝，不在執行時才解析版本。
-  #
-  # 同一個 environment：key 只在 required reviewer 核准後才讀得到。
-  smithery:
-    needs: publish
-    # publish 被 smithery_only 跳過時照樣跑；publish 失敗時不跑。
-    if: ${{ always() && (needs.publish.result == 'success' || inputs.smithery_only) }}
-    runs-on: ubuntu-latest
-    environment: mcp-registry
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: "22"
-      - name: install smithery CLI
-        working-directory: .github/smithery-cli
-        run: npm ci --ignore-scripts
-      - name: publish to Smithery
-        env:
-          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
-        run: .github/smithery-cli/node_modules/.bin/smithery mcp publish https://twse-mcp.taux.io/mcp -n taux/twse
-      # 顯示名稱與說明只在 .github/smithery.json 維護，每次發布都同步過去，網頁上改的會被覆蓋。
-      - name: sync Smithery listing metadata
-        env:
-          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
-        run: |
-          curl -fsS -X PATCH "https://api.smithery.ai/servers/taux%2Ftwse" \
-            -H "Authorization: Bearer ${SMITHERY_API_KEY}" \
-            -H "Content-Type: application/json" \
-            --data @.github/smithery.json -o /dev/null -w "HTTP %{http_code}\n"
