@@ -22,6 +22,33 @@
   `scripts/check-required-checks.mjs` 在 CI 擋這兩件事；改了 GitHub 上的設定要同步它的 `REQUIRED_CHECKS`，
   再跑 `npm run check-required-checks -- --remote` 對一次。
 
+## 發版
+
+發版是推一個 `v*` tag，`publish-mcp.yml` 會把 `server.json` 發布到官方 MCP Registry，再更新 Smithery。
+
+`v*` tag 受 repo ruleset `v* release tags` 保護：建立、更新、刪除都被拒絕，沒有任何人可以繞過，admin 也一樣。
+所以打 tag 之前要先停用它，推完立刻啟用。停用與啟用都會留在 repo 的稽核紀錄裡，這是刻意的：
+`v*` tag 一推就觸發發布流程，不該有人能安靜地建立或移動它。
+
+1. 升版的 PR 先合併：`package.json`、`package-lock.json`、`server.json` 的版本，以及兩份 CHANGELOG 的版本號與日期（見「更新紀錄」）。
+2. 停用 ruleset、在升版的那個 commit 上打 tag 並推送、啟用 ruleset：
+
+   ```sh
+   RULESET=repos/taux-io/twse-mcp/rulesets/27170715
+   gh api -X PUT "$RULESET" -f enforcement=disabled -q .enforcement   # 印出 disabled
+   git tag v0.16.0 origin/main
+   git push origin v0.16.0
+   gh api -X PUT "$RULESET" -f enforcement=active -q .enforcement     # 印出 active
+   ```
+
+3. 到 Actions 核准 `mcp-registry` environment 的部署。它只接受 `v*` tag，從 `main` 手動觸發會被拒絕。
+4. 確認 ruleset 是啟用的：`gh api repos/taux-io/twse-mcp/rulesets -q '.[] | "\(.id) \(.name) \(.enforcement)"'`。
+
+- tag 推錯了要移動或刪除，一樣要先停用 ruleset。
+- ruleset 的 id 變了（被刪掉重建）就用第 4 步的指令查新的 id。
+- 這道保護只管 tag。有 write 權限的人仍然可以另外寫一支 workflow 拿到同一張 registry 憑證，
+  那一側靠 `smoke.yml` 每天比對 registry 條目（`scripts/check-registry.mjs`）來偵測。
+
 ## 依賴升級
 
 Dependabot 的 PR 都改 `package-lock.json`，合併一個後其他的會衝突：留言 `@dependabot rebase`，一次重建一個。
