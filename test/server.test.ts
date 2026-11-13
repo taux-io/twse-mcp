@@ -2225,12 +2225,27 @@ describe("英文版首頁", () => {
     expect(body.match(/\/privacy<\/loc>/g)).toHaveLength(1);
   });
 
-  it("sitemap 每個語系都列，且每筆都宣告全部語系", async () => {
+  it("sitemap 每個語系都列", async () => {
     const body = await (await get("/sitemap.xml")).text();
     expect(body).toContain("<loc>https://twse-mcp.taux.io/</loc>");
     expect(body).toContain("<loc>https://twse-mcp.taux.io/en</loc>");
     expect(body).toContain("<loc>https://twse-mcp.taux.io/ja</loc>");
-    expect(body.match(/hreflang="ja" href="https:\/\/twse-mcp.taux.io\/ja"\/>/g)).toHaveLength(3);
+    expect(body.match(/<url>/g)).toHaveLength(5);
+  });
+
+  // 瀏覽器只要在 XML 文件裡看到 XHTML 命名空間的元素（例如 <xhtml:link>），就把整份文件當網頁排版，
+  // sitemap 於是顯示成一行擠在一起的文字，而不是 XML 樹。
+  it("sitemap 不含 XHTML 命名空間的元素，瀏覽器才會顯示成 XML 樹", async () => {
+    const body = await (await get("/sitemap.xml")).text();
+    expect(body).not.toContain("xhtml");
+    expect(body).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>\n<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
+  });
+
+  it("語系宣告在每個語系首頁的 <head>，四個都列", async () => {
+    for (const path of ["/", "/en", "/ja"]) {
+      const html = await (await get(path)).text();
+      for (const lang of ["zh-Hant", "en", "ja", "x-default"]) expect(html).toContain(`<link rel="alternate" hreflang="${lang}"`);
+    }
   });
 
   it("sitemap 每個網址都有 lastmod，且是合法的 YYYY-MM-DD", async () => {

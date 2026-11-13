@@ -534,7 +534,7 @@ describe("上游健檢腳本", () => {
   });
 
   const now = new Date("2026-09-26T02:00:00Z");
-  const classifyAt = (id: string, r: { status: number; body: string }, at: Date) => classify(id, r, at, catalog);
+  const classifyAt = (id: string, r: { status: number; body: string; contentType?: string }, at: Date) => classify(id, r, at, catalog);
   const ok = (body: unknown) => ({ status: 200, body: JSON.stringify(body) });
   it("健康的回應回 null", () => {
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", ok([{ Date: "1150924" }]), now)).toBeNull();
@@ -559,6 +559,32 @@ describe("上游健檢腳本", () => {
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: fsp }, now)?.kind).toBe("format");
     const day = '日期,證券代號,證券名稱,成交股數,成交金額,開盤價,最高價,最低價,收盤價,漲跌價差,成交筆數\r\n"1150924","2330","台積電","1","2","3","4","5","6","7","8"';
     expect(classifyAt("exchangeReport/STOCK_DAY_ALL", { status: 200, body: day }, now)).toBeNull();
+  });
+  // 2026-11-03 到 11-11 的排程健檢有 11 筆「表頭 1 欄」，全部是證交所回 HTTP 200 加一張 HTML 頁面。
+  // 報告原本只留第一行（每一筆都是同一個 <html><head><meta …>），看不出那張頁面是什麼，根因查不下去。
+  it("HTTP 200 卻回 HTML 頁面：說是 HTML，並留下狀態碼、content-type、大小與頁面開頭的內容", () => {
+    const html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<script type="application/javascript">\nvar challenge = "abc";\n</script></head><body>請稍候</body></html>';
+    const d = classifyAt("exchangeReport/STOCK_DAY_AVG_ALL", { status: 200, body: html, contentType: "text/html; charset=UTF-8" }, now);
+    expect(d?.kind).toBe("format");
+    expect(d?.detail).toContain("HTML");
+    expect(d?.detail).toContain("HTTP 200");
+    expect(d?.detail).toContain("text/html; charset=UTF-8");
+    expect(d?.detail).toContain(`${Buffer.byteLength(html)} bytes`);
+    // 不只第一行：第二行以後的內容才分得出這是哪一種頁面。
+    expect(d?.detail).toContain('var challenge = "abc";');
+    expect(d?.detail).toContain("請稍候");
+    expect(d?.detail).not.toContain("表頭");
+    expect(d?.detail.split("\n")).toHaveLength(1);
+  });
+  it("HTML 頁面很長時只留開頭一段；沒有 content-type 也照實寫", () => {
+    const d = classifyAt("exchangeReport/STOCK_DAY_AVG_ALL", { status: 200, body: "<html>" + "x".repeat(5000) }, now);
+    expect(d?.detail).toContain("沒有 content-type");
+    expect(d!.detail.length).toBeLessThan(800);
+  });
+  it("讀不了的 CSV 也附上 content-type，表頭那一段不變", () => {
+    const d = classifyAt("taifex/PutCallRatio", { status: 200, body: "日期,買權\r\n1,2", contentType: "application/octet-stream" }, now);
+    expect(d?.detail).toContain("表頭 2 欄");
+    expect(d?.detail).toContain("application/octet-stream");
   });
   // 這份報告會由機器人貼進公開 issue。上游的文字要包在行內程式碼裡，提及與連結才不會生效。
   it("format 的 detail 把上游表頭包成行內程式碼，提及與連結不會生效", () => {
@@ -1146,6 +1172,8 @@ describe("上游健檢抓取時的重試", () => {
     expect(calls).toHaveLength(2);
     stub([new Error("fetch failed")]);
     expect(await fetchBody("opendata/t187ap21", { wait: noWait })).toEqual({ status: 0, body: "fetch failed", timedOut: false });
+    stub([new Response("<html>", { status: 200, headers: { "content-type": "text/html; charset=UTF-8" } })]);
+    expect(await fetchBody("opendata/t187ap21", { wait: noWait })).toEqual({ status: 200, body: "<html>", contentType: "text/html; charset=UTF-8" });
     const timeout = Object.assign(new Error("The operation was aborted due to timeout"), { name: "TimeoutError" });
     stub([timeout]);
     expect((await fetchBody("opendata/t187ap21", { wait: noWait })).timedOut).toBe(true);
