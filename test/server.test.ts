@@ -2799,6 +2799,30 @@ describe("上游的 CSV 端點", () => {
     expect((rows[1] as Record<string, string>).Date).toBe("20260808");
   });
 
+  // 期交所的 InterestRateFuturesMargining 用 Big5 送 CSV，沒有 BOM。當成 UTF-8 解會整份變亂碼，
+  // 表頭對不上而失敗。BIG5_BODY 是 2026-11-13 實際收到的位元組。
+  const BIG5_ID = "taifex/InterestRateFuturesMargining";
+  const BIG5_BODY = Uint8Array.from(atob("sNOrfqdPLLWyuuKrT8PSqvcsuvur+atPw9Kq9yyt7Klsq0/D0qr3LKTptMEopKOmQafzt3MpDQpHQkYsMzQwMDAsMzYwMDAsNDYwMDAsMjAxOTA5MTE="), (c) => c.charCodeAt(0));
+  const respondBytes = (bytes: Uint8Array) =>
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(bytes, { status: 200, headers: { "content-type": "application/octet-stream" } })));
+
+  it("Big5 編碼的 CSV 讀得到", async () => {
+    respondBytes(BIG5_BODY);
+    expect(await fetchDataset(BIG5_ID)).toEqual([
+      { Contract: "GBF", ClearingMargin: "34000", MaintenanceMargin: "36000", InitialMargin: "46000", Date: "20190911" },
+    ]);
+  });
+
+  // JSON 一律是 UTF-8。裡面夾一個壞位元組時不可以整份改用 Big5 解，那會把所有中文都變成別的字。
+  it("JSON 裡有壞位元組時仍然當 UTF-8 解", async () => {
+    const good = new TextEncoder().encode('[{"Contract":"臺指"');
+    const rest = new TextEncoder().encode(',"Date":"20261112"}]');
+    respondBytes(Uint8Array.from([...good.slice(0, -1), 0xff, 0x22, ...rest]));
+    const rows = (await fetchDataset(BIG5_ID)) as Array<Record<string, string>>;
+    expect(rows[0].Contract.startsWith("臺指")).toBe(true);
+    expect(rows[0].Date).toBe("20261112");
+  });
+
   it("表頭順序被調換時大聲失敗，不做部分對應", async () => {
     const swapped = [...SPEC.header];
     [swapped[1], swapped[2]] = [swapped[2], swapped[1]];

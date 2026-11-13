@@ -20,7 +20,7 @@ import {
   MAX_BODY_BYTES,
   SNAPSHOT_DATASETS,
 } from "../src/twse";
-import { headerMatches } from "../src/csv-header.mjs";
+import { bodyEncoding, headerMatches } from "../src/csv-header.mjs";
 import { matchCall, stripMcpPrefix, subsetMatch } from "../scripts/eval-tools.mjs";
 import { summarize } from "../scripts/pr-wait.mjs";
 import { registryProblems } from "../scripts/check-registry.mjs";
@@ -259,6 +259,27 @@ describe("CSV 表頭對應規則", () => {
   });
   it("完全不相干的欄位不成立", () => {
     expect(headerMatches(["<html>"], ["日期"])).toBe(false);
+  });
+});
+
+/** 回應本文用哪種編碼解（src/csv-header.mjs）。執行期與每日健檢共用。 */
+describe("回應本文的編碼", () => {
+  const utf8 = (t: string) => new TextEncoder().encode(t);
+  const BIG5_HEADER = Uint8Array.from([0xb0, 0xd3, 0xab, 0x7e, 0xa7, 0x4f, 0x2c, 0xb5, 0xb2, 0xba, 0xe2]);
+  it("不是合法 UTF-8 的 CSV 當 Big5", () => {
+    expect(bodyEncoding(BIG5_HEADER)).toBe("big5");
+    expect(new TextDecoder("big5").decode(BIG5_HEADER)).toBe("商品別,結算");
+  });
+  it("UTF-8 的 CSV（有沒有 BOM 都一樣）與空的本文當 UTF-8", () => {
+    expect(bodyEncoding(utf8("\uFEFF日期,契約\r\n"))).toBe("utf-8");
+    expect(bodyEncoding(utf8("日期,契約\r\n"))).toBe("utf-8");
+    expect(bodyEncoding(new Uint8Array())).toBe("utf-8");
+  });
+  it("第一塊剛好切在一個中文字中間，仍然是 UTF-8", () => {
+    expect(bodyEncoding(utf8("日期,契約").slice(0, -1))).toBe("utf-8");
+  });
+  it("JSON 一律當 UTF-8，即使裡面有壞位元組", () => {
+    expect(bodyEncoding(Uint8Array.from([...utf8(' [{"a":"'), 0xff, ...utf8('"}]')]))).toBe("utf-8");
   });
 });
 
