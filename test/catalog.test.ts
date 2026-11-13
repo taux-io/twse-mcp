@@ -26,6 +26,7 @@ import { summarize } from "../scripts/pr-wait.mjs";
 import { registryProblems } from "../scripts/check-registry.mjs";
 import { quoted } from "../scripts/report-text.mjs";
 import { buildReport } from "../scripts/smoke.mjs";
+import { archiveReport } from "../scripts/archive-report.mjs";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
@@ -843,5 +844,40 @@ describe("刷新目錄時，欄位說明要對得上實際的 CSV 表頭", () =>
       expect(kept).toEqual([]);
       expect(fresh["taifex/X"].fields).toEqual(next);
     }
+  });
+});
+
+/**
+ * smoke 的「每日存檔」步驟失敗時，issue 內文要看得到原因。2026-11-05 那次失敗的 issue 只寫「全部通過」，
+ * 因為失敗的是存檔而不是工具實測，原因只在 run 的 log 裡。
+ */
+describe("每日存檔的失敗報告", () => {
+  const LOG = [
+    "[wrangler:info] Ready on http://localhost:8787",
+    '{"archive":"daily_quotes","rows":1312,"dates":["2026-11-05"]}',
+    '\u001b[32m{"archive":"margin_daily","rows":0,"dates":[],"error":"上游回的不是 JSON（content-type: text/html，HTTP 200）for https://openapi.twse.com.tw/v1/exchangeReport/MI_MARGN。開頭：<html>\\n<script>@octocat `x`"}\u001b[0m',
+    "✘ [ERROR] Uncaught Error: 每日存檔有 1 張表失敗：margin_daily",
+    "[wrangler:info] GET /__scheduled 500 Internal Server Error (719ms)",
+  ].join("\n");
+
+  it("排程回 200、列數過門檻、沒有表失敗：沒有報告", () => {
+    expect(archiveReport({ status: 200, rows: 1312, log: LOG.split("\n").slice(0, 2).join("\n") })).toBeNull();
+  });
+  it("有表失敗：列出是哪一張表與原因，上游文字包成行內程式碼", () => {
+    const report = archiveReport({ status: 500, rows: 1312, log: LOG })!;
+    expect(report).toContain("每日存檔");
+    expect(report).toContain("HTTP 500");
+    const line = report.split("\n").find((l) => l.includes("margin_daily"))!;
+    expect(line).toMatch(/^- `margin_daily`：`[^`]*`$/);
+    expect(line).toContain("MI_MARGN");
+    expect(line).not.toContain("@");
+    expect(report).not.toContain("daily_quotes`：");
+  });
+  it("列數不足或讀不到列數也是失敗，並寫出數字", () => {
+    expect(archiveReport({ status: 200, rows: 12, log: "" })).toContain("12 列");
+    expect(archiveReport({ status: 200, rows: Number.NaN, log: "" })).toContain("讀不到");
+  });
+  it("連不上本機 Worker（curl 回 000）", () => {
+    expect(archiveReport({ status: 0, rows: 0, log: "" })).toContain("連不上");
   });
 });
