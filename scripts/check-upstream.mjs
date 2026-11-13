@@ -148,8 +148,15 @@ export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_
   return null;
 }
 
-export async function fetchBody(id) {
+/**
+ * 抓一個資料集，最多試三次。會重試的與執行期（src/twse.ts 的 fetchWithRetry）相同：網路錯誤、429、5xx。
+ * 5xx 多半是交易所的 CDN 快取過期、源站來不及回（504）；第一次請求會把快取暖起來，再抓通常就好。
+ * 健檢不重試這個的話，工具實際上讀得到的資料集也會被回報成異常。
+ * 三次都是 5xx 就照實回最後的狀態碼；4xx 不會自己好，不重試。`wait` 可以換掉，測試才不必真的等。
+ */
+export async function fetchBody(id, { wait = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   let last;
+  let response;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await fetch(datasetUrl(id), {
@@ -159,13 +166,15 @@ export async function fetchBody(id) {
       // 與執行期（src/twse.ts 的 readCapped）同一個編碼判準，只看開頭一小段。
       const bytes = new Uint8Array(await res.arrayBuffer());
       const body = new TextDecoder(bodyEncoding(bytes.subarray(0, 4096))).decode(bytes);
-      return { status: res.status, body };
+      response = { status: res.status, body };
+      if (res.status !== 429 && res.status < 500) return response;
     } catch (e) {
       last = e;
-      await new Promise((r) => setTimeout(r, 2000 * attempt));
+      response = undefined;
     }
+    if (attempt < 3) await wait(2000 * attempt);
   }
-  return { status: 0, body: String(last?.message ?? last) };
+  return response ?? { status: 0, body: String(last?.message ?? last) };
 }
 
 async function main() {
