@@ -4,7 +4,7 @@
  * 目錄是機器產生、每週自動刷新的，而程式碼有幾個地方寫死了對它的假設。
  * 這裡把那些假設變成會紅的斷言，而不是等線上壞掉才發現。
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import catalogJson from "../src/catalog.generated.json";
 import {
   checkCatalog,
@@ -34,6 +34,7 @@ import toolEval from "../evals/tool-selection.json";
 import {
   ALWAYS_POPULATED as SCRIPT_ALWAYS_POPULATED,
   classify,
+  fetchBody,
   MAX_BODY_BYTES as SCRIPT_MAX_BODY_BYTES,
   FRESHNESS,
   MAX_AGE_DAYS,
@@ -1094,5 +1095,53 @@ describe("刷新目錄時，摘要與說明只是變短就保留原本的", () =
     const fresh = { "taifex/New": ds("新資料集") };
     expect(keepFullerText({}, fresh)).toEqual([]);
     expect(fresh["taifex/New"].summary).toBe("新資料集");
+  });
+});
+
+/**
+ * 每日健檢抓資料集時的重試。執行期（src/twse.ts 的 fetchWithRetry）對網路錯誤、429 與 5xx 會重試；
+ * 健檢原本只重試網路錯誤，上游回 504 就直接算異常。工具實際上讀得到的情況，健檢卻開了 issue：
+ * 2026-11-13 的 #268 回報 `opendata/t187ap21` HTTP 504，幾分鐘後再抓是 200。
+ */
+describe("上游健檢抓取時的重試", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const noWait = async () => {};
+  const stub = (responses: Array<Response | Error>) => {
+    const calls: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      calls.push(String(url));
+      const r = responses[Math.min(calls.length - 1, responses.length - 1)];
+      if (r instanceof Error) throw r;
+      return r.clone();
+    }));
+    return calls;
+  };
+  const ok = () => new Response('[{"a":1}]', { status: 200 });
+  it("5xx 與 429 會重試，之後成功就算成功", async () => {
+    for (const status of [504, 502, 500, 429]) {
+      const calls = stub([new Response("gateway timeout", { status }), ok()]);
+      const r = await fetchBody("opendata/t187ap21", { wait: noWait });
+      expect(r.status).toBe(200);
+      expect(r.body).toBe('[{"a":1}]');
+      expect(calls).toHaveLength(2);
+    }
+  });
+  it("一直是 5xx：試三次後照實回報最後的狀態碼", async () => {
+    const calls = stub([new Response("gateway timeout", { status: 504 })]);
+    const r = await fetchBody("opendata/t187ap21", { wait: noWait });
+    expect(r.status).toBe(504);
+    expect(calls).toHaveLength(3);
+  });
+  it("404 這類不會自己好的狀態碼不重試", async () => {
+    const calls = stub([new Response("not found", { status: 404 }), ok()]);
+    expect((await fetchBody("no/such", { wait: noWait })).status).toBe(404);
+    expect(calls).toHaveLength(1);
+  });
+  it("連線錯誤照舊重試；三次都失敗回 status 0 與錯誤訊息", async () => {
+    const calls = stub([new Error("fetch failed"), ok()]);
+    expect((await fetchBody("opendata/t187ap21", { wait: noWait })).status).toBe(200);
+    expect(calls).toHaveLength(2);
+    stub([new Error("fetch failed")]);
+    expect(await fetchBody("opendata/t187ap21", { wait: noWait })).toEqual({ status: 0, body: "fetch failed" });
   });
 });
