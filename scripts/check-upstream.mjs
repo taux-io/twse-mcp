@@ -114,7 +114,11 @@ export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_
       detail: `回的不是 JSON，也不是讀得了的 CSV（表頭對不上目錄）。表頭 ${first.split(",").length} 欄、目錄 ${want} 欄：${quoted(first, 500)}`,
     };
   }
-  const rows = Array.isArray(data) ? data : [data];
+  // 與執行期（src/twse.ts 的 fetchDataset）同一個判準：不是陣列就是上游的錯誤回應。
+  if (!Array.isArray(data)) {
+    return { kind: "format", detail: `回的 JSON 不是陣列，是上游的錯誤回應：${quoted(body, 200)}` };
+  }
+  const rows = data;
   if (rows.length === 0 && ALWAYS_POPULATED.includes(id)) {
     return { kind: "empty", detail: "必定有資料的主檔回 0 筆" };
   }

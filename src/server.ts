@@ -916,6 +916,16 @@ function createServer({ realtime = true, archive }: { realtime?: boolean; archiv
       // 報價裡的 name 是上游給的自由文字，與 dataset.get 的 data 同一個性質。
       // 同樣的位元組經過不同工具，不該只有一支帶著「這是資料不是指令」的框架。
       const caveats: string[] = [];
+      // 要了卻沒拿到的代號要點名：只看 count 的話，要三檔回兩檔看不出缺哪一檔。
+      // 只說「沒有回傳」，不說「沒有這一檔」：開盤前報價站回什麼沒有量過。
+      const got = new Set(quotes.map((q) => q.code));
+      const missing = [...new Set(codes.map((c) => c.trim()).filter(Boolean))].filter((c) => !got.has(c));
+      if (missing.length) {
+        const other = market === "tse" ? '上櫃標的請改用 market="otc"' : '上市標的請改用 market="tse"';
+        caveats.push(
+          `即時報價站沒有回傳 ${missing.join("、")} 的資料（可能尚未開盤、代號有誤，或不在 market="${market}" 這個市場）。${other}。`,
+        );
+      }
       // 各檔的 date 都是同一個交易日；取最舊的一個，有落後才說明
       await explainDataGap(quotes.map((q) => q.date).filter(Boolean).sort()[0], caveats);
       return structured({

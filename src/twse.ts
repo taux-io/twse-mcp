@@ -340,7 +340,15 @@ export async function fetchDataset(datasetId: string, timeoutMs = DATASET_TIMEOU
     if (e instanceof UpstreamTimeoutError) throw new Error(`${e.message}。${COLD_UPSTREAM_HINT}`);
     throw e;
   });
-  const rows = Array.isArray(data) ? (data as Row[]) : [data as Row];
+  // 開放資料的每個資料集都是陣列（2026-11-13 實測，回 JSON 的 233 個全部是）。不是陣列就是上游的
+  // 錯誤回應。包成一列的話抓取算成功，快照會說出「不是 ETF」這種否定的事實，null 則讓呼叫端丟 TypeError。
+  if (!Array.isArray(data)) {
+    throw new Error(
+      `${datasetId} 上游回的 JSON 不是陣列（HTTP 200）。這是上游的錯誤回應，不是資料。` +
+        `開頭${quoteUpstream(JSON.stringify(data) ?? String(data), 120)}`,
+    );
+  }
+  const rows = data as Row[];
   // 必定有資料的資料集回 0 筆 = 上游故障。拋錯讓上層的 errors/failed 機制接手
   // （snapshot.etf 走第三態、dataset.get 回錯誤），而不是把假的空結果
   // 當成「查無」回傳並被邊緣快取釘住。訊息比照既有上游診斷：帶代號與 0 筆說明。
@@ -566,7 +574,17 @@ export async function fetchQuotes(codes: string[], market = "tse"): Promise<Quot
     url,
     QUOTE_TIMEOUT_MS,
   );
-  const arr = (payload as { msgArray?: Record<string, string>[] }).msgArray ?? [];
+  const reply = (payload ?? {}) as { msgArray?: unknown; rtcode?: unknown; rtmessage?: unknown };
+  // 參數有問題時報價站回 `{"rtcode":"9999","rtmessage":"參數不足"}`，沒有 msgArray。當成 0 筆的話，
+  // 「報價站出錯」與「查無這一檔」就分不出來。
+  if (!Array.isArray(reply.msgArray)) {
+    throw new Error(
+      `即時報價站回的不是報價（沒有 msgArray，HTTP 200）。rtcode${quoteUpstream(String(reply.rtcode ?? ""), 20)}，` +
+        `訊息${quoteUpstream(String(reply.rtmessage ?? ""), 80)}`,
+    );
+  }
+  // 查不到的代號，報價站回一筆沒有代號的空殼（`{"tv":"-","s":"-","c":"","z":"-"}`）。那不是報價。
+  const arr = (reply.msgArray as Record<string, string>[]).filter((q) => q?.c);
   return arr.map((q) => ({
     code: q.c,
     name: q.n,
