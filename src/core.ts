@@ -995,10 +995,30 @@ export function tradingCalendar(today: string, holidays: Row[]): { calendar: Rec
   let next = addDays(today, 1);
   while (!isWeekday(next) || closed.has(next)) next = addDays(next, 1);
   const calendar = { "今天": dayLabel(today), "今天狀態": status(today), "下一個交易日": dayLabel(next) };
-  const missing = [...new Set([today, next].map((d) => d.slice(0, 4)))].filter((y) => !years.has(y));
-  return missing.length
-    ? { calendar, caveat: `休市日表還沒有 ${missing.join("、")} 年的資料，這一年的日期只排除了週末，可能有未公布的休市日` }
-    : { calendar };
+  const caveat = uncoveredYearsNote([today, next], years);
+  return caveat ? { calendar, caveat } : { calendar };
+}
+
+/**
+ * 休市日表只列一個年度，而且證交所會在年底前把它換成下一年度（2026-11-13 觀察到已是 2027 年的內容）。
+ * 所以表可能走在日期前面，也可能落在後面。兩種情況都不能把日期當成確定的交易日，但說法不同：
+ * 前者是「表上已經沒有這一年」，後者是「表上還沒有這一年」。
+ */
+function uncoveredYearsNote(dates: string[], covered: Set<string>): string | undefined {
+  const listed = [...covered].sort();
+  const missing = [...new Set(dates.map((d) => d.slice(0, 4)))].filter((y) => !covered.has(y)).sort();
+  if (!missing.length) return undefined;
+  const gone = missing.filter((y) => listed.length > 0 && y < listed[0]);
+  const notYet = missing.filter((y) => !gone.includes(y));
+  const parts: string[] = [];
+  if (gone.length) {
+    parts.push(
+      `休市日表目前只列 ${listed.join("、")} 年，已經沒有 ${gone.join("、")} 年的資料；` +
+        `${gone.join("、")} 年的日期只排除了週末，無法確認其中有沒有休市日`,
+    );
+  }
+  if (notYet.length) parts.push(`休市日表還沒有 ${notYet.join("、")} 年的資料，這一年的日期只排除了週末，可能有未公布的休市日`);
+  return parts.join("；");
 }
 
 export function dataGapNote(dataDate: string, today: string, holidays: Row[] | null): string {
@@ -1007,16 +1027,23 @@ export function dataGapNote(dataDate: string, today: string, holidays: Row[] | n
   if (days > MAX_EXPLAINED_GAP_DAYS) return longGapNote(dataDate, days);
   if (!holidays) return `資料日期是 ${dataDate}，比前一個工作日舊；休市日表取得失敗，無法確認中間是否休市`;
   const closed = closedDates(holidays);
+  const covered = new Set([...closed.keys()].map((d) => d.slice(0, 4)));
   const closedDays: string[] = [];
   const unexplained: string[] = [];
+  // 表上沒有這一年時，一個平日不在表上不代表它有開盤，也不代表上游落後：就是無從判斷。
+  const unknown: string[] = [];
   for (let d = addDays(dataDate, 1); d <= today; d = addDays(d, 1)) {
     if (!isWeekday(d)) continue;
     if (closed.has(d)) closedDays.push(`${dayLabel(d)}${closed.get(d)}`);
-    else if (d < today) unexplained.push(dayLabel(d));
+    else if (d < today) (covered.has(d.slice(0, 4)) ? unexplained : unknown).push(dayLabel(d));
   }
   const parts = [`資料日期是 ${dataDate}`];
   if (closedDays.length) parts.push(`之後的 ${closedDays.join("、")}，證交所休市（休市日表），這幾天沒有交易，不是資料缺漏`);
   if (unexplained.length) parts.push(`${unexplained.join("、")}不在證交所休市日表上，可能是上游還沒更新`);
+  if (unknown.length) {
+    const listed = [...covered].sort().join("、");
+    parts.push(`${unknown.join("、")}無法確認是否休市：休市日表${listed ? `目前只列 ${listed} 年` : "是空的"}，不涵蓋這幾天`);
+  }
   return parts.join("；");
 }
 

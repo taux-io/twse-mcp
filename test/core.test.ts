@@ -1168,6 +1168,37 @@ describe("交易日曆（休市日表）", () => {
     const { caveat } = tradingCalendar("2026-12-31", holidays);
     expect(caveat).toContain("2027");
   });
+
+  // 2026-11-13 觀察到證交所的休市日表已換成民國 116 年（2027）的內容，115 年的一筆都不剩。
+  // 這張表只列一個年度：年底前它走在日期前面，年初可能落在日期後面。兩個方向的說法不能一樣。
+  const NEXT_YEAR_TABLE = [
+    { Name: "中華民國開國紀念日", Date: "1160101" },
+    { Name: "國曆新年開始交易日", Date: "1160104" },
+    { Name: "農曆除夕及春節", Date: "1160204" },
+    { Name: "中秋節", Date: "1160915" },
+  ];
+  it("休市日表已換成下一年度：說它現在列的是哪一年，不說「還沒有」今年的資料", () => {
+    const { calendar, caveat } = tradingCalendar("2026-11-13", NEXT_YEAR_TABLE);
+    expect(calendar["今天狀態"]).toBe("交易日");
+    expect(caveat).toContain("2027");
+    expect(caveat).toContain("2026");
+    expect(caveat).toContain("無法確認");
+    expect(caveat).not.toContain("還沒有 2026");
+  });
+  it("休市日表還停在前一年度：說還沒有今年的資料", () => {
+    const { caveat } = tradingCalendar("2027-01-04", holidays);
+    expect(caveat).toContain("還沒有 2027");
+  });
+  it("落後的平日落在休市日表沒有涵蓋的年份：說無法確認，不說上游還沒更新", () => {
+    const note = dataGapNote("2026-11-12", "2026-11-16", NEXT_YEAR_TABLE);
+    expect(note).toContain("2026-11-13（五）");
+    expect(note).toContain("無法確認");
+    expect(note).toContain("2027");
+    expect(note).not.toContain("可能是上游還沒更新");
+  });
+  it("落後的平日在休市日表涵蓋的年份裡卻不在表上：仍然說可能是上游還沒更新", () => {
+    expect(dataGapNote("2027-09-13", "2027-09-16", NEXT_YEAR_TABLE)).toContain("可能是上游還沒更新");
+  });
 });
 
 /**
