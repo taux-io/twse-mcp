@@ -304,6 +304,36 @@ export async function keepReadableFields(previous, next, fetchDataset = fetchBod
   return kept;
 }
 
+/**
+ * 新的摘要或說明只是原本的一部分時，保留原本的。兩個欄位各自判斷。
+ *
+ * 期交所的 swagger 會在兩個版本之間變動。較短的那一份把 21 個資料集的摘要寫短了，例如
+ * 「期貨市場三大法人-總表-依日期」變成「三大法人-總表-依日期」。摘要是 dataset.search 比對與顯示的名稱，
+ * 少了字就少了資訊；每次抓到較短的版本還會開一張內容相同的 issue（#265）。
+ *
+ * 只擋「變短」：新的文字多了字、或換了說法，照新的走。上游刻意把名稱改短的話，這裡會擋住它，
+ * 刷新紀錄會留下一行；真的要收就手動改目錄。
+ *
+ * 直接改 `next`，回傳保留了哪些資料集的哪些欄位。
+ */
+export function keepFullerText(previous, next) {
+  const kept = [];
+  for (const [id, ds] of Object.entries(next)) {
+    if (!Object.hasOwn(previous, id)) continue;
+    const keys = [];
+    for (const key of ["summary", "description"]) {
+      const before = String(previous[id][key] ?? "");
+      const after = String(ds[key] ?? "");
+      if (before !== after && before.includes(after)) {
+        ds[key] = before;
+        keys.push(key);
+      }
+    }
+    if (keys.length) kept.push({ id, keys });
+  }
+  return kept;
+}
+
 const KEPT_REASON = {
   header: "上游回 CSV，表頭對不上 swagger 的新說明",
   "no-header": "上游回 JSON，沒有 CSV 表頭可以證實 swagger 的新說明",
@@ -351,7 +381,11 @@ async function main() {
     }
     process.stderr.write(`  ${src.source}: ${n} datasets\n`);
   }
-  for (const { id, reason } of await keepReadableFields(await readPrevious(), catalog, fetchBody, correctionsFor)) {
+  const previous = await readPrevious();
+  for (const { id, keys } of keepFullerText(previous, catalog)) {
+    process.stderr.write(`  ${id}: 保留原本的 ${keys.join("、")}（swagger 的新文字只是原本的一部分）\n`);
+  }
+  for (const { id, reason } of await keepReadableFields(previous, catalog, fetchBody, correctionsFor)) {
     process.stderr.write(`  ${id}: 保留原本的欄位說明（${KEPT_REASON[reason]}）\n`);
   }
   const count = Object.keys(catalog).length;
