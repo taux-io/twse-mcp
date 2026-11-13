@@ -95,10 +95,18 @@ function readableCsv(id, body, catalog) {
  * 純函式：依回應判定問題。回傳 null 代表健康，否則 { kind, detail }。
  * `now` 與 `catalog` 由呼叫端給，測試才不會隨執行日期或目錄內容改變。
  * `maxBodyBytes` 可以換掉，測試才不必造一份幾十 MB 的 body。
+ *
+ * @param {string} id
+ * @param {{ status: number, body: string, rechecked?: boolean }} response
+ * @param {Date} now
+ * @param {Record<string, any>} catalog
+ * @param {number} [maxBodyBytes]
  */
-export function classify(id, { status, body }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
-  // status 0 是 fetchBody 重試後仍連不上，body 是錯誤訊息。
-  if (status === 0) return { kind: "http", detail: `連線失敗：${quoted(body, 200)}` };
+export function classify(id, { status, body, rechecked }, now, catalog, maxBodyBytes = MAX_BODY_BYTES) {
+  // status 0 是 fetchBody 重試後仍連不上，body 是錯誤訊息。rechecked 是 sweep 掃完後重抓過、仍然逾時。
+  if (status === 0) {
+    return { kind: "http", detail: `連線失敗：${quoted(body, 200)}${rechecked ? "（全部掃完後重抓一次，仍然逾時）" : ""}` };
+  }
   if (status < 200 || status >= 300) return { kind: "http", detail: `HTTP ${status}` };
   let data;
   try {
@@ -174,25 +182,62 @@ export async function fetchBody(id, { wait = (ms) => new Promise((r) => setTimeo
     }
     if (attempt < 3) await wait(2000 * attempt);
   }
-  return response ?? { status: 0, body: String(last?.message ?? last) };
+  // timedOut：三次都連不上，而且最後一次是逾時。sweep 只對這一種重抓。
+  return response ?? { status: 0, body: String(last?.message ?? last), timedOut: last?.name === "TimeoutError" };
+}
+
+/**
+ * 把每個資料集抓一遍；逾時的那些，等全部抓完後再抓一次。
+ *
+ * 為什麼重抓：交易所的 CDN 快取過期時，大型資料集（`opendata/t187ap37_L` 45 MB 等）要很久才傳完，
+ * 第一個去抓的人會逾時。2026-11-02 到 11-13 的 12 次排程健檢有 11 次失敗，逾時類集中在三個大型資料集，
+ * 而正式環境同一時間讀得到。觀察到的現象是「逾時之後再抓就命中快取」，所以隔一段時間再抓一次，
+ * 仍然逾時才算真的抓不到。
+ *
+ * 只重抓逾時。連線失敗與持續的 5xx 不重抓，照實回報。重抓用的是同一個 fetchDataset，沒有放寬逾時：
+ * 冷快取到底要多久才傳完沒有量到（2026-11-13 試過，CDN 當時都是命中，查詢參數也繞不過），
+ * 所以把每次重抓隔了多久、有沒有恢復記下來，讓排程的執行紀錄累積這個數字。
+ *
+ * 回傳每個資料集最後的回應，以及重抓了哪些。fetchDataset、now 可以換掉，測試才不必連外或等時間。
+ */
+export async function sweep(ids, { fetchDataset = fetchBody, now = Date.now, concurrency = 4 } = {}) {
+  const responses = new Map();
+  const timedOutAt = new Map();
+  let next = 0;
+  // 同時 4 條：對上游客氣一點，這是每日一次的健檢，不趕時間。
+  await Promise.all(
+    Array.from({ length: concurrency }, async () => {
+      while (next < ids.length) {
+        const id = ids[next++];
+        const r = await fetchDataset(id);
+        responses.set(id, r);
+        if (r.status === 0 && r.timedOut) timedOutAt.set(id, now());
+      }
+    }),
+  );
+  const rechecked = [];
+  for (const [id, at] of timedOutAt) {
+    const r = await fetchDataset(id);
+    const recovered = !(r.status === 0 && r.timedOut);
+    responses.set(id, recovered ? r : { ...r, rechecked: true });
+    rechecked.push({ id, recovered, seconds: Math.round((now() - at) / 1000) });
+  }
+  return { responses, rechecked };
 }
 
 async function main() {
   const catalog = JSON.parse(await readFile(path.join(ROOT, "src/catalog.generated.json"), "utf-8"));
   const ids = Object.keys(catalog);
+  const { responses, rechecked } = await sweep(ids);
   const problems = [];
-  let next = 0;
-  // 同時 4 條：對上游客氣一點，這是每日一次的健檢，不趕時間。
-  await Promise.all(
-    Array.from({ length: 4 }, async () => {
-      while (next < ids.length) {
-        const id = ids[next++];
-        const r = await fetchBody(id);
-        const p = classify(id, r, new Date(), catalog);
-        if (p) problems.push({ id, ...p });
-      }
-    }),
-  );
+  for (const id of ids) {
+    const p = classify(id, responses.get(id), new Date(), catalog);
+    if (p) problems.push({ id, ...p });
+  }
+  // 重抓的結果印在 log，不進報告：恢復的不是問題，沒恢復的已經在問題清單裡。
+  for (const r of rechecked) {
+    console.log(`重抓 ${r.id}：${r.recovered ? "恢復" : "仍然逾時"}（第一次逾時後 ${r.seconds} 秒）`);
+  }
   problems.sort((a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
   const lines = [
     `實測 ${ids.length} 個資料集，${problems.length} 個有問題。`,
