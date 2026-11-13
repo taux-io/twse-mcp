@@ -21,7 +21,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { headerMatches } from "../src/csv-header.mjs";
+import { bodyEncoding, headerMatches } from "../src/csv-header.mjs";
 import { quoted } from "./report-text.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -152,7 +152,10 @@ export async function fetchBody(id) {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(120_000),
       });
-      return { status: res.status, body: await res.text() };
+      // 與執行期（src/twse.ts 的 readCapped）同一個編碼判準，只看開頭一小段。
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const body = new TextDecoder(bodyEncoding(bytes.subarray(0, 4096))).decode(bytes);
+      return { status: res.status, body };
     } catch (e) {
       last = e;
       await new Promise((r) => setTimeout(r, 2000 * attempt));

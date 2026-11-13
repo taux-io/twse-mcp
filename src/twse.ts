@@ -12,7 +12,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import catalogJson from "./catalog.generated.json";
 import pkg from "../package.json";
-import { headerMatches } from "./csv-header.mjs";
+import { bodyEncoding, headerMatches } from "./csv-header.mjs";
 import {
   DATA_TTL_SECONDS,
   firstRow,
@@ -227,7 +227,8 @@ async function readCapped(res: Response, label: string): Promise<string> {
   if (!res.body) return "";
 
   const reader = res.body.getReader();
-  const decoder = new TextDecoder();
+  // 編碼由第一塊有內容的資料決定（見 bodyEncoding）。
+  let decoder: TextDecoder | undefined;
   let out = "";
   let seen = 0;
   try {
@@ -239,12 +240,14 @@ async function readCapped(res: Response, label: string): Promise<string> {
         await reader.cancel();
         throw new Error(tooLarge(label, seen, true));
       }
+      if (!value.byteLength) continue;
+      decoder ??= new TextDecoder(bodyEncoding(value));
       out += decoder.decode(value, { stream: true });
     }
   } finally {
     reader.releaseLock();
   }
-  return out + decoder.decode();
+  return out + (decoder?.decode() ?? "");
 }
 
 function tooLarge(label: string, bytes: number, partial = false): string {
