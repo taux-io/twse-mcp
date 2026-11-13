@@ -425,7 +425,11 @@ export const CASES = [
       const nums = [...String(run.answer).matchAll(/\d[\d,]*/g)].map((m) => Number(m[0].replace(/,/g, "")));
       const said = nums.includes(n) || (n === 0 && /沒有|無/.test(run.answer));
       if (!said) return fail(`答案沒有漲停家數 ${n}`);
-      if (!/推算|估算|推估|依.{0,12}(?:前收盤|升降單位)|非官方|沒有(?:直接)?標記/.test(run.answer)) return fail("答案沒有說明漲停家數是推算值");
+      // 同一件事有好幾種說法：「推算」「資料沒有標示」「用前收盤價和升降單位算出來的」。2026-11-13 有三份答案
+      // 用了後兩種而被判失敗。後一種要有「升降單位／跳動單位」才算：只說「用前收盤算」可能是在講漲跌幅。
+      const explained =
+        /推算|估算|推估|依.{0,12}(?:前收盤|升降單位)|非官方|沒有(?:直接)?(?:標記|標示|標出|註明)|(?:升降單位|跳動單位).{0,10}(?:算|推)/;
+      if (!explained.test(run.answer)) return fail("答案沒有說明漲停家數是推算值");
       return pass();
     },
   },
