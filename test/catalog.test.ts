@@ -889,7 +889,7 @@ describe("刷新目錄時，欄位說明要對得上實際的 CSV 表頭", () =>
       previous,
       fresh,
       async () => ({ status: 200, body: "[]" }),
-      (id: string) => (id === "taifex/X" ? { Rate: "美元_新台幣(匯率)" } : {}),
+      (id: string): Record<string, string> => (id === "taifex/X" ? { Rate: "美元_新台幣(匯率)" } : {}),
     );
     expect(fresh["taifex/X"].fields).toEqual({ Date: "日期", Rate: "美元_新台幣(匯率)", Other: "舊的其他欄" });
     expect(kept).toEqual([{ id: "taifex/X", reason: "no-header" }]);
