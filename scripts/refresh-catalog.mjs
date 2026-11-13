@@ -249,7 +249,8 @@ async function fetchSpec(url) {
 const NO_CORRECTIONS = () => ({});
 
 /**
- * swagger 的欄位說明變了的資料集：只有新說明對得上實際的 CSV 表頭時才採用，否則保留原本的。
+ * swagger 的欄位說明變了的資料集：只有「原本的說明對不上實際的 CSV 表頭、新的對得上」時才採用新的，
+ * 其餘一律保留原本的。
  *
  * 欄位說明是 CSV 備援對表頭的依據（src/csv-header.mjs），而 swagger 的說明與 CSV 表頭不保證一致。
  * 期交所的 swagger 會在較長與較短的說明之間變動；較短的那一份會讓 4 個資料集在上游回 CSV 時讀不到，
@@ -263,8 +264,12 @@ const NO_CORRECTIONS = () => ({});
  * 整個資料集的說明一起保留，不逐欄混用：混出來的清單沒有被任何表頭驗證過。
  * 例外是 `corrections`：那是我們刻意蓋過 swagger 的更正，只出現在新產生的那一份，保留時要再套回去。
  *
+ * 原本的說明還讀得到時也不換：swagger 在兩個版本之間變動時，兩邊都讀得到的資料集會跟著來回，
+ * 每次都推一次機器人分支、開一張 issue，而換了並不會讓任何東西變好。
+ *
  * 直接改 `next`，回傳保留了哪些資料集與原因：
- *   header      上游回 CSV，表頭對不上新說明
+ *   readable    上游回 CSV，原本的說明對得上表頭
+ *   header      上游回 CSV，新舊說明都對不上表頭
  *   no-header   上游回 JSON，沒有表頭可對
  *   unverified  抓不到資料
  *
@@ -289,8 +294,10 @@ export async function keepReadableFields(previous, next, fetchDataset = fetchBod
       } catch {
         isJson = false;
       }
+      const header = csvHeader(body);
       if (isJson) reason = "no-header";
-      else if (!headerMatches(csvHeader(body), Object.values(ds.fields))) reason = "header";
+      else if (headerMatches(header, Object.values(before))) reason = "readable";
+      else if (!headerMatches(header, Object.values(ds.fields))) reason = "header";
     }
     if (reason) {
       const fields = { ...before };
@@ -335,6 +342,7 @@ export function keepFullerText(previous, next) {
 }
 
 const KEPT_REASON = {
+  readable: "上游回 CSV，原本的說明對得上表頭，不需要換",
   header: "上游回 CSV，表頭對不上 swagger 的新說明",
   "no-header": "上游回 JSON，沒有 CSV 表頭可以證實 swagger 的新說明",
   unverified: "抓不到實際資料，無法驗證 swagger 的新說明",
