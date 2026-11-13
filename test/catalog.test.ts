@@ -859,11 +859,19 @@ describe("刷新目錄時，欄位說明要對得上實際的 CSV 表頭", () =>
     const r = await run(OLD, NEW, csv("日期,期末未沖銷契約量"));
     expect(r.fields).toEqual(OLD);
     expect(r.summary).toBe("新摘要");
-    expect(r.kept).toEqual([{ id: "taifex/X", reason: "header" }]);
+    expect(r.kept).toEqual([{ id: "taifex/X", reason: "readable" }]);
   });
-  it("新舊說明都對得上表頭：用新說明", async () => {
-    const r = await run({ Date: "日期", Contract: "契約月份(到期月份)" }, { Date: "日期", Contract: "契約月份" }, csv("日期,契約月份(到期月份)"));
-    expect(r.fields).toEqual({ Date: "日期", Contract: "契約月份" });
+  // swagger 在兩個版本之間變動時，「兩邊都讀得到」的資料集原本會跟著來回，每次都開一張 issue。
+  // 原本的說明還讀得到，就沒有換的理由。
+  it("新舊說明都對得上表頭：原本的還讀得到，保留舊說明", async () => {
+    const before = { Date: "日期", Contract: "契約月份(到期月份)" };
+    const r = await run(before, { Date: "日期", Contract: "契約月份" }, csv("日期,契約月份(到期月份)"));
+    expect(r.fields).toEqual(before);
+    expect(r.kept).toEqual([{ id: "taifex/X", reason: "readable" }]);
+  });
+  it("舊說明對不上表頭、新說明對得上：這是唯一採用新說明的情況", async () => {
+    const r = await run(NEW, OLD, csv("日期,期末未沖銷契約量"));
+    expect(r.fields).toEqual(OLD);
     expect(r.kept).toEqual([]);
   });
   // 規則：只有新說明對得上實際的 CSV 表頭時才採用。沒有這個證據就不換。
