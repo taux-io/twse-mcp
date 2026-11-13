@@ -500,7 +500,15 @@ describe("registry 條目與 server.json 的比對", () => {
   it("報告裡引用的 registry 文字跳不出行內程式碼", () => {
     const [problem] = registryProblems(entry([{ type: "x", url: "https://e.example/`\n@octocat [x](https://e.example)" }]), serverJson);
     expect(problem).not.toContain("\n");
-    expect(problem).toContain("`https://e.example/  @octocat [x](https://e.example)`");
+    expect(problem).toContain("`https://e.example/ ＠octocat [x](https://e.example)`");
+  });
+  // 與 smoke、上游健檢同一份清理（scripts/report-text.mjs）：控制字元也去掉，@ 換成全形。
+  it("registry 文字裡的控制字元與 @ 也被清掉；缺的欄位寫「（沒有）」", () => {
+    const [problem] = registryProblems(entry([{ type: "a\u0000b\tc", url: "@x\u2028y" }]), serverJson);
+    expect(problem).toContain("`a b c` `＠x y`");
+    expect(problem).not.toContain("@");
+    expect(registryProblems(undefined, serverJson)[0]).toContain("`（沒有）`");
+    expect(registryProblems(entry([{}]), serverJson)[0]).toContain("`（沒有）` `（沒有）`");
   });
 });
 
@@ -709,6 +717,13 @@ describe("目錄差異摘要", () => {
     expect(text).toContain("另有 20 項");
     const evil = formatDiff(diffCatalogs({}, { "a`b\nc": ds({}) }));
     expect(evil).toBe("- 新增資料集 `a b c`");
+  });
+  // 與 smoke、上游健檢同一份清理（scripts/report-text.mjs）。
+  it("資料集 id 與欄位名裡的控制字元與 @ 被清掉，過長加省略號", () => {
+    const text = formatDiff(diffCatalogs({ ok: ds({ a: "" }) }, { ok: ds({ a: "", "@f\u0000\tx": "" }), ["@id" + "長".repeat(200)]: ds({}) }));
+    expect(text).not.toContain("@");
+    expect(text).toContain("- 新增資料集 `＠id" + "長".repeat(117) + "…`");
+    expect(text).toContain("- `ok`：新增欄位 `＠f x`");
   });
 });
 

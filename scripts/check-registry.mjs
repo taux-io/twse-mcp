@@ -9,15 +9,16 @@
  *
  * 讀不到 registry 也算失敗：一個讀不到就放行的偵測，等於沒有偵測。
  *
- * 只用 Node 內建模組：CI 的這個 job 拿的是 issues write token。
+ * 只用 Node 內建模組與 report-text.mjs：這份報告會由拿 issues write token 的 job 貼出去。
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { quoted } from "./report-text.mjs";
 
 const REGISTRY = "https://registry.modelcontextprotocol.io";
 
-// registry 的內容是第三方文字，會進公開 issue：去掉反引號與換行、截短、包成行內程式碼。
-const code = (v) => `\`${String(v).replace(/[`\r\n]/g, " ").slice(0, 200)}\``;
+// registry 的內容是第三方文字，會進公開 issue。缺的欄位寫明「沒有」，免得報告裡出現一對空的反引號。
+const code = (v) => quoted(v ?? "（沒有）", 200);
 
 /**
  * 純函式：比對 registry 回的條目與 repo 的 server.json。回傳問題清單，空陣列代表一致。

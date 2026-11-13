@@ -11,10 +11,10 @@
  */
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { quoted } from "./report-text.mjs";
 
-/** 上游字串進 issue 內文前：去掉反引號與換行，免得破壞排版或夾帶 Markdown。 */
-const clean = (v) => String(v).replace(/[`\r\n]/g, " ").slice(0, 120);
-const code = (v) => `\`${clean(v)}\``;
+/** 資料集 id 與欄位名是上游的字串，會進公開 issue 的內文。 */
+const code = (v) => quoted(v, 120);
 
 export function diffCatalogs(oldCat, newCat) {
   const oldIds = new Set(Object.keys(oldCat));
