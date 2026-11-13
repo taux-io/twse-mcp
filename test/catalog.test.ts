@@ -125,11 +125,16 @@ describe("catalog 健檢腳本 — 兩個來源", () => {
   });
 
   // 逐筆成交端點單日 255 MB，抓進 128 MB 的 isolate 是把工具打爛而不是給出答案。
-  // 這三個資料集的 swagger 欄位說明寫錯，對不上實際的 CSV 表頭（2026-11-13 記錄的表頭）。
+  // 這幾個資料集的 swagger 欄位說明寫錯，對不上實際的 CSV 表頭（2026-11-13 記錄的表頭）。
   // refresh-catalog 的 TAIFEX_DESCRIPTION_CORRECTIONS 會更正；這條防止有人拿掉更正或在沒有它的情況下重新產生目錄。
   it.each([
     ["taifex/FuturesAndOptionsFeeSchedule", "商品,交易經手費,結算手續費,交割手續費,期貨交易稅比率"],
     ["taifex/SSOLists", "股票選擇權商品契約代碼,標的證券,證券代號,標的證券簡稱,標的證券種類"],
+    // 2026-11-13 上游健檢在 GitHub runner 上記錄的表頭：幣別之間是底線，swagger 寫的是全形斜線。
+    [
+      "taifex/DailyForeignExchangeRates",
+      "日期,美元_新台幣(匯率),人民幣_新台幣(匯率),歐元_美元(匯率),美元_日幣(匯率),英鎊_美元(匯率),澳幣_美元(匯率),美元_港幣(匯率),美元_人民幣(匯率),美元_南非幣(匯率),紐幣_美元(匯率)",
+    ],
     [
       "taifex/TotalMarketPositionLimitForSingleStockFuturesAndEquityOptions",
       "資料日期,標的證券類別,代號,名稱,股票期貨與股票選擇權未沖銷部位表彰股數或單位數(A),標的證券在外流通股數或已發行(募集、銷售)單位數)(B),比例(=A/B)%",
