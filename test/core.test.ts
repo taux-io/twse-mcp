@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   dataGapNote,
   tradingCalendar,
+  withStoredHolidays,
   isStaleDataDate,
   buildEtfSnapshot,
   describeDataset,
@@ -1195,6 +1196,51 @@ describe("交易日曆（休市日表）", () => {
     expect(note).toContain("無法確認");
     expect(note).toContain("2027");
     expect(note).not.toContain("可能是上游還沒更新");
+  });
+  // 證交所年底前把休市日表換成下一年度後，今年剩下的日子靠本服務保存的副本（src/holidays.generated.json）。
+  describe("保存的休市日副本", () => {
+    const STORED = {
+      "2026": { source: "test", fetched: "2026-11-13", rows: [{ Date: "1150925", Name: "中秋節" }, { Date: "1151225", Name: "行憲紀念日" }] },
+      "2027": { source: "test", fetched: "2026-11-13", rows: [{ Date: "1160101", Name: "副本裡的舊名稱" }] },
+    };
+    it("上游的表不涵蓋的年度用副本補上；上游有的年度以上游為準", () => {
+      const t = withStoredHolidays(NEXT_YEAR_TABLE, STORED);
+      expect(t.storedYears).toEqual(["2026"]);
+      expect(t.liveYears).toEqual(["2027"]);
+      expect(t.rows.map((r) => r.Date)).toContain("1151225");
+      expect(t.rows.map((r) => r.Name)).not.toContain("副本裡的舊名稱");
+      expect(t.rows.filter((r) => r.Date === "1160101")).toHaveLength(1);
+    });
+    it("上游的表就是今年的：不用副本", () => {
+      const t = withStoredHolidays(holidays, STORED);
+      expect(t.storedYears).toEqual(["2027"]);
+      expect(t.rows.filter((r) => String(r.Date).startsWith("115"))).toHaveLength(holidays.length);
+    });
+    it("行事曆：副本知道的休市日會被跳過，並說明依據是副本，不再說無法確認", () => {
+      const t = withStoredHolidays(NEXT_YEAR_TABLE, STORED);
+      const { calendar, caveat } = tradingCalendar("2026-12-24", t.rows, t);
+      expect(calendar["下一個交易日"]).toBe("2026-12-28（一）");
+      expect(caveat).toContain("副本");
+      expect(caveat).toContain("2026");
+      expect(caveat).not.toContain("無法確認");
+    });
+    it("落差說明：副本知道的休市日照常列出名稱，並說明依據是副本", () => {
+      const t = withStoredHolidays(NEXT_YEAR_TABLE, STORED);
+      const note = dataGapNote("2026-12-24", "2026-12-28", t.rows, t);
+      expect(note).toContain("2026-12-25（五）行憲紀念日");
+      expect(note).toContain("證交所休市（休市日表）");
+      expect(note).toContain("副本");
+      expect(note).not.toContain("無法確認");
+    });
+    it("沒有用到副本的年度時，不提副本", () => {
+      const t = withStoredHolidays(NEXT_YEAR_TABLE, STORED);
+      expect(tradingCalendar("2027-09-14", t.rows, t).caveat).toBeUndefined();
+      expect(dataGapNote("2027-09-13", "2027-09-16", t.rows, t)).not.toContain("副本");
+    });
+    it("副本與上游都沒有的年度：維持「無法確認」", () => {
+      const t = withStoredHolidays(NEXT_YEAR_TABLE, { "2027": STORED["2027"] });
+      expect(tradingCalendar("2026-11-13", t.rows, t).caveat).toContain("無法確認");
+    });
   });
   it("落後的平日在休市日表涵蓋的年份裡卻不在表上：仍然說可能是上游還沒更新", () => {
     expect(dataGapNote("2027-09-13", "2027-09-16", NEXT_YEAR_TABLE)).toContain("可能是上游還沒更新");

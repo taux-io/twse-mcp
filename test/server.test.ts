@@ -1230,6 +1230,27 @@ describe.each(ERAS)("MCP handler seam（%s era）", (era) => {
   // `{"tv":"-","s":"-","c":"","z":"-"}`），參數有問題時回沒有 msgArray 的 `{rtcode:"9999"}`。
   // 兩者原本都被當成正常結果：前者算成一筆報價，後者算成 0 筆，都沒有任何說明。
   const STUB = { tv: "-", s: "-", c: "", z: "-" };
+  // 證交所年底前把休市日表換成下一年度（2026-11-13 觀察到）。今年剩下的日子靠本服務保存的副本。
+  const NEXT_YEAR_ONLY = [{ Name: "中華民國開國紀念日", Date: "1160101" }, { Name: "中秋節", Date: "1160915" }];
+  it("snapshot.market：上游的休市日表已是下一年度時，行事曆用副本判斷今年的休市日", async () => {
+    pinToday(); // 週六 9/26；副本裡 9/28（一）是教師節
+    overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse(NEXT_YEAR_ONLY));
+    const out = await callTool("snapshot.market", {});
+    expect(out["交易日曆"]["下一個交易日"]).toBe("2026-09-29（二）");
+    const caveats = out.caveats.join("\n");
+    expect(caveats).toContain("副本");
+    expect(caveats).not.toContain("無法確認");
+  });
+  it("quote.realtime：上游的休市日表已是下一年度時，落差說明仍然說得出 9/25 是中秋節", async () => {
+    pinToday(); // 週六 9/26；報價是週四 9/24
+    overrideFetch((u) => u.includes("holidaySchedule"), () => jsonResponse(NEXT_YEAR_ONLY));
+    const out = await callTool("quote.realtime", { codes: ["0050"] });
+    const gap = out.caveats.find((c: string) => c.includes("資料日期是"));
+    expect(gap).toContain("2026-09-25（五）中秋節");
+    expect(gap).toContain("證交所休市（休市日表）");
+    expect(gap).toContain("副本");
+  });
+
   it("quote.realtime：報價站沒有回傳的代號不算一筆報價，並指出是哪一檔", async () => {
     overrideFetch(
       (u) => u.includes("getStockInfo"),

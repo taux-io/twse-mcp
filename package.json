@@ -9,6 +9,7 @@
     "deploy": "wrangler deploy",
     "dry-run": "wrangler deploy --dry-run --outdir=dist",
     "refresh-catalog": "node scripts/refresh-catalog.mjs",
+    "refresh-holidays": "node scripts/refresh-holidays.mjs",
     "check-catalog": "node scripts/check-catalog.mjs",
     "check-required-checks": "node scripts/check-required-checks.mjs",
     "check-readmes": "node scripts/check-readmes.mjs",
