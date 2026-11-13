@@ -12,6 +12,12 @@
 # 宣告了它的 job 生效。所以另外有一道偵測——smoke.yml 每天比對 registry 上的條目與
 # repo 的 server.json（scripts/check-registry.mjs），不一致就開 issue。
 #
+# 打 tag 之前要先停用 ruleset：`v*` tag 受 repo ruleset `v* release tags` 保護，建立、更新、刪除
+# 都被拒絕，沒有人可以繞過。推完 tag 立刻啟用。完整步驟在 AGENTS.md 的「發版」。
+#   gh api -X PUT repos/taux-io/twse-mcp/rulesets/27170715 -f enforcement=disabled
+#   git tag vX.Y.Z origin/main && git push origin vX.Y.Z
+#   gh api -X PUT repos/taux-io/twse-mcp/rulesets/27170715 -f enforcement=active
+#
 # Registry 成功後，第二個 job 在 Smithery（taux/twse）重新發布，讓它重新掃描工具與分數。
 # 那一步用的是長期的 SMITHERY_API_KEY，存在 `mcp-registry` 的 environment secret 裡。
 name: publish to mcp registry
