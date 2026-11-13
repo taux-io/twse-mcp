@@ -659,6 +659,35 @@ describe("端到端答案檢查的比對規則", () => {
     expect(toNum("36.36%")).toBe(36.36);
     expect(toNum("N/A")).toBeNull();
   });
+  // 這一題原本拿一個寫死的事實（2026-09-25 是中秋節）判分，但評測的原則是「標準答案取自同一次對話的
+  // 工具結果」。休市日表換成下一年度之後，工具已經拿不到那一天的依據，兩個模型都被判 0/3。
+  describe("holiday-close：依據要來自工具結果", () => {
+    const c = CASES.find((x) => x.id === "holiday-close")!;
+    const table = (rows: Array<Record<string, string>>) => ({
+      name: "dataset.get", input: { dataset_id: "holidaySchedule/holidaySchedule" }, result: { data: rows },
+    });
+    const snapshot = (caveats: string[]) => ({ name: "snapshot.stock", input: { code: "2330" }, result: { caveats } });
+    const DECLINE = "我查不到 2026 年 9 月 25 日的收盤價，存檔自 2026-09-29 開始。目前最近的收盤價是 2,340 元。";
+    it("工具給了休市的依據：答案說休市才通過", () => {
+      const calls = [table([{ Date: "1150925", Name: "中秋節" }])];
+      expect(c.check({ calls, answer: "那天是中秋節，休市，沒有收盤價。" }).status).toBe("pass");
+      expect(c.check({ calls, answer: DECLINE }).status).toBe("fail");
+      const gap = [snapshot(["資料日期是 2026-09-24；之後的 2026-09-25（五）中秋節，證交所休市（休市日表），這幾天沒有交易，不是資料缺漏"])];
+      expect(c.check({ calls: gap, answer: "9/25 休市。" }).status).toBe("pass");
+    });
+    it("工具沒有那一天的依據，答案照實說查不到：沒驗到，不算失敗也不算通過", () => {
+      for (const calls of [[], [snapshot(["存檔自 2026-09-29 開始"])], [table([{ Date: "1160101", Name: "中華民國開國紀念日" }])]]) {
+        expect(c.check({ calls, answer: DECLINE }).status).toBe("沒驗到");
+      }
+    });
+    it("工具沒有依據，答案卻沒有說查不到：失敗（不能因為驗不到就放過編出來的價格）", () => {
+      expect(c.check({ calls: [], answer: "2026 年 9 月 25 日台積電的收盤價是 1,305 元。" }).status).toBe("fail");
+    });
+    it("工具沒有依據，答案卻說休市：要人看（可能是憑記憶）", () => {
+      expect(c.check({ calls: [], answer: "9 月 25 日是中秋節，休市。" }).status).toBe("需人工看");
+    });
+  });
+
   it("期貨近月：收盤要是一般時段近月的、要說日期；報成盤後的價格或漏掉日期都算錯", () => {
     const c = CASES.find((x) => x.id === "futures-near-month")!;
     const run = (answer: string) => ({
