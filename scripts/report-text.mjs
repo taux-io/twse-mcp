@@ -1,5 +1,6 @@
 /**
- * 把不是我們寫的文字放進報告之前的清理。smoke.mjs 與 check-upstream.mjs 共用。
+ * 把不是我們寫的文字放進報告之前的清理。所有會進 issue 的報告都用這一份：smoke.mjs、
+ * check-upstream.mjs、archive-report.mjs、catalog-diff.mjs、check-registry.mjs。
  *
  * 這些報告會由機器人貼進公開 issue，也會印到 Actions log。上游回的文字原樣放進去的話，
  * `@某人` 會通知到人、連結看起來像維護者的機器人發的，換行之後的 `::add-mask::` 這類字串
