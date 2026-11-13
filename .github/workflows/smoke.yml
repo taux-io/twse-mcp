@@ -60,13 +60,14 @@ jobs:
         run: npm run smoke
 
       # 每日存檔的寫入路徑：觸發一次排程，確認本機 D1 真的寫進了一整天的上市股票。
+      # 判斷與報告交給 archive-report.mjs：失敗時它寫 archive-report.md，開 issue 的 job 才看得到原因。
+      # 前兩個指令失敗不中斷（|| true），讓腳本拿到狀態碼與列數後一次說清楚。
       - name: 每日存檔（本機 D1）
         run: |
-          curl -fsS "http://localhost:8787/__scheduled?cron=30+22+*+*+*"
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' "http://localhost:8787/__scheduled?cron=30+22+*+*+*" || true)
           N=$(npx wrangler d1 execute twse-mcp-archive --local --json \
-                --command "SELECT COUNT(*) AS n FROM daily_quotes" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)[0].results[0].n))')
-          echo "daily_quotes: $N 列"
-          test "$N" -gt 1000
+                --command "SELECT COUNT(*) AS n FROM daily_quotes" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)[0].results[0].n))' || true)
+          node scripts/archive-report.mjs "$STATUS" "$N" wrangler.log
 
       - name: 正式環境存活檢查
         if: always() && github.event_name != 'pull_request'
@@ -94,6 +95,7 @@ jobs:
           name: smoke-reports
           path: |
             smoke-report.md
+            archive-report.md
             prod-report.md
             registry-report.md
           if-no-files-found: ignore
@@ -125,7 +127,11 @@ jobs:
           LABEL: smoke
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}"
-          REPORT=$(cat smoke-report.md prod-report.md registry-report.md 2>/dev/null || echo "（腳本沒有產出報告，請看 run 的 log）")
+          # 只串存在的檔案：archive-report.md 只有每日存檔失敗時才有，prod 與 registry 的報告在前面的步驟掛掉時也可能沒有。
+          REPORT=$(for f in smoke-report.md archive-report.md prod-report.md registry-report.md; do
+            if [ -f "$f" ]; then cat "$f"; echo; fi
+          done)
+          if [ -z "$REPORT" ]; then REPORT="（腳本沒有產出報告，請看 run 的 log）"; fi
           BODY=$(printf '%s\n' \
             "每日冒煙測試（本機 wrangler dev + 真實上游資料，加上正式環境存活檢查與 registry 條目比對）發現問題：" \
             "" \
