@@ -39,7 +39,7 @@ import {
   MAX_AGE_DAYS,
 } from "../scripts/check-upstream.mjs";
 import { diffCatalogs, formatDiff } from "../scripts/catalog-diff.mjs";
-import { keepReadableFields } from "../scripts/refresh-catalog.mjs";
+import { keepFullerText, keepReadableFields } from "../scripts/refresh-catalog.mjs";
 import { findProblems, jobNames, readWorkflows, REQUIRED_CHECKS } from "../scripts/check-required-checks.mjs";
 import { ALIASES, getDataset, periodNote, searchDatasets, type Catalog } from "../src/core";
 import { MCP_ENDPOINT } from "../src/site";
@@ -1019,5 +1019,46 @@ describe("休市日副本", () => {
     expect(() => mergeHolidayYear({}, [...rows("115"), ...rows("116")], "2026-11-13")).toThrow(/年度/);
     expect(() => mergeHolidayYear({}, rows("116", 3), "2026-11-13")).toThrow(/太少/);
     expect(() => mergeHolidayYear({}, [{ Date: "壞的", Name: "x" }, ...rows("116")], "2026-11-13")).toThrow(/日期/);
+  });
+});
+
+/**
+ * 期交所的 swagger 會在兩個版本之間變動，較短的那一份把 21 個資料集的摘要寫短了
+ * （「期貨市場三大法人-總表-依日期」變成「三大法人-總表-依日期」）。摘要是 dataset.search 比對與顯示的名稱，
+ * 少了字就少了資訊；而且每次抓到較短的版本都會開一張內容相同的 issue（#265）。
+ */
+describe("刷新目錄時，摘要與說明只是變短就保留原本的", () => {
+  const ds = (summary: string, description = summary) => ({ id: "taifex/X", source: "taifex", summary, description, tags: [], fields: {} });
+  const run = (prev: ReturnType<typeof ds>, next: ReturnType<typeof ds>) => {
+    const fresh = { "taifex/X": next };
+    const kept = keepFullerText({ "taifex/X": prev }, fresh);
+    return { ...fresh["taifex/X"], kept };
+  };
+  it("新摘要是舊摘要的一部分：保留舊的", () => {
+    const r = run(ds("期貨市場三大法人-總表-依日期"), ds("三大法人-總表-依日期"));
+    expect(r.summary).toBe("期貨市場三大法人-總表-依日期");
+    expect(r.description).toBe("期貨市場三大法人-總表-依日期");
+    expect(r.kept).toEqual([{ id: "taifex/X", keys: ["summary", "description"] }]);
+  });
+  it("新摘要變成空的：保留舊的", () => {
+    expect(run(ds("最後結算價"), ds("")).summary).toBe("最後結算價");
+  });
+  it("新摘要多了字、或換了說法：用新的", () => {
+    expect(run(ds("集中市場零股交易行情單"), ds("集中市場盤後零股交易行情單")).summary).toBe("集中市場盤後零股交易行情單");
+    const r = run(ds("期貨商品最後結算價"), ds("最後結算價格表"));
+    expect(r.summary).toBe("最後結算價格表");
+    expect(r.kept).toEqual([]);
+  });
+  it("摘要與說明各自判斷", () => {
+    const r = run(ds("期貨保證金一覽表", "舊的說明"), ds("保證金一覽表", "全新的說明"));
+    expect(r.summary).toBe("期貨保證金一覽表");
+    expect(r.description).toBe("全新的說明");
+    expect(r.kept).toEqual([{ id: "taifex/X", keys: ["summary"] }]);
+  });
+  it("沒有變、或是新的資料集：不動", () => {
+    expect(run(ds("一樣"), ds("一樣")).kept).toEqual([]);
+    const fresh = { "taifex/New": ds("新資料集") };
+    expect(keepFullerText({}, fresh)).toEqual([]);
+    expect(fresh["taifex/New"].summary).toBe("新資料集");
   });
 });
