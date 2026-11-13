@@ -24,3 +24,26 @@ export function headerMatches(header, descriptions) {
     return Boolean(h && d && (h.includes(d) || d.includes(h)));
   });
 }
+
+/**
+ * 回應本文該用哪種編碼解。只看第一塊，所以不必為了判斷編碼把整份本文留在記憶體裡。
+ *
+ * 期交所有端點用 Big5 送 CSV，沒有 BOM 也沒有 charset（2026-11-13：InterestRateFuturesMargining）。
+ * 當成 UTF-8 解，中文表頭整行變成替代字元，對不上目錄。
+ *
+ * JSON 一律當 UTF-8：規格如此，而且 JSON 裡夾一個壞位元組時改用 Big5，會把整份的中文安靜地換成別的字。
+ * 其餘的只有在第一塊不是合法 UTF-8 時才當 Big5。第一塊結尾切在一個字中間不算不合法。
+ *
+ * @param {Uint8Array} firstChunk
+ * @returns {"utf-8" | "big5"}
+ */
+export function bodyEncoding(firstChunk) {
+  const first = firstChunk.find((b) => b !== 0x20 && b !== 0x09 && b !== 0x0a && b !== 0x0d);
+  if (first === 0x5b || first === 0x7b) return "utf-8";
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(firstChunk, { stream: true });
+    return "utf-8";
+  } catch {
+    return "big5";
+  }
+}
