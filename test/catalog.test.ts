@@ -27,6 +27,8 @@ import { registryProblems } from "../scripts/check-registry.mjs";
 import { quoted } from "../scripts/report-text.mjs";
 import { buildReport } from "../scripts/smoke.mjs";
 import { archiveReport } from "../scripts/archive-report.mjs";
+import { mergeHolidayYear } from "../scripts/refresh-holidays.mjs";
+import storedHolidays from "../src/holidays.generated.json";
 import { CASES, CLAIMS_NONE, mentionsDate, numbersWithUnits, toNum } from "../scripts/eval-answers.mjs";
 import toolEval from "../evals/tool-selection.json";
 import {
@@ -931,5 +933,48 @@ describe("每日存檔的失敗報告", () => {
   });
   it("連不上本機 Worker（curl 回 000）", () => {
     expect(archiveReport({ status: 0, rows: 0, log: "" })).toContain("連不上");
+  });
+});
+
+/**
+ * 本服務保存的休市日副本（src/holidays.generated.json）。證交所的休市日表只列一個年度，年底前就換成下一年度；
+ * 沒有副本的話，今年剩下的日子有沒有休市就無從得知。
+ */
+describe("休市日副本", () => {
+  it("每個年度的列都在那一年內、有名稱，並記錄來源與取得日期", () => {
+    const years = Object.entries(storedHolidays as Record<string, { source: string; fetched: string; rows: Array<{ Date: string; Name: string }> }>);
+    expect(years.map(([y]) => y)).toEqual(expect.arrayContaining(["2026", "2027"]));
+    for (const [year, t] of years) {
+      expect(year).toMatch(/^\d{4}$/);
+      expect(t.source).toBeTruthy();
+      expect(t.fetched).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(t.rows.length).toBeGreaterThanOrEqual(10);
+      for (const r of t.rows) {
+        expect(r.Date).toMatch(/^\d{7}$/);
+        expect(String(Number(r.Date.slice(0, 3)) + 1911)).toBe(year);
+        expect(r.Name.trim()).not.toBe("");
+      }
+    }
+  });
+  const rows = (roc: string, n = 12) => Array.from({ length: n }, (_, i) => ({ Date: `${roc}01${String(i + 1).padStart(2, "0")}`, Name: `假日${i}`, Weekday: "一", Description: "x" }));
+  it("刷新：上游列的那一年整年換新，其他年度原樣保留，只留日期與名稱", () => {
+    const before = { "2026": { source: "old", fetched: "2026-01-01", rows: rows("115") } };
+    const after = mergeHolidayYear(before, rows("116"), "2026-11-13");
+    expect(Object.keys(after)).toEqual(["2026", "2027"]);
+    expect(after["2026"]).toEqual(before["2026"]);
+    expect(after["2027"].fetched).toBe("2026-11-13");
+    expect(after["2027"].rows[0]).toEqual({ Date: "1160101", Name: "假日0" });
+    const again = mergeHolidayYear(after, rows("116").slice(0, 11), "2026-12-01");
+    expect(again["2027"].rows).toHaveLength(11);
+    expect(again["2027"].fetched).toBe("2026-12-01");
+  });
+  it("刷新：內容沒變時不改取得日期，檔案才不會每週都有差異", () => {
+    const before = mergeHolidayYear({}, rows("116"), "2026-11-13");
+    expect(mergeHolidayYear(before, rows("116"), "2026-11-20")).toEqual(before);
+  });
+  it("刷新：上游的表跨兩個年度、太短或日期認不出來就拒絕，不覆寫副本", () => {
+    expect(() => mergeHolidayYear({}, [...rows("115"), ...rows("116")], "2026-11-13")).toThrow(/年度/);
+    expect(() => mergeHolidayYear({}, rows("116", 3), "2026-11-13")).toThrow(/太少/);
+    expect(() => mergeHolidayYear({}, [{ Date: "壞的", Name: "x" }, ...rows("116")], "2026-11-13")).toThrow(/日期/);
   });
 });
