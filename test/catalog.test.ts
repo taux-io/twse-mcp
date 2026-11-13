@@ -866,15 +866,33 @@ describe("刷新目錄時，欄位說明要對得上實際的 CSV 表頭", () =>
     expect(r.fields).toEqual({ Date: "日期", Contract: "契約月份" });
     expect(r.kept).toEqual([]);
   });
-  it("新舊說明都對不上表頭：用新說明（舊的也讀不到，沒有理由留）", async () => {
+  // 規則：只有新說明對得上實際的 CSV 表頭時才採用。沒有這個證據就不換。
+  it("新舊說明都對不上表頭：新說明沒有被表頭證實，保留舊說明", async () => {
     const r = await run(OLD, NEW, csv("日期,完全不同的欄"));
-    expect(r.fields).toEqual(NEW);
-    expect(r.kept).toEqual([]);
+    expect(r.fields).toEqual(OLD);
+    expect(r.kept).toEqual([{ id: "taifex/X", reason: "header" }]);
   });
-  it("上游回 JSON：沒有表頭可對，用新說明", async () => {
+  // 2026-11-13 的 runner 執行（run 43376653807）：swagger 是較短的版本，而要保護的 4 個資料集
+  // 全部被換成對不上 CSV 表頭的說明。這些端點的格式在不同次抓取之間會變，回 JSON 時沒有表頭可對。
+  it("上游回 JSON：沒有表頭可對，保留舊說明並標成沒有表頭", async () => {
     const r = await run(OLD, NEW, { status: 200, body: JSON.stringify([{ Date: "20261112", OpenInterest: "5" }]) });
-    expect(r.fields).toEqual(NEW);
-    expect(r.kept).toEqual([]);
+    expect(r.fields).toEqual(OLD);
+    expect(r.summary).toBe("新摘要");
+    expect(r.kept).toEqual([{ id: "taifex/X", reason: "no-header" }]);
+  });
+  // TAIFEX_DESCRIPTION_CORRECTIONS 是我們刻意蓋過 swagger 的更正，只會出現在新產生的那一份。
+  // 保留舊說明時要把更正再套回去，否則新加的更正在端點回 JSON 時永遠進不來（#254 就是這個情況）。
+  it("保留舊說明時，指定要更正的欄位仍然用更正後的說明", async () => {
+    const previous = { "taifex/X": ds({ Date: "日期", Rate: "美元／新台幣(匯率)", Other: "舊的其他欄" }) };
+    const fresh = { "taifex/X": ds({ Date: "日期", Rate: "美元_新台幣(匯率)", Other: "新的其他欄" }) };
+    const kept = await keepReadableFields(
+      previous,
+      fresh,
+      async () => ({ status: 200, body: "[]" }),
+      (id: string) => (id === "taifex/X" ? { Rate: "美元_新台幣(匯率)" } : {}),
+    );
+    expect(fresh["taifex/X"].fields).toEqual({ Date: "日期", Rate: "美元_新台幣(匯率)", Other: "舊的其他欄" });
+    expect(kept).toEqual([{ id: "taifex/X", reason: "no-header" }]);
   });
   it("抓不到實際資料：保留舊說明並標成未驗證", async () => {
     for (const response of [{ status: 0, body: "fetch failed" }, { status: 503, body: "<html>" }]) {
