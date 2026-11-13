@@ -3827,8 +3827,8 @@
  "taifex/BlockTradeNegotiation": {
   "id": "taifex/BlockTradeNegotiation",
   "source": "taifex",
-  "summary": "期貨市場鉅額交易議價申報成交",
-  "description": "期貨市場鉅額交易議價申報成交",
+  "summary": "鉅額交易議價申報成交",
+  "description": "鉅額交易議價申報成交",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3849,8 +3849,8 @@
  "taifex/BlockTrade": {
   "id": "taifex/BlockTrade",
   "source": "taifex",
-  "summary": "期貨市場鉅額交易各商品成交資訊",
-  "description": "期貨市場鉅額交易各商品成交資訊",
+  "summary": "鉅額交易各商品成交資訊",
+  "description": "鉅額交易各商品成交資訊",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3869,8 +3869,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheDate",
   "source": "taifex",
-  "summary": "期貨市場三大法人-總表-依日期",
-  "description": "期貨市場三大法人-總表-依日期",
+  "summary": "三大法人-總表-依日期",
+  "description": "三大法人-總表-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3894,8 +3894,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersGeneralBytheWeek",
   "source": "taifex",
-  "summary": "期貨市場三大法人-總表-依週別",
-  "description": "期貨市場三大法人-總表-依週別",
+  "summary": "三大法人-總表-依週別",
+  "description": "三大法人-總表-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3920,8 +3920,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheDate",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分期貨與選擇權二類-依日期",
-  "description": "期貨市場三大法人-區分期貨與選擇權二類-依日期",
+  "summary": "三大法人-區分期貨與選擇權二類-依日期",
+  "description": "三大法人-區分期貨與選擇權二類-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3957,8 +3957,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDividedByFuturesAndOptionsBytheWeek",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分期貨與選擇權二類-依週別",
-  "description": "期貨市場三大法人-區分期貨與選擇權二類-依週別",
+  "summary": "三大法人-區分期貨與選擇權二類-依週別",
+  "description": "三大法人-區分期貨與選擇權二類-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -3995,8 +3995,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheDate",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分各期貨契約-依日期",
-  "description": "期貨市場三大法人-區分各期貨契約-依日期",
+  "summary": "三大法人-區分各期貨契約-依日期",
+  "description": "三大法人-區分各期貨契約-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4021,8 +4021,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfFuturesContractsBytheWeek",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分各期貨契約-依週別",
-  "description": "期貨市場三大法人-區分各期貨契約-依週別",
+  "summary": "三大法人-區分各期貨契約-依週別",
+  "description": "三大法人-區分各期貨契約-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4048,8 +4048,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheDate",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分各選擇權契約-依日期",
-  "description": "期貨市場三大法人-區分各選擇權契約-依日期",
+  "summary": "三大法人-區分各選擇權契約-依日期",
+  "description": "三大法人-區分各選擇權契約-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4074,8 +4074,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfOptionsContractsBytheWeek",
   "source": "taifex",
-  "summary": "期貨市場三大法人-區分各選擇權契約-依週別",
-  "description": "期貨市場三大法人-區分各選擇權契約-依週別",
+  "summary": "三大法人-區分各選擇權契約-依週別",
+  "description": "三大法人-區分各選擇權契約-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4101,8 +4101,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheDate",
   "source": "taifex",
-  "summary": "期貨市場三大法人-選擇權買賣權分計-依日期",
-  "description": "期貨市場三大法人-選擇權買賣權分計-依日期",
+  "summary": "三大法人-選擇權買賣權分計-依日期",
+  "description": "三大法人-選擇權買賣權分計-依日期",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4128,8 +4128,8 @@
  "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek": {
   "id": "taifex/MarketDataOfMajorInstitutionalTradersDetailsOfCallsAndPutsBytheWeek",
   "source": "taifex",
-  "summary": "期貨市場三大法人-選擇權買賣權分計-依週別",
-  "description": "期貨市場三大法人-選擇權買賣權分計-依週別",
+  "summary": "三大法人-選擇權買賣權分計-依週別",
+  "description": "三大法人-選擇權買賣權分計-依週別",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4272,8 +4272,8 @@
  "taifex/FinalSettlementPrice": {
   "id": "taifex/FinalSettlementPrice",
   "source": "taifex",
-  "summary": "期貨商品最後結算價",
-  "description": "期貨商品最後結算價",
+  "summary": "最後結算價",
+  "description": "最後結算價",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4305,8 +4305,8 @@
  "taifex/IndexFuturesAndOptionsMargining": {
   "id": "taifex/IndexFuturesAndOptionsMargining",
   "source": "taifex",
-  "summary": "期貨保證金一覽表-股價指數類",
-  "description": "期貨保證金一覽表-股價指數類",
+  "summary": "保證金一覽表-股價指數類",
+  "description": "保證金一覽表-股價指數類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4337,8 +4337,8 @@
  "taifex/GoldFuturesAndOptionsMargining": {
   "id": "taifex/GoldFuturesAndOptionsMargining",
   "source": "taifex",
-  "summary": "期貨保證金一覽表-商品類",
-  "description": "期貨保證金一覽表-商品類",
+  "summary": "保證金一覽表-商品類",
+  "description": "保證金一覽表-商品類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4353,8 +4353,8 @@
  "taifex/SingleStockFuturesMargining": {
   "id": "taifex/SingleStockFuturesMargining",
   "source": "taifex",
-  "summary": "期貨保證金一覽表-股票類",
-  "description": "期貨保證金一覽表-股票類",
+  "summary": "保證金一覽表-股票類",
+  "description": "保證金一覽表-股票類",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4373,8 +4373,8 @@
  "taifex/SingleStockFuturesETFMargining": {
   "id": "taifex/SingleStockFuturesETFMargining",
   "source": "taifex",
-  "summary": "期貨保證金一覽表-股票類(ETF)",
-  "description": "期貨保證金一覽表-股票類(ETF)",
+  "summary": "保證金一覽表-股票類(ETF)",
+  "description": "保證金一覽表-股票類(ETF)",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4392,8 +4392,8 @@
  "taifex/AcceptableCollateralGovernmentBonds": {
   "id": "taifex/AcceptableCollateralGovernmentBonds",
   "source": "taifex",
-  "summary": "期貨市場有價證券保證金之可抵繳標的-公債",
-  "description": "期貨市場有價證券保證金之可抵繳標的-公債",
+  "summary": "有價證券保證金之可抵繳標的-公債",
+  "description": "有價證券保證金之可抵繳標的-公債",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4407,8 +4407,8 @@
  "taifex/AcceptableCollateralInternationalBonds": {
   "id": "taifex/AcceptableCollateralInternationalBonds",
   "source": "taifex",
-  "summary": "期貨市場有價證券保證金之可抵繳標的-國際債",
-  "description": "期貨市場有價證券保證金之可抵繳標的-國際債",
+  "summary": "有價證券保證金之可抵繳標的-國際債",
+  "description": "有價證券保證金之可抵繳標的-國際債",
   "tags": [
    "期貨與選擇權"
   ],
@@ -4422,8 +4422,8 @@
  "taifex/AcceptableCollateralStock": {
   "id": "taifex/AcceptableCollateralStock",
   "source": "taifex",
-  "summary": "期貨市場有價證券保證金之可抵繳標的-股票(含ETF)",
-  "description": "期貨市場有價證券保證金之可抵繳標的-股票(含ETF)",
+  "summary": "有價證券保證金之可抵繳標的-股票(含ETF)",
+  "description": "有價證券保證金之可抵繳標的-股票(含ETF)",
   "tags": [
    "期貨與選擇權"
   ],
@@ -5756,8 +5756,8 @@
  "taifex/AcceptableCollateralLogStock": {
   "id": "taifex/AcceptableCollateralLogStock",
   "source": "taifex",
-  "summary": "有價證券保證金之可抵繳標的增刪紀錄(股票類含ETF)",
-  "description": "有價證券保證金之可抵繳標的增刪紀錄(股票類含ETF)",
+  "summary": "有價證券保證金之可抵繳標的增刪紀錄",
+  "description": "有價證券保證金之可抵繳標的增刪紀錄",
   "tags": [
    "期貨與選擇權"
   ],
